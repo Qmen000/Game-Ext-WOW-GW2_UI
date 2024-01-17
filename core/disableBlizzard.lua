@@ -51,7 +51,7 @@ local function DisableBlizzardFrames()
     local ourPartyFrames = GW.settings.PARTY_FRAMES
     local ourRaidFrames = GW.settings.RAID_FRAMES
     local ourBossFrames = GW.settings.QUESTTRACKER_ENABLED and not GW.IsIncompatibleAddonLoadedOrOverride("Objectives", true)
-    local ourArenaFrames = not C_AddOns.IsAddOnLoaded("sArena") and GW.settings.QUESTTRACKER_ENABLED and not GW.IsIncompatibleAddonLoadedOrOverride("Objectives", true)
+    local ourArenaFrames = GW.settings.ARENA_FRAMES and not C_AddOns.IsAddOnLoaded("sArena") and GW.settings.QUESTTRACKER_ENABLED and not GW.IsIncompatibleAddonLoadedOrOverride("Objectives", true)
     local ourPetFrame = GW.settings.PETBAR_ENABLED
     local ourTargetFrame = GW.settings.TARGET_ENABLED
     local ourTargetTargetFrame = GW.settings.target_TARGET_ENABLED

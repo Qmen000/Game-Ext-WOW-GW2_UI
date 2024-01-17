@@ -40,6 +40,7 @@ local function LoadModulesPanel(sWindow)
     addOption(p.scroll.scrollchild, L["Group Frames"], L["Replace the default UI group frames."], "PARTY_FRAMES", function() GW.ShowRlPopup = true end)
     addOption(p.scroll.scrollchild, BINDING_NAME_TOGGLECHARACTER0, L["Replace the default character window."], "USE_CHARACTER_WINDOW", function() GW.ShowRlPopup = true end)
     addOption(p.scroll.scrollchild, SPELLBOOK_ABILITIES_BUTTON, L["Enable the spellbook replacement."], "USE_SPELLBOOK_WINDOW", function() GW.ShowRlPopup = true end)
+    addOption(p.scroll.scrollchild, L["Arena Frames"], L["Replace the default UI group frames."], "ARENA_FRAMES", function() GW.ShowRlPopup = true end)
     addOption(p.scroll.scrollchild, TALENTS, L["Enable the talents, specialization replacement."], "USE_TALENT_WINDOW", function() GW.ShowRlPopup = true end)
     addOption(p.scroll.scrollchild, BATTLEGROUND, nil, "USE_BATTLEGROUND_HUD", function() GW.ShowRlPopup = true end)
     addOption(p.scroll.scrollchild, CAMERA_FOLLOWING_STYLE .. ": " .. DYNAMIC, nil, "DYNAMIC_CAM",
