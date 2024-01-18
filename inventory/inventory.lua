@@ -1,5 +1,6 @@
 local _, GW = ...
 local setItemLevel = GW.setItemLevel
+GW.ReagantRow = 0
 
 -- global for this deprecated in 8.3; from ContainerFrame.lua
 local MAX_CONTAINER_ITEMS = 36
@@ -606,6 +607,7 @@ local function snapFrameSize(f, cfs, size, padding, min_height)
 
     local cols = f == GwBagFrame and f.gw_bag_cols or f.gw_bank_cols
     local sep = f == GwBagFrame and GW.settings.BAG_SEPARATE_BAGS or false
+    local sepR = f == GwBagFrame and GW.settings.BAG_SEPARATE_REAGENT_BAG or false
 
     if not cfs then
         f:SetHeight(min_height)
@@ -642,6 +644,9 @@ local function snapFrameSize(f, cfs, size, padding, min_height)
         rows = f.finishedRow + bags_equipped + 1 + f.unfinishedRow
     else
         rows = math.ceil(slots / cols)
+        if sepR then
+            rows = rows + GW.ReagantRow
+        end
     end
     f:SetHeight(max((isize * rows) + 75, min_height))
     f:SetWidth((isize * cols) + padding + 2)

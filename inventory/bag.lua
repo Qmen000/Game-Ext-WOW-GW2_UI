@@ -36,6 +36,7 @@ local function layoutBagItems(f)
     local col = 0
     local rev = GW.settings.BAG_REVERSE_SORT
     local sep = GW.settings.BAG_SEPARATE_BAGS
+    local sepR = GW.settings.BAG_SEPARATE_REAGENT_BAG
     local row = sep and 1 or 0
     local item_off = BAG_ITEM_SIZE + BAG_ITEM_PADDING
     local unfinishedRow = false
@@ -51,7 +52,7 @@ local function layoutBagItems(f)
     end
     f:GetParent().unfinishedRow = 0
     f:GetParent().finishedRow = 0
-
+    
     local lcf = inv.layoutContainerFrame
     for i = iS, iE, iD do
         local bag_id = i
@@ -74,6 +75,24 @@ local function layoutBagItems(f)
         elseif not sep then
             col, row, unfinishedRow, finishedRows = lcf(cf, max_col, row, col, false, item_off)
             cf:Show()
+        end
+
+        if sepR and NUM_TOTAL_EQUIPPED_BAG_SLOTS == bag_id then
+            _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS]:Show()
+            _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS]:ClearAllPoints()
+            _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS]:SetPoint("TOPLEFT", f, "TOPLEFT", 0, (-row + 1) * item_off)
+            _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS]:SetWidth(BAG_WINDOW_SIZE - BAG_ITEM_PADDING)
+            _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS].background:SetWidth(BAG_WINDOW_SIZE - BAG_ITEM_PADDING)
+            local rowstart = row
+            col = 0
+            col, row, unfinishedRow, finishedRows = lcf(cf, max_col, row, col, false, item_off)
+            if cf.shouldShow then
+                GW.ReagantRow = row - rowstart
+                cf:Show()
+            else
+                GW.ReagantRow = -1
+                cf:Hide()
+            end
         end
 
         if unfinishedRow then f:GetParent().unfinishedRow = f:GetParent().unfinishedRow  + 1 end
@@ -851,6 +870,18 @@ local function LoadBag(helpers)
             end
         )
 
+        dd.separateReagentBag.checkbutton:HookScript(
+            "OnClick",
+            function()
+                local newStatus = not GW.settings.BAG_SEPARATE_REAGENT_BAG
+                dd.separateReagentBag.checkbutton:SetChecked(newStatus)
+                GW.settings.BAG_SEPARATE_REAGENT_BAG = newStatus
+                layoutItems(f)
+                snapFrameSize(f)
+                dd:Hide()
+            end
+        )
+
         dd.compactBags.checkbutton:SetChecked(GW.settings.BAG_ITEM_SIZE == BAG_ITEM_COMPACT_SIZE)
         dd.newOrder.checkbutton:SetChecked(GW.settings.BAG_REVERSE_NEW_LOOT)
         dd.sortOrder.checkbutton:SetChecked(GW.settings.BAG_ITEMS_REVERSE_SORT)
@@ -863,6 +894,7 @@ local function LoadBag(helpers)
         dd.vendorGrays.checkbutton:SetChecked(GW.settings.BAG_VENDOR_GRAYS)
         dd.showItemLvl.checkbutton:SetChecked(GW.settings.BAG_SHOW_ILVL)
         dd.separateBags.checkbutton:SetChecked(GW.settings.BAG_SEPARATE_BAGS)
+        dd.separateReagentBag.checkbutton:SetChecked(GW.settings.BAG_SEPARATE_REAGENT_BAG)
 
         GW.SetupVendorJunk(dd.vendorGrays.checkbutton:GetChecked())
 
@@ -879,6 +911,7 @@ local function LoadBag(helpers)
         dd.vendorGrays.title:SetText(L["Sell junk automatically"])
         dd.showItemLvl.title:SetText(SHOW_ITEM_LEVEL)
         dd.separateBags.title:SetText(L["Separate bags"])
+        dd.separateReagentBag.title:SetText(L["Separate Reagent Bag"])
     end
 
     -- setup money frame

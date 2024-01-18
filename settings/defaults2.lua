@@ -112,6 +112,7 @@ GW.globalDefault = {
         BAG_VENDOR_GRAYS= false,
         BAG_SHOW_ILVL= false,
         BAG_SEPARATE_BAGS= false,
+        BAG_SEPARATE_REAGENT_BAG= false,
         BAG_HEADER_NAME0= "",
         BAG_HEADER_NAME1= "",
         BAG_HEADER_NAME2= "",
