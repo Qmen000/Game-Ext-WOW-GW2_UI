@@ -15,6 +15,16 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("6.13.3",{
+    {ct.bug, [=[Remove print statement]=]},
+})
+
+addChange("6.13.2",{
+    {ct.bug, [=[Fix profile page error]=]},
+    {ct.bug, [=[Fix db migration error]=]},
+    {ct.bug, [=[Handle evoker soar correct]=]},
+})
+
 addChange("6.13.1",{
     {ct.bug, [=[Fix error a profile rename]=]},
 })

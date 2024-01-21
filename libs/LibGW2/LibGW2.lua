@@ -6,6 +6,7 @@ if not lib then return end
 local CallbackHandler = LibStub:GetLibrary("CallbackHandler-1.0")
 local CoordsStopTimer = nil
 local CoordsTicker = nil
+local activeDragonridingBuffs = {}
 
 lib.callbacks = CallbackHandler:New(lib)
 
@@ -125,8 +126,10 @@ do
         end
     end
 
-    local function UpdateDragonRidingState(isLogin, useDelay)
-        if IsMounted() then
+    local function UpdateDragonRidingState(isLogin, useDelay, dragonridingBuffActive)
+        if dragonridingBuffActive then
+            lib.isDragonRiding = true
+        elseif IsMounted() then
             local dragonridingSpellIds = C_MountJournal.GetCollectedDragonridingMounts()
             lib.isDragonRiding = false
             for _, mountId in ipairs(dragonridingSpellIds) do
@@ -159,6 +162,27 @@ do
             local isLogin, isReload = ...do
                 UpdateDragonRidingState(isLogin or isReload, true)
             end
+        elseif event == "UNIT_AURA" then
+            local updateInfo = select(2, ...)
+            if updateInfo.addedAuras then
+                for _, data in next, updateInfo.addedAuras do
+                    if data.spellId == 369536 then --soar from evoker
+                        activeDragonridingBuffs[data.auraInstanceID] = data
+                        UpdateDragonRidingState(nil, nil, true)
+                        break
+                    end
+                end
+            end
+
+            if updateInfo.removedAuraInstanceIDs then
+				for _, auraInstanceID in next, updateInfo.removedAuraInstanceIDs do
+                    if activeDragonridingBuffs[auraInstanceID] then
+                        activeDragonridingBuffs[auraInstanceID] = nil
+                        UpdateDragonRidingState(nil, nil, false)
+                        break
+                    end
+                end
+            end
         else
             MapInfoUpdateMapId()
             lib.locationData.instanceMapID = select(8, GetInstanceInfo())
@@ -179,5 +203,6 @@ do
     frame:RegisterEvent("PLAYER_STOPPED_MOVING")
     frame:RegisterEvent("PLAYER_CONTROL_LOST")
     frame:RegisterEvent("PLAYER_CONTROL_GAINED")
+    frame:RegisterUnitEvent("UNIT_AURA", "player")
     frame:SetScript("OnEvent", HandleEvents)
 end
