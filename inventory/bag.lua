@@ -87,7 +87,7 @@ local function layoutBagItems(f)
             col = 0
             col, row, unfinishedRow, finishedRows = lcf(cf, max_col, row, col, false, item_off)
             if cf.shouldShow then
-                GW.ReagantRow = row - rowstart
+                GW.ReagantRow = row - rowstart + 1
                 cf:Show()
             else
                 GW.ReagantRow = -1
