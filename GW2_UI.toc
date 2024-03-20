@@ -8,6 +8,8 @@
 ## X-Curse-Project-ID: 94310
 ## X-Wago-ID: Mj6jXpGR
 ## DefaultState: Enabled
+## AddonCompartmentFuncOnEnter: GW2_ADDON_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: GW2_ADDON_OnAddonCompartmentLeave
 ## AddonCompartmentFunc: GW2_ADDON_AddonCompartmentOnClickFunc
 ## IconTexture: Interface\AddOns\GW2_UI\Textures\gwlogo
 
@@ -123,18 +125,15 @@ social\raf.lua
 social\ignoreList.lua
 social\social.lua
 
-units\raidControl.xml
 units\aurabar.xml
 units\target.xml
 units\target.lua
 units\party.xml
 units\unitframes.xml
-units\raidControl.lua
 units\unitframes.lua
 units\party.lua
-units\markers.lua
 units\playerFrame.lua
-units\raidMarker.lua
+
 
 units\grid\elements\gridFrameAuraIndicator.xml
 units\grid\elements\privateAura.lua
@@ -161,6 +160,11 @@ units\grid\maintank.lua
 units\grid\constructor.lua
 units\grid\configEnvironment.lua
 
+mainbar\raidControl.xml
+mainbar\raidControl.lua
+mainbar\raidCounter.lua
+mainbar\worldmarkersKeybind.lua
+mainbar\raidMarkerCircle.lua
 mainbar\upcomingSpells.xml
 mainbar\upcomingSpells.lua
 mainbar\micromenu.xml

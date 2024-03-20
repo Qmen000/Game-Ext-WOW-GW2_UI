@@ -1058,7 +1058,16 @@ GW.globalDefault = {
         WORLD_EVENTS_SUPER_BLOOM_STOP_ALERT_IF_COMPLETED= true,
         WORLD_EVENTS_SUPER_BLOOM_FLASH_TASKBAR= true,
 
+        WORLD_EVENTS_BIG_DIG_ENABLED= true,
+        WORLD_EVENTS_BIG_DIG_DESATURATE= false,
+        WORLD_EVENTS_BIG_DIG_ALERT= true,
+        WORLD_EVENTS_BIG_DIG_ALERT_SECONDS= 600,
+        WORLD_EVENTS_BIG_DIGSTOP_ALERT_IF_COMPLETED= true,
+        WORLD_EVENTS_BIG_DIG_FLASH_TASKBAR= true,
+
         SHOW_CHARACTER_ITEM_INFO= false,
+
+        pulltimerSeconds = 10,
 
         IncompatibleAddons = {
             Actionbars = {
