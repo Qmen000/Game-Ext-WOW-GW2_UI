@@ -139,7 +139,7 @@ local function hookItemQuality(button, quality, itemIDOrLink, suppressOverlays)
             if C_AzeriteEmpoweredItem.IsAzeriteEmpoweredItemByID(itemIDOrLink) then
                 button.IconOverlay:SetAtlas("AzeriteIconFrame")
                 button.IconOverlay:Show()
-            elseif IsCorruptedItem(itemIDOrLink) then
+            elseif C_Item.IsCorruptedItem(itemIDOrLink) then
                 button.IconOverlay:SetAtlas("Nzoth-inventory-icon")
                 button.IconOverlay:Show()
             end
@@ -195,21 +195,6 @@ local function hookItemQuality(button, quality, itemIDOrLink, suppressOverlays)
     end
 end
 GW.AddForProfiling("inventory", "hookItemQuality", hookItemQuality)
-
-local function hookQuestItemBorder(self)
-    local id = self:GetID()
-    local name = self:GetName()
-
-    for i = 1, self.size, 1 do
-        local itemButton = _G[name .. "Item" .. i]
-        local itemInfo = GW.GetContainerItemQuestInfo(id, itemButton:GetID())
-        if itemButton.IconQuestTexture then
-            if itemInfo.questID or itemInfo.isQuestItem then
-                itemButton.IconQuestTexture:SetTexture("Interface/AddOns/GW2_UI/textures/bag/stancebar-border")
-            end
-        end
-    end
-end
 
 local bag_resize
 local bank_resize
@@ -749,6 +734,7 @@ local function LoadInventory()
 
     if BagBarExpandToggle then
         BagBarExpandToggle:SetParent(GW.HiddenFrame)
+        SetCVar("expandBagBar", "1")
     end
     item_size = GW.settings.BAG_ITEM_SIZE
 

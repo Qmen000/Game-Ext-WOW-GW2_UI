@@ -15,6 +15,24 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("6.14.7",{
+    {ct.change, [=[Prepare for 10.2.7]=]},
+})
+
+addChange("6.14.6",{
+    {ct.bug, [=[Fix GW2 slash commands]=]},
+    {ct.bug, [=[Fix merchant frame next/prev page button position]=]},
+    {ct.bug, [=[Fix lua error if our minimap is disableds]=]},
+    {ct.bug, [=[Fix character itemlevel was not shown]=]},
+})
+
+addChange("6.14.5",{
+    {ct.bug, [=[Party frame visibility]=]},
+})
+
+addChange("6.14.4",{
+    {ct.bug, [=[Tooltip M+ lua error]=]},
+})
 
 addChange("6.14.3",{
     {ct.bug, [=[Party visibility]=]},

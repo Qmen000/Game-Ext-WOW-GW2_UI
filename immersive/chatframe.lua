@@ -797,12 +797,7 @@ local function AddMessage(self, msg, infoR, infoG, infoB, infoID, accessID, type
 end
 
 -- copied from ChatFrame.lua
-local function GetPFlag(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17)
-    -- Renaming for clarity:
-    local specialFlag = arg6
-    local zoneChannelID = arg7
-    --local localChannelID = arg8
-
+local function GetPFlag(specialFlag, zoneChannelID, localChannelID)
     if specialFlag ~= "" then
         if specialFlag == "GM" or specialFlag == "DEV" then
             -- Add Blizzard Icon if this was sent by a GM/DEV
@@ -950,7 +945,7 @@ local function MessageFormatter(frame, info, chatType, chatGroup, chatTarget, ch
     end
 
     -- Player Flags
-    local pflag = GetPFlag(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17)
+    local pflag = GetPFlag(arg6, arg7, arg8)
 
     -- LFG Role Flags
     local lfgRole = (chatType == "PARTY_LEADER" or chatType == "PARTY" or chatType == "RAID" or chatType == 'RAID_LEADER' or chatType == 'INSTANCE_CHAT' or chatType == 'INSTANCE_CHAT_LEADER') and lfgRoles[playerName]
@@ -1267,7 +1262,7 @@ local function ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg
             -- The message formatter is captured so that the original message can be reformatted when a censored message
             -- is approved to be shown. We only need to pack the event args if the line was censored, as the message transformation
             -- step is the only code that needs these arguments. See ItemRef.lua "censoredmessage".
-            local isChatLineCensored, eventArgs, msgFormatter = C_ChatInfo.IsChatLineCensored and C_ChatInfo.IsChatLineCensored(arg11) -- arg11: lineID
+            local isChatLineCensored, eventArgs, msgFormatter = C_ChatInfo.IsChatLineCensored(arg11) -- arg11: lineID
             if isChatLineCensored then
                 eventArgs = _G.SafePack(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17)
                 msgFormatter = function(msg) -- to translate the message on click [Show Message]
