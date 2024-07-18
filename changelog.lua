@@ -15,6 +15,19 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("6.14.10",{
+    {ct.bug, [=[Show character item info now works correctly]=]},
+    {ct.change, [=[Export some api]=]},
+})
+
+addChange("6.14.9",{
+    {ct.change, [=[Export some api]=]},
+})
+
+addChange("6.14.8",{
+    {ct.change, [=[Update toc]=]},
+})
+
 addChange("6.14.7",{
     {ct.change, [=[Prepare for 10.2.7]=]},
 })

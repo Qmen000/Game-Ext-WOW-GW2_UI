@@ -6,9 +6,9 @@ GW.ReagantRow = 0
 local MAX_CONTAINER_ITEMS = 36
 
 -- reskins an ItemButton to use GW2_UI styling
-local item_size
-local function reskinItemButton(iname, b)
-    b:SetSize(item_size, item_size)
+local function reskinItemButton(iname, b, overrideIconSize)
+    local iconSize = overrideIconSize or GW.settings.BAG_ITEM_SIZE
+    b:SetSize(iconSize, iconSize)
 
     b.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     b.icon:SetAllPoints(b)
@@ -38,9 +38,9 @@ local function reskinItemButton(iname, b)
     b.Count:SetFont(UNIT_NAME_FONT, 12, "THINOUTLINED")
     b.Count:SetJustifyH("RIGHT")
 
-    local qtex = b.IconQuestTexture or _G[iname .. "IconQuestTexture"]
+    local qtex = b.IconQuestTexture or (iname and _G[iname .. "IconQuestTexture"])
     if qtex then
-        qtex:SetSize(item_size + 2, item_size + 2)
+        qtex:SetSize(iconSize + 2, iconSize + 2)
         qtex:ClearAllPoints()
         qtex:SetPoint("CENTER", b, "CENTER", 0, 0)
     end
@@ -71,8 +71,15 @@ local function reskinItemButton(iname, b)
         b.itemlevel:SetText("")
     end
 
-    GW.RegisterCooldown(_G[b:GetName() .. "Cooldown"])
+    if iname then
+        GW.RegisterCooldown(_G[iname .. "Cooldown"])
+    elseif b.cooldown then
+        GW.RegisterCooldown(b.cooldown)
+    elseif b.Cooldown then
+        GW.RegisterCooldown(b.Cooldown)
+    end
 end
+GW.SkinBagItemButton = reskinItemButton
 GW.AddForProfiling("inventory", "reskinItemButton", reskinItemButton)
 
 local function reskinItemButtons()
@@ -194,14 +201,13 @@ local function hookItemQuality(button, quality, itemIDOrLink, suppressOverlays)
     button:GetItemButtonIconTexture():Hide()
     end
 end
+GW.SetBagItemButtonQualitySkin = hookItemQuality
 GW.AddForProfiling("inventory", "hookItemQuality", hookItemQuality)
 
 local bag_resize
 local bank_resize
 local function resizeInventory()
-    item_size = GW.settings.BAG_ITEM_SIZE
-    if item_size > 40 then
-        item_size = 40
+    if GW.settings.BAG_ITEM_SIZE > 40 then
         GW.settings.BAG_ITEM_SIZE = 40
     end
     reskinItemButtons()
@@ -361,6 +367,7 @@ local function reskinSearchBox(sb)
 
     sb.searchIcon:Hide()
 end
+GW.SkinBagSearchBox = reskinSearchBox
 GW.AddForProfiling("inventory", "reskinSearchBox", reskinSearchBox)
 
 -- (re)steals the default search boxes
@@ -736,7 +743,6 @@ local function LoadInventory()
         BagBarExpandToggle:SetParent(GW.HiddenFrame)
         SetCVar("expandBagBar", "1")
     end
-    item_size = GW.settings.BAG_ITEM_SIZE
 
     -- anytime a ContainerFrame has its anchors set, we re-hide it
     hooksecurefunc("UpdateContainerFrameAnchors", hookUpdateAnchors)
