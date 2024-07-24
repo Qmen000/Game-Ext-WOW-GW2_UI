@@ -12,7 +12,7 @@ local function GetGraysValue()
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             local itemLink = C_Container.GetContainerItemLink(bag, slot)
             if itemLink then
-                local _, _, rarity, _, _, itype, _, _, _, _, itemPrice = GetItemInfo(itemLink)
+                local _, _, rarity, _, _, itype, _, _, _, _, itemPrice = C_Item.GetItemInfo(itemLink)
                 if itemPrice then
                     local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
                     local stackPrice = itemPrice * (itemInfo.stackCount or 1)
@@ -30,31 +30,23 @@ end
 local function Money_OnClick(self, button)
     if button == "RightButton" then
         if IsShiftKeyDown() then
-            local menuList = {}
-            tinsert(menuList, { text = DELETE, isTitle = true, notCheckable = true })
+            MenuUtil.CreateContextMenu(self, function(ownerRegion, rootDescription)
+                rootDescription:CreateTitle(DELETE)
 
-            local list = GetStorage(nil, "REALM")
-            if list then
-                for _, char in pairs(list) do
-                    if char and type(char) == "table" then
-                        if char.money and char.money >= 0 then
-                            tinsert(menuList,
-                            {
-                                text = format("%s - %s", char.name, char.faction),
-                                notCheckable = true,
-                                func = function()
+                local list = GetStorage(nil, "REALM")
+                if list then
+                    for _, char in pairs(list) do
+                        if char and type(char) == "table" then
+                            if char.money and char.money >= 0 then
+                                rootDescription:CreateButton(format("%s - %s", char.name, char.faction), function()
                                     ClearStorage(nil, char.name)
-                                    UpdateCharData()
-                                end
-                            })
+                                        UpdateCharData()
+                                end)
+                            end
                         end
-
                     end
                 end
-
-                GW.SetEasyMenuAnchor(GW.EasyMenu, self)
-                GW.Libs.LibDD:EasyMenu(menuList, GW.EasyMenu, nil, nil, nil, "MENU")
-            end
+            end)
         elseif IsControlKeyDown() then
             GW.earnedMoney = 0
             GW.spentMoney = 0
@@ -137,6 +129,8 @@ local function Money_OnEnter(self)
         end
 
         GameTooltip:AddDoubleLine(TOTAL .. ":", FormatMoneyForChat(totalAlliance + totalHorde + totalFactionless), 1, 1, 1, 1, 1, 1)
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddDoubleLine(L["Warband:"], FormatMoneyForChat(C_Bank.FetchDepositedMoney(Enum.BankType.Account) or 0), 1, 1, 1, 1, 1, 1)
 
         GameTooltip:AddLine(" ")
         C_WowTokenPublic.UpdateMarketPrice()

@@ -451,6 +451,43 @@ local function GwSkinScrollBar(frame)
     end
 end
 
+local function GwHandleDropDownBox(frame, backdropTemplate, hookLayout, dropdownTag)
+    local text = frame.Text
+	if frame.Arrow then frame.Arrow:SetAlpha(0) end
+
+	frame:SetWidth(155)
+	frame:GwStripTextures()
+	if backdropTemplate then
+        frame:GwCreateBackdrop(backdropTemplate, true)
+        frame.backdrop:SetBackdropColor(0, 0, 0)
+    else
+        frame:GwCreateBackdrop(GW.BackdropTemplates.StatusBar)
+    end
+    frame:SetFrameLevel(frame:GetFrameLevel() + 2)
+    frame.backdrop:SetPoint("TOPLEFT", 5, -2)
+    frame.backdrop:SetPoint("BOTTOMRIGHT", -2, -2)
+
+	local tex = frame:CreateTexture(nil, 'ARTWORK')
+	tex:SetTexture("Interface/AddOns/GW2_UI/Textures/uistuff/arrowup_down")
+	tex:SetPoint('RIGHT', frame.backdrop, -3, 0)
+    tex:SetRotation(3.14)
+	tex:SetSize(14, 14)
+
+    if text then
+        text:ClearAllPoints()
+        text:SetPoint("LEFT", frame, "LEFT", 8, 0)
+        text:SetFont(UNIT_NAME_FONT, 12, "")
+        text:SetTextColor(178 / 255, 178 / 255, 178 / 255)
+        text:SetHeight(frame:GetHeight())
+        text:SetJustifyH("LEFT")
+        text:SetJustifyV("MIDDLE")
+    end
+
+    if hookLayout then
+        HandleBlizzardRegions(frame)
+    end
+end
+
 local function GwSkinDropDownMenu(frame, buttonPaddindX, backdropTemplate, textBoxRightOffset)
     local frameName = frame.GetName and frame:GetName()
     local button = frame.Button or frameName and (_G[frameName .. "Button"] or _G[frameName .. "_Button"])
@@ -671,6 +708,7 @@ local function addapi(object)
     if not object.GwSetInside then mt.GwSetInside = GwSetInside end
     if not object.GwStyleButton then mt.GwStyleButton = GwStyleButton end
     if not object.GwKillEditMode then mt.GwKillEditMode = GwKillEditMode end
+    if not object.GwHandleDropDownBox then mt.GwHandleDropDownBox = GwHandleDropDownBox end
 end
 
 local handled = {Frame = true}

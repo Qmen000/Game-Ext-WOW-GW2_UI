@@ -171,9 +171,9 @@ local function hook_EJSuggestFrame_UpdateRewards(sugg)
 
         local r, g, b = 1, 1, 1
         if rewardData.itemID then
-            local quality = select(3, GetItemInfo(rewardData.itemID))
+            local quality = select(3, C_Item.GetItemInfo(rewardData.itemID))
             if quality and quality > 1 then
-                r, g, b = GetItemQualityColor(quality)
+                r, g, b = C_Item.GetItemQualityColor(quality)
             end
         end
         sugg.reward.icon.backdrop:SetBackdropBorderColor(r, g, b)
@@ -190,6 +190,40 @@ local function ItemSetsItemBorder(border, atlas)
         else
             backdrop:SetBackdropBorderColor(1, 1, 1)
         end
+    end
+end
+local function ItemSetElements(set)
+    if not set.backdrop then
+        set:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true)
+    end
+
+    if set.Background then
+        set.Background:Hide()
+    end
+
+    if set.ItemButtons then
+        for _, button in next, set.ItemButtons do
+            local icon = button.Icon
+            if icon and not icon.backdrop then
+                GW.HandleIcon(icon, true, GW.BackdropTemplates.DefaultWithColorableBorder)
+            end
+
+            local border = button.Border
+            if border and not border.IsSkinned then
+                border:SetAlpha(0)
+
+                ItemSetsItemBorder(border, border:GetAtlas()) -- handle first one
+                hooksecurefunc(border, 'SetAtlas', ItemSetsItemBorder)
+
+                border.IsSkinned = true
+            end
+        end
+    end
+end
+
+local function HandleItemSetsElements(scrollBox)
+    if scrollBox then
+        scrollBox:ForEachFrame(ItemSetElements)
     end
 end
 
@@ -242,13 +276,14 @@ local function encounterJournalSkin()
     local InstanceSelect = EJ.instanceSelect
     InstanceSelect.bg:GwKill()
 
-    InstanceSelect.tierDropDown:GwSkinDropDownMenu()
+    InstanceSelect.ExpansionDropdown:GwHandleDropDownBox(nil, nil, "MENU_EJ_EXPANSION")
+    GW.HandleTrimScrollBar(InstanceSelect.ScrollBar)
     EncounterJournalInstanceSelectBG:SetAlpha(0)
     EncounterJournalMonthlyActivitiesFrame.Bg:SetAlpha(0)
-    GW.HandleTrimScrollBar(EncounterJournalMonthlyActivitiesFrame.ScrollBar, true)
+    GW.HandleTrimScrollBar(EncounterJournalMonthlyActivitiesFrame.ScrollBar)
     GW.HandleScrollControls(EncounterJournalMonthlyActivitiesFrame)
 
-    GW.HandleTrimScrollBar(InstanceSelect.ScrollBar, true)
+    GW.HandleTrimScrollBar(InstanceSelect.ScrollBar)
     GW.HandleScrollControls(InstanceSelect)
 
     local tabs = {EncounterJournalMonthlyActivitiesTab, EncounterJournalSuggestTab, EncounterJournalDungeonTab, EncounterJournalRaidTab, EncounterJournalLootJournalTab}
@@ -293,12 +328,17 @@ local function encounterJournalSkin()
     EncounterInfo.difficulty:ClearAllPoints()
     EncounterInfo.difficulty:SetPoint("BOTTOMRIGHT", EncounterJournalEncounterFrameInfoBG, "TOPRIGHT", -5, 7)
     HandleButton(EncounterInfo.reset)
-    HandleButton(EncounterInfo.difficulty, true)
+    EncounterInfo.difficulty:GwHandleDropDownBox(nil, true, "MENU_EJ_DIFFICULTY")
 
     EncounterInfo.reset:ClearAllPoints()
     EncounterInfo.reset:SetPoint("TOPRIGHT",EncounterInfo.difficulty, "TOPLEFT", -10, 0)
     EncounterJournalEncounterFrameInfoResetButtonTexture:SetTexture([[Interface\EncounterJournal\UI-EncounterJournalTextures]])
     EncounterJournalEncounterFrameInfoResetButtonTexture:SetTexCoord(0.90625000, 0.94726563, 0.00097656, 0.02050781)
+
+    EncounterInfo.LootContainer.filter:ClearAllPoints()
+    EncounterInfo.LootContainer.filter:SetPoint('RIGHT', EncounterInfo.difficulty, 'LEFT', -120, 0)
+    EncounterInfo.LootContainer.filter:GwHandleDropDownBox(nil, nil, "MENU_EJ_LOOT_JOURNAL")
+    EncounterInfo.LootContainer.slotFilter:GwHandleDropDownBox(nil, nil, "MENU_EJ_LOOT_SLOT_FILTER")
 
     GW.HandleTrimScrollBar(EncounterInfo.BossesScrollBar, true)
     GW.HandleScrollControls(EncounterInfo, "BossesScrollBar")
@@ -430,15 +470,9 @@ local function encounterJournalSkin()
         item2.IconBorder:GwKill()
     end
 
-    --Powers
     local LJ = EJ.LootJournal
-    HandleButton(LJ.ClassDropDownButton, true)
-    LJ.ClassDropDownButton:SetFrameLevel(10)
-    HandleButton(LJ.RuneforgePowerFilterDropDownButton, true)
-    LJ.RuneforgePowerFilterDropDownButton:SetFrameLevel(10)
-
-    GW.HandleTrimScrollBar(EncounterJournal.LootJournal.ScrollBar, true)
-    GW.HandleScrollControls(EncounterJournal.LootJournal)
+    GW.HandleTrimScrollBar(LJ.ScrollBar, true)
+    GW.HandleScrollControls(LJ)
 
     for _, button in next, {EncounterJournalEncounterFrameInfoFilterToggle, EncounterJournalEncounterFrameInfoSlotFilterToggle } do
         HandleButton(button, true)
@@ -582,46 +616,16 @@ local function encounterJournalSkin()
         parchment:GwKill()
     end
 
-    local LootDropdown = EncounterJournalLootJournalViewDropDown
-    LootDropdown:GwSkinDropDownMenu()
-    LootDropdown:SetScript("OnShow", function(dd) dd:SetFrameLevel(5) end) -- might be able to hook a function later; hotfix builds didn"t export Blizzard_LootJournalItems.xml
-
     do -- Item Sets
         local ItemSetsFrame = EJ.LootJournalItems.ItemSetsFrame
-        HandleButton(ItemSetsFrame.ClassButton, true)
         GW.HandleTrimScrollBar(ItemSetsFrame.ScrollBar, true)
         GW.HandleScrollControls(ItemSetsFrame)
+        ItemSetsFrame.ClassDropdown:GwHandleDropDownBox()
 
         EJ.LootJournalItems:GwStripTextures()
         EJ.LootJournalItems:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true)
 
-        hooksecurefunc(ItemSetsFrame, "UpdateList", function(frame)
-            if frame.buttons then
-                for _, button in ipairs(frame.buttons) do
-                    if button and not button.backdrop then
-                        button:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true)
-                        button.Background:Hide()
-                    end
-                end
-            end
-        end)
-
-        hooksecurefunc(ItemSetsFrame, "ConfigureItemButton", function(_, button)
-            if not button.Icon then return end
-
-            if not button.Icon.backdrop then
-                GW.HandleIcon(button.Icon, true)
-            end
-
-            if button.Border and not button.Border.isSkinned then
-                button.Border:SetAlpha(0)
-
-                ItemSetsItemBorder(button.Border, button.Border:GetAtlas()) -- handle first one
-                hooksecurefunc(button.Border, "SetAtlas", ItemSetsItemBorder)
-
-                button.Border.isSkinned = true
-            end
-        end)
+        hooksecurefunc(ItemSetsFrame.ScrollBox, "Update", HandleItemSetsElements)
     end
 end
 AFP("encounterJournalSkin", encounterJournalSkin)

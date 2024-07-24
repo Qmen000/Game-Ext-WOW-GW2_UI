@@ -129,9 +129,21 @@ local function getNearestQuestPOI()
     end
 
     if closestQuestID then
-        local _, poiX, poiY = QuestPOIGetIconInfo(closestQuestID)
+        local poiX, poiY
         if isWQ then
             poiX, poiY = C_TaskQuest.GetQuestLocation(closestQuestID, GW.Libs.GW2Lib:GetPlayerLocationMapID())
+        else
+            local questsOnMap = C_QuestLog.GetQuestsOnMap(GW.Libs.GW2Lib:GetPlayerLocationMapID())
+
+            if questsOnMap then
+                for _, info in ipairs(questsOnMap) do
+                    if info.questID == closestQuestID then
+                        poiX = info.x
+                        poiY = info.y
+                        break
+                    end
+                end
+            end
         end
 
         if poiX then

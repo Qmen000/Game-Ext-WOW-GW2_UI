@@ -6,7 +6,8 @@ GW.ReagantRow = 0
 local MAX_CONTAINER_ITEMS = 36
 
 -- reskins an ItemButton to use GW2_UI styling
-local function reskinItemButton(iname, b, overrideIconSize)
+local function reskinItemButton(b, overrideIconSize)
+    if not b then return end
     local iconSize = overrideIconSize or GW.settings.BAG_ITEM_SIZE
     b:SetSize(iconSize, iconSize)
 
@@ -18,7 +19,29 @@ local function reskinItemButton(iname, b, overrideIconSize)
     b.IconBorder:SetTexture("Interface/AddOns/GW2_UI/textures/bag/bagitemborder")
 
     local norm = b:GetNormalTexture()
-    norm:SetTexture(nil)
+    norm:GwKill()
+    b:ClearNormalTexture()
+
+    if b.NormalTexture then
+        b.NormalTexture:SetTexture()
+    end
+
+    if not b.ItemSlotBackground then
+        b.ItemSlotBackground = b:CreateTexture(nil, "BACKGROUND", "ItemSlotBackgroundCombinedBagsTemplate", -6);
+		b.ItemSlotBackground:SetAllPoints(b)
+    end
+
+    if b.Background then
+        b.Background:Hide()
+    end
+
+    b.ItemSlotBackground:Hide()
+    if not b.ItemSlotBackgroundHooked then
+        hooksecurefunc(b.ItemSlotBackground, "SetShown", function()
+            b.ItemSlotBackground:Hide()
+        end)
+        b.ItemSlotBackgroundHooked = true
+    end
 
     local high = b:GetHighlightTexture()
     high:SetAllPoints(b)
@@ -38,11 +61,10 @@ local function reskinItemButton(iname, b, overrideIconSize)
     b.Count:SetFont(UNIT_NAME_FONT, 12, "THINOUTLINED")
     b.Count:SetJustifyH("RIGHT")
 
-    local qtex = b.IconQuestTexture or (iname and _G[iname .. "IconQuestTexture"])
-    if qtex then
-        qtex:SetSize(iconSize + 2, iconSize + 2)
-        qtex:ClearAllPoints()
-        qtex:SetPoint("CENTER", b, "CENTER", 0, 0)
+    if b.IconQuestTexture then
+        b.IconQuestTexture:SetSize(iconSize + 2, iconSize + 2)
+        b.IconQuestTexture:ClearAllPoints()
+        b.IconQuestTexture:SetPoint("CENTER", b, "CENTER", 0, 0)
     end
 
     if b.flash then
@@ -71,9 +93,7 @@ local function reskinItemButton(iname, b, overrideIconSize)
         b.itemlevel:SetText("")
     end
 
-    if iname then
-        GW.RegisterCooldown(_G[iname .. "Cooldown"])
-    elseif b.cooldown then
+    if b.cooldown then
         GW.RegisterCooldown(b.cooldown)
     elseif b.Cooldown then
         GW.RegisterCooldown(b.Cooldown)
@@ -82,18 +102,37 @@ end
 GW.SkinBagItemButton = reskinItemButton
 GW.AddForProfiling("inventory", "reskinItemButton", reskinItemButton)
 
+
+-- is needed for first setup of the bag (skinniing)
+local function UpdateContainerItems(self)
+    for _, itemButton in self:EnumerateValidItems() do
+        if itemButton then
+            local bagID = itemButton:GetBagID();
+
+            local info = C_Container.GetContainerItemInfo(bagID, itemButton:GetID())
+            local texture = info and info.iconFileID
+            local quality = info and info.quality
+            local itemLink = info and info.hyperlink
+            local isBound = info and info.isBound
+
+            itemButton:SetHasItem(texture);
+            itemButton:SetItemButtonTexture(texture)
+            SetItemButtonQuality(itemButton, quality, itemLink, false, isBound);
+        end
+	end
+end
+
 local function reskinItemButtons()
     for i = 1, NUM_CONTAINER_FRAMES do
-        for j = 1, MAX_CONTAINER_ITEMS do
-            local iname = "ContainerFrame" .. i .. "Item" .. j
-            local b = _G[iname]
-            if b then
-                reskinItemButton(iname, b)
+        local container = _G["ContainerFrame" .. i]
+        for _, slot in next, container.Items do
+            if slot then
+                reskinItemButton(slot)
             end
         end
+        UpdateContainerItems(container)
     end
 end
-GW.AddForProfiling("inventory", "reskinItemButtons", reskinItemButtons)
 
 local function CheckUpdateIcon_OnUpdate(self, elapsed)
     self.timeSinceUpgradeCheck = (self.timeSinceUpgradeCheck or 0) + elapsed
@@ -130,6 +169,7 @@ local function hookItemQuality(button, quality, itemIDOrLink, suppressOverlays)
     local t = button.IconBorder
     t:SetTexture("Interface/AddOns/GW2_UI/textures/bag/bagitemborder")
     t:SetAlpha(0.9)
+    t:SetVertexColor(BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Common].r, BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Common].g, BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Common].b)
 
     if not GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW then
         t:SetVertexColor(BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Common].r, BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Common].g, BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Common].b)
@@ -189,6 +229,11 @@ local function hookItemQuality(button, quality, itemIDOrLink, suppressOverlays)
             button.itemlevel:SetText("")
         end
 
+        if GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW and quality and quality > 0 then
+            t:SetVertexColor(BAG_ITEM_QUALITY_COLORS[quality].r, BAG_ITEM_QUALITY_COLORS[quality].g, BAG_ITEM_QUALITY_COLORS[quality].b)
+        end
+
+        t:Show()
         button:GetItemButtonIconTexture():Show()
     else
         if button.junkIcon then button.junkIcon:Hide() end
@@ -198,7 +243,7 @@ local function hookItemQuality(button, quality, itemIDOrLink, suppressOverlays)
             button:SetScript("OnUpdate", nil)
         end
         if button.itemlevel then button.itemlevel:SetText("") end
-    button:GetItemButtonIconTexture():Hide()
+        button:GetItemButtonIconTexture():Hide()
     end
 end
 GW.SetBagItemButtonQualitySkin = hookItemQuality
@@ -238,7 +283,7 @@ local function freeItemButtons(cf, p)
     -- return all of the ItemButtons we previously took before taking new ones, as long as
     -- we are still the frame that took them to start with (bank/bag might have grabbed
     -- them from each other in the mean-time)
-    if cf.gw_source ~= nil then
+    if cf and cf.gw_source ~= nil then
         for i = 1, MAX_CONTAINER_ITEMS do
             local item = cf.gw_items[i]
             if item and item.gw_owner ~= nil and item.gw_owner == p then
@@ -271,31 +316,48 @@ local function takeItemButtons(p, bag_id)
     freeItemButtons(cf, p)
 
     local iname
+    local useItemsTable = true
     if bag_id == BANK_CONTAINER then
+        useItemsTable = false
         iname = "BankFrameItem"
         cf.gw_source = nil -- we never have to give back the bank ItemButtons
     elseif bag_id == REAGENTBANK_CONTAINER then
+        useItemsTable = false
         iname = "ReagentBankFrameItem"
         cf.gw_source = nil -- we never have to give back reagentbank ItemButtons
+        --TODO new Bank
     else
         local b = getContainerFrame(bag_id)
         if not b then
             return
         end
         cf.gw_source = b
-        iname = b:GetName() .. "Item"
+        iname = b:GetName()
     end
     cf.gw_owner = p
 
     local num_slots = ContainerFrame_GetContainerNumSlots(bag_id)
     cf.gw_num_slots = num_slots
 
-    for i = 1, max(MAX_CONTAINER_ITEMS, num_slots) do
-        local item = _G[iname .. i]
-        if item then
-            item:SetParent(cf)
-            item.gw_owner = p
-            cf.gw_items[i] = item
+    if useItemsTable then
+        local container = _G[iname]
+        local idx = 1
+        for _, item in next, container.Items do
+            if item then
+                item:SetParent(cf)
+                item.gw_owner = p
+                cf.gw_items[idx] = item
+                idx = idx + 1
+            end
+        end
+    else
+        for i = 1, max(MAX_CONTAINER_ITEMS, num_slots) do
+            local item = _G[iname .. i]
+            if item then
+                item:SetParent(cf)
+                item.gw_owner = p
+                cf.gw_items[i] = item
+            end
         end
     end
 end
@@ -401,103 +463,79 @@ local function ContainerFrame_IsBackpack(id)
     return id == Enum.BagIndex.Backpack;
 end
 
-local ContainerFrameFilterDropDown_Initialize = nil
-
-do
-    local function OnBagFilterClicked(bagID, filterID, value)
-        C_Container.SetBagSlotFlag(bagID, filterID, value);
-        ContainerFrameSettingsManager:SetFilterFlag(bagID, filterID, value);
-    end
-    local function AddButtons_BagFilters(bagID, level)
-        if not ContainerFrame_CanContainerUseFilterMenu(bagID) then
-            return;
-        end
-
-        local info = GW.Libs.LibDD:UIDropDownMenu_CreateInfo();
-        info.text = BAG_FILTER_ASSIGN_TO;
-        info.isTitle = 1;
-        info.notCheckable = 1;
-        GW.Libs.LibDD:UIDropDownMenu_AddButton(info, L_UIDROPDOWNMENU_MENU_LEVEL);
-
-        info = GW.Libs.LibDD:UIDropDownMenu_CreateInfo();
-        local activeBagFilter = ContainerFrameSettingsManager:GetFilterFlag(bagID);
-
-        for _, flag in ContainerFrameUtil_EnumerateBagGearFilters() do
-            info.text = BAG_FILTER_LABELS[flag];
-            info.checked = activeBagFilter == flag;
-            info.func = function(_, _, _, value)
-                return OnBagFilterClicked(bagID, flag, not value);
-            end
-
-            GW.Libs.LibDD:UIDropDownMenu_AddButton(info, L_UIDROPDOWNMENU_MENU_LEVEL);
-        end
+local function AddButtons_BagFilters(description, bagID)
+    if not ContainerFrame_CanContainerUseFilterMenu(bagID) then
+        return
     end
 
-    local function AddButtons_BagCleanup(bagID, level)
-        local info = GW.Libs.LibDD:UIDropDownMenu_CreateInfo();
+    description:CreateTitle(BAG_FILTER_ASSIGN_TO)
 
-        info.text = BAG_FILTER_IGNORE;
-        info.isTitle = 1;
-        info.notCheckable = 1;
-        GW.Libs.LibDD:UIDropDownMenu_AddButton(info, L_UIDROPDOWNMENU_MENU_LEVEL);
-
-        info = GW.Libs.LibDD:UIDropDownMenu_CreateInfo();
-        info.text = BAG_FILTER_CLEANUP;
-        info.func = function(_, _, _, value)
-            if ContainerFrame_IsMainBank(bagID) then
-                C_Container.SetBankAutosortDisabled(not value);
-            elseif ContainerFrame_IsBackpack(bagID) then
-                C_Container.SetBackpackAutosortDisabled(not value);
-            else
-                C_Container.SetBagSlotFlag(bagID, Enum.BagSlotFlags.DisableAutoSort, not value);
-            end
-        end
-
-        if ContainerFrame_IsMainBank(bagID) then
-            info.checked = C_Container.GetBankAutosortDisabled();
-        elseif ContainerFrame_IsBackpack(bagID) then
-            info.checked = C_Container.GetBackpackAutosortDisabled();
-        else
-            info.checked = C_Container.GetBagSlotFlag(bagID, Enum.BagSlotFlags.DisableAutoSort);
-        end
-
-        GW.Libs.LibDD:UIDropDownMenu_AddButton(info, L_UIDROPDOWNMENU_MENU_LEVEL);
-
-        -- ignore junk selling from this bag or backpack
-        if not ContainerFrame_IsMainBank(bagID) then
-            info = GW.Libs.LibDD:UIDropDownMenu_CreateInfo();
-            info.text = SELL_ALL_JUNK_ITEMS_EXCLUDE_FLAG;
-            info.func = function(_, _, _, value)
-                if ContainerFrame_IsBackpack(bagID) then
-                    C_Container.SetBackpackSellJunkDisabled(not value);
-                else
-                    C_Container.SetBagSlotFlag(bagID, Enum.BagSlotFlags.ExcludeJunkSell, not value);
-                end
-            end
-
-            if ContainerFrame_IsBackpack(bagID) then
-                info.checked = C_Container.GetBackpackSellJunkDisabled();
-            else
-                info.checked = C_Container.GetBagSlotFlag(bagID, Enum.BagSlotFlags.ExcludeJunkSell);
-            end
-
-            GW.Libs.LibDD:UIDropDownMenu_AddButton(info, L_UIDROPDOWNMENU_MENU_LEVEL);
-        end
+    local function IsSelected(flag)
+        return C_Container.GetBagSlotFlag(bagID, flag)
     end
 
-    ContainerFrameFilterDropDown_Initialize = function(self, level)
-        local frame = self:GetParent();
-        local bagID = frame:GetBagID();
-        if not (ContainerFrame_IsHeldBag(bagID) or ContainerFrame_IsBankBag(bagID)) then
-            return;
-        end
-
-        AddButtons_BagFilters(bagID, level);
-        AddButtons_BagCleanup(bagID, level);
+    local function SetSelected(flag)
+        local value = not IsSelected(flag)
+        C_Container.SetBagSlotFlag(bagID, flag, value)
+        ContainerFrameSettingsManager:SetFilterFlag(bagID, flag, value)
     end
 
+    for i, flag in ContainerFrameUtil_EnumerateBagGearFilters() do
+        local checkbox = description:CreateCheckbox(BAG_FILTER_LABELS[flag], IsSelected, SetSelected, flag)
+        checkbox:SetResponse(MenuResponse.Close)
+    end
 end
 
+local function AddButtons_BagCleanup(description, bagID)
+    description:CreateTitle(BAG_FILTER_IGNORE);
+
+    do
+        local function IsSelected()
+            if ContainerFrame_IsMainBank(bagID) then
+                return C_Container.GetBankAutosortDisabled();
+            elseif ContainerFrame_IsBackpack(bagID) then
+                return C_Container.GetBackpackAutosortDisabled();
+            end
+            return C_Container.GetBagSlotFlag(bagID, Enum.BagSlotFlags.DisableAutoSort);
+        end
+
+        local function SetSelected()
+            local value = not IsSelected();
+            if ContainerFrame_IsMainBank(bagID) then
+                C_Container.SetBankAutosortDisabled(value);
+            elseif ContainerFrame_IsBackpack(bagID) then
+                C_Container.SetBackpackAutosortDisabled(value);
+            else
+                C_Container.SetBagSlotFlag(bagID, Enum.BagSlotFlags.DisableAutoSort, value);
+            end
+        end
+
+        local checkbox = description:CreateCheckbox(BAG_FILTER_CLEANUP, IsSelected, SetSelected);
+        checkbox:SetResponse(MenuResponse.Close);
+    end
+
+    -- ignore junk selling from this bag or backpack
+    if not ContainerFrame_IsMainBank(bagID) then
+        local function IsSelected()
+            if ContainerFrame_IsBackpack(bagID) then
+                return C_Container.GetBackpackSellJunkDisabled();
+            end
+            return C_Container.GetBagSlotFlag(bagID, Enum.BagSlotFlags.ExcludeJunkSell);
+        end
+
+        local function SetSelected()
+            local value = not IsSelected();
+            if ContainerFrame_IsBackpack(bagID) then
+                C_Container.SetBackpackSellJunkDisabled(value);
+            else
+                C_Container.SetBagSlotFlag(bagID, Enum.BagSlotFlags.ExcludeJunkSell, value);
+            end
+        end
+
+        local checkbox = description:CreateCheckbox(SELL_ALL_JUNK_ITEMS_EXCLUDE_FLAG, IsSelected, SetSelected);
+        checkbox:SetResponse(MenuResponse.Close);
+    end
+end
 
 local function bag_OnMouseDown(self, button)
     if button ~= "RightButton" then
@@ -511,13 +549,14 @@ local function bag_OnMouseDown(self, button)
     if self.gwHasBag or bag_id == BACKPACK_CONTAINER then
         local cf = getContainerFrame(bag_id)
         if cf then
-            if not cf.FilterDopDownGw2 then
-                cf.FilterDopDownGw2 = CreateFrame("Frame", "$parentFilterDropDownGw2", cf, "UIDropDownMenuTemplate")
-                GW.Libs.LibDD:UIDropDownMenu_Initialize(cf.FilterDopDownGw2, ContainerFrameFilterDropDown_Initialize, "MENU")
-            end
+            MenuUtil.CreateContextMenu(self, function(ownerRegion, rootDescription)
+                if not (ContainerFrame_IsHeldBag(bag_id) or ContainerFrame_IsBankBag(bag_id)) then
+                    return
+                end
 
-            PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-            GW.Libs.LibDD:ToggleDropDownMenu(1, nil, cf.FilterDopDownGw2, "cursor")
+                AddButtons_BagFilters(rootDescription, bag_id);
+                AddButtons_BagCleanup(rootDescription, bag_id);
+            end)
         end
     end
 end
@@ -563,12 +602,6 @@ local function layoutContainerFrame(cf, max_col, row, col, rev, item_off)
 end
 GW.AddForProfiling("inventory", "layoutContainerFrame", layoutContainerFrame)
 
-local function updateFreeSpaceString(free, full)
-    local bank_space_string = free .. " / " .. full
-    GwBankFrame.spaceString:SetText(bank_space_string)
-end
-GW.AddForProfiling("inventory", "updateFreeSpaceString", updateFreeSpaceString)
-
 -- update the number of free bank slots available and set the display for it
 local function updateFreeSlots(sp_str, start_idx, end_idx, opt_container)
     if not sp_str or not sp_str.SetText then
@@ -607,9 +640,14 @@ local function snapFrameSize(f, cfs, size, padding, min_height)
     end
 
     local slots = 0
-    for _, cf in pairs(cfs) do
-        if cf.gw_num_slots then
-            slots = slots + cf.gw_num_slots
+
+    if f == GwBankFrame and f.AccountFrame:IsShown() then
+        slots = slots + cfs.gw_num_slots
+    else
+        for _, cf in pairs(cfs) do
+            if cf.gw_num_slots then
+                slots = slots + cf.gw_num_slots
+            end
         end
     end
 
@@ -760,18 +798,12 @@ local function LoadInventory()
         end
     end
 
-    --hooksecurefunc("ContainerFrameItemButton_UpdateItemUpgradeIcon", CheckUpdateIcon)
-
-    -- reskin all the multi-use ContainerFrame ItemButtons
-    reskinItemButtons()
-
     -- whenever an ItemButton sets its quality ensure our custom border is being used
     hooksecurefunc("SetItemButtonQuality", hookItemQuality)
 
-    --hooksecurefunc("ContainerFrame_Update", hookQuestItemBorder)
-
     local helpers = {}
     helpers.reskinItemButton = reskinItemButton
+    helpers.reskinItemButtons = reskinItemButtons
     helpers.resizeInventory = resizeInventory
     helpers.getContainerFrame = getContainerFrame
     helpers.takeItemButtons = takeItemButtons
@@ -791,7 +823,7 @@ local function LoadInventory()
     helpers.onMoverDragStop = onMoverDragStop
 
     bag_resize = GW.LoadBag(helpers)
-    bank_resize = GW.LoadBank(helpers) --TODO OpenAllBags() causes a taint
+    bank_resize = GW.LoadBank(helpers) --TODO NEW Bank
 
     -- Skin StackSplit
     StackSplitFrame:GwStripTextures()

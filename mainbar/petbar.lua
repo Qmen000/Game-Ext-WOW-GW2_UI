@@ -27,7 +27,7 @@ local function SetPetActionButtonPositionAndStyle(self)
         local lastButton = _G["PetActionButton" .. (i - 1)]
         local lastColumnButton = _G["PetActionButton5"]
         local buttonShine = _G["PetActionButton" .. i .. "Shine"]
-        local autoCast = button.AutoCastable
+        local autoCast = button.AutoCastOverlay
         local point, relativeFrame, relativePoint, x, y
 
         button:SetScale(1)
@@ -116,9 +116,9 @@ local function UpdateAutoCast()
         local _, _, _, _, _, autoCastEnabled = GetPetActionInfo(i)
 
         if autoCastEnabled then
-            button.AutoCastable:Show()
+            button.AutoCastOverlay:Show()
         else
-            button.AutoCastable:Hide()
+            button.AutoCastOverlay:Hide()
         end
     end
 end
@@ -127,8 +127,7 @@ local function UpdatePetActionBar(self, event, unit)
     if (event == "UNIT_FLAGS" and unit ~= "pet") or (event == "UNIT_PET" and unit ~= "player") then return end
 
     for i, button in ipairs(self.buttons) do
-        local name, texture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID = GetPetActionInfo(i)
-        local autoCast = button.AutoCastable
+        local name, texture, isToken, isActive, _, _, spellID = GetPetActionInfo(i)
         button:SetAlpha(1)
         button.isToken = isToken
         button.icon:Show()

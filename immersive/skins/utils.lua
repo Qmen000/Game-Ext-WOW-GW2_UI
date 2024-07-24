@@ -1,165 +1,5 @@
 local _, GW = ...
 
-local function SkinUIDropDownMenu()
-    hooksecurefunc("UIDropDownMenu_CreateFrames", function(level, index)
-        local listFrame = _G["DropDownList" .. level]
-        local listFrameName = listFrame:GetName()
-        local expandArrow = _G[listFrameName .. "Button" .. index .. "ExpandArrow"];
-        if expandArrow then
-            expandArrow:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down")
-            expandArrow:SetPushedTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down")
-            expandArrow:SetDisabledTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down")
-            expandArrow:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down")
-        end
-
-        local Backdrop = _G[listFrameName .. "Backdrop"]
-        if Backdrop and not Backdrop.template then
-            Backdrop:GwStripTextures()
-            Backdrop:GwCreateBackdrop(GW.BackdropTemplates.Default)
-        end
-
-        local menuBackdrop = _G[listFrameName .. "MenuBackdrop"]
-        if menuBackdrop and not menuBackdrop.template then
-            menuBackdrop:GwStripTextures()
-            menuBackdrop:GwCreateBackdrop(GW.BackdropTemplates.Default)
-        end
-    end)
-
-    --Same for LibDropDown
-    hooksecurefunc(GW.Libs.LibDD, "UIDropDownMenu_CreateFrames", function(self, level, index)
-        local listFrame = _G["L_DropDownList" .. level]
-        local listFrameName = listFrame:GetName()
-        local expandArrow = _G[listFrameName .. "Button" .. index .. "ExpandArrow"];
-        if expandArrow then
-            expandArrow:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down")
-            expandArrow:SetPushedTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down")
-            expandArrow:SetDisabledTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down")
-            expandArrow:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down")
-        end
-
-        local Backdrop = _G[listFrameName .. "Backdrop"]
-        if Backdrop and not Backdrop.template then
-            Backdrop:GwStripTextures()
-            Backdrop:GwCreateBackdrop(GW.BackdropTemplates.Default)
-        end
-
-        local menuBackdrop = _G[listFrameName .. "MenuBackdrop"]
-        if menuBackdrop and not menuBackdrop.template then
-            menuBackdrop:GwStripTextures()
-            menuBackdrop:GwCreateBackdrop(GW.BackdropTemplates.Default)
-        end
-    end)
-end
-
-local function SkinDropDownList()
-    hooksecurefunc("ToggleDropDownMenu", function(level)
-        if not level then
-            level = 1
-        end
-
-        for i = 1, _G.UIDROPDOWNMENU_MAXBUTTONS do
-            local button = _G["DropDownList" .. level .. "Button" .. i]
-            local check = _G["DropDownList" .. level .. "Button" .. i .. "Check"]
-            local uncheck = _G["DropDownList" .. level .. "Button" .. i .. "UnCheck"]
-            local arrow = _G["DropDownList" .. level .. "Button" .. i .. "ExpandArrow"]
-            local highlight = _G["DropDownList" .. level .. "Button" .. i .. "Highlight"]
-
-            highlight:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/button_hover")
-            highlight:SetBlendMode("BLEND")
-            highlight:SetDrawLayer("BACKGROUND")
-            highlight:SetAlpha(0.5)
-            highlight:GwSetOutside(button, 8)
-
-            check:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkboxchecked")
-            check:SetTexCoord(unpack(GW.TexCoords))
-            check:SetSize(13, 13)
-            uncheck:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkbox")
-            uncheck:SetTexCoord(unpack(GW.TexCoords))
-            uncheck:SetSize(13, 13)
-            if not button.backdrop then
-                button:GwCreateBackdrop()
-            end
-
-            if button.hasArrow then
-                arrow:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrow_right")
-            end
-
-            if not button.notCheckable then
-                button.backdrop:Show()
-            else
-                button.backdrop:Hide()
-            end
-        end
-        --Check if Raider.IO Entry is added
-        if C_AddOns.IsAddOnLoaded("RaiderIO") and _G.RaiderIO_CustomDropDownList then
-            _G["RaiderIO_CustomDropDownListMenuBackdrop"]:Hide()
-            _G["RaiderIO_CustomDropDownList"]:GwCreateBackdrop(GW.BackdropTemplates.Default)
-        end
-    end)
-
-    hooksecurefunc("UIDropDownMenu_SetIconImage", function(icon, texture)
-        if texture:find("Divider") then
-            icon:SetColorTexture(1, 0.93, 0.73, 0.45)
-            icon:SetHeight(1)
-        end
-    end)
-
-    -- Same for LibUIDropDownMenu
-    hooksecurefunc(GW.Libs.LibDD, "ToggleDropDownMenu", function(self, level)
-        if not level then
-            level = 1
-        end
-
-        for i = 1, L_UIDROPDOWNMENU_MAXBUTTONS do
-            local button = _G["L_DropDownList" .. level .. "Button" .. i]
-            local check = _G["L_DropDownList" .. level .. "Button" .. i .. "Check"]
-            local uncheck = _G["L_DropDownList" .. level .. "Button" .. i .. "UnCheck"]
-            local arrow = _G["L_DropDownList" .. level .. "Button" .. i .. "ExpandArrow"]
-            local highlight = _G["L_DropDownList" .. level .. "Button" .. i .. "Highlight"]
-
-            highlight:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/button_hover")
-            highlight:SetBlendMode("BLEND")
-            highlight:SetDrawLayer("BACKGROUND")
-            highlight:SetAlpha(0.5)
-            highlight:GwSetOutside(button, 8)
-
-            check:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkboxchecked")
-            check:SetTexCoord(unpack(GW.TexCoords))
-            check:SetSize(13, 13)
-            uncheck:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkbox")
-            uncheck:SetTexCoord(unpack(GW.TexCoords))
-            uncheck:SetSize(13, 13)
-            if not button.backdrop then
-                button:GwCreateBackdrop()
-            end
-
-            if button.hasArrow then
-                arrow:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrow_right")
-            end
-
-            if not button.notCheckable then
-                button.backdrop:Show()
-            else
-                button.backdrop:Hide()
-            end
-        end
-    end)
-
-    hooksecurefunc(GW.Libs.LibDD, "UIDropDownMenu_SetIconImage", function(self, icon, texture)
-        if texture:find("Divider") then
-            icon:SetColorTexture(1, 0.93, 0.73, 0.45)
-            icon:SetHeight(1)
-        end
-    end)
-end
-
-local function LoadDropDownSkin()
-    if not GW.settings.DROPDOWN_SKIN_ENABLED then return end
-
-    SkinDropDownList()
-    SkinUIDropDownMenu()
-end
-GW.LoadDropDownSkin = LoadDropDownSkin
 --middle left right
 local function SkinTextBox(middleTex, leftTex, rightTex, topTex, bottomTex, leftOffset, rightOffset)
     if middleTex then
@@ -534,7 +374,7 @@ GW.HandleItemButton = HandleItemButton
 
 do
     local function handleButton(button, i, buttonNameTemplate)
-        local icon, texture = button.Icon or _G[buttonNameTemplate..i.."Icon"], ""
+        local icon, texture = button.Icon or _G[buttonNameTemplate..i.."Icon"]
         if icon then
             icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
             icon:GwSetInside(button)
@@ -564,6 +404,11 @@ do
         if borderBox then
             borderBox:GwStripTextures()
 
+            local dropdown = borderBox.IconTypeDropdown
+			if dropdown then
+				dropdown:GwHandleDropDownBox()
+			end
+
             local button = borderBox.SelectedIconArea and borderBox.SelectedIconArea.SelectedIconButton
             if button then
                 button:DisableDrawLayer("BACKGROUND")
@@ -583,7 +428,7 @@ do
             GW.SkinTextBox(editBox.IconSelectorPopupNameMiddle, editBox.IconSelectorPopupNameLeft, editBox.IconSelectorPopupNameRight, nil, nil, 5, 5)
         end
 
-        GW.HandleTrimScrollBar(frame.IconSelector.ScrollBar, true)
+        GW.HandleTrimScrollBar(frame.IconSelector.ScrollBar)
         GW.HandleScrollControls(frame.IconSelector)
 
         for _, button in next, {frame.IconSelector.ScrollBox.ScrollTarget:GetChildren()} do

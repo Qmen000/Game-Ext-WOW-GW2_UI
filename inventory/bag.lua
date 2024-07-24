@@ -16,8 +16,8 @@ local function setBagHeaders()
 
         if itemID then
             local r, g, b = 1, 1, 1
-            local itemName, _, itemRarity = GetItemInfo(itemID)
-            if itemRarity then r, g, b = GetItemQualityColor(itemRarity) end
+            local itemName, _, itemRarity = C_Item.GetItemInfo(itemID)
+            if itemRarity then r, g, b = C_Item.GetItemQualityColor(itemRarity) end
 
             _G["GwBagFrameGwBagHeader" .. i].nameString:SetText(strlen(GW.settings["BAG_HEADER_NAME" .. i]) > 0 and GW.settings["BAG_HEADER_NAME" .. i] or itemName and itemName or UNKNOWN)
             _G["GwBagFrameGwBagHeader" .. i].nameString:SetTextColor(r, g, b, 1)
@@ -241,7 +241,7 @@ local function bag_OnClick(self, button)
         local id = self:GetID();
         local hadItem = PutItemInBag(id)
         if not hadItem and self.gwHasBag and not IsBagOpen(self:GetBagID()) then
-            --OpenBag(self:GetBagID()) --taint atm
+            OpenBag(self:GetBagID()) --taint atm
         end
     end
 end
@@ -330,11 +330,6 @@ local function createBagBar(f)
         b:SetScript("OnMouseDown", inv.bag_OnMouseDown)
 
         inv.reskinBagBar(b)
-
-        -- Hide default bag bar
-        --CharacterReagentBag0Slot:GwKill()
-        --CharacterReagentBag0Slot:SetScale(0.0001)
-        --CharacterReagentBag0Slot:SetAlpha(0)
 
         f.bags[NUM_BAG_SLOTS + 1] = b
     end
@@ -461,6 +456,7 @@ local function hookToggleBag(bag_id)
 end
 GW.AddForProfiling("bag", "hookToggleBag", hookToggleBag)
 
+
 local function bag_OnShow(self)
     PlaySound(SOUNDKIT.IG_BACKPACK_OPEN)
     self:RegisterEvent("ITEM_LOCKED")
@@ -469,17 +465,17 @@ local function bag_OnShow(self)
     self:RegisterEvent("BAG_UPDATE_DELAYED")
     self:RegisterEvent("CVAR_UPDATE")
     if not IsBagOpen(BACKPACK_CONTAINER) then
-        --OpenBackpack() --TODO: taint atm
+        OpenBackpack() --TODO: taint atm
     end
     for i = 1, NUM_TOTAL_EQUIPPED_BAG_SLOTS do
         if not IsBagOpen(i) then
-            --OpenBag(i) --TODO: taint atm
+            OpenBag(i) --TODO: taint atm
         end
     end
 
     updateBagBar(self.ItemFrame)
-    --updateBagContainers(self) -- Already triggered in 'rescanBagContainers'
     rescanBagContainers(self)
+    inv.reskinItemButtons()
 end
 GW.AddForProfiling("bag", "bag_OnShow", bag_OnShow)
 
@@ -528,7 +524,7 @@ local function bag_OnEvent(self, event, ...)
         if self.gw_need_bag_rescan then
             for bag_id = 1, NUM_TOTAL_EQUIPPED_BAG_SLOTS do
                 if not IsBagOpen(bag_id) then
-                    --OpenBag(bag_id) --TODO: taint atm
+                    OpenBag(bag_id) --TODO: taint atm
                 end
             end
             updateBagBar(self.ItemFrame)
@@ -654,6 +650,7 @@ local function LoadBag(helpers)
         cf:SetID(bag_id)
         --cf.BagID = bag_id
         cf.shouldShow = true
+        cf.IsCombinedBagContainer = function() return true end
         f.ItemFrame.Containers[bag_id] = cf
     end
 
@@ -785,7 +782,7 @@ local function LoadBag(helpers)
                 local newStatus = not GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW
                 dd.itemBorder.checkbutton:SetChecked(newStatus)
                 GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW = newStatus
-                --ContainerFrame_UpdateAll()  this is tainting
+                ContainerFrame_UpdateAll() -- this is tainting
             end
         )
 
@@ -795,7 +792,7 @@ local function LoadBag(helpers)
                 local newStatus = not GW.settings.BAG_ITEM_JUNK_ICON_SHOW
                 dd.junkIcon.checkbutton:SetChecked(newStatus)
                 GW.settings.BAG_ITEM_JUNK_ICON_SHOW = newStatus
-                --ContainerFrame_UpdateAll()  this is tainting
+                ContainerFrame_UpdateAll()  --this is tainting
             end
         )
 
@@ -805,7 +802,7 @@ local function LoadBag(helpers)
                 local newStatus = not GW.settings.BAG_ITEM_SCRAP_ICON_SHOW
                 dd.scrapIcon.checkbutton:SetChecked(newStatus)
                 GW.settings.BAG_ITEM_SCRAP_ICON_SHOW = newStatus
-                --ContainerFrame_UpdateAll() -- this is tainting
+                ContainerFrame_UpdateAll() -- this is tainting
             end
         )
 
@@ -815,7 +812,7 @@ local function LoadBag(helpers)
                 local newStatus = not GW.settings.BAG_ITEM_UPGRADE_ICON_SHOW
                 dd.upgradeIcon.checkbutton:SetChecked(newStatus)
                 GW.settings.BAG_ITEM_UPGRADE_ICON_SHOW = newStatus
-                --ContainerFrame_UpdateAll()  this is tainting
+                ContainerFrame_UpdateAll()  --this is tainting
             end
         )
 
@@ -825,7 +822,7 @@ local function LoadBag(helpers)
                 local newStatus = not GW.settings.BAG_PROFESSION_BAG_COLOR
                 dd.professionColor.checkbutton:SetChecked(newStatus)
                 GW.settings.BAG_PROFESSION_BAG_COLOR = newStatus
-                --ContainerFrame_UpdateAll() this is tainting
+                ContainerFrame_UpdateAll() --this is tainting
             end
         )
 
@@ -845,7 +842,7 @@ local function LoadBag(helpers)
                 local newStatus = not GW.settings.BAG_SHOW_ILVL
                 dd.showItemLvl.checkbutton:SetChecked(newStatus)
                 GW.settings.BAG_SHOW_ILVL = newStatus
-                --ContainerFrame_UpdateAll() this is tainting
+                ContainerFrame_UpdateAll() --this is tainting
             end
         )
 

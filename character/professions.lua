@@ -20,6 +20,19 @@ local profs = {
     ["393"] = {["tag"] = "skin", ["atlas"] = "gather", ["idx"] = 1}
 }
 
+local PROFESSION_RANKS =  {};
+PROFESSION_RANKS[1] = {75,  APPRENTICE};
+PROFESSION_RANKS[2] = {150, JOURNEYMAN};
+PROFESSION_RANKS[3] = {225, EXPERT};
+PROFESSION_RANKS[4] = {300, ARTISAN};
+PROFESSION_RANKS[5] = {375, MASTER};
+PROFESSION_RANKS[6] = {450, GRAND_MASTER};
+PROFESSION_RANKS[7] = {525, ILLUSTRIOUS};
+PROFESSION_RANKS[8] = {600, ZEN_MASTER};
+PROFESSION_RANKS[9] = {700, DRAENOR_MASTER};
+PROFESSION_RANKS[10] = {800, LEGION_MASTER};
+PROFESSION_RANKS[11] = {950, BATTLE_FOR_AZEROTH_MASTER};
+
 local function profButton_OnEnter(self)
     GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT", 0, 0)
     GameTooltip:ClearLines()
@@ -39,10 +52,12 @@ local profButtonSecure_OnDragStart =
 
 local function updateButton(self, spellIdx, unlearn)
     if spellIdx then
-        local tex = GetSpellBookItemTexture(spellIdx, BOOKTYPE_PROFESSION)
-        local name, _, spellId = GetSpellBookItemName(spellIdx, BOOKTYPE_PROFESSION)
+        local tex = C_SpellBook.GetSpellBookItemTexture(spellIdx, Enum.SpellBookSpellBank.Player)
+        local name = C_SpellBook.GetSpellBookItemName(spellIdx, Enum.SpellBookSpellBank.Player)
+        local spellBookItemInfo = C_SpellBook.GetSpellBookItemInfo(spellIdx, Enum.SpellBookSpellBank.Player)
+
         self.spellbookIndex = spellIdx
-        self.booktype = BOOKTYPE_PROFESSION
+        self.booktype = Enum.SpellBookSpellBank.Player
         self.skillName = name
         self.icon:SetTexture(tex)
         self.name:SetText(name)
@@ -52,7 +67,7 @@ local function updateButton(self, spellIdx, unlearn)
         self:SetAttribute("type2", "spell")
         self:SetAttribute("shift-type1", "modifiedClick")
         self:SetAttribute("shift-type2", "modifiedClick")
-        self:SetAttribute("spell", spellId)
+        self:SetAttribute("spell", spellBookItemInfo.spellID)
         self:SetAttribute("_ondragstart", profButtonSecure_OnDragStart)
         self:Enable()
         if unlearn then

@@ -846,12 +846,12 @@ GW.globalDefault = {
         CASTINGBAR_DATA= false,
         USE_CHARACTER_WINDOW= true,
         USE_TALENT_WINDOW= true,
-        USE_SPELLBOOK_WINDOW= true,
+        USE_PROFESSION_WINDOW= true,
 
         USE_SOCIAL_WINDOW= true,
 
-        AURAS_IGNORED= strjoin(", ", unpack(GW.MapTable(GW.AURAS_IGNORED, GetSpellInfo))),
-        AURAS_MISSING= strjoin(", ", unpack(GW.MapTable(GW.AURAS_MISSING, GetSpellInfo))),
+        AURAS_IGNORED= strjoin(", ", unpack(GW.MapTable(GW.AURAS_IGNORED, C_Spell.GetSpellInfo, nil, "name"))),
+        AURAS_MISSING= strjoin(", ", unpack(GW.MapTable(GW.AURAS_MISSING, C_Spell.GetSpellInfo, nil, "name"))),
         INDICATORS_ICON= false,
         INDICATORS_TIME= true,
         INDICATOR_BAR= {

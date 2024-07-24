@@ -289,7 +289,7 @@ local function fadeCheck(self, forceCombat)
             else
                 local inFocus = true
                 if fadeOption == "MOUSE_OVER" or fadeOption == "INCOMBAT" then
-                    if f:IsMouseOver(100, -100, -100, 100) then
+                    if f:IsMouseOver() then
                         inFocus = true
                     else
                         inFocus = false
@@ -499,11 +499,6 @@ local function setActionButtonStyle(buttonName, noBackDrop, isStanceButton, isPe
     if btn.SpellHighlightTexture then
         btn.SpellHighlightTexture:SetSize(btnWidth, btnWidth)
     end
-
-    if btn.HighlightTexture then
-        btn.HighlightTexture:SetSize(btnWidth, btnWidth)
-    end
-
     if btn.CooldownFlash then
         btn.CooldownFlash:GwSetOutside(btn, 4, 4)
     end

@@ -10,60 +10,6 @@ local AFP = GW.AddProfiling
 
 local questInfo = {}
 
-local function ObjectiveTracker_ToggleDropDown(frame, handlerFunc)
-	local dropDown = GW.Libs.LibDD:Create_UIDropDownMenu("GW2UIObjectiveTrackerBlockDropDown", UIParent)
-    dropDown:Hide()
-	if dropDown.activeFrame ~= frame then
-		GW.Libs.LibDD:CloseDropDownMenus()
-	end
-	dropDown.activeFrame = frame
-	dropDown.initialize = handlerFunc
-	GW.Libs.LibDD:ToggleDropDownMenu(1, nil, dropDown, "cursor", 3, -3)
-	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-end
-GW.ObjectiveTracker_ToggleDropDown = ObjectiveTracker_ToggleDropDown
-
-local function QuestObjectiveTracker_OnOpenDropDown(self)
-	local block = self.activeFrame;
-
-	local info = GW.Libs.LibDD:UIDropDownMenu_CreateInfo();
-	info.text = C_QuestLog.GetTitleForQuestID(block.id);
-	info.isTitle = 1;
-	info.notCheckable = 1;
-	GW.Libs.LibDD:UIDropDownMenu_AddButton(info, L_UIDROPDOWNMENU_MENU_LEVEL);
-
-	info = GW.Libs.LibDD:UIDropDownMenu_CreateInfo();
-	info.notCheckable = 1;
-
-	info.text = OBJECTIVES_VIEW_IN_QUESTLOG;
-	info.func = QuestObjectiveTracker_OpenQuestDetails;
-	info.arg1 = block.id;
-	info.noClickSound = 1;
-	info.checked = false;
-	GW.Libs.LibDD:UIDropDownMenu_AddButton(info, L_UIDROPDOWNMENU_MENU_LEVEL);
-
-	info.text = OBJECTIVES_STOP_TRACKING;
-	info.func = QuestObjectiveTracker_UntrackQuest;
-	info.arg1 = block.id;
-	info.checked = false;
-	GW.Libs.LibDD:UIDropDownMenu_AddButton(info, L_UIDROPDOWNMENU_MENU_LEVEL);
-
-	if ( C_QuestLog.IsPushableQuest(block.id) and IsInGroup() ) then
-		info.text = SHARE_QUEST;
-		info.func = QuestObjectiveTracker_ShareQuest;
-		info.arg1 = block.id;
-		info.checked = false;
-		GW.Libs.LibDD:UIDropDownMenu_AddButton(info, L_UIDROPDOWNMENU_MENU_LEVEL);
-	end
-
-	info.text = OBJECTIVES_SHOW_QUEST_MAP;
-	info.func = QuestObjectiveTracker_OpenQuestMap;
-	info.arg1 = block.id;
-	info.checked = false;
-	info.noClickSound = 1;
-	GW.Libs.LibDD:UIDropDownMenu_AddButton(info, L_UIDROPDOWNMENU_MENU_LEVEL);
-end
-
 local function IsQuestAutoTurnInOrAutoAccept(blockQuestID, checkType)
     for i = 1, GetNumAutoQuestPopUps() do
         local questID, popUpType = GetAutoQuestPopUp(i)
@@ -162,11 +108,11 @@ local function ParseSimpleObjective(text)
 end
 GW.ParseSimpleObjective = ParseSimpleObjective
 
-local function ParseCriteria(quantity, totalQuantity, criteriaString, isMythicKeystone, mythicKeystoneCurrentValue, isWeightedProgress)
+local function ParseCriteria(quantity, totalQuantity, criteriaString, isMythicKeystone, isWeightedProgress)
     if quantity ~= nil and totalQuantity ~= nil and criteriaString ~= nil then
         if isMythicKeystone then
             if isWeightedProgress then
-                return string.format("%.2f", (mythicKeystoneCurrentValue / totalQuantity * 100)) .."% " ..  string.format("(%s/%s) %s", mythicKeystoneCurrentValue, totalQuantity, criteriaString)
+                return string.format("%.2f", (quantity / totalQuantity * 100)) .."% " ..  string.format("(%s/%s) %s", quantity, totalQuantity, criteriaString)
             else
                 return string.format("%d/%d %s", quantity, totalQuantity, criteriaString)
             end
@@ -490,6 +436,8 @@ local function getBlockQuest(blockIndex, isFrequency)
     newBlock.actionButton:SetScript("OnLeave", GameTooltip_Hide)
     newBlock.actionButton:SetScript("OnEvent", QuestObjectiveItem_OnEvent)
 
+    Mixin(newBlock.actionButton, QuestObjectiveItemButtonMixin)
+
     return newBlock
 end
 AFP("getBlockQuest", getBlockQuest)
@@ -523,6 +471,8 @@ local function getBlockCampaign(blockIndex)
     newBlock.actionButton:SetScript("OnEnter", QuestObjectiveItem_OnEnter)
     newBlock.actionButton:SetScript("OnLeave", GameTooltip_Hide)
     newBlock.actionButton:SetScript("OnEvent", QuestObjectiveItem_OnEvent)
+
+    Mixin(newBlock.actionButton, QuestObjectiveItemButtonMixin)
 
     return newBlock
 end
@@ -649,7 +599,8 @@ local function UpdateQuestItem(block)
         SetItemButtonTexture(block.actionButton, item)
         SetItemButtonCount(block.actionButton, charges)
 
-        QuestObjectiveItem_UpdateCooldown(block.actionButton)
+        block.actionButton.questLogIndex = block.questLogIndex -- needed for the UpdateCooldown function
+        block.actionButton:UpdateCooldown()
         block.actionButton:SetScript("OnUpdate", QuestObjectiveItem_OnUpdate)
         block.actionButton:Show()
     else
@@ -662,10 +613,26 @@ GW.UpdateQuestItem = UpdateQuestItem
 
 local function OnBlockClick(self, button, isHeader)
     if button == "RightButton" then
-        ObjectiveTracker_ToggleDropDown(self, QuestObjectiveTracker_OnOpenDropDown)
+        MenuUtil.CreateContextMenu(self, function(ownerRegion, rootDescription)
+            rootDescription:CreateTitle(C_QuestLog.GetTitleForQuestID(self.id))
+            rootDescription:CreateButton(OBJECTIVES_VIEW_IN_QUESTLOG, function()
+                QuestUtil.OpenQuestDetails(self.id)
+            end)
+            rootDescription:CreateButton(OBJECTIVES_STOP_TRACKING, function()
+                C_QuestLog.RemoveQuestWatch(self.id)
+            end)
+            if C_QuestLog.IsPushableQuest(self.id) and IsInGroup() then
+                rootDescription:CreateButton(SHARE_QUEST, function()
+                    QuestUtil.ShareQuest(self.id)
+                end)
+            end
+            rootDescription:CreateButton(OBJECTIVES_SHOW_QUEST_MAP, function()
+                QuestMapFrame_OpenToQuestDetails(self.id)
+            end)
+        end)
+
         return
     end
-    GW.Libs.LibDD:CloseDropDownMenus()
 
     if ChatEdit_TryInsertQuestLinkForQuestID(self.questID) then
         return
@@ -679,7 +646,7 @@ local function OnBlockClick(self, button, isHeader)
     if button ~= "RightButton" then
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
         if IsModifiedClick("QUESTWATCHTOGGLE") then
-            QuestObjectiveTracker_UntrackQuest(nil, self.questID)
+            C_QuestLog.RemoveQuestWatch(self.questID)
         else
             QuestMapFrame_OpenToQuestDetails(self.questID)
         end

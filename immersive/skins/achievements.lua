@@ -161,6 +161,7 @@ end
 
 --- overrider for blizzard function
 -- AchievementFrameAchievements_UpdateDataProvider
+local oldFilter
 local function UpdateCategoriesDataProvider()
 -- hackfix for AchievementFrame_GetOrSelectCurrentCategory()
 -- no other way of emulate its behaviour
@@ -172,6 +173,15 @@ local function UpdateCategoriesDataProvider()
 
     local customCat = category == "watchlist" or false
     local trackedAchievements = C_ContentTracking.GetTrackedIDs(Enum.ContentTrackingType.Achievement)
+    if customCat then
+        oldFilter = ACHIEVEMENTUI_SELECTEDFILTER
+        ACHIEVEMENTUI_SELECTEDFILTER = function()
+            return #trackedAchievements, 0, 0
+        end
+    elseif oldFilter ~= nil then
+        ACHIEVEMENTUI_SELECTEDFILTER = oldFilter
+        oldFilter = nil
+    end
 
     local numAchievements, numCompleted, completedOffset = ACHIEVEMENTUI_SELECTEDFILTER(category);
     local fosShown = numAchievements == 0 and IsCategoryFeatOfStrength(category);
@@ -205,9 +215,9 @@ local function AchievementFrameCategories_OnLoad(self)
     ACHIEVEMENT_FUNCTIONS.categories = AchievementFrameCategories_MakeCategoryList(GetCategoryList(), "summary")
     -- create new filter function for our watch list so we dont run into an error when building achievement lists
     ACHIEVEMENTUI_SELECTEDFILTER = function(categoryID)
-        if categoryID =="watchlist" then
-        local trackedAchievements = C_ContentTracking.GetTrackedIDs(Enum.ContentTrackingType.Achievement)
-        return #trackedAchievements,0,0
+        if categoryID == "watchlist" then
+            local trackedAchievements = C_ContentTracking.GetTrackedIDs(Enum.ContentTrackingType.Achievement)
+            return #trackedAchievements, 0, 0
         end
         local numAchievements, numCompleted, numIncomplete = GetCategoryNumAchievements(categoryID);
         return numAchievements, numCompleted, 0;
@@ -263,7 +273,7 @@ local function catMenuButtonState(self,selected)
     if selected then
         selectedCategoryID = self.categoryID
         if hackingBlizzardFunction then
-            UpdateCategoriesDataProvider()
+           -- UpdateCategoriesDataProvider()
         end
     end
     ---zeeeebra
@@ -349,6 +359,7 @@ local function skinAchievementSummaryHeaders(self)
     setTitleText(text)
 end
 local function skinAchievementSummaryStatusBar(self)
+    if not self then return end
     self:GwStripTextures()
     local fname = self:GetName()
     local bar = _G[fname.."FillBar"]
@@ -395,6 +406,7 @@ end
 
 local function reanchorSummaryCategoriy(index)
     local self = _G["AchievementFrameSummaryCategoriesCategory"..index]
+    if not self then return end
     local odd =  (index % 2)==1 or false
     local relativeFrame
     if odd then
@@ -1221,21 +1233,22 @@ local function skinAchevement()
         end
     end
 
-    AchievementFrameFilterDropDown:GwSkinDropDownMenu(nil, GW.BackdropTemplates.DopwDown)
-    AchievementFrameFilterDropDown:ClearAllPoints()
-    AchievementFrameFilterDropDown:SetPoint("BOTTOMLEFT", AchievementFrame.SearchBox, "TOPLEFT", 0, 10)
-    AchievementFrameFilterDropDown:SetPoint("BOTTOMRIGHT", AchievementFrame.SearchBox, "TOPRIGHT", 0, 10)
+    AchievementFrameFilterDropdown:GwHandleDropDownBox(GW.BackdropTemplates.DopwDown, true, "MENU_ACHIEVEMENT_FILTER")
+    AchievementFrameFilterDropdown:ClearAllPoints()
+    AchievementFrameFilterDropdown:SetPoint("BOTTOMLEFT", AchievementFrame.SearchBox, "TOPLEFT", 0, 10)
+    AchievementFrameFilterDropdown:SetPoint("BOTTOMRIGHT", AchievementFrame.SearchBox, "TOPRIGHT", 0, 10)
+    AchievementFrameFilterDropdown:SetHeight(26)
 
-    AchievementFrameFilterDropDown.backdrop:ClearAllPoints()
-    AchievementFrameFilterDropDown.backdrop:SetPoint("TOPLEFT", AchievementFrameFilterDropDown, "TOPLEFT", 0, 0)
-    AchievementFrameFilterDropDown.backdrop:SetPoint("BOTTOMRIGHT", AchievementFrameFilterDropDown, "BOTTOMRIGHT", 0, 0)
-    AchievementFrameFilterDropDown.backdrop:SetAlpha(0.5)
+    AchievementFrameFilterDropdown.backdrop:ClearAllPoints()
+    AchievementFrameFilterDropdown.backdrop:SetPoint("TOPLEFT", AchievementFrameFilterDropdown, "TOPLEFT", 0, 0)
+    AchievementFrameFilterDropdown.backdrop:SetPoint("BOTTOMRIGHT", AchievementFrameFilterDropdown, "BOTTOMRIGHT", 0, 0)
+    AchievementFrameFilterDropdown.backdrop:SetAlpha(0.5)
 
     --create dummy frame
     local dropdownDummyFrame = CreateFrame("Frame", AchievementFrame)
     GW.AchievementFrameFilterDropDownDummy = dropdownDummyFrame -- make that frame "global" for Krowi
     dropdownDummyFrame:SetParent(AchievementFrame)
-    dropdownDummyFrame:SetSize(AchievementFrameFilterDropDown:GetSize())
+    dropdownDummyFrame:SetSize(AchievementFrameFilterDropdown:GetSize())
     dropdownDummyFrame:SetAlpha(0.3)
 
     dropdownDummyFrame.bg = dropdownDummyFrame:CreateTexture(nil, "BACKGROUND", nil, 0)
@@ -1249,14 +1262,13 @@ local function skinAchevement()
     dropdownDummyFrame.arrow:SetPoint("RIGHT", dropdownDummyFrame, "RIGHT", -12, 0)
     dropdownDummyFrame.arrow:SetSize(23, 23)
 
-
     dropdownDummyFrame:SetPoint("BOTTOMLEFT", AchievementFrame.SearchBox, "TOPLEFT", 0, 10)
     dropdownDummyFrame:SetPoint("BOTTOMRIGHT", AchievementFrame.SearchBox, "TOPRIGHT", 0, 10)
 
-    AchievementFrameFilterDropDown:HookScript("OnShow", function()
+    AchievementFrameFilterDropdown:HookScript("OnShow", function()
         dropdownDummyFrame:Hide()
     end)
-    AchievementFrameFilterDropDown:HookScript("OnHide", function()
+    AchievementFrameFilterDropdown:HookScript("OnHide", function()
         dropdownDummyFrame:Show()
     end)
 
@@ -1343,6 +1355,7 @@ local function skinAchevement()
     skinAchievementSummaryStatusBar(AchievementFrameSummaryCategoriesCategory8)
     skinAchievementSummaryStatusBar(AchievementFrameSummaryCategoriesCategory9)
     skinAchievementSummaryStatusBar(AchievementFrameSummaryCategoriesCategory10)
+    skinAchievementSummaryStatusBar(AchievementFrameSummaryCategoriesCategory11)
 
     AchievementFrameSummaryCategoriesCategory1:ClearAllPoints()
     AchievementFrameSummaryCategoriesCategory1:SetPoint("TOPLEFT", AchievementFrameSummaryCategoriesStatusBar, "BOTTOMLEFT", 0, -25)
@@ -1360,6 +1373,7 @@ local function skinAchevement()
     reanchorSummaryCategoriy(8)
     reanchorSummaryCategoriy(9)
     reanchorSummaryCategoriy(10)
+    reanchorSummaryCategoriy(11)
 
     AchievementFrameComparison:GwStripTextures()
     for _, v in next, {AchievementFrameComparison:GetChildren()} do

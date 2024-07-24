@@ -235,7 +235,7 @@ local function SkinLookingForGroupFrames()
         end
     end)
 
-    local tabs = {PVEFrameTab1, PVEFrameTab2, PVEFrameTab3}
+    local tabs = {PVEFrameTab1, PVEFrameTab2, PVEFrameTab3, PVEFrameTab4}
     for _, tab in pairs(tabs) do
         GW.HandleTabs(tab, true)
         tab:HookScript("OnClick", function(self)
@@ -246,6 +246,22 @@ local function SkinLookingForGroupFrames()
             end
         end)
     end
+
+	if ScenarioQueueFrame then
+		ScenarioQueueFrame:GwStripTextures()
+		ScenarioFinderFrameInset:GwStripTextures()
+		ScenarioQueueFrameBackground:SetAlpha(0)
+		ScenarioQueueFrameTypeDropdown:GwHandleDropDownBox()
+		GW.HandleTrimScrollBar(ScenarioQueueFrameRandomScrollFrame.ScrollBar)
+		ScenarioQueueFrameFindGroupButton:GwSkinButton(false, true)
+
+		ScenarioQueueFrameSpecificScrollFrame:GwStripTextures()
+		--GW.HandleTrimScrollBar(ScenarioQueueFrameSpecificScrollFrame.ScrollBar)
+
+		if ScenarioQueueFrameRandomScrollFrameScrollBar then
+			ScenarioQueueFrameRandomScrollFrameScrollBar:SetAlpha(0)
+		end
+	end
 
     -- Raid finder
     LFDQueueFrameFindGroupButton:GwSkinButton(false, true)
@@ -266,10 +282,10 @@ local function SkinLookingForGroupFrames()
         end
     end)
 
-    LFDQueueFrameTypeDropDown:GwSkinDropDownMenu()
+    LFDQueueFrameTypeDropdown:GwHandleDropDownBox(nil, nil, "MENU_LFD_FRAME")
 
     RaidFinderFrameRoleInset:GwStripTextures()
-    RaidFinderQueueFrameSelectionDropDown:GwSkinDropDownMenu()
+    RaidFinderQueueFrameSelectionDropdown:GwHandleDropDownBox(nil, nil, "MENU_RAID_FINDER_QUEUE_FRAME")
     RaidFinderFrameFindRaidButton:GwStripTextures()
     RaidFinderFrameFindRaidButton:GwSkinButton(false, true)
     RaidFinderQueueFrame:GwStripTextures()
@@ -294,56 +310,57 @@ local function SkinLookingForGroupFrames()
     LFGListFrame.CategorySelection.FindGroupButton:ClearAllPoints()
     LFGListFrame.CategorySelection.FindGroupButton:SetPoint("BOTTOMRIGHT", -6, 3)
 
-    LFGListFrame.EntryCreation.Inset:GwStripTextures()
-    LFGListFrame.EntryCreation.CancelButton:GwSkinButton(false, true)
-    LFGListFrame.EntryCreation.ListGroupButton:GwSkinButton(false, true)
-    LFGListFrame.EntryCreation.CancelButton:ClearAllPoints()
-    LFGListFrame.EntryCreation.CancelButton:SetPoint("BOTTOMLEFT", -1, 3)
-    LFGListFrame.EntryCreation.ListGroupButton:ClearAllPoints()
-    LFGListFrame.EntryCreation.ListGroupButton:SetPoint("BOTTOMRIGHT", -6, 3)
-    LFGListFrame.EntryCreation.Description:GwCreateBackdrop(GW.BackdropTemplates.Default, true, 5, 5)
-    GW.HandleBlizzardRegions(LFGListFrame.EntryCreation.Description)
+    local EntryCreation = LFGListFrame.EntryCreation
+    EntryCreation.Inset:GwStripTextures()
+    EntryCreation.CancelButton:GwSkinButton(false, true)
+    EntryCreation.ListGroupButton:GwSkinButton(false, true)
+    EntryCreation.CancelButton:ClearAllPoints()
+    EntryCreation.CancelButton:SetPoint("BOTTOMLEFT", -1, 3)
+    EntryCreation.ListGroupButton:ClearAllPoints()
+    EntryCreation.ListGroupButton:SetPoint("BOTTOMRIGHT", -6, 3)
+    EntryCreation.Description:GwCreateBackdrop(GW.BackdropTemplates.Default, true, 5, 5)
+    GW.HandleBlizzardRegions(EntryCreation.Description)
 
-    LFGListFrame.EntryCreation.ItemLevel.EditBox:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
-    GW.HandleBlizzardRegions(LFGListFrame.EntryCreation.ItemLevel.EditBox)
-    LFGListFrame.EntryCreation.MythicPlusRating.EditBox:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
-    GW.HandleBlizzardRegions(LFGListFrame.EntryCreation.MythicPlusRating.EditBox)
-    LFGListFrame.EntryCreation.Name:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
-    GW.HandleBlizzardRegions(LFGListFrame.EntryCreation.Name)
-    LFGListFrame.EntryCreation.PVPRating.EditBox:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
-    GW.HandleBlizzardRegions(LFGListFrame.EntryCreation.PVPRating.EditBox)
-    LFGListFrame.EntryCreation.PvpItemLevel.EditBox:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
-    GW.HandleBlizzardRegions(LFGListFrame.EntryCreation.PvpItemLevel.EditBox)
-    LFGListFrame.EntryCreation.VoiceChat.EditBox:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
-    GW.HandleBlizzardRegions(LFGListFrame.EntryCreation.VoiceChat.EditBox)
+    EntryCreation.ItemLevel.EditBox:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
+    GW.HandleBlizzardRegions(EntryCreation.ItemLevel.EditBox)
+    EntryCreation.MythicPlusRating.EditBox:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
+    GW.HandleBlizzardRegions(EntryCreation.MythicPlusRating.EditBox)
+    EntryCreation.Name:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
+    GW.HandleBlizzardRegions(EntryCreation.Name)
+    EntryCreation.PVPRating.EditBox:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
+    GW.HandleBlizzardRegions(EntryCreation.PVPRating.EditBox)
+    EntryCreation.PvpItemLevel.EditBox:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
+    GW.HandleBlizzardRegions(EntryCreation.PvpItemLevel.EditBox)
+    EntryCreation.VoiceChat.EditBox:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
+    GW.HandleBlizzardRegions(EntryCreation.VoiceChat.EditBox)
 
-    LFGListEntryCreationActivityDropDown:GwSkinDropDownMenu()
-    LFGListEntryCreationGroupDropDown:GwSkinDropDownMenu()
-    LFGListEntryCreationPlayStyleDropdown:GwSkinDropDownMenu()
+    EntryCreation.GroupDropdown:GwHandleDropDownBox(nil, nil, "MENU_LFG_FRAME_GROUP")
+    EntryCreation.ActivityDropdown:GwHandleDropDownBox(nil, nil, "MENU_LFG_FRAME_GROUP_ACTIVITY")
+    EntryCreation.PlayStyleDropdown:GwHandleDropDownBox(nil, nil, "MENU_LFG_FRAME_GROUP_PLAYSTYLE")
 
-    LFGListFrame.EntryCreation.CrossFactionGroup.CheckButton:GwSkinCheckButton()
-    LFGListFrame.EntryCreation.ItemLevel.CheckButton:GwSkinCheckButton()
-    LFGListFrame.EntryCreation.MythicPlusRating.CheckButton:GwSkinCheckButton()
-    LFGListFrame.EntryCreation.PrivateGroup.CheckButton:GwSkinCheckButton()
-    LFGListFrame.EntryCreation.PVPRating.CheckButton:GwSkinCheckButton()
-    LFGListFrame.EntryCreation.PvpItemLevel.CheckButton:GwSkinCheckButton()
-    LFGListFrame.EntryCreation.VoiceChat.CheckButton:GwSkinCheckButton()
+    EntryCreation.CrossFactionGroup.CheckButton:GwSkinCheckButton()
+    EntryCreation.ItemLevel.CheckButton:GwSkinCheckButton()
+    EntryCreation.MythicPlusRating.CheckButton:GwSkinCheckButton()
+    EntryCreation.PrivateGroup.CheckButton:GwSkinCheckButton()
+    EntryCreation.PVPRating.CheckButton:GwSkinCheckButton()
+    EntryCreation.PvpItemLevel.CheckButton:GwSkinCheckButton()
+    EntryCreation.VoiceChat.CheckButton:GwSkinCheckButton()
 
-    LFGListFrame.EntryCreation.CrossFactionGroup.CheckButton:SetSize(15, 15)
-    LFGListFrame.EntryCreation.ItemLevel.CheckButton:SetSize(15, 15)
-    LFGListFrame.EntryCreation.MythicPlusRating.CheckButton:SetSize(15, 15)
-    LFGListFrame.EntryCreation.PrivateGroup.CheckButton:SetSize(15, 15)
-    LFGListFrame.EntryCreation.PVPRating.CheckButton:SetSize(15, 15)
-    LFGListFrame.EntryCreation.PvpItemLevel.CheckButton:SetSize(15, 15)
-    LFGListFrame.EntryCreation.VoiceChat.CheckButton:SetSize(15, 15)
+    EntryCreation.CrossFactionGroup.CheckButton:SetSize(15, 15)
+    EntryCreation.ItemLevel.CheckButton:SetSize(15, 15)
+    EntryCreation.MythicPlusRating.CheckButton:SetSize(15, 15)
+    EntryCreation.PrivateGroup.CheckButton:SetSize(15, 15)
+    EntryCreation.PVPRating.CheckButton:SetSize(15, 15)
+    EntryCreation.PvpItemLevel.CheckButton:SetSize(15, 15)
+    EntryCreation.VoiceChat.CheckButton:SetSize(15, 15)
 
-    LFGListFrame.EntryCreation.ActivityFinder.Dialog:GwStripTextures()
-    LFGListFrame.EntryCreation.ActivityFinder.Dialog.BorderFrame:GwStripTextures()
+    EntryCreation.ActivityFinder.Dialog:GwStripTextures()
+    EntryCreation.ActivityFinder.Dialog.BorderFrame:GwStripTextures()
 
-    LFGListFrame.EntryCreation.ActivityFinder.Dialog.EntryBox:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
-    GW.HandleBlizzardRegions(LFGListFrame.EntryCreation.ActivityFinder.Dialog.EntryBox)
-    LFGListFrame.EntryCreation.ActivityFinder.Dialog.SelectButton:GwSkinButton(false, true)
-    LFGListFrame.EntryCreation.ActivityFinder.Dialog.CancelButton:GwSkinButton(false, true)
+    EntryCreation.ActivityFinder.Dialog.EntryBox:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true, 4)
+    GW.HandleBlizzardRegions(EntryCreation.ActivityFinder.Dialog.EntryBox)
+    EntryCreation.ActivityFinder.Dialog.SelectButton:GwSkinButton(false, true)
+    EntryCreation.ActivityFinder.Dialog.CancelButton:GwSkinButton(false, true)
 
     LFGListApplicationDialog:GwStripTextures()
     LFGListApplicationDialog.SignUpButton:GwSkinButton(false, true)
@@ -379,7 +396,6 @@ local function SkinLookingForGroupFrames()
 
     LFGListFrame.SearchPanel.FilterButton:GwSkinButton(false, true)
     LFGListFrame.SearchPanel.FilterButton:SetPoint("LEFT", LFGListFrame.SearchPanel.SearchBox, "RIGHT", 5, 0)
-    LFGListFrame.SearchPanel.FilterButton.Icon:SetDesaturated(true)
     LFGListFrame.SearchPanel.RefreshButton:GwSkinButton(false, true)
     LFGListFrame.SearchPanel.BackToGroupButton:GwSkinButton(false, true)
     LFGListFrame.SearchPanel.RefreshButton:SetSize(24, 24)
@@ -661,8 +677,10 @@ local function ApplyPvPUISkin()
 
     GW.HandleTrimScrollBar(HonorFrame.SpecificScrollBar, true)
     GW.HandleScrollControls(HonorFrame, "SpecificScrollBar")
-    HonorFrameTypeDropDown:GwSkinDropDownMenu()
+    HonorFrameTypeDropdown:GwHandleDropDownBox(nil, nil, "MENU_PVPUI_TYPE")
     HonorFrameQueueButton:GwSkinButton(false, true)
+    if PVPQueueFrame.HonorInset.RatedPanel.HonorLevelDisplay then
+    end
 
     local BonusFrame = HonorFrame.BonusFrame
     BonusFrame:GwStripTextures()
@@ -748,11 +766,11 @@ local function ApplyPvPUISkin()
         if not rewardTexture and itemRewards then
             local reward = itemRewards[1]
             if reward then
-                _, _, rewardQuaility, _, _, _, _, _, _, rewardTexture = GetItemInfo(reward.id)
+                _, _, rewardQuaility, _, _, _, _, _, _, rewardTexture = C_Item.GetItemInfo(reward.id)
             end
         end
         if rewardTexture then
-            local r, g, b = GetItemQualityColor(rewardQuaility)
+            local r, g, b = C_Item.GetItemQualityColor(rewardQuaility)
             rewardFrame.Icon:SetTexture(rewardTexture)
             if not rewardFrame.Icon.backdrop then
                 rewardFrame.Icon:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithColorableBorder, true)
@@ -857,7 +875,7 @@ local function ApplyChallengesUISkin()
 
     ChallengesKeystoneFrame.KeystoneSlot:HookScript("OnEvent", function(frame, event, itemID)
         if event == "CHALLENGE_MODE_KEYSTONE_SLOTTED" and frame.Texture then
-            local texture = select(10, GetItemInfo(itemID))
+            local texture = select(10, C_Item.GetItemInfo(itemID))
             if texture then
                 frame.Texture:SetTexture(texture)
             end
@@ -942,9 +960,38 @@ local function ApplyChallengesUISkin()
     end)
 end
 
+local function ApplyDelvesDashboardUISkin()
+    if not GW.settings.LFG_SKIN_ENABLED then return end
+
+    DelvesDashboardFrame.DashboardBackground:SetAlpha(0)
+    DelvesDashboardFrame.ButtonPanelLayoutFrame.CompanionConfigButtonPanel.CompanionConfigButton:GwSkinButton(false, true)
+end
+
+local function ApplyDelvesDifficultyPickerSkin()
+    if not GW.settings.LFG_SKIN_ENABLED then return end
+
+	DelvesDifficultyPickerFrame.Dropdown:GwHandleDropDownBox(nil, nil, "MENU_DELVES_DIFFICULTY")
+	DelvesDifficultyPickerFrame.EnterDelveButton:GwSkinButton(false, true)
+
+	hooksecurefunc(DelvesDifficultyPickerFrame.DelveRewardsContainerFrame, "SetRewards", function(self)
+		for rewardFrame in self.rewardPool:EnumerateActive() do
+			if not rewardFrame.IsSkinned then
+				rewardFrame:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true)
+				rewardFrame.NameFrame:SetAlpha(0)
+				rewardFrame.IconBorder:SetAlpha(0)
+				GW.HandleIcon(rewardFrame.Icon)
+
+				rewardFrame.IsSkinned = true
+			end
+		end
+	end)
+end
+
 local function LoadLFGSkin()
     GW.RegisterLoadHook(ApplyChallengesUISkin, "Blizzard_ChallengesUI", ChallengesFrame)
     GW.RegisterLoadHook(ApplyPvPUISkin, "Blizzard_PVPUI", PVPUIFrame)
+    GW.RegisterLoadHook(ApplyDelvesDashboardUISkin, "Blizzard_DelvesDashboardUI", DelvesDashboardFrame)
+    GW.RegisterLoadHook(ApplyDelvesDifficultyPickerSkin, "Blizzard_DelvesDifficultyPicker", DelvesDifficultyPickerFrame)
 
     SkinLookingForGroupFrames()
 end

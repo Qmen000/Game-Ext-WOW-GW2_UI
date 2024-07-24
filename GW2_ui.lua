@@ -491,8 +491,6 @@ local function evAddonLoaded(self, addonName)
     GW.LoadWeeklyRewardsSkin()
     GW.LoadPerksProgramSkin()
     GW.preLoadStatusBarMaskTextures()
-
-  --  GW.LoadStatusbarTest()
 end
 AFP("evAddonLoaded", evAddonLoaded)
 
@@ -627,17 +625,10 @@ local function evPlayerLogin(self)
     if GW.settings.MAINMENU_SKIN_ENABLED then
         GW.SkinMainMenu()
     else
-        --Setup addon button
-        local GwMainMenuFrame = CreateFrame("Button", "GW2_UI_SettingsButton", _G.GameMenuFrame, "GameMenuButtonTemplate") -- add a button name to you that for other Addons
-        GwMainMenuFrame:SetText(format(("*%s|r"):gsub("*", GW.Gw2Color), GW.addonName))
-        GwMainMenuFrame:SetScript( "OnClick", GW.ToggleGw2Settings)
-        GameMenuFrame[GW.addonName] = GwMainMenuFrame
-
-        if not C_AddOns.IsAddOnLoaded("ConsolePortUI_Menu") then
-            GwMainMenuFrame:SetSize(GameMenuButtonMacros:GetWidth(), GameMenuButtonMacros:GetHeight())
-            GwMainMenuFrame:SetPoint("TOPLEFT", GameMenuButtonUIOptions, "BOTTOMLEFT", 0, -1)
-            hooksecurefunc("GameMenuFrame_UpdateVisibleButtons", GW.PositionGameMenuButton)
-        end
+        hooksecurefunc(GameMenuFrame, 'InitButtons', function(self)
+            self:AddSection()
+            self:AddButton(format(("*%s|r"):gsub("*", GW.Gw2Color), GW.addonName), GW.ToggleGw2Settings)
+        end)
     end
 
     -- Skins: BLizzard & Addons
@@ -865,7 +856,6 @@ local function evPlayerLogin(self)
         GW.private.GW2_UI_VERSION = GW.VERSION_STRING
     elseif GW.private.GW2_UI_VERSION ~= GW.VERSION_STRING then
         ShowUIPanel(GwSettingsWindow)
-        --UIFrameFadeIn(GwSettingsWindow, 0.2, 0, 1)
         HideUIPanel(GameMenuFrame)
         GW.private.GW2_UI_VERSION = GW.VERSION_STRING
     end

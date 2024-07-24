@@ -44,31 +44,40 @@ TODO Greetings text above the model frame
 ]]
 
 local CUSTOM_ICONS = {
-[646979]= 646979,
-[132048]= 132048,
-[646980]= 646980,
-[132049]= 132049,
-[132050]= 132050,
-[132051]= 132051,
-[132052]= 132054,
-[3532316]= 3532316,
-[3532317]= 3532317,
-[3532318]= 3532318,
-[1019848]= 132053,
-[368577]= 368577,
-[368364]= 368364,
-[132053]= 132053,
-[132054]= 132054,
-[365195]= 365195,
-[132055]= 132055,
-[132056]= 132056,
-[132057]= 132057,
-[132058]= 132058,
-[132059]= 132059,
-[132060]= 132060,
-[1130518]= 1130518,
-[528409]= 528409,
-[1673939]= 1673939,
+    [646979]= 646979,
+    [132048]= 132048,
+    [646980]= 646980,
+    [132049]= 132049,
+    [132050]= 132050,
+    [132051]= 132051,
+    [132052]= 132054,
+    [3532316]= 3532316,
+    [3532317]= 3532317,
+    [3532318]= 3532318,
+    [1019848]= 132053,
+    [368577]= 368577,
+    [368364]= 368364,
+    [132053]= 132053,
+    [132054]= 132054,
+    [365195]= 365195,
+    [132055]= 132055,
+    [132056]= 132056,
+    [132057]= 132057,
+    [132058]= 132058,
+    [132059]= 132059,
+    [132060]= 132060,
+    [1130518]= 1130518,
+    [528409]= 528409,
+    [1673939]= 1673939,
+}
+
+local CUSTOM_ATLAS = {
+    ["CampaignActiveDailyQuestIcon"]= true,
+    ["CampaignActiveQuestIcon"]= true,
+    ["CampaignAvailableDailyQuestIcon"]= true,
+    ["CampaignAvailableQuestIcon"]= true,
+    ["CampaignIncompleteQuestIcon"]= true,
+    ["Recurringavailablequesticon"] = true,
 }
 
 local DEBUG_ENABLED = false
@@ -270,9 +279,13 @@ local function updateGossipOption(self)
         self.Icon:SetSize(32,32)
         local atlas = self.Icon:GetAtlas()
         if atlas then
-            self.Icon:SetTexture("Interface/AddOns/GW2_UI/textures/gossip/" .. atlas)
+            if CUSTOM_ATLAS[atlas] then
+                self.Icon:SetTexture("Interface/AddOns/GW2_UI/textures/gossip/" .. atlas)
+            else
+                GW.Debug("Missing Gossip atlas: ", atlas)
+                self.Icon:SetAtlas(atlas, true)
+            end
         else
-
             local t = self.Icon:GetTexture()
             if CUSTOM_ICONS[t] then
                 self.Icon:SetTexture("Interface/AddOns/GW2_UI/textures/gossip/" .. CUSTOM_ICONS[t])
@@ -842,13 +855,16 @@ local function LoadGossipSkin()
     QuestFrameGoodbyeButton:GwSkinButton(false, true)
     QuestFrameCompleteQuestButton:GwSkinButton(false, true)
 
-    QuestNPCModelTextFrame:GwStripTextures()
-    w, h = QuestNPCModelTextFrame:GetSize()
-    QuestNPCModelTextFrame:GwStripTextures()
-    QuestNPCModelTextFrame.tex = QuestNPCModelTextFrame:CreateTexture(nil, "BACKGROUND", nil, 0)
-    QuestNPCModelTextFrame.tex:SetPoint("TOP", QuestNPCModelTextFrame, "TOP", 0, 20)
-    QuestNPCModelTextFrame.tex:SetSize(w + 30, h + 60)
-    QuestNPCModelTextFrame.tex:SetTexture("Interface/AddOns/GW2_UI/textures/party/manage-group-bg")
+    local modelSceneFrame = QuestNPCModelTextFrame or QuestModelScene.ModelTextFrame
+
+    if modelSceneFrame then
+        modelSceneFrame:GwStripTextures()
+        w, h = modelSceneFrame:GetSize()
+        modelSceneFrame.tex = modelSceneFrame:CreateTexture(nil, "BACKGROUND", nil, 0)
+        modelSceneFrame.tex:SetPoint("TOP", modelSceneFrame, "TOP", 0, 20)
+        modelSceneFrame.tex:SetSize(w + 30, h + 60)
+        modelSceneFrame.tex:SetTexture("Interface/AddOns/GW2_UI/textures/party/manage-group-bg")
+    end
 
     -- mover
     GossipFrame.mover = CreateFrame("Frame", nil, GossipFrame)

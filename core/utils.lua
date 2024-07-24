@@ -43,21 +43,6 @@ local function CombatQueue_Queue(key, func, obj)
 end
 GW.CombatQueue_Queue = CombatQueue_Queue
 
--- Easy menu
-GW.EasyMenu = GW.Libs.LibDD:Create_UIDropDownMenu("GWEasyMenu", UIParent)
-
-local function SetEasyMenuAnchor(menu, frame)
-    local point = GW.GetScreenQuadrant(frame)
-    local bottom = point and strfind(point, "BOTTOM")
-    local left = point and strfind(point, "LEFT")
-
-    local anchor1 = (bottom and left and "BOTTOMLEFT") or (bottom and "BOTTOMRIGHT") or (left and "TOPLEFT") or "TOPRIGHT"
-    local anchor2 = (bottom and left and "TOPLEFT") or (bottom and "TOPRIGHT") or (left and "BOTTOMLEFT") or "BOTTOMRIGHT"
-
-    GW.Libs.LibDD:UIDropDownMenu_SetAnchor(menu, 0, 0, anchor1, frame, anchor2)
-end
-GW.SetEasyMenuAnchor = SetEasyMenuAnchor
-
 if UnitIsTapDenied == nil then
     function UnitIsTapDenied()
         if (UnitIsTapped("target")) and (not UnitIsTappedByPlayer("target")) then
@@ -630,9 +615,9 @@ GW.FrameFlash = FrameFlash
 local function setItemLevel(button, quality, itemlink, slot)
     button.itemlevel:SetFont(UNIT_NAME_FONT, 12, "THINOUTLINED")
     if quality then
-        local r, g, b = GetItemQualityColor(quality or 1)
-        if quality >= Enum.ItemQuality.Common and GetItemQualityColor(quality) then
-            r, g, b = GetItemQualityColor(quality)
+        local r, g, b = C_Item.GetItemQualityColor(quality or 1)
+        if quality >= Enum.ItemQuality.Common and C_Item.GetItemQualityColor(quality) then
+            r, g, b = C_Item.GetItemQualityColor(quality)
             button.itemlevel:SetTextColor(r, g, b, 1)
         end
         local slotInfo = GW.GetGearSlotInfo("player", slot, itemlink, false)
@@ -640,7 +625,7 @@ local function setItemLevel(button, quality, itemlink, slot)
         button.itemlevel:SetTextColor(r, g, b, 1)
         slotInfo = nil
     else
-        local r, g, b = GetItemQualityColor(1)
+        local r, g, b = C_Item.GetItemQualityColor(1)
         button.itemlevel:SetText("")
         button.itemlevel:SetTextColor(r, g, b, 1)
     end
