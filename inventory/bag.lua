@@ -79,8 +79,8 @@ local function layoutBagItems(f)
             _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS]:Show()
             _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS]:ClearAllPoints()
             _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS]:SetPoint("TOPLEFT", f, "TOPLEFT", 0, (-row + 1) * item_off)
-            _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS]:SetWidth(BAG_WINDOW_SIZE - BAG_ITEM_PADDING)
-            _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS].background:SetWidth(BAG_WINDOW_SIZE - BAG_ITEM_PADDING)
+            _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS]:SetWidth(GW.settings.BAG_WIDTH - BAG_ITEM_PADDING)
+            _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS].background:SetWidth(GW.settings.BAG_WIDTH - BAG_ITEM_PADDING)
             local rowstart = row
             col = 0
             col, row, unfinishedRow, finishedRows = lcf(cf, max_col, row, col, false, item_off)
