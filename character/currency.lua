@@ -357,7 +357,7 @@ local function SkinTokenFrame()
     TokenFramePopup:GwStripTextures()
     TokenFramePopup:GwCreateBackdrop(GW.BackdropTemplates.Default)
     TokenFramePopup:SetPoint("TOPLEFT", _G.TokenFrame, "TOPRIGHT", 3, -28)
-    TokenFrame.CurrencyTransferLogToggleButton:Hide()
+    TokenFrame.CurrencyTransferLogToggleButton:SetAlpha(0)
 
     TokenFramePopup.InactiveCheckbox:GwSkinCheckButton()
     TokenFramePopup.BackpackCheckbox:GwSkinCheckButton()
@@ -368,8 +368,14 @@ local function SkinTokenFrame()
     TokenFramePopup.InactiveCheckbox:ClearAllPoints()
     TokenFramePopup.InactiveCheckbox:SetPoint("TOPLEFT", TokenFramePopup, 32, -38)
 
+    TokenFramePopup.InactiveCheckbox.Text:ClearAllPoints()
+    TokenFramePopup.InactiveCheckbox.Text:SetPoint("LEFT", TokenFramePopup.InactiveCheckbox, "RIGHT", 5, 0)
+
     TokenFramePopup.BackpackCheckbox:ClearAllPoints()
     TokenFramePopup.BackpackCheckbox:SetPoint("TOPLEFT", TokenFramePopup.InactiveCheckbox, "BOTTOMLEFT", 0, -10)
+
+    TokenFramePopup.BackpackCheckbox.Text:ClearAllPoints()
+    TokenFramePopup.BackpackCheckbox.Text:SetPoint("LEFT", TokenFramePopup.BackpackCheckbox, "RIGHT", 5, 0)
 
     TokenFramePopup.Title:SetFont(DAMAGE_TEXT_FONT, 14)
     TokenFramePopup.Title:SetTextColor(1, 1, 1)
@@ -405,38 +411,72 @@ local function SkinTokenFrame()
     --GW.HandleScrollControls(TokenFrame)
     hooksecurefunc(TokenFrame.ScrollBox, "Update", UpdateTokenSkins)
 
-    --[[
     local frame = CreateFrame("Frame")
-    local gwSetEnabled = false
     frame.transferInProgress = false
 
     CurrencyTransferMenu.ConfirmButton:HookScript("OnClick", function()
-        gwSetEnabled = true
-        CurrencyTransferMenu.ConfirmButton:SetEnabled(false)
-        gwSetEnabled = false
         frame.transferInProgress = true
+        CurrencyTransferMenu.ConfirmButton:SetEnabled(false)
     end)
-    CurrencyTransferMenu:HookScript("OnShow", function()
-        if gwSetEnabled then return end
-        CurrencyTransferMenu.ConfirmButton:SetEnabled(not frame.transferInProgress)
-    end)
-    hooksecurefunc(CurrencyTransferMenu.ConfirmButton, "SetEnabled", function()
-        print(gwSetEnabled)
-        if gwSetEnabled then return end
-        CurrencyTransferMenu.ConfirmButton:SetEnabled(not frame.transferInProgress) -- stackoverlow -- why?
+    hooksecurefunc(CurrencyTransferMenu.ConfirmButton, "SetEnabled", function(self, enabled)
+        if frame.transferInProgress and enabled == true then
+            CurrencyTransferMenu.ConfirmButton:SetEnabled(false)
+        end
     end)
 
     frame:RegisterEvent("CURRENCY_TRANSFER_LOG_UPDATE")
     frame:SetScript("OnEvent", function()
         frame.transferInProgress = false
-        gwSetEnabled = true
         CurrencyTransferMenu.ConfirmButton:SetEnabled(true)
-        gwSetEnabled = false
         TokenFrame:Update()
     end)
-    ]]
 
-    CurrencyTransferMenu:SetFrameStrata("FULLSCREEN_DIALOG")
+    CurrencyTransferMenu:SetFrameStrata("DIALOG")
+end
+
+local function UpdateTransferHistorySkins(self)
+    local zebra
+
+    for idx, child in next, { self.ScrollTarget:GetChildren() } do
+        if not child.IsSkinned then
+
+            if child.SourceName then
+                child.SourceName:SetFont(DAMAGE_TEXT_FONT, 12)
+                child.SourceName:SetTextColor(1, 1, 1)
+            end
+
+            if child.DestinationName then
+                child.DestinationName:SetFont(DAMAGE_TEXT_FONT, 12)
+                child.DestinationName:SetTextColor(1, 1, 1)
+            end
+
+            if child.CurrencyQuantity then
+                child.CurrencyQuantity:SetFont(DAMAGE_TEXT_FONT, 12)
+                child.CurrencyQuantity:SetTextColor(1, 1, 1)
+            end
+
+            if child.CurrencyIcon then
+                GW.HandleIcon(child.CurrencyIcon)
+            end
+
+            if child.Arrow then
+                child.Arrow:SetTexture("Interface/AddOns/GW2_UI/Textures/uistuff/arrowdown_down")
+                child.Arrow:SetRotation(1.570796325)
+            end
+
+            child.gwZebra = child:CreateTexture(nil, "BACKGROUND")
+            child.gwZebra:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar")
+            child.gwZebra:SetSize(32, 32)
+            child.gwZebra:SetPoint("TOPLEFT", child, "TOPLEFT")
+            child.gwZebra:SetPoint("BOTTOMRIGHT", child, "BOTTOMRIGHT")
+
+            child.IsSkinned = true
+        end
+
+        -- update zebra
+        zebra = idx % 2
+        child.gwZebra:SetVertexColor(zebra, zebra, zebra, 0.05)
+    end
 end
 
 local function LoadCurrency(tabContainer)
@@ -476,6 +516,9 @@ local function LoadCurrency(tabContainer)
     local curHistroyWin = curwin_outer.CurrencyTransferHistoryScroll
     curHistroyWin.update = function(self) self:Refresh() end
     transferHistorySetup(curHistroyWin)
+    GW.HandleTrimScrollBar(curHistroyWin.ScrollBar) -- taints
+    GW.HandleScrollControls(curHistroyWin)
+    hooksecurefunc(curHistroyWin.ScrollBox, "Update", UpdateTransferHistorySkins)
 
     -- setup the raid info window
     local raidinfo = curwin_outer.RaidScroll

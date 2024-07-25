@@ -37,15 +37,21 @@ end
 GW.ToggleGw2Settings = ToggleGw2Settings
 
 local function applyButtonStyle(b)
-    b.Right:Hide()
-    b.Left:Hide()
+    if b.Right then
+        b.Right:Hide()
+    end
+    if b.Left then
+        b.Left:Hide()
+    end
     if b.Center then
         b.Center:Hide()
     end
     b:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/mainmenubutton")
     b:ClearHighlightTexture()
-    b:GetFontString():ClearAllPoints()
-    b:GetFontString():SetPoint("LEFT", b, "LEFT", 32,0)
+    if b.GetFontString and b:GetFontString() then
+        b:GetFontString():ClearAllPoints()
+        b:GetFontString():SetPoint("LEFT", b, "LEFT", 32,0)
+    end
     b:SetSize(180, 25)
     b:HookScript("OnEnter", function()
         b:GetNormalTexture():SetBlendMode("ADD")
@@ -79,12 +85,14 @@ local function SkinMainMenu()
     GameMenuFrame:GwCreateBackdrop(nil)
 
     local tex = GameMenuFrame:CreateTexture(nil, "BACKGROUND")
-    tex:SetPoint("TOP", GameMenuFrame, "TOP", 0, -10)
+    tex:SetPoint("TOP", GameMenuFrame, "TOP", 0, -30)
     tex:SetSize(286, 525)
     tex:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/mainmenubg")
 
     GameMenuFrame.Border:Hide()
     GameMenuFrame.Header:Hide()
+
+    GameMenuFrame:SetScale(0.9)
 
     for _, Button in next, { _G.GameMenuFrame:GetChildren() } do
         if Button.IsObjectType and Button:IsObjectType('Button') then
