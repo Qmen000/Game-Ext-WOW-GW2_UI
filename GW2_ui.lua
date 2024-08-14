@@ -490,6 +490,7 @@ local function evAddonLoaded(self, addonName)
     GW.LoadSoulbindsSkin()
     GW.LoadWeeklyRewardsSkin()
     GW.LoadPerksProgramSkin()
+    GW.LoadAdventureMapSkin()
     GW.preLoadStatusBarMaskTextures()
 end
 AFP("evAddonLoaded", evAddonLoaded)
@@ -622,6 +623,7 @@ local function evPlayerLogin(self)
     GW.LoadRaidMarkerCircle()
 
     --Create general skins
+    GW.StoreGameMenuButton()
     if GW.settings.MAINMENU_SKIN_ENABLED then
         GW.SkinMainMenu()
     else
@@ -800,8 +802,12 @@ local function evPlayerLogin(self)
 
     -- create action bars
     if GW.settings.ACTIONBARS_ENABLED and not IsIncompatibleAddonLoadedOrOverride("Actionbars", true) then
-        GW.LoadActionBars(lm)
-        GW.ExtraAB_BossAB_Setup()
+        if GW.settings.BAR_LAYOUT_ENABLED then
+            GW.LoadActionBars(lm, false)
+            GW.ExtraAB_BossAB_Setup()
+        else
+            GW.LoadActionBars(lm, true)
+        end
     end
 
     -- create pet frame

@@ -143,7 +143,7 @@ end
 local function RegisterErrorHandler()
     if BugGrabber and BugGrabber.RegisterCallback then
         BugGrabber.RegisterCallback(ErrorHandler, "BugGrabber_BugGrabbed", function (_, err)
-            HandleError(err.message, err.stack)
+            HandleError(err.message, err.stack, err.locals ~= "InCombatSkipped" and err.locals or "")
         end)
     else
         local origHandler = geterrorhandler()
@@ -153,12 +153,14 @@ local function RegisterErrorHandler()
 
             if ShouldHandleError() then
                 local stack = debugstack(2 + lvl)
+                local locals = not (InCombatLockdown() or UnitAffectingCombat("player")) and debuglocals(2 + lvl) or ""
 
-                HandleError(msg, stack)
+                HandleError(msg, stack, locals)
             end
 
             return r
         end)
+
     end
 end
 GW.RegisterErrorHandler = RegisterErrorHandler

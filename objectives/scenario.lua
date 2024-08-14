@@ -224,13 +224,27 @@ local function updateCurrentScenario(self, event, ...)
     for criteriaIndex = 1, numCriteria do
         local scenarioCriteriaInfo = C_ScenarioInfo.GetCriteriaInfo(criteriaIndex)
         local objectiveType = scenarioCriteriaInfo.isWeightedProgress and "progressbar" or "monster"
+
+        --[[
+        -- disable that till blizzard added back the raw value to the api
         if objectiveType == "progressbar" and not isMythicKeystone then
+            scenarioCriteriaInfo.totalQuantity = 100
+        end
+        -- temp till blizzard fix
+        local mythicKeystoneCurrentValue = 0
+        if isMythicKeystone then
+           mythicKeystoneCurrentValue = strtrim(mythicKeystoneCurrentValue, "%") or 1
+        end
+
+        ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description, isMythicKeystone, mythicKeystoneCurrentValue, scenarioCriteriaInfo.isWeightedProgress),
+        ]]
+        if objectiveType == "progressbar" then
             scenarioCriteriaInfo.totalQuantity = 100
         end
 
         addObjectiveBlock(
             GwScenarioBlock,
-            ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description, isMythicKeystone, scenarioCriteriaInfo.isWeightedProgress),
+            ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description, isMythicKeystone),
             false,
             criteriaIndex,
             objectiveType,
@@ -626,11 +640,11 @@ local function LoadScenarioFrame()
     newBlock.actionButton.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
     newBlock.actionButton.NormalTexture:SetTexture(nil)
     newBlock.actionButton:RegisterForClicks("AnyUp", "AnyDown")
-    newBlock.actionButton:SetScript("OnShow", QuestObjectiveItem_OnShow)
-    newBlock.actionButton:SetScript("OnHide", QuestObjectiveItem_OnHide)
-    newBlock.actionButton:SetScript("OnEnter", QuestObjectiveItem_OnEnter)
+    newBlock.actionButton:SetScript("OnShow", newBlock.actionButton.OnShow)
+    newBlock.actionButton:SetScript("OnHide", newBlock.actionButton.OnHide)
+    newBlock.actionButton:SetScript("OnEnter", newBlock.actionButton.OnEnter)
     newBlock.actionButton:SetScript("OnLeave", GameTooltip_Hide)
-    newBlock.actionButton:SetScript("OnEvent", QuestObjectiveItem_OnEvent)
+    newBlock.actionButton:SetScript("OnEvent", newBlock.actionButton.OnEvent)
 
     setBlockColor(newBlock, "SCENARIO")
     newBlock.Header:SetTextColor(newBlock.color.r, newBlock.color.g, newBlock.color.b)

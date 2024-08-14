@@ -122,7 +122,7 @@ local function changeVertexColorActionbars(btn)
 end
 AFP("changeVertexColorActionbars", changeVertexColorActionbars)
 
-local function UpdateActionbarBorders(btn)
+local function updateActionbarBorders(btn)
     local texture = GetActionTexture(btn.action)
     if texture then
         btn.gwBackdrop.border1:SetAlpha(1)
@@ -168,10 +168,9 @@ local function FlyoutDirection(actionbar)
 
     for i = 1, 12 do
         local button = actionbar.gw_Buttons[i]
-        if button.FlyoutArrow then
+        if button.FlyoutArrowContainer then
             --Change arrow direction depending on what bar the button is on
             local point = GW.GetScreenQuadrant(actionbar)
-
             if point ~= "UNKNOWN" then
                 if strfind(point, "TOP") then
                     button:SetAttribute("flyoutDirection", "DOWN")
@@ -616,8 +615,67 @@ local function setActionButtonStyle(buttonName, noBackDrop, isStanceButton, isPe
 end
 GW.setActionButtonStyle = setActionButtonStyle
 
-local function main_OnEvent(_, event)
-    if event == "PLAYER_EQUIPMENT_CHANGED" then
+local red_R, red_G, red_B = RED_FONT_COLOR:GetRGB()
+local function helper_RangeUpdate(slot, inRange, checkRange)
+    local btn = nil
+    local indicator = "RED_OVERLAY"
+    local barPrefix = GW.settings.BAR_LAYOUT_ENABLED and "Gw" or ""
+    if slot <= 24 then
+        btn = MainMenuBar.gw_Buttons[slot]
+        indicator = GW.settings.MAINBAR_RANGEINDICATOR
+        -- 13 to 24 is page 2
+    elseif slot <= 36 then
+        btn = _G[barPrefix .. "MultiBarRight"].gw_Buttons[slot - 24]
+    elseif slot <= 48 then
+        btn = _G[barPrefix .. "MultiBarLeft"].gw_Buttons[slot - 36]
+    elseif slot <= 60 then
+        btn = _G[barPrefix .. "MultiBarBottomRight"].gw_Buttons[slot - 48]
+    elseif slot <= 72 then
+        btn = _G[barPrefix .. "MultiBarBottomLeft"].gw_Buttons[slot - 60]
+    elseif slot <= 144 then
+        -- not sure where the 73-144 range gets used?
+    elseif slot <= 156 then
+        btn = _G[barPrefix .. "MultiBar5"].gw_Buttons[slot - 144]
+    elseif slot <= 168 then
+        btn = _G[barPrefix .. "MultiBar6"].gw_Buttons[slot - 156]
+    elseif slot <= 180 then
+        btn = _G[barPrefix .. "MultiBar7"].gw_Buttons[slot - 168]
+    end
+
+    if not btn then
+        return
+    end
+
+    if checkRange and not inRange then
+        if indicator == "RED_INDICATOR" or indicator == "BOTH" then
+            btn.gw_RangeIndicator:Show()
+        end
+        if indicator == "RED_OVERLAY" or indicator == "BOTH" then
+            btn.icon:SetVertexColor(red_R, red_G, red_B, 1, true)
+        end
+    else
+        if btn.gw_RangeIndicator then
+            btn.gw_RangeIndicator:Hide()
+        end
+        local vc = btn.icon.savedVertexColor
+        btn.icon:SetVertexColor(vc.r, vc.g, vc.b, vc.a, true)
+    end
+end
+
+local function saveVertexColor(self, r, g, b, a, bypass)
+    if bypass then
+        return
+    end
+    if a == nil then
+        a = 1
+    end
+    self.savedVertexColor = {["r"] = r, ["g"] = g, ["b"] = b, ["a"] = a}
+end
+
+local function main_OnEvent(_, event, ...)
+    if event == "ACTION_RANGE_CHECK_UPDATE" then
+        helper_RangeUpdate(...)
+    elseif event == "PLAYER_EQUIPMENT_CHANGED" then
         actionBarEquipUpdate()
     elseif event == "PLAYER_REGEN_DISABLED" or event == "PLAYER_REGEN_ENABLED" then
         local forceCombat = event == "PLAYER_REGEN_DISABLED"
@@ -665,6 +723,72 @@ local function main_OnEvent(_, event)
 end
 AFP("main_OnEvent", main_OnEvent)
 
+local function helper_OnEvent(_, event, ...)
+    --Debug("helper event", event, ...)
+    if (event == "ACTION_RANGE_CHECK_UPDATE") then
+        helper_RangeUpdate(...)
+    end
+end
+
+local function skinMainBar()
+    local bar = MainMenuBar
+
+    bar.gw_Buttons = {}
+    for i = 1, 12 do
+        local btn = _G["ActionButton" .. i]
+        bar.gw_Buttons[i] = btn
+
+        if btn then
+            btn.SlotArt = nil
+
+            local hotkey = _G["ActionButton" .. i .. "HotKey"]
+            btn.showMacroName = GW.settings.SHOWACTIONBAR_MACRO_NAME_ENABLED
+
+            btn.hkBg = CreateFrame("Frame", "GwHotKeyBackDropActionButton" .. i, hotkey:GetParent(), "GwActionHotkeyBackdropTmpl")
+            btn.hkBg:SetPoint("CENTER", hotkey, "CENTER", 0, 0)
+            btn.hkBg.texture:SetParent(hotkey:GetParent())
+            setActionButtonStyle("ActionButton" .. i)
+            updateHotkey(btn)
+            saveVertexColor(btn.icon, btn.icon:GetVertexColor())
+            hooksecurefunc(btn.icon, "SetVertexColor", saveVertexColor)
+            updateActionbarBorders(btn)
+
+            hotkey:SetPoint("BOTTOMLEFT", btn, "BOTTOMLEFT", 0, 0)
+            hotkey:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", 0, 0)
+            hotkey:SetFont(DAMAGE_TEXT_FONT, 14, "OUTLINED")
+            hotkey:SetTextColor(1, 1, 1)
+
+            if IsEquippedAction(btn.action) then
+                local borname = "ActionButton" .. i .. "Border"
+                if _G[borname] then
+                    _G[borname]:SetVertexColor(0, 1, 0, 1)
+                end
+            end
+
+            local rangeIndicator = CreateFrame("FRAME", nil, hotkey:GetParent(), "GwActionRangeIndicatorTmpl")
+            rangeIndicator:SetFrameStrata("BACKGROUND")
+            rangeIndicator:SetPoint("TOPLEFT", btn, "BOTTOMLEFT", -1, -2)
+            rangeIndicator:SetPoint("TOPRIGHT", btn, "BOTTOMRIGHT", 1, -2)
+            rangeIndicator.texture:SetVertexColor(147 / 255, 19 / 255, 2 / 255)
+            rangeIndicator:Hide()
+
+            btn.gw_RangeIndicator = rangeIndicator
+        end
+    end
+
+   -- event/update handlers
+    --AddUpdateCB(actionBar_OnUpdate, fmActionbar)
+    local f = CreateFrame("Frame")
+    GW.actionbar_helper_frame = f
+    f:SetScript("OnEvent", helper_OnEvent)
+    --f:RegisterEvent("ACTION_USABLE_CHANGED")
+    f:RegisterEvent("ACTION_RANGE_CHECK_UPDATE")
+    --helperFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+    --helperFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+    --helperFrame:RegisterEvent("PLAYER_LEVEL_UP")
+end
+AFP("skinMainBar", skinMainBar)
+
 local function updateMainBar()
     local fmActionbar = MainMenuBar
 
@@ -696,10 +820,12 @@ local function updateMainBar()
             btn.hkBg.texture:SetParent(hotkey:GetParent())
             setActionButtonStyle("ActionButton" .. i)
             updateHotkey(btn)
+            saveVertexColor(btn.icon, btn.icon:GetVertexColor())
+            hooksecurefunc(btn.icon, "SetVertexColor", saveVertexColor)
             hooksecurefunc(btn, "UpdateUsable", changeVertexColorActionbars)
             hooksecurefunc(btn, "UpdateFlyout", changeFlyoutStyle)
-            hooksecurefunc(btn, "Update", UpdateActionbarBorders)
-            UpdateActionbarBorders(btn)
+            hooksecurefunc(btn, "Update", updateActionbarBorders)
+            updateActionbarBorders(btn)
 
             hotkey:SetPoint("BOTTOMLEFT", btn, "BOTTOMLEFT", 0, 0)
             hotkey:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", 0, 0)
@@ -715,11 +841,11 @@ local function updateMainBar()
                 end
             end
 
-            local rangeIndicator = CreateFrame("FRAME", "GwActionRangeIndicator" .. i, hotkey:GetParent(), "GwActionRangeIndicatorTmpl")
+            local rangeIndicator = CreateFrame("FRAME", nil, hotkey:GetParent(), "GwActionRangeIndicatorTmpl")
             rangeIndicator:SetFrameStrata("BACKGROUND")
             rangeIndicator:SetPoint("TOPLEFT", btn, "BOTTOMLEFT", -1, -2)
             rangeIndicator:SetPoint("TOPRIGHT", btn, "BOTTOMRIGHT", 1, -2)
-            _G["GwActionRangeIndicator" .. i .. "Texture"]:SetVertexColor(147 / 255, 19 / 255, 2 / 255)
+            rangeIndicator.texture:SetVertexColor(147 / 255, 19 / 255, 2 / 255)
             rangeIndicator:Hide()
 
             btn.gw_RangeIndicator = rangeIndicator
@@ -744,6 +870,7 @@ local function updateMainBar()
     helperFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
     helperFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
     helperFrame:RegisterEvent("PLAYER_LEVEL_UP")
+    helperFrame:RegisterEvent("ACTION_RANGE_CHECK_UPDATE")
     helperFrame:HookScript("OnEvent", main_OnEvent)
 
     -- disable default main action bar behaviors
@@ -801,6 +928,39 @@ local function trackBarChanges()
 end
 AFP("trackBarChanges", trackBarChanges)
 
+local function skinMultiBar(barName, buttonName)
+    local bar = _G[barName]
+    bar.gw_Buttons = {}
+
+    for i = 1, 12 do
+        local btn = _G[buttonName .. i]
+        bar.gw_Buttons[i] = btn
+
+        if btn then
+            btn.SlotArt = nil
+            btn.SlotBackground:SetAlpha(0)
+
+            updateHotkey(btn)
+
+            btn.showMacroName = GW.settings.SHOWACTIONBAR_MACRO_NAME_ENABLED
+
+            setActionButtonStyle(buttonName .. i)
+
+            saveVertexColor(btn.icon, btn.icon:GetVertexColor())
+            hooksecurefunc(btn.icon, "SetVertexColor", saveVertexColor)
+
+            if IsEquippedAction(btn.action) then
+                local borname = buttonName .. i .. "Border"
+                if _G[borname] then
+                    _G[borname]:SetVertexColor(0, 1, 0, 1)
+                end
+            end
+        end
+    end
+
+end
+AFP("skinMultiBar", skinMultiBar)
+
 local function updateMultiBar(lm, barName, buttonName, actionPage, state)
     local multibar = _G[barName]
     local used_width = 0
@@ -839,9 +999,11 @@ local function updateMultiBar(lm, barName, buttonName, actionPage, state)
 
             setActionButtonStyle(buttonName .. i)
 
+            saveVertexColor(btn.icon, btn.icon:GetVertexColor())
+            hooksecurefunc(btn.icon, "SetVertexColor", saveVertexColor)
             hooksecurefunc(btn, "UpdateUsable", changeVertexColorActionbars)
             hooksecurefunc(btn, "UpdateFlyout", changeFlyoutStyle)
-            hooksecurefunc(btn, "Update", UpdateActionbarBorders)
+            hooksecurefunc(btn, "Update", updateActionbarBorders)
 
             btn:ClearAllPoints()
             btn:SetPoint("TOPLEFT", fmMultibar, "TOPLEFT", btn_padding, -btn_padding_y)
@@ -1077,86 +1239,23 @@ local function actionButtonFlashing(btn, elapsed)
 end
 AFP("actionButtonFlashing", actionButtonFlashing)
 
-local out_R, out_G, out_B = RED_FONT_COLOR:GetRGB()
-local function actionButtons_OnUpdate(self, elapsed, testRange)
+local function actionButtons_OnUpdate(self, elapsed)
     for i = 1, 12 do
         local btn = self.gw_Buttons[i]
         -- override of /Interface/FrameXML/ActionButton.lua ActionButton_OnUpdate
         if (btn:IsFlashing()) then
             actionButtonFlashing(btn, elapsed)
-        end
-
-        if testRange then
-            local valid = IsActionInRange(btn.action)
-            local checksRange = (valid ~= nil)
-            local inRange = checksRange and valid
-            if checksRange and not inRange then
-                if btn.rangeIndicatorSetting == "RED_INDICATOR" then
-                    btn.gw_RangeIndicator:Show()
-                elseif btn.rangeIndicatorSetting == "RED_OVERLAY" then
-                    btn.icon:SetVertexColor(out_R, out_G, out_B)
-                    btn.changedColor = true
-                elseif btn.rangeIndicatorSetting == "BOTH" then
-                    btn.gw_RangeIndicator:Show()
-                    btn.icon:SetVertexColor(out_R, out_G, out_B)
-                    btn.changedColor = true
-                end
-            else
-                local isUsable, notEnoughMana = IsUsableAction(btn.action)
-
-                if btn.rangeIndicatorSetting == "RED_INDICATOR" then
-                    btn.gw_RangeIndicator:Hide()
-                elseif btn.rangeIndicatorSetting == "RED_OVERLAY" then
-                    if btn.changedColor then
-                        if isUsable then
-                            btn.icon:SetVertexColor(1, 1, 1)
-                        elseif notEnoughMana then
-                            btn.icon:SetVertexColor(0.5, 0.5, 1.0)
-                        else
-                            btn.icon:SetVertexColor(0.4, 0.4, 0.4)
-                        end
-                        btn.changedColor = false
-                    end
-                elseif btn.rangeIndicatorSetting == "BOTH" then
-                    btn.gw_RangeIndicator:Hide()
-                    if btn.changedColor then
-                        if isUsable then
-                            btn.icon:SetVertexColor(1, 1, 1)
-                        elseif notEnoughMana then
-                            btn.icon:SetVertexColor(0.5, 0.5, 1.0)
-                        else
-                            btn.icon:SetVertexColor(0.4, 0.4, 0.4)
-                        end
-                        btn.changedColor = false
-                    end
-                end
-            end
         end
     end
 end
 AFP("actionButtons_OnUpdate", actionButtons_OnUpdate)
 
-local function multiButtons_OnUpdate(self, elapsed, testRange)
+local function multiButtons_OnUpdate(self, elapsed)
     for i = 1, 12 do
         local btn = self.gw_Buttons[i]
         -- override of /Interface/FrameXML/ActionButton.lua ActionButton_OnUpdate
         if (btn:IsFlashing()) then
             actionButtonFlashing(btn, elapsed)
-        end
-
-        if testRange then
-            local valid = IsActionInRange(btn.action)
-            local checksRange = (valid ~= nil)
-            local inRange = checksRange and valid
-            if checksRange and not inRange then
-                btn.icon:SetVertexColor(out_R, out_G, out_B)
-                btn.changedColor = true
-            else
-                if btn.changedColor then
-                    btn.icon:SetVertexColor(1, 1, 1)
-                    btn.changedColor = false
-                end
-            end
         end
     end
 end
@@ -1164,7 +1263,6 @@ AFP("multiButtons_OnUpdate", multiButtons_OnUpdate)
 
 local updateCap = 1 / 60 -- cap updates to 60 FPS
 actionBar_OnUpdate = function(self, elapsed)
-    local testRange = false
     local testFade = false
     self.rangeTimer = self.rangeTimer - elapsed
     self.fadeTimer = self.fadeTimer - elapsed
@@ -1176,7 +1274,6 @@ actionBar_OnUpdate = function(self, elapsed)
     self.elapsedTimer = updateCap
 
     if self.rangeTimer <= 0 then
-        testRange = true
         self.rangeTimer = TOOLTIP_UPDATE_TIME
     end
 
@@ -1192,30 +1289,30 @@ actionBar_OnUpdate = function(self, elapsed)
 
     -- update action bar buttons
     if self.gw_FadeShowing then
-        actionButtons_OnUpdate(self, elapsed, testRange)
+        actionButtons_OnUpdate(self, elapsed)
     end
 
     -- update multibar buttons
     if self.gw_Bar1.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar1, elapsed, testRange)
+        multiButtons_OnUpdate(self.gw_Bar1, elapsed)
     end
     if self.gw_Bar2.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar2, elapsed, testRange)
+        multiButtons_OnUpdate(self.gw_Bar2, elapsed)
     end
     if self.gw_Bar3.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar3, elapsed, testRange)
+        multiButtons_OnUpdate(self.gw_Bar3, elapsed)
     end
     if self.gw_Bar4.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar4, elapsed, testRange)
+        multiButtons_OnUpdate(self.gw_Bar4, elapsed)
     end
     if self.gw_Bar5.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar5, elapsed, testRange)
+        multiButtons_OnUpdate(self.gw_Bar5, elapsed)
     end
     if self.gw_Bar6.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar6, elapsed, testRange)
+        multiButtons_OnUpdate(self.gw_Bar6, elapsed)
     end
     if self.gw_Bar7.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar7, elapsed, testRange)
+        multiButtons_OnUpdate(self.gw_Bar7, elapsed)
     end
 end
 AFP("actionBar_OnUpdate", actionBar_OnUpdate)
@@ -1255,7 +1352,23 @@ local function UpdateMainBarHot()
 end
 GW.UpdateMainBarHot = UpdateMainBarHot
 
-local function LoadActionBars(lm)
+local function LoadActionBars(lm, skinOnly)
+
+    if skinOnly then
+        -- skin the buttons
+        -- TODO: most of what we do here should be re-usable for the managed layout mode too
+        --       especially the much more efficient range event handling stuff
+        skinMainBar()
+        skinMultiBar("MultiBarBottomLeft", "MultiBarBottomLeftButton")
+        skinMultiBar("MultiBarBottomRight", "MultiBarBottomRightButton")
+        skinMultiBar("MultiBarRight", "MultiBarRightButton")
+        skinMultiBar("MultiBarLeft", "MultiBarLeftButton")
+        skinMultiBar("MultiBar5", "MultiBar5Button")
+        skinMultiBar("MultiBar6", "MultiBar6Button")
+        skinMultiBar("MultiBar7", "MultiBar7Button")
+        return nil
+    end
+
     -- init our bars
     local fmActionbar = updateMainBar()
     fmActionbar.gw_Bar1 = updateMultiBar(lm, "MultiBarBottomLeft", "MultiBarBottomLeftButton", BOTTOMLEFT_ACTIONBAR_PAGE, true)

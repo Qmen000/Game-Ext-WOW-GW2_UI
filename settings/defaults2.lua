@@ -31,6 +31,7 @@ GW.globalDefault = {
         HEALTHGLOBE_ENABLED = true,
         PLAYER_BUFFS_ENABLED = true,
         ACTIONBARS_ENABLED = true,
+        BAR_LAYOUT_ENABLED = true,
         BAGS_ENABLED = true,
         NPC_CAM_ENABLED = false,
         FONTS_ENABLED = true,
@@ -865,6 +866,7 @@ GW.globalDefault = {
         INDICATOR_CENTER= 0,
         INDICATOR_RIGHT= 0,
 
+        ADVENTURE_MAP_SKIN_ENABLED = true,
         ACHIEVEMENT_SKIN_ENABLED= true,
         MAINMENU_SKIN_ENABLED= true,
         STATICPOPUP_SKIN_ENABLED= true,

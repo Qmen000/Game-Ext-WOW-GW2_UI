@@ -249,40 +249,69 @@ local function hook_NotifyDialogShow(_, dialog)
 end
 AFP("hook_NotifyDialogShow", hook_NotifyDialogShow)
 
+local function updateCollapse(self, collapsed)
+    if collapsed then
+        self.Icon:SetTexture("Interface/AddOns/GW2_UI/Textures/uistuff/arrowdown_down")
+        self.Icon:SetRotation(1.570796325)
+        self:GetHighlightTexture():SetTexture("Interface/AddOns/GW2_UI/Textures/uistuff/arrowdown_down")
+        self:GetHighlightTexture():SetRotation(1.570796325)
+    else
+        self.Icon:SetTexture("Interface/AddOns/GW2_UI/Textures/uistuff/arrowdown_down")
+        self.Icon:SetRotation(0)
+        self:GetHighlightTexture():SetTexture("Interface/AddOns/GW2_UI/Textures/uistuff/arrowdown_down")
+        self:GetHighlightTexture():SetRotation(0)
+    end
+end
+
 local function hook_QuestLogQuests_Update()
     for button in QuestScrollFrame.headerFramePool:EnumerateActive() do
-		if button.ButtonText then
-			if not button.IsSkinned then
-				button:GwStripTextures()
-				button:GwCreateBackdrop('Transparent')
-				button:GetHighlightTexture():SetColorTexture(1, 0.93, 0.73, 0.25)
-				button.IsSkinned = true
-			end
-		end
-	end
+        if button.ButtonText then
+            if not button.IsSkinned then
+                button:GwCreateBackdrop(GW.BackdropTemplates.ColorableBorderOnly, true)
+                button.backdrop:SetBackdropBorderColor(1, 1, 1, 0.2)
+                button:SetNormalTexture("Interface/AddOns/GW2_UI/textures/bag/bag-sep")
+                button:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/bag/bag-sep")
+                button:GetHighlightTexture():SetColorTexture(1, 0.93, 0.73, 0.25)
 
-	for button in QuestScrollFrame.titleFramePool:EnumerateActive() do
-		if not button.IsSkinned then
-			if button.CheckBox then
-				button.CheckBox:DisableDrawLayer('BACKGROUND')
-				button.CheckBox:GwCreateBackdrop()
-			end
+                if button.CollapseButton then
+                    hooksecurefunc(button.CollapseButton, "UpdateCollapsedState", updateCollapse)
+                end
 
-			if button.Check then
-				button.Check:SetAtlas('checkmark-minimal')
-			end
-			button.IsSkinned = true
-		end
-	end
+                button.IsSkinned = true
+            end
+        end
+    end
 
-	for header in QuestScrollFrame.campaignHeaderMinimalFramePool:EnumerateActive() do
-		if header.CollapseButton and not header.IsSkinned then
-			header:GwStripTextures()
-			header.Background:GwCreateBackdrop('Transparent')
-			header.Highlight:SetColorTexture(1, 0.93, 0.73, 0.75)
-			header.IsSkinned = true
-		end
-	end
+    for button in QuestScrollFrame.titleFramePool:EnumerateActive() do
+        if not button.IsSkinned then
+            if button.Checkbox then
+                button.Checkbox:DisableDrawLayer('BACKGROUND')
+                hooksecurefunc(button.Checkbox.CheckMark, "SetShown", function(self, isTracked)
+                    self:Show()
+                    if isTracked then
+                        self:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkboxchecked")
+                    else
+                        self:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkbox")
+                    end
+                end)
+            end
+
+            button.IsSkinned = true
+        end
+    end
+
+    for header in QuestScrollFrame.campaignHeaderMinimalFramePool:EnumerateActive() do
+        if header.CollapseButton and not header.IsSkinned then
+            header.minimumCollapsedHeight = 25
+            header.Background:GwCreateBackdrop(GW.BackdropTemplates.ColorableBorderOnly, true)
+            header.Background.backdrop:SetBackdropBorderColor(1, 1, 1, 0.2)
+            header.Background:SetTexture("Interface/AddOns/GW2_UI/textures/bag/bag-sep")
+            header.Highlight:SetTexture("Interface/AddOns/GW2_UI/textures/bag/bag-sep")
+            header.Highlight:SetColorTexture(1, 0.93, 0.73, 0.25)
+            hooksecurefunc(header.CollapseButton, "UpdateCollapsedState", updateCollapse)
+            header.IsSkinned = true
+        end
+    end
 end
 AFP("hook_QuestLogQuests_Update", hook_QuestLogQuests_Update)
 

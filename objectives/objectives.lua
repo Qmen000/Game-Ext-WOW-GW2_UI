@@ -108,14 +108,16 @@ local function ParseSimpleObjective(text)
 end
 GW.ParseSimpleObjective = ParseSimpleObjective
 
-local function ParseCriteria(quantity, totalQuantity, criteriaString, isMythicKeystone, isWeightedProgress)
+
+--local function ParseCriteria(quantity, totalQuantity, criteriaString, isMythicKeystone, mythicKeystoneCurrentValue, isWeightedProgress)
+local function ParseCriteria(quantity, totalQuantity, criteriaString, isMythicKeystone)
     if quantity ~= nil and totalQuantity ~= nil and criteriaString ~= nil then
         if isMythicKeystone then
-            if isWeightedProgress then
-                return string.format("%.2f", (quantity / totalQuantity * 100)) .."% " ..  string.format("(%s/%s) %s", quantity, totalQuantity, criteriaString)
-            else
+            --if isWeightedProgress then
+            --    return string.format("%.2f", (mythicKeystoneCurrentValue / totalQuantity * 100)) .."% " ..  string.format("(%s/%s) %s", mythicKeystoneCurrentValue, totalQuantity, criteriaString)
+            --else
                 return string.format("%d/%d %s", quantity, totalQuantity, criteriaString)
-            end
+            --end
         elseif totalQuantity == 0 then
             return string.format("%d %s", quantity, criteriaString)
         else
@@ -430,13 +432,11 @@ local function getBlockQuest(blockIndex, isFrequency)
     newBlock.actionButton.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
     newBlock.actionButton.NormalTexture:SetTexture(nil)
     newBlock.actionButton:RegisterForClicks("AnyUp", "AnyDown")
-    newBlock.actionButton:SetScript("OnShow", QuestObjectiveItem_OnShow)
-    newBlock.actionButton:SetScript("OnHide", QuestObjectiveItem_OnHide)
-    newBlock.actionButton:SetScript("OnEnter", QuestObjectiveItem_OnEnter)
+    newBlock.actionButton:SetScript("OnShow", newBlock.actionButton.OnShow)
+    newBlock.actionButton:SetScript("OnHide", newBlock.actionButton.OnHide)
+    newBlock.actionButton:SetScript("OnEnter", newBlock.actionButton.OnEnter)
     newBlock.actionButton:SetScript("OnLeave", GameTooltip_Hide)
-    newBlock.actionButton:SetScript("OnEvent", QuestObjectiveItem_OnEvent)
-
-    Mixin(newBlock.actionButton, QuestObjectiveItemButtonMixin)
+    newBlock.actionButton:SetScript("OnEvent", newBlock.actionButton.OnEvent)
 
     return newBlock
 end
@@ -466,13 +466,11 @@ local function getBlockCampaign(blockIndex)
     newBlock.actionButton.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
     newBlock.actionButton.NormalTexture:SetTexture(nil)
     newBlock.actionButton:RegisterForClicks("AnyUp", "AnyDown")
-    newBlock.actionButton:SetScript("OnShow", QuestObjectiveItem_OnShow)
-    newBlock.actionButton:SetScript("OnHide", QuestObjectiveItem_OnHide)
-    newBlock.actionButton:SetScript("OnEnter", QuestObjectiveItem_OnEnter)
+    newBlock.actionButton:SetScript("OnShow", newBlock.actionButton.OnShow)
+    newBlock.actionButton:SetScript("OnHide", newBlock.actionButton.OnHide)
+    newBlock.actionButton:SetScript("OnEnter", newBlock.actionButton.OnEnter)
     newBlock.actionButton:SetScript("OnLeave", GameTooltip_Hide)
-    newBlock.actionButton:SetScript("OnEvent", QuestObjectiveItem_OnEvent)
-
-    Mixin(newBlock.actionButton, QuestObjectiveItemButtonMixin)
+    newBlock.actionButton:SetScript("OnEvent", newBlock.actionButton.OnEvent)
 
     return newBlock
 end
@@ -587,21 +585,14 @@ local function UpdateQuestItem(block)
 
     local isQuestComplete = (block and block.questID) and QuestCache:Get(block.questID):IsComplete() or false
     local shouldShowItem = item and (not isQuestComplete or showItemWhenComplete)
-    if shouldShowItem then
+    if shouldShowItem and block.questLogIndex then
         block.hasItem = true
-        block.actionButton:SetID(block.questLogIndex)
+        block.actionButton:SetUp(block.questLogIndex)
 
         block.actionButton:SetAttribute("type", "item")
         block.actionButton:SetAttribute("item", link)
 
-        block.actionButton.charges = charges
-        block.actionButton.rangeTimer = -1
-        SetItemButtonTexture(block.actionButton, item)
-        SetItemButtonCount(block.actionButton, charges)
-
-        block.actionButton.questLogIndex = block.questLogIndex -- needed for the UpdateCooldown function
-        block.actionButton:UpdateCooldown()
-        block.actionButton:SetScript("OnUpdate", QuestObjectiveItem_OnUpdate)
+        block.actionButton:SetScript("OnUpdate", block.actionButton.OnUpdate)
         block.actionButton:Show()
     else
         block.hasItem = false

@@ -1,7 +1,15 @@
-7.0.1
-FIXES
-    - First round of fixes
+7.1.0
+NEW
+    - Added option to skin blizzards default actionbars
+        - That function disabled our manged actionbars and there hooked features
+    - Adventuremap skin
 
-7.0.0
+FIXES
+    - Objectives tracker actionbutton works again
+    - Error handler shows only GW2 errors
+    - M+ progess counter should show correect % again (raw value is not possible atm)
+    - Fix minimap lua error
+
 CHANGES
-    - Update for TWW
+    - Added TRP3 tooltips support
+    - Immersive Question changes and improvments
