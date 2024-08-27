@@ -15,6 +15,23 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("7.2.0",{
+    {ct.feature, [=[Talent frame skin]=]},
+    {ct.feature, [=[Tooltip Item Count now has options Include Reagents and Include Warband]=]},
+    {ct.feature, [=[Keybind support for immersive questing]=]},
+    {ct.feature, [=[Keybind support for gossip skin]=]},
+    {ct.feature, [=[Stancebar can now be disabled]=]},
+    {ct.feature, [=[DK runes now get sorted based on there progress]=]},
+    {ct.feature, [=[Add timer to tracked achievements]=]},
+    {ct.feature, [=[New immersive questing backgrounds for TWW]=]},
+    {ct.change, [=[Chat frame alert color is now saved per character]=]},
+    {ct.change, [=[Update some skins]=]},
+    {ct.change, [=[Update imported debuffs]=]},
+    {ct.bug, [=[EJ skin error]=]},
+    {ct.bug, [=[Raid frame ignored auras works again]=]},
+    {ct.bug, [=[Fix GW2_Layout creation process]=]},
+})
+
 addChange("7.1.0",{
     {ct.feature, [=[Added option to skin blizzards default actionbars
         That function disabled our managed actionbars and there hooked features]=]},
@@ -24,7 +41,7 @@ addChange("7.1.0",{
     {ct.bug, [=[M+ progess counter should show correect % again (raw value is not possible atm)]=]},
     {ct.bug, [=[Fix minimap lua error]=]},
     {ct.change, [=[Added TRP3 tooltips support]=]},
-    {ct.change, [=[Immersive Question changes and improvments]=]},
+    {ct.change, [=[Immersive Question changes and improvements]=]},
 })
 
 addChange("7.0.2",{

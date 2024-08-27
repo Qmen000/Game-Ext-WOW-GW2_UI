@@ -1,8 +1,8 @@
-## Interface: 110000, 110002
+## Interface: 110002
 ## Title: |cffffedbaGW2 UI|r
 ## Notes: HUD Replacement addon
 ## Notes-deDE: Ersetzt die Benutzeroberfläche
-## OptionalDeps: Details, MoveAnything, _DebugLog, BugSack, !Stragglers, ACU, PetTracker
+## OptionalDeps: Details, MoveAnything, _DebugLog, BugSack, !Stragglers, ACU, PetTracker, Masque
 ## Version: @project-version@
 ## X-Website: https://www.curseforge.com/wow/addons/gw2-ui
 ## X-Curse-Project-ID: 94310
@@ -210,7 +210,6 @@ inventory\extendVendor.lua
 
 immersive\skins\skins.xml
 immersive\skins\achievements.xml
-immersive\skins\worldmap.xml
 immersive\toast.xml
 immersive\alertPosition.lua
 immersive\alerts.lua

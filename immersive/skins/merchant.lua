@@ -38,10 +38,12 @@ local function SkinMerchantFrameItemButton(i)
     local icon = button.icon
     local iconBorder = button.IconBorder
     local item = _G["MerchantItem" .. i]
+
     item:GwStripTextures(true)
     item:GwCreateBackdrop(constBackdropFrameSmallerBorder, true, 6, 6)
 
     button:GwStripTextures()
+    button:GwStyleButton()
     button:SetPoint("TOPLEFT", item, "TOPLEFT", 4, -4)
 
     icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
@@ -53,12 +55,13 @@ local function SkinMerchantFrameItemButton(i)
     iconBorder:SetAllPoints(button)
     iconBorder:SetParent(button)
 
-    hooksecurefunc(iconBorder, "SetVertexColor", function(self)
-        self:SetTexture("Interface/AddOns/GW2_UI/textures/bag/bagitemborder")
-    end)
+    GW.HandleIcon(icon, true, GW.BackdropTemplates.ColorableBorderOnly)
+    GW.HandleIconBorder(iconBorder, icon.backdrop)
 
     _G["MerchantItem" .. i .. "MoneyFrame"]:ClearAllPoints()
     _G["MerchantItem" .. i .. "MoneyFrame"]:SetPoint("BOTTOMLEFT", button, "BOTTOMRIGHT", 3, 0)
+
+    item.isGw2Skinned = true
 end
 GW.SkinMerchantFrameItemButton = SkinMerchantFrameItemButton
 
@@ -72,17 +75,8 @@ local function LoadMerchantFrameSkin()
     MerchantFrame.TopTileStreaks:Hide()
     MerchantFrame:GwCreateBackdrop()
 
-    local r = {MerchantFrame:GetRegions()}
-    local i = 1
-    local headerText
-    for _, c in pairs(r) do
-        if c:GetObjectType() == "FontString" then
-            if i == 2 then headerText = c break end
-            i = i + 1
-        end
-    end
 
-    GW.CreateFrameHeaderWithBody(MerchantFrame, headerText, "Interface/AddOns/GW2_UI/textures/character/macro-window-icon", {MerchantFrameInset, MerchantMoneyInset})
+    GW.CreateFrameHeaderWithBody(MerchantFrame, MerchantFrameTitleText, "Interface/AddOns/GW2_UI/textures/character/macro-window-icon", {MerchantFrameInset, MerchantMoneyInset})
     MerchantFrame.gwHeader.windowIcon:SetSize(65, 65)
     MerchantFrame.gwHeader.windowIcon:ClearAllPoints()
     MerchantFrame.gwHeader.windowIcon:SetPoint("CENTER", MerchantFrame.gwHeader.BGLEFT, "LEFT", 25, -5)
@@ -113,7 +107,7 @@ local function LoadMerchantFrameSkin()
     MerchantExtraCurrencyInset:GwStripTextures()
     MerchantExtraCurrencyBg:GwStripTextures()
 
-    MerchantFrame.FilterDropdown:GwHandleDropDownBox(nil, nil, "MENU_MERCHANT_FRAME")
+    MerchantFrame.FilterDropdown:GwHandleDropDownBox()
 
     MerchantItem1:SetPoint("TOPLEFT", MerchantFrame, "TOPLEFT", 24, -69)
 
@@ -132,8 +126,10 @@ local function LoadMerchantFrameSkin()
         text:SetPoint("CENTER", tab, "CENTER", (tab.deselectedTextX or 0), (tab.deselectedTextY or 2))
     end)
 
-    for i = 1, BUYBACK_ITEMS_PER_PAGE do
-        SkinMerchantFrameItemButton(i)
+    for i = 1, MERCHANT_ITEMS_PER_PAGE do
+        if not _G["MerchantItem" .. i].isGw2Skinned then
+            SkinMerchantFrameItemButton(i)
+        end
     end
 
     MerchantBuyBackItemItemButton:GwStripTextures()

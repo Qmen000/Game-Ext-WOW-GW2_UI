@@ -271,32 +271,50 @@ local function encounterJournalSkin()
 
     GW.SkinTextBox(EncounterJournal.searchBox.Middle, EncounterJournal.searchBox.Left, EncounterJournal.searchBox.Right)
     EncounterJournal.searchBox:ClearAllPoints()
-    EncounterJournal.searchBox:SetPoint("TOPLEFT", EJ.navBar, "TOPRIGHT", 4, 0)
+    EncounterJournal.searchBox:SetPoint("BOTTOMRIGHT", EncounterJournal.gwHeader, "BOTTOMRIGHT", -5, -30)
 
     local InstanceSelect = EJ.instanceSelect
     InstanceSelect.bg:GwKill()
 
-    InstanceSelect.ExpansionDropdown:GwHandleDropDownBox(nil, nil, "MENU_EJ_EXPANSION")
+    InstanceSelect.ExpansionDropdown:GwHandleDropDownBox()
     GW.HandleTrimScrollBar(InstanceSelect.ScrollBar)
+
     EncounterJournalInstanceSelectBG:SetAlpha(0)
     EncounterJournalMonthlyActivitiesFrame.Bg:SetAlpha(0)
     GW.HandleTrimScrollBar(EncounterJournalMonthlyActivitiesFrame.ScrollBar)
     GW.HandleScrollControls(EncounterJournalMonthlyActivitiesFrame)
+    GW.HandleTrimScrollBar(EncounterJournalMonthlyActivitiesFrame.FilterList.ScrollBar)
+    GW.HandleScrollControls(EncounterJournalMonthlyActivitiesFrame.FilterList)
 
     GW.HandleTrimScrollBar(InstanceSelect.ScrollBar)
     GW.HandleScrollControls(InstanceSelect)
 
-    local tabs = {EncounterJournalMonthlyActivitiesTab, EncounterJournalSuggestTab, EncounterJournalDungeonTab, EncounterJournalRaidTab, EncounterJournalLootJournalTab}
-    for _, tab in pairs(tabs) do
-        GW.HandleTabs(tab, true)
-        tab:HookScript("OnClick", function(self)
-            for _, t in pairs(tabs) do
-                if t:GetName() ~= self:GetName() then
-                    t.hover:SetAlpha(0)
-                end
-            end
-        end)
-    end
+    for _, tab in next, {
+		EncounterJournalSuggestTab,
+		EncounterJournalDungeonTab,
+		EncounterJournalRaidTab,
+		EncounterJournalLootJournalTab,
+		EncounterJournalMonthlyActivitiesTab
+	} do
+		GW.HandleTabs(tab)
+	end
+
+    EncounterJournalMonthlyActivitiesTab:ClearAllPoints()
+	EncounterJournalMonthlyActivitiesTab:SetPoint('TOPLEFT', EncounterJournal, 'BOTTOMLEFT', 0, 0)
+
+	EncounterJournalSuggestTab:ClearAllPoints()
+	EncounterJournalSuggestTab:SetPoint('LEFT', EncounterJournalMonthlyActivitiesTab, 'RIGHT', 0, 0)
+    EncounterJournalSuggestTab.SetPoint = GW.NoOp
+
+	EncounterJournalDungeonTab:ClearAllPoints()
+	EncounterJournalDungeonTab:SetPoint('LEFT', EncounterJournalSuggestTab, 'RIGHT', 0, 0)
+    EncounterJournalDungeonTab.SetPoint = GW.NoOp
+
+	EncounterJournalRaidTab:ClearAllPoints()
+	EncounterJournalRaidTab:SetPoint('LEFT', EncounterJournalDungeonTab, 'RIGHT', 0, 0)
+
+	EncounterJournalLootJournalTab:ClearAllPoints()
+	EncounterJournalLootJournalTab:SetPoint('LEFT', EncounterJournalRaidTab, 'RIGHT', 0, 0)
 
     EncounterJournalMonthlyActivitiesFrame.HelpButton:GwKill()
 
@@ -322,23 +340,16 @@ local function encounterJournalSkin()
     EncounterInfo.instanceTitle:SetPoint("BOTTOM", EncounterInfo.bossesScroll, "TOP", 10, 15)
 
     EncounterInfo.difficulty:GwStripTextures()
-    EncounterInfo.reset:GwStripTextures()
 
     -- buttons
     EncounterInfo.difficulty:ClearAllPoints()
     EncounterInfo.difficulty:SetPoint("BOTTOMRIGHT", EncounterJournalEncounterFrameInfoBG, "TOPRIGHT", -5, 7)
-    HandleButton(EncounterInfo.reset)
-    EncounterInfo.difficulty:GwHandleDropDownBox(nil, true, "MENU_EJ_DIFFICULTY")
-
-    EncounterInfo.reset:ClearAllPoints()
-    EncounterInfo.reset:SetPoint("TOPRIGHT",EncounterInfo.difficulty, "TOPLEFT", -10, 0)
-    EncounterJournalEncounterFrameInfoResetButtonTexture:SetTexture([[Interface\EncounterJournal\UI-EncounterJournalTextures]])
-    EncounterJournalEncounterFrameInfoResetButtonTexture:SetTexCoord(0.90625000, 0.94726563, 0.00097656, 0.02050781)
+    EncounterInfo.difficulty:GwHandleDropDownBox(nil, true, nil, 120)
 
     EncounterInfo.LootContainer.filter:ClearAllPoints()
     EncounterInfo.LootContainer.filter:SetPoint('RIGHT', EncounterInfo.difficulty, 'LEFT', -120, 0)
-    EncounterInfo.LootContainer.filter:GwHandleDropDownBox(nil, nil, "MENU_EJ_LOOT_JOURNAL")
-    EncounterInfo.LootContainer.slotFilter:GwHandleDropDownBox(nil, nil, "MENU_EJ_LOOT_SLOT_FILTER")
+    EncounterInfo.LootContainer.filter:GwHandleDropDownBox(nil, false, nil, 120)
+    EncounterInfo.LootContainer.slotFilter:GwHandleDropDownBox(nil, false, nil, 100)
 
     GW.HandleTrimScrollBar(EncounterInfo.BossesScrollBar, true)
     GW.HandleScrollControls(EncounterInfo, "BossesScrollBar")

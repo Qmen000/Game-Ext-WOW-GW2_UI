@@ -1,7 +1,7 @@
 local _, GW = ...
 
 --middle left right
-local function SkinTextBox(middleTex, leftTex, rightTex, topTex, bottomTex, leftOffset, rightOffset)
+local function SkinTextBox(middleTex, leftTex, rightTex, topTex, bottomTex, leftOffset, rightOffset, noTop)
     if middleTex then
         middleTex:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/statusbar")
         middleTex:SetAlpha(0.5)
@@ -36,7 +36,7 @@ local function SkinTextBox(middleTex, leftTex, rightTex, topTex, bottomTex, left
             topTex:SetPoint("BOTTOMRIGHT", pframe, "TOPRIGHT", (rightOffset or 0), 0)
             topTex:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/statusbarBorderPixel")
             topTex:SetAlpha(1)
-        else
+        elseif not noTop then
             local top = pframe:CreateTexture(nil, "BACKGROUND", nil, 0)
             pframe.top = top
             top:ClearAllPoints()
@@ -49,12 +49,12 @@ local function SkinTextBox(middleTex, leftTex, rightTex, topTex, bottomTex, left
         if bottomTex then
             bottomTex:ClearAllPoints()
             bottomTex:SetHeight(2)
-            bottomTex:SetPoint("TOPLEFT",pframe,"BOTTOMLEFT",-(leftOffset or 0),0)
-            bottomTex:SetPoint("TOPRIGHT",pframe,"BOTTOMRIGHT",(rightOffset or 0),0)
+            bottomTex:SetPoint("TOPLEFT",pframe,"BOTTOMLEFT", -(leftOffset or 0), 0)
+            bottomTex:SetPoint("TOPRIGHT",pframe,"BOTTOMRIGHT",( rightOffset or 0), 0)
             bottomTex:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/statusbarBorderPixel")
             bottomTex:SetTexCoord(0, 1, 1, 0)
             bottomTex:SetAlpha(1)
-        else
+        elseif not noTop then
             local bottom = pframe:CreateTexture(nil, "BACKGROUND", nil, 0)
             pframe.bottom = bottom
             bottom:ClearAllPoints()
@@ -440,48 +440,66 @@ do
     GW.HandleIconSelectionFrame = HandleIconSelectionFrame
 end
 
-local tabs = {
-    "LeftDisabled",
-    "MiddleDisabled",
-    "RightDisabled",
-    "Left",
-    "Middle",
-    "Right"
-}
+local function HandleTabs(self, isTop)
+    if self and not self.isSkinned then
+        self:GwStripTextures()
+        self:GetFontString():SetTextColor(1, 1, 1, 1)
+        self:GetFontString():SetShadowOffset(0, 0)
 
-local function HandleTabs(tab, skinAsButton)
-    for _, object in pairs(tabs) do
-        local textureName = tab:GetName() and _G[tab:GetName() .. object]
-        if textureName then
-            textureName:SetTexture()
-        elseif tab[object] then
-            tab[object]:SetTexture()
+        local tex = self:CreateTexture(nil, "BACKGROUND")
+        tex:SetPoint("LEFT", self, "LEFT")
+        tex:SetPoint("TOP", self, "TOP")
+        tex:SetPoint("BOTTOM", self, "BOTTOM")
+        tex:SetPoint("RIGHT", self, "RIGHT")
+        tex:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/buttonlightInner")
+        self.tex = tex
+        self.tex:SetAlpha(1)
+
+        self.borderFrame = CreateFrame("Frame", nil, self, "GwLightButtonBorder")
+
+        self.background = self:CreateTexture(nil, "BACKGROUND", nil, -7)
+        self.background:SetAllPoints(self)
+        self.background:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-header")
+        if not isTop then
+            self.background:SetTexCoord(0, 1, 1, 0)
+            self.borderFrame.bottom:Show()
+            self.borderFrame.top:Hide()
+        else
+            self.borderFrame.bottom:Hide()
+            self.borderFrame.top:Show()
         end
-    end
 
-    local highlightTex = tab.GetHighlightTexture and tab:GetHighlightTexture()
-    if highlightTex then
-        highlightTex:SetTexture()
-    else
-        tab:GwStripTextures()
-    end
+        if self.SetTabSelected then
+            hooksecurefunc(self, "SetTabSelected", function(tab)
+                if tab.isSelected then
+                    tab.background:SetBlendMode("MOD")
+                else
+                    tab.background:SetBlendMode("BLEND")
+                end
 
-    if skinAsButton then
-        tab:GwSkinButton(false, true)
+            end)
+        else
+            hooksecurefunc("PanelTemplates_DeselectTab", function(tab)
+                if self == tab then
+                    tab.background:SetBlendMode("BLEND")
+                end
+            end)
+            hooksecurefunc("PanelTemplates_SelectTab", function(tab)
+                if self == tab then
+                    tab.background:SetBlendMode("MOD")
+                end
+            end)
+        end
+
+        self.isSkinned = true
     end
-    tab:SetHitRectInsets(0, 0, 0, 0)
-    tab:GetFontString():SetTextColor(0, 0, 0)
 end
 GW.HandleTabs = HandleTabs
 
-local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgrounds)
+local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgrounds, detailBackgroundsXOffset)
     local header = CreateFrame("Frame", frame:GetName() .. "Header", frame, "GwFrameHeader")
     header.windowIcon:SetTexture(icon)
     frame.gwHeader = header
-
-    header:SetWidth(frame:GetWidth() - 20)
-    header.BGLEFT:SetWidth(frame:GetWidth() - 20)
-    header.BGRIGHT:SetWidth(frame:GetWidth() - 20)
 
     if titleText then
         titleText:ClearAllPoints()
@@ -500,7 +518,7 @@ local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgroun
     if detailBackgrounds then
         for _, v in pairs(detailBackgrounds) do
             local detailBg = v:CreateTexture(nil, "BACKGROUND", nil, 0)
-            detailBg:SetPoint("TOPLEFT", v, "TOPLEFT", 0,0)
+            detailBg:SetPoint("TOPLEFT", v, "TOPLEFT", detailBackgroundsXOffset or 0, 0)
             detailBg:SetPoint("BOTTOMRIGHT", v, "BOTTOMRIGHT", 0, 0)
             detailBg:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-questlog-background")
             detailBg:SetTexCoord(0, 0.70703125, 0, 0.580078125)

@@ -7,7 +7,8 @@ GW.privateDefaults = {
         Layouts = {},
         PLAYER_TRACKED_DODGEBAR_SPELL = "",
         PLAYER_TRACKED_DODGEBAR_SPELL_ID = 0,
-        ISKAARAN_FISHING_NET_DATA = {}
+        ISKAARAN_FISHING_NET_DATA = {},
+        CHAT_KEYWORDS_ALERT_COLOR= {r = .5, g = .5, b = .5},
     },
 }
 
@@ -56,6 +57,8 @@ GW.globalDefault = {
         HIDE_TOOLTIP_IN_COMBAT_OVERRIDE = "NONE",
         TOOLTIP_HEALTHBAER_POSITION = "BOTTOM",
         ADVANCED_TOOLTIP_OPTION_ITEMCOUNT = "BOTH",
+        ADVANCED_TOOLTIP_OPTION_ITEMCOUNT_INCLUDE_REAGENTS = true,
+        ADVANCED_TOOLTIP_OPTION_ITEMCOUNT_INCLUDE_WARBAND = true,
         ADVANCED_TOOLTIP_SHOW_MOUNT = true,
         ADVANCED_TOOLTIP_SHOW_TARGET_INFO = true,
         ADVANCED_TOOLTIP_SHOW_PLAYER_TITLES = true,
@@ -477,6 +480,7 @@ GW.globalDefault = {
         StanceBar_pos_scale= 1,
         StanceBar_GrowDirection= "UP",
         StanceBarContainerState= "close",
+        StanceBarEnabled = true,
 
         PowerBar_pos= {
             point= "BOTTOMLEFT",
@@ -521,7 +525,6 @@ GW.globalDefault = {
         CHAT_CLASS_COLOR_MENTIONS= true,
         CHAT_KEYWORDS= "%MYNAME%",
         CHAT_KEYWORDS_ALERT_NEW= "GW2_UI: Ping",
-        CHAT_KEYWORDS_ALERT_COLOR= {r = .5, g = .5, b = .5},
         CHAT_KEYWORDS_EMOJI= true,
         CHAT_SOCIAL_LINK= true,
         CHAT_ADD_TIMESTAMP_TO_ALL= true,
@@ -911,6 +914,7 @@ GW.globalDefault = {
         PERK_PROGRAM_SKIN_ENABLED= true,
         EXPANSION_LANDING_PAGE_SKIN_ENABLED= true,
         GENERIC_TRAINT_SKIN_ENABLED= true,
+        PLAYER_SPELLS_SKIN_ENABLED = true,
 
         ALERTFRAME_NOTIFICATION_LEVEL_UP= true,
         ALERTFRAME_NOTIFICATION_LEVEL_UP_SOUND= "None",

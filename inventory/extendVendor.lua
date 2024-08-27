@@ -49,7 +49,7 @@ end
 
 
 local function SetUpExtendedVendor()
-    if C_AddOns.IsAddOnLoaded("ExtVendor") or C_AddOns.IsAddOnLoaded("Krowi_MerchantFrameExtended") or GW.settings.EXTENDED_VENDOR_NUM_PAGES == 1 then
+    if C_AddOns.IsAddOnLoaded("ExtVendor") or C_AddOns.IsAddOnLoaded("Krowi_MerchantFrameExtended") or C_AddOns.IsAddOnLoaded("Krowi_ExtendedVendorUI") or GW.settings.EXTENDED_VENDOR_NUM_PAGES == 1 then
         return
     end
 
@@ -59,9 +59,9 @@ local function SetUpExtendedVendor()
     for i = 1, MERCHANT_ITEMS_PER_PAGE do
         if not _G["MerchantItem" .. i] then
             CreateFrame("Frame", "MerchantItem" .. i, MerchantFrame, "MerchantItemTemplate")
-            if GW.settings.MERCHANT_SKIN_ENABLED then
-                GW.SkinMerchantFrameItemButton(i)
-            end
+        end
+        if GW.settings.MERCHANT_SKIN_ENABLED and not _G["MerchantItem" .. i].isGw2Skinned then
+            GW.SkinMerchantFrameItemButton(i)
         end
     end
 

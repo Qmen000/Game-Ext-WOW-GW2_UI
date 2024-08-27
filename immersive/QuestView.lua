@@ -144,7 +144,7 @@ function QuestGiverMixin:setPMUnit(unit, is_dead, npc_name, npc_type)
         -- static tweak for some big models like dragons
         offsetX = 30
         --offsetZ = 0
-    elseif scaleFactor > 2.1 then
+    elseif scaleFactor > 2.5 then
         -- static tweak for most smaller models
         offsetZ = 100
     end
@@ -186,6 +186,9 @@ function QuestPlayerMixin:SetupModel()
         -- and reset these params based on current form
         foot_offset = foot_offset - 10
         offsetX = -90
+    elseif raceID == 10 then
+        -- tweak for blood elf
+        foot_offset = foot_offset - 15
     elseif raceID == 1 then
         -- tweaks for humans        
         foot_offset = foot_offset - 15
@@ -477,7 +480,8 @@ end
 
 function QuestViewMixin:OnKeyDown(key)
     local inCombat = InCombatLockdown()
-    if key == "SPACE" then
+    local interact1,interact2 = GetBindingKey("INTERACTTARGET")
+    if key == "SPACE" or ((key == interact1 and interact1 ~= nil) or (key == interact2 and interact2 ~= nil)) then
         if not inCombat then
             self:SetPropagateKeyboardInput(false)
         end
