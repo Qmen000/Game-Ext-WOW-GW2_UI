@@ -602,10 +602,18 @@ local function HandleExpansionButton()
             garrison.title = minimapDisplayInfo.title;
             garrison.description = minimapDisplayInfo.description;
         end
-        garrison:SetNormalTexture("Interface/AddOns/GW2_UI/textures/icons/landingpage-dragon")
-        garrison:SetPushedTexture("Interface/AddOns/GW2_UI/textures/icons/landingpage-dragon")
-        garrison:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/icons/landingpage-dragon")
-        garrison.LoopingGlow:SetTexture("Interface/AddOns/GW2_UI/textures/icons/landingpage-dragon")
+        local expansionLandingPageType = ExpansionLandingPage:GetLandingPageType()
+        if expansionLandingPageType == Enum.ExpansionLandingPageType.Dragonflight then
+            garrison:SetNormalTexture("Interface/AddOns/GW2_UI/textures/icons/landingpage-dragon")
+            garrison:SetPushedTexture("Interface/AddOns/GW2_UI/textures/icons/landingpage-dragon")
+            garrison:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/icons/landingpage-dragon")
+            garrison.LoopingGlow:SetTexture("Interface/AddOns/GW2_UI/textures/icons/landingpage-dragon")
+        elseif expansionLandingPageType == Enum.ExpansionLandingPageType.WarWithin then
+            garrison:SetNormalTexture("Interface/AddOns/GW2_UI/textures/icons/landingpage-tww")
+            garrison:SetPushedTexture("Interface/AddOns/GW2_UI/textures/icons/landingpage-tww-active")
+            garrison:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/icons/landingpage-tww-active")
+            garrison.LoopingGlow:SetTexture("Interface/AddOns/GW2_UI/textures/icons/landingpage-tww-active")
+        end
     end
 end
 

@@ -57,6 +57,7 @@ GW.TRACKER_TYPE_COLOR = {
     TORGHAST = {r = 109 / 255, g = 161 / 255, b = 207 / 255},
     RECIPE = {r = 228 / 255, g = 157 / 255, b = 0 / 255},
     MONTHLYACTIVITY = {r = 228 / 255, g = 157 / 255, b = 0 / 255},
+    DELVE = {r = 171 / 255, g = 37 / 255, b = 240 / 255}
 }
 
 GW.FACTION_BAR_COLORS = {
@@ -74,9 +75,9 @@ GW.FACTION_BAR_COLORS = {
 }
 
 GW.COLOR_FRIENDLY = {
-    [1] = {r = 88 / 255, g = 170 / 255, b = 68 / 255},
-    [2] = {r = 159 / 255, g = 36 / 255, b = 20 / 255},
-    [3] = {r = 159 / 255, g = 159 / 255, b = 159 / 255}
+    [1] = {r = 88 / 255, g = 170 / 255, b = 68 / 255},  --friendly #58aa44
+    [2] = {r = 159 / 255, g = 36 / 255, b = 20 / 255},  --enemy    #9f2414
+    [3] = {r = 159 / 255, g = 159 / 255, b = 159 / 255} --tapped   #9f9f9f
 }
 GW.BLOOD_SPARK = {
     [0] = {left = 0, right = 0.125, top = 0, bottom = 0.5},
