@@ -35,7 +35,6 @@ GW.globalDefault = {
         BAR_LAYOUT_ENABLED = true,
         BAGS_ENABLED = true,
         NPC_CAM_ENABLED = false,
-        FONTS_ENABLED = true,
         CASTINGBAR_ENABLED = true,
         ACTIONBAR_BACKGROUND_ALPHA = 0.3,
         SHOWACTIONBAR_MACRO_NAME_ENABLED = false,
@@ -49,9 +48,23 @@ GW.globalDefault = {
         ARENA_FRAMES = true,
         PETBAR_ENABLED = true,
         BORDER_ENABLED = true,
+
+        FONT_STYLE_TEMPLATE = "GW2",
+        FONT_NORMAL = "Interface/AddOns/GW2_UI/fonts/menomonia.ttf",
+        FONT_HEADERS = "",
+        CUSTOM_FONT_NORMAL = "NONE",
+        CUSTOM_FONT_HEADER = "NONE",
+        FONTS_BIG_HEADER_SIZE = 18,
+        FONTS_HEADER_SIZE = 16,
+        FONTS_NORMAL_SIZE = 14,
+        FONTS_SMALL_SIZE = 12,
+        FONTS_OUTLINE = "",
+
         TOOLTIP_MOUSE = false,
         ADVANCED_TOOLTIP = true,
-        TOOLTIP_FONT_SIZE = 12,
+        TOOLTIP_HEADER_FONT_SIZE = 16,
+        TOOLTIP_SMALL_FONT_SIZE = 12,
+        TOOLTIP_FONT_SIZE = 14,
         HIDE_TOOLTIP_IN_COMBAT = false,
         HIDE_TOOLTIP_IN_COMBAT_UNIT = "ALL",
         HIDE_TOOLTIP_IN_COMBAT_OVERRIDE = "NONE",
@@ -78,9 +91,12 @@ GW.globalDefault = {
         ALERTFRAME_ENABLED = true,
         HIDE_BLIZZARD_VIGOR_BAR = true,
 
+        interruptAnnounce = "NONE",
+
         GW_COMBAT_TEXT_MODE= "GW2",
         GW_COMBAT_TEXT_BLIZZARD_COLOR= false,
         GW_COMBAT_TEXT_COMMA_FORMAT= false,
+        GW_COMBAT_TEXT_SHORT_VALUES = false,
         GW_COMBAT_TEXT_STYLE= "Default",
         GW_COMBAT_TEXT_STYLE_CLASSIC_ANCHOR= "Center",
         GW_COMBAT_TEXT_SHOW_HEALING_NUMBERS= false,
@@ -636,6 +652,7 @@ GW.globalDefault = {
         RAID_SHOW_ROLE_ICON_TANK= true,
         RAID_SHOW_TANK_ICON_TANK= true,
         RAID_SHOW_LEADER_ICON_TANK= true,
+        RAID_SHORT_HEALTH_VALUES_TANK = false,
 
         raidMaintank_pos= {
             point= "TOPLEFT",
@@ -671,6 +688,7 @@ GW.globalDefault = {
         RAID_SHOW_ROLE_ICON_PET= false, -- always
         RAID_SHOW_TANK_ICON_PET= false, -- always
         RAID_SHOW_LEADER_ICON_PET= false, -- always
+        RAID_SHORT_HEALTH_VALUES_PET = false,
 
         raid_pet_pos= {
             point= "TOPLEFT",
@@ -705,6 +723,7 @@ GW.globalDefault = {
         RAID_SHOW_ROLE_ICON= true,
         RAID_SHOW_TANK_ICON= true,
         RAID_SHOW_LEADER_ICON= true,
+        RAID_SHORT_HEALTH_VALUES = false,
 
         raid_pos= {
             point= "TOPLEFT",
@@ -740,6 +759,7 @@ GW.globalDefault = {
         RAID_SHOW_ROLE_ICON_RAID25= true,
         RAID_SHOW_TANK_ICON_RAID25= true,
         RAID_SHOW_LEADER_ICON_RAID25= true,
+        RAID_SHORT_HEALTH_VALUES_RAID25 = false,
 
         raid25_pos= {
             point= "TOPLEFT",
@@ -775,6 +795,7 @@ GW.globalDefault = {
         RAID_SHOW_ROLE_ICON_RAID10= true,
         RAID_SHOW_TANK_ICON_RAID10= true,
         RAID_SHOW_LEADER_ICON_RAID10= true,
+        RAID_SHORT_HEALTH_VALUES_RAID10 = false,
 
         raid10_pos= {
             point= "TOPLEFT",
@@ -809,6 +830,7 @@ GW.globalDefault = {
         RAID_SHOW_ROLE_ICON_PARTY= true,
         RAID_SHOW_TANK_ICON_PARTY= true,
         RAID_SHOW_LEADER_ICON_PARTY= true,
+        RAID_SHORT_HEALTH_VALUES_PARTY = false,
 
         raid_party_pos= {
             point= "TOPLEFT",
@@ -882,6 +904,7 @@ GW.globalDefault = {
         TALKINGHEAD_SKIN_ENABLED= true,
         MISC_SKIN_ENABLED= true,
         IMMERSIONADDON_SKIN_ENABLED= true,
+        AUCTIONATOR_SKIN_ENABLED = true,
         FLIGHTMAP_SKIN_ENABLED= true,
         BLIZZARDCLASSCOLOR_ENABLED= false,
         ADDONLIST_SKIN_ENABLED= true,
@@ -915,6 +938,9 @@ GW.globalDefault = {
         EXPANSION_LANDING_PAGE_SKIN_ENABLED= true,
         GENERIC_TRAINT_SKIN_ENABLED= true,
         PLAYER_SPELLS_SKIN_ENABLED = true,
+        AuctionHouseSkinEnabled = true,
+        BattlefieldMapSkinEnabled = true,
+        MajorFactionSkinEnabled = true,
 
         ALERTFRAME_NOTIFICATION_LEVEL_UP= true,
         ALERTFRAME_NOTIFICATION_LEVEL_UP_SOUND= "None",
@@ -993,6 +1019,20 @@ GW.globalDefault = {
             yOfs= -115,
         },
 
+        AuctionHouseWindow = {
+            point= "TOPLEFT",
+            relativePoint= "TOPLEFT",
+            xOfs= 70,
+            yOfs= -150,
+        },
+
+        PvEWindow = {
+            point= "TOPLEFT",
+            relativePoint= "TOPLEFT",
+            xOfs= 70,
+            yOfs= -150,
+        },
+
         PlayerBuffFrame_Seperate= 0,
         PlayerDebuffFrame_Seperate= 0,
 
@@ -1024,6 +1064,39 @@ GW.globalDefault = {
         },
         player_pos_scale= 1,
 
+        -- short healthvalue settings
+        ShortHealthValuePrefixStyle = "ENGLISH",
+        ShortHealthValuesDecimalLength = 0,
+        PLAYER_UNIT_HEALTH_SHORT_VALUES = false,
+        TARGET_UNIT_HEALTH_SHORT_VALUES = false,
+        FOCUS_UNIT_HEALTH_SHORT_VALUES = false,
+        PET_UNIT_HEALTH_SHORT_VALUES = false,
+        PARTY_UNIT_HEALTH_SHORT_VALUES = false,
+
+        -- TWW
+        WORLD_EVENTS_TWW_PROFESSIONS_ENABLED = true,
+        WORLD_EVENTS_TWW_PROFESSIONS_DESATURATE = false,
+
+        WORLD_EVENTS_KHAZ_ALGAR_EMISSARY_ENABLED = true,
+        WORLD_EVENTS_KHAZ_ALGAR_EMISSARY_DESATURATE = false,
+
+        WORLD_EVENTS_RINGING_DEEPS_ENABLED = true,
+        WORLD_EVENTS_RINGING_DEEPS_DESATURATE = false,
+
+        WORLD_EVENTS_SPREADING_THE_LIGHT_ENABLED = true,
+        WORLD_EVENTS_SPREADING_THE_LIGHT_DESATURATE = false,
+
+        WORLD_EVENTS_UNDERWORLD_OPERATIVE_ENABLED = true,
+        WORLD_EVENTS_UNDERWORLD_OPERATIVE_DESATURATE = false,
+
+        WORLD_EVENTS_THEATER_TROUPE_ENABLED= true,
+        WORLD_EVENTS_THEATER_TROUPE_DESATURATE= false,
+        WORLD_EVENTS_THEATER_TROUPE_ALERT= true,
+        WORLD_EVENTS_THEATER_TROUPE_ALERT_SECONDS= 600,
+        WORLD_EVENTS_THEATER_TROUPE_STOP_ALERT_IF_COMPLETED= true,
+        WORLD_EVENTS_THEATER_TROUPE_FLASH_TASKBAR= true,
+
+        -- DF
         WORLD_EVENTS_COMMUNITY_FEAST_ENABLED= false,
         WORLD_EVENTS_COMMUNITY_FEAST_DESATURATE= false,
         WORLD_EVENTS_COMMUNITY_FEAST_ALERT= true,

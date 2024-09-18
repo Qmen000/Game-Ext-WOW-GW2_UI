@@ -76,7 +76,7 @@ local function ignoreSetup(ignorewin)
     for i = 1, #ignorewin.buttons do
         local slot = ignorewin.buttons[i]
         slot:SetWidth(ignorewin:GetWidth() - 12)
-        slot.item.name:SetFont(UNIT_NAME_FONT, 12)
+        slot.item.name:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
         slot.item.name:SetTextColor(1, 1, 1)
         if not slot.item.ScriptsHooked then
             slot.item:HookScript("OnClick", item_OnClick)
@@ -99,7 +99,7 @@ local function LoadIgnoreList(tabContainer)
     ignorewin.scrollBar.doNotHide = true
     ignoreSetup(ignorewin)
 
-    ignorewin_outer.ignoreHeader:SetFont(DAMAGE_TEXT_FONT, 20)
+    ignorewin_outer.ignoreHeader:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER)
     ignorewin_outer.ignoreHeader:SetTextColor(255 / 255, 241 / 255, 209 / 255)
 
     -- update ignore window when a ignore update event occurs

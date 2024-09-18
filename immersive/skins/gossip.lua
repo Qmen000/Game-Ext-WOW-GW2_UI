@@ -136,6 +136,8 @@ local MODEL_POSITION_OVERRIDERS = {
     { oldX = 0.39927804470062, oldY = 0.31848821043968, oldZ = 0.90161156654358, x = -5,   y = -0.5,  z = 0.9016, },
     {oldX = 0.32435846328735, oldY =-0.23640835285187, oldZ = 0.81982237100601, x = 0.4, y = 0, z = 0.9,},
     {oldX = 0.77819514274597, oldY =0.58722692728043, oldZ = 0.47829860448837, x = 0, y = -0.2, z = 0.7,},
+    {oldX = 0.48978042602539, oldY =-0.27370131015778, oldZ = 1.2520405054092, x = 0.5, y = 0, z = 1.35,},
+    {oldX = 0.33340585231781, oldY =-0.21574158966541, oldZ = 0.95541352033615, x = 0.9, y = 0, z = 1.05,},
 }
 
 local function splitIter(inputstr, pat)
@@ -465,7 +467,7 @@ local function createCoordDebugInput(self, labelText, index)
     f.label:SetPoint("RIGHT", f, "LEFT", 0, 0)
     f.label:SetJustifyH("LEFT")
     f.label:SetJustifyV("MIDDLE")
-    f.label:SetFont(UNIT_NAME_FONT, 14, "OUTLINE")
+    f.label:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.HEADER, "OUTLINE")
     f.label:SetText(labelText)
 
     f:SetScript("OnTextChanged", function() updateModelFrame(GwGossipModelFrame, nil, true) end)
@@ -613,7 +615,7 @@ local function LoadGossipSkin()
     greetings:SetPoint("BOTTOMRIGHT", portraitFrame.maskLayer, "TOPLEFT", 545, -165)
     greetings:SetJustifyH("LEFT")
     greetings:SetJustifyV("MIDDLE")
-    greetings:SetFont(UNIT_NAME_FONT, 14, "OUTLINE")
+    greetings:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL, "OUTLINE")
     greetings:SetText("")
     GossipFrame.customGossipText = greetings
 
@@ -627,7 +629,7 @@ local function LoadGossipSkin()
         updateModelFrame(portraitFrame)
     end)
 
-    GossipFrameTitleText:SetFont(DAMAGE_TEXT_FONT, 14, "OUTLINE")
+    GossipFrameTitleText:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.NORMAL, "OUTLINE")
     GossipFrameTitleText:SetTextColor(1, 1, 1)
     GossipFrameTitleText:ClearAllPoints()
     GossipFrameTitleText:SetPoint("TOPLEFT", portraitFrame.npcNameLabel, "TOPLEFT", 5, 0)
@@ -779,7 +781,7 @@ local function LoadGossipSkin()
 
     --QuestFrame
     local QuestFrame = QuestFrame
-    QuestFrameTitleText:SetFont(DAMAGE_TEXT_FONT, 20, "OUTLINE")
+    QuestFrameTitleText:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, "OUTLINE", 2)
     QuestFrame:GwStripTextures()
     QuestFrame:GwCreateBackdrop()
     QuestFrame.tex = QuestFrame:CreateTexture(nil, "BACKGROUND", nil, 0)

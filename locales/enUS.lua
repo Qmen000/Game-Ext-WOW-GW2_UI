@@ -1,13 +1,6 @@
 -- enUS localization
 local L = LibStub("AceLocale-3.0"):NewLocale("GW2_UI", "enUS", true, true)
 
---Fonts
-L["FONT_NORMAL"] = "Interface/AddOns/GW2_UI/fonts/menomonia.ttf"
-L["FONT_BOLD"] = "Interface/AddOns/GW2_UI/fonts/headlines.ttf"
-L["FONT_NARROW"] = "Interface/AddOns/GW2_UI/fonts/menomonia.ttf"
-L["FONT_NARROW_BOLD"] = "Interface/AddOns/GW2_UI/fonts/menomonia.ttf"
-L["FONT_LIGHT"] = "Interface/AddOns/GW2_UI/fonts/menomonia-italic.ttf"
-L["FONT_DAMAGE"] = "Interface/AddOns/GW2_UI/fonts/headlines.ttf"
 -- Timestamp
 L["TimeStamp m/d h:m:s"] = "%m/%d %H:%M:%S"
 --Strings
@@ -583,7 +576,6 @@ L["Show a separate grid for raid pets"] = true
 L["Enable Maintank grid"] = true
 L["Size and Positions"] = true
 L["Grouping & Sorting"] = true
-
 L["World Map Coordinates"] = true
 L["Position"] = true
 L["X-Offset"] = true
@@ -599,3 +591,38 @@ L["Big Dig"] = true
 L["Warband:"] = true
 L["Include Reagents"] = true
 L["Include Warband"] = true
+L["Click to show location"] = true
+L["Theater"] = true
+L["Performing"] = true
+L["Theater Troupe"] = true
+L["Professions Weekly"] = true
+L["Khaz Algar Emissary"] = true
+L["Ringing Deeps"] = true
+L["Spreading The Light"] = true
+L["Underworld Operative"] = true
+L["BG Map"] = true
+L["Party Only"] = true
+L["Party / Raid"] = true
+L["Raid Only"] = true
+L["Tooltip Header"] = true
+L["Tooltip Body"] = true
+L["Comparison"] = true
+L["This setting controls the size of text in item comparison tooltips"] = true
+L["Interrupted %s's |cff71d5ff|Hspell:%d:0|h[%s]|h|r!"] = true
+L["Custom Font Settings"] = true
+L["Edit font settings."] = true
+L["Text Style Templates"] = true
+L["Choose from predefined options to customize fonts and text styles, adjusting the appearance of your text."] = true
+L["Big Headers"] = true
+L["Headers"] = true
+L["Normal text"] = true
+L["Small text"] = true
+L["Use GW2 Text Style Template"] = true
+
+L["Header Font"] = true
+L["Shorten values"] = true
+L["Shorten health values"] = true
+L["Shorten value prefix style"] = true
+L["Shorten values decimal length"] = true
+L["Controls the amount of decimals used for shorted values"] = true
+L["Major Factions"] = true

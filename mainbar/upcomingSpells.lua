@@ -129,8 +129,8 @@ local function scrollFrameSetup(self)
     for i = 1, #self.buttons do
         local slot = self.buttons[i]
         slot:SetWidth(self:GetWidth() - 12)
-        slot.item.name:SetFont(DAMAGE_TEXT_FONT, 14)
-        slot.item.levelString:SetFont(DAMAGE_TEXT_FONT, 14)
+        slot.item.name:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.NORMAL)
+        slot.item.levelString:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.NORMAL)
 
         if not slot.item.ScriptsHooked then
             slot.item:HookScript("OnEnter", UpcomingSpellOnEnter)
@@ -165,14 +165,14 @@ GW.AddForProfiling("hud", "UpcomingSpellsFrameOnShow", UpcomingSpellsFrameOnShow
 local function LoadUpcomingSpells()
     local upcomingSpellsFrame = CreateFrame("Frame", "GwLevelingRewards", UIParent, "GwLevelingRewards")
 
-    upcomingSpellsFrame.header:SetFont(DAMAGE_TEXT_FONT, 24)
+    upcomingSpellsFrame.header:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 6)
     upcomingSpellsFrame.header:SetText(L["Upcoming Level Rewards"])
 
-    upcomingSpellsFrame.rewardHeader:SetFont(DAMAGE_TEXT_FONT, 11)
+    upcomingSpellsFrame.rewardHeader:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.SMALL, nil, -1)
     upcomingSpellsFrame.rewardHeader:SetTextColor(0.6, 0.6, 0.6)
     upcomingSpellsFrame.rewardHeader:SetText(REWARD)
 
-    upcomingSpellsFrame.levelHeader:SetFont(DAMAGE_TEXT_FONT, 11)
+    upcomingSpellsFrame.levelHeader:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.SMALL, nil, -1)
     upcomingSpellsFrame.levelHeader:SetTextColor(0.6, 0.6, 0.6)
     upcomingSpellsFrame.levelHeader:SetText(LEVEL)
 

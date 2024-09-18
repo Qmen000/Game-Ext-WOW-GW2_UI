@@ -63,15 +63,15 @@ local function CreateSlotStrings()
         slot.enchantText = slot:CreateFontString(nil, "OVERLAY")
         if tbl.id >= 12 then
             slot.enchantText:SetSize(40, 30)
-            slot.enchantText:SetFont(UNIT_NAME_FONT, 8, "OUTLINE")
+            slot.enchantText:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, nil, -4)
         else
             slot.enchantText:SetJustifyH("LEFT")
             slot.enchantText:SetSize(100, 30)
-            slot.enchantText:SetFont(UNIT_NAME_FONT, 10, "OUTLINE")
+            slot.enchantText:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, nil, -2)
         end
         slot.enchantText:SetPoint(justify, slot, x + (justify == "BOTTOMLEFT" and 5 or 0), z)
 
-        slot.itemlevel:SetFont(UNIT_NAME_FONT, 12, "THINOUTLINED")
+        slot.itemlevel:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, "THINOUTLINE")
 
         for u = 1, 10 do
             local offset = -((u - 1) * 13)

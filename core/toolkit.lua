@@ -90,7 +90,7 @@ GW.HandleBlizzardRegions = HandleBlizzardRegions
 
 local function GrabScrollBarElement(frame, element)
     local FrameName = frame:GetDebugName()
-    return frame[element] or FrameName and (_G[FrameName..element] or strfind(FrameName, element)) or nil
+    return frame[element] or FrameName and (_G[FrameName .. element] or strfind(FrameName, element)) or nil
 end
 
 local function StripRegion(which, object, kill, alpha)
@@ -147,7 +147,7 @@ end
 
 local function GwAddHover(self)
     if not self.hover then
-        self.hover = self:CreateTexture(nil, "ARTWORK", nil, 7)
+        self.hover = self:CreateTexture(nil, "ARTWORK", nil, 6)
         self.hover:SetPoint("LEFT", self, "LEFT")
         self.hover:SetPoint("TOP", self, "TOP")
         self.hover:SetPoint("BOTTOM", self, "BOTTOM")
@@ -160,14 +160,31 @@ local function GwAddHover(self)
     end
 end
 
-local function GwSkinCheckButton(button)
+local function buttonHighlightTexture(frame, texture) if texture ~= nil then frame:SetHighlightTexture(nil) end end
+
+local function GwSkinCheckButton(button, isRadio)
     if button.SetNormalTexture then button:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkbox") end
     if button.SetCheckedTexture then button:SetCheckedTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkboxchecked") end
-    if button.SetDisabledCheckedTexture then button:SetDisabledCheckedTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkboxchecked") end
+    if button.SetDisabledCheckedTexture then button:SetDisabledCheckedTexture(
+        "Interface/AddOns/GW2_UI/textures/uistuff/checkboxchecked") end
     if button.SetPushedTexture then button:SetPushedTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkbox") end
-    if button.SetDisabledTexture then button:SetDisabledTexture("Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-normal") end
+    if button.SetDisabledTexture then button:SetDisabledTexture(
+        "Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-normal") end
 
-    button.isSkinnedGW2_UI = true
+    if isRadio then
+        local Check = button:GetCheckedTexture()
+        if Check then Check:SetTexCoord(0, 1, 0, 1) end
+
+        local Normal = button:GetNormalTexture()
+        if Normal then Normal:SetTexCoord(0, 1, 0, 1) end
+
+        local Disabled = button:GetDisabledTexture()
+        if Disabled then Disabled:SetTexCoord(0, 1, 0, 1) end
+
+        hooksecurefunc(button, 'SetHighlightTexture', buttonHighlightTexture)
+    end
+
+    button.isSkinned = true
 end
 
 local function GwSkinSliderFrame(frame)
@@ -191,18 +208,27 @@ local function GwSkinSliderFrame(frame)
     local tex = frame:CreateTexture(nil, "BACKGROUND")
     tex:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/sliderbg")
     frame.tex = tex
+    frame.tex:SetPoint("TOPLEFT", frame, "TOPLEFT")
+    frame.tex:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT")
+
+    if frame.Text then
+        frame.Text:SetTextColor(1, 1, 1)
+    end
+    if frame.GetName and frame:GetName() and _G[frame:GetName() .. "Text"] then
+        _G[frame:GetName() .. "Text"]:SetTextColor(1, 1, 1)
+    end
 
     if orientation == "VERTICAL" then
         frame:SetWidth(SIZE)
+        tex:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/sliderbg_vertical")
     else
+        tex:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/sliderbg")
         frame:SetHeight(SIZE)
-        frame.tex:SetPoint("TOPLEFT", frame, "TOPLEFT")
-        frame.tex:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT")
 
         for _, region in next, { frame:GetRegions() } do
-            if region:IsObjectType('FontString') then
+            if region:IsObjectType("FontString") then
                 local point, anchor, anchorPoint, x, y = region:GetPoint()
-                if strfind(anchorPoint, 'BOTTOM') then
+                if strfind(anchorPoint, "BOTTOM") then
                     region:SetPoint(point, anchor, anchorPoint, x, y - 4)
                 end
             end
@@ -232,16 +258,17 @@ local function GwCreateBackdrop(frame, template, isBorder, xOffset, yOffset, xSh
     end
 
     if isBorder then
-        local trunc = function(s) return s >= 0 and s-s%01 or s-s%-1 end
-        local round = function(s) return s >= 0 and s-s%-1 or s-s%01 end
-        local x = (GW.mult == 1 or (xOffset or 2) == 0) and (xOffset or 2) or ((GW.mult < 1 and trunc((xOffset or 2) / GW.mult) or round((xOffset or 2) / GW.mult)) * GW.mult)
-        local y = (GW.mult == 1 or (yOffset or 2) == 0) and (yOffset or 2) or ((GW.mult < 1 and trunc((yOffset or 2) / GW.mult) or round((yOffset or 2) / GW.mult)) * GW.mult)
+        local trunc = function(s) return s >= 0 and s - s % 01 or s - s % -1 end
+        local round = function(s) return s >= 0 and s - s % -1 or s - s % 01 end
+        local x = (GW.mult == 1 or (xOffset or 2) == 0) and (xOffset or 2) or
+        ((GW.mult < 1 and trunc((xOffset or 2) / GW.mult) or round((xOffset or 2) / GW.mult)) * GW.mult)
+        local y = (GW.mult == 1 or (yOffset or 2) == 0) and (yOffset or 2) or
+        ((GW.mult < 1 and trunc((yOffset or 2) / GW.mult) or round((yOffset or 2) / GW.mult)) * GW.mult)
 
         xShift = xShift or 0
         yShift = yShift or 0
         backdrop:SetPoint("TOPLEFT", frame, "TOPLEFT", -(x + xShift), (y - yShift))
         backdrop:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", (x - xShift), -(y + yShift))
-
     else
         backdrop:SetAllPoints()
     end
@@ -273,7 +300,7 @@ local function GwCreateBackdrop(frame, template, isBorder, xOffset, yOffset, xSh
     end
 end
 
-local function GwSkinButton(button, isXButton, setTextColor, onlyHover, noHover, strip, transparent)
+local function GwSkinButton(button, isXButton, setTextColor, onlyHover, noHover, strip, transparent, desaturatedIcon)
     if not button then return end
     if button.isSkinned then return end
 
@@ -285,25 +312,37 @@ local function GwSkinButton(button, isXButton, setTextColor, onlyHover, noHover,
         button:GwStripTextures()
     end
 
+    if button.Texture then button.Texture:SetAlpha(0) end
+
     if not onlyHover then
         if isXButton then
-            if button.SetNormalTexture then button:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-normal") end
-            if button.SetHighlightTexture then button:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-hover") end
-            if button.SetPushedTexture then button:SetPushedTexture("Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-hover") end
-            if button.SetDisabledTexture then button:SetDisabledTexture("Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-normal") end
+            if button.SetNormalTexture then button:SetNormalTexture(
+                "Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-normal") end
+            if button.SetHighlightTexture then button:SetHighlightTexture(
+                "Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-hover") end
+            if button.SetPushedTexture then button:SetPushedTexture(
+                "Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-hover") end
+            if button.SetDisabledTexture then button:SetDisabledTexture(
+                "Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-normal") end
         elseif transparent then
             if button.SetNormalTexture then button:SetNormalTexture("") end
             if button.SetHighlightTexture then button:SetHighlightTexture("") end
             if button.SetPushedTexture then button:SetPushedTexture("") end
             if button.SetDisabledTexture then button:SetDisabledTexture("") end
+            if button.NormalTexture then button.NormalTexture:SetTexture("") end
+            if button.HighlightTexture then button.HighlightTexture:SetTexture("") end
+            if button.PushedTexture then button.PushedTexture:SetTexture("") end
+            if button.DisabledTexture then button.DisabledTexture:SetTexture("") end
         else
             if button.SetNormalTexture then button:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/button") end
             if button.SetHighlightTexture then
                 button:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/uistuff/button_hover")
                 button:GetHighlightTexture():SetVertexColor(0, 0, 0)
             end
-            if button.SetPushedTexture then button:SetPushedTexture("Interface/AddOns/GW2_UI/textures/uistuff/button_hover") end
-            if button.SetDisabledTexture then button:SetDisabledTexture("Interface/AddOns/GW2_UI/textures/uistuff/button_disable") end
+            if button.SetPushedTexture then button:SetPushedTexture(
+                "Interface/AddOns/GW2_UI/textures/uistuff/button_hover") end
+            if button.SetDisabledTexture then button:SetDisabledTexture(
+                "Interface/AddOns/GW2_UI/textures/uistuff/button_disable") end
 
             if strip then
                 if button.SetNormalTexture then button:GetNormalTexture():Show() end
@@ -311,18 +350,36 @@ local function GwSkinButton(button, isXButton, setTextColor, onlyHover, noHover,
                 if button.SetPushedTexture then button:GetPushedTexture():Show() end
                 if button.SetDisabledTexture then button:GetDisabledTexture():Show() end
             end
-            --button:DisableDrawLayer("BACKGROUND")
+            local borderFrame = CreateFrame("Frame", nil, button, "GwButtonBorder")
+            borderFrame:SetPoint("TOPLEFT", button, "TOPLEFT", 0, 0)
+            borderFrame:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 0, 0)
+            button.gwBorderFrame = borderFrame
         end
 
         if setTextColor then
-            local r = {button:GetRegions()}
-            for _,c in pairs(r) do
-                if c:GetObjectType() == "FontString" then
-                    c:SetTextColor(0, 0, 0, 1)
-                    c:SetShadowOffset(0, 0)
+            if button.Text then
+                button.Text:SetTextColor(0, 0, 0, 1)
+                button.Text:SetShadowOffset(0, 0)
+            else
+                local r = { button:GetRegions() }
+                for _, c in pairs(r) do
+                    if c:GetObjectType() == "FontString" then
+                        c:SetTextColor(0, 0, 0, 1)
+                        c:SetShadowOffset(0, 0)
+                    end
                 end
             end
+
+            if button.ButtonText then
+                button.ButtonText:SetTextColor(0, 0, 0, 1)
+                button.ButtonText:SetShadowOffset(0, 0)
+            end
         end
+    end
+
+
+    if desaturatedIcon and button.Icon then
+        button.Icon:SetDesaturated(true)
     end
 
     if (not isXButton or onlyHover) and not noHover then
@@ -338,20 +395,23 @@ local function GwSkinTab(tabButton, direction)
 
     tabButton:GwStripTextures()
 
-    if tabButton.SetNormalTexture then tabButton:SetNormalTexture("Interface/AddOns/GW2_UI/textures/units/unittab" .. direction) end
+    if tabButton.SetNormalTexture then tabButton:SetNormalTexture("Interface/AddOns/GW2_UI/textures/units/unittab" ..
+        direction) end
     if tabButton.SetHighlightTexture then
         tabButton:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/units/unittab" .. direction)
         tabButton:GetHighlightTexture():SetVertexColor(0, 0, 0)
     end
-    if tabButton.SetPushedTexture then tabButton:SetPushedTexture("Interface/AddOns/GW2_UI/textures/units/unittab" .. direction) end
-    if tabButton.SetDisabledTexture then tabButton:SetDisabledTexture("Interface/AddOns/GW2_UI/textures/units/unittab" .. direction) end
+    if tabButton.SetPushedTexture then tabButton:SetPushedTexture("Interface/AddOns/GW2_UI/textures/units/unittab" ..
+        direction) end
+    if tabButton.SetDisabledTexture then tabButton:SetDisabledTexture("Interface/AddOns/GW2_UI/textures/units/unittab" ..
+        direction) end
 
     if tabButton.Text then
         tabButton.Text:SetShadowOffset(0, 0)
     end
 
-    local r = {tabButton:GetRegions()}
-    for _,c in pairs(r) do
+    local r = { tabButton:GetRegions() }
+    for _, c in pairs(r) do
         if c:GetObjectType() == "FontString" then
             c:SetShadowOffset(0, 0)
         end
@@ -385,7 +445,7 @@ local function GwSkinScrollFrame(frame)
         frame.scrollBorderMiddle:SetSize(3, frame.scrollBorderMiddle:GetSize())
         frame.scrollBorderMiddle:ClearAllPoints()
         frame.scrollBorderMiddle:SetPoint("TOPLEFT", frame, "TOPRIGHT", 12, -10)
-        frame.scrollBorderMiddle:SetPoint("BOTTOMLEFT", frame,"BOTTOMRIGHT", 12, 10)
+        frame.scrollBorderMiddle:SetPoint("BOTTOMLEFT", frame, "BOTTOMRIGHT", 12, 10)
     end
 
     if frame:GetName() then
@@ -396,7 +456,7 @@ local function GwSkinScrollFrame(frame)
             _G[frame:GetName() .. "ScrollBarMiddle"]:SetSize(3, _G[frame:GetName() .. "ScrollBarMiddle"]:GetSize())
             _G[frame:GetName() .. "ScrollBarMiddle"]:ClearAllPoints()
             _G[frame:GetName() .. "ScrollBarMiddle"]:SetPoint("TOPLEFT", frame, "TOPRIGHT", 15, -10)
-            _G[frame:GetName() .. "ScrollBarMiddle"]:SetPoint("BOTTOMLEFT", frame,"BOTTOMRIGHT", 12, 10)
+            _G[frame:GetName() .. "ScrollBarMiddle"]:SetPoint("BOTTOMLEFT", frame, "BOTTOMRIGHT", 12, 10)
         end
 
         if _G[frame:GetName() .. "Top"] then _G[frame:GetName() .. "Top"]:Hide() end
@@ -406,27 +466,33 @@ local function GwSkinScrollFrame(frame)
             _G[frame:GetName() .. "Middle"]:SetSize(3, _G[frame:GetName() .. "Middle"]:GetSize())
             _G[frame:GetName() .. "Middle"]:ClearAllPoints()
             _G[frame:GetName() .. "Middle"]:SetPoint("TOPLEFT", frame, "TOPRIGHT", 12, -10)
-            _G[frame:GetName() .. "Middle"]:SetPoint("BOTTOMLEFT", frame,"BOTTOMRIGHT", 12, 10)
+            _G[frame:GetName() .. "Middle"]:SetPoint("BOTTOMLEFT", frame, "BOTTOMRIGHT", 12, 10)
         end
 
-        if _G[frame:GetName() .. "ScrollBar"] and _G[frame:GetName() .. "ScrollBar"].Top then _G[frame:GetName() .. "ScrollBar"].Top:Hide() end
-        if _G[frame:GetName() .. "ScrollBar"] and _G[frame:GetName() .. "ScrollBar"].Bottom then _G[frame:GetName() .. "ScrollBar"].Bottom:Hide()end
-        if _G[frame:GetName() .. "ScrollBar"] and _G[frame:GetName() .. "ScrollBar"].Background then _G[frame:GetName() .. "ScrollBar"].Background:Hide() end
+        if _G[frame:GetName() .. "ScrollBar"] and _G[frame:GetName() .. "ScrollBar"].Top then _G
+                [frame:GetName() .. "ScrollBar"].Top:Hide() end
+        if _G[frame:GetName() .. "ScrollBar"] and _G[frame:GetName() .. "ScrollBar"].Bottom then _G
+                [frame:GetName() .. "ScrollBar"].Bottom:Hide() end
+        if _G[frame:GetName() .. "ScrollBar"] and _G[frame:GetName() .. "ScrollBar"].Background then _G
+                [frame:GetName() .. "ScrollBar"].Background:Hide() end
         if _G[frame:GetName() .. "ScrollBar"] and _G[frame:GetName() .. "ScrollBar"].Middle then
             _G[frame:GetName() .. "ScrollBar"].Middle:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/scrollbg")
             _G[frame:GetName() .. "ScrollBar"].Middle:SetSize(3, _G[frame:GetName() .. "ScrollBar"].Middle:GetSize())
             _G[frame:GetName() .. "ScrollBar"].Middle:ClearAllPoints()
             _G[frame:GetName() .. "ScrollBar"].Middle:SetPoint("TOPLEFT", frame, "TOPRIGHT", 12, -10)
-            _G[frame:GetName() .. "ScrollBar"].Middle:SetPoint("BOTTOMLEFT", frame,"BOTTOMRIGHT", 12, 10)
+            _G[frame:GetName() .. "ScrollBar"].Middle:SetPoint("BOTTOMLEFT", frame, "BOTTOMRIGHT", 12, 10)
         end
     end
 end
 
 local function GwSkinScrollBar(frame)
     local parent = frame:GetParent()
-    local ScrollUpButton = GrabScrollBarElement(frame, "ScrollUpButton") or GrabScrollBarElement(frame, "UpButton") or GrabScrollBarElement(frame, "ScrollUp") or GrabScrollBarElement(parent, "scrollUp")
-    local ScrollDownButton = GrabScrollBarElement(frame, "ScrollDownButton") or GrabScrollBarElement(frame, "DownButton") or GrabScrollBarElement(frame, "ScrollDown") or GrabScrollBarElement(parent, "scrollDown")
-    local Thumb = GrabScrollBarElement(frame, "ThumbTexture") or GrabScrollBarElement(frame, "thumbTexture") or frame.GetThumbTexture and frame:GetThumbTexture()
+    local ScrollUpButton = GrabScrollBarElement(frame, "ScrollUpButton") or GrabScrollBarElement(frame, "UpButton") or
+    GrabScrollBarElement(frame, "ScrollUp") or GrabScrollBarElement(parent, "scrollUp")
+    local ScrollDownButton = GrabScrollBarElement(frame, "ScrollDownButton") or GrabScrollBarElement(frame, "DownButton") or
+    GrabScrollBarElement(frame, "ScrollDown") or GrabScrollBarElement(parent, "scrollDown")
+    local Thumb = GrabScrollBarElement(frame, "ThumbTexture") or GrabScrollBarElement(frame, "thumbTexture") or
+    frame.GetThumbTexture and frame:GetThumbTexture()
 
     if ScrollUpButton then
         ScrollUpButton:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowup_up")
@@ -478,7 +544,7 @@ local function GwHandleDropDownBox(frame, backdropTemplate, hookLayout, dropdown
     if text then
         text:ClearAllPoints()
         text:SetPoint("LEFT", frame, "LEFT", 8, 0)
-        text:SetFont(UNIT_NAME_FONT, 12, "")
+        text:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
         text:SetTextColor(178 / 255, 178 / 255, 178 / 255)
         text:SetHeight(frame:GetHeight())
         text:SetJustifyH("LEFT")
@@ -524,7 +590,7 @@ local function GwSkinDropDownMenu(frame, buttonPaddindX, backdropTemplate, textB
     if text then
         text:ClearAllPoints()
         text:SetPoint("RIGHT", button, "LEFT", -2, 0)
-        text:SetFont(UNIT_NAME_FONT, 12, "")
+        text:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
         text:SetTextColor(178 / 255, 178 / 255, 178 / 255)
         text:SetHeight(frame:GetHeight())
         text:SetJustifyV("MIDDLE")
@@ -535,7 +601,7 @@ local function GwSkinDropDownMenu(frame, buttonPaddindX, backdropTemplate, textB
     end
 end
 
-local btns = {MaximizeButton = "up", MinimizeButton = "down"}
+local btns = { MaximizeButton = "up", MinimizeButton = "down" }
 local function GwHandleMaxMinFrame(frame)
     if frame.isSkinned then return end
 
@@ -586,7 +652,8 @@ local function HandleNextPrevButton(button, arrowDir, noBackdrop)
     button:SetDisabledTexture("Interface/AddOns/GW2_UI/Textures/uistuff/arrowup_down")
     button:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowup_down")
 
-    local Normal, Disabled, Pushed, Highlight = button:GetNormalTexture(), button:GetDisabledTexture(), button:GetPushedTexture(), button:GetHighlightTexture()
+    local Normal, Disabled, Pushed, Highlight = button:GetNormalTexture(), button:GetDisabledTexture(),
+        button:GetPushedTexture(), button:GetHighlightTexture()
 
     if noBackdrop then
         button:SetSize(20, 20)
@@ -626,7 +693,7 @@ local function GwSetOutside(obj, anchor, xOffset, yOffset, anchor2, noScale)
     local x = (noScale and xOffset) or GW.Scale(xOffset)
     local y = (noScale and yOffset) or GW.Scale(yOffset)
 
-    if GW.SetPointsRestricted (obj) or obj:GetPoint() then
+    if GW.SetPointsRestricted(obj) or obj:GetPoint() then
         obj:ClearAllPoints()
     end
 
@@ -642,7 +709,7 @@ local function GwSetInside(obj, anchor, xOffset, yOffset, anchor2, noScale)
     local x = (noScale and xOffset) or GW.Scale(xOffset)
     local y = (noScale and yOffset) or GW.Scale(yOffset)
 
-    if GW.SetPointsRestricted (obj) or obj:GetPoint() then
+    if GW.SetPointsRestricted(obj) or obj:GetPoint() then
         obj:ClearAllPoints()
     end
 
@@ -692,6 +759,27 @@ local function GwKillEditMode(object)
     object.Selection:EnableMouse(false)
 end
 
+local function GwSetFontTemplate(object, font, textSizeType, style, textSizeAddition, skip)
+    if not object or not font or not object.SetFont or not textSizeType then return end
+
+    if not skip then -- can be used for ignoring setting updates and used for update function
+        object.gwFont, object.gwTextSizeType, object.gwStyle, object.gwTextSizeAddition = font, textSizeType, style, textSizeAddition
+    end
+
+    if textSizeType == GW.TextSizeType.BIG_HEADER then
+        object:SetFont(font, GW.settings.FONTS_BIG_HEADER_SIZE + (textSizeAddition or 0), style or GW.settings.FONTS_OUTLINE)
+    elseif textSizeType == GW.TextSizeType.HEADER then
+        object:SetFont(font, GW.settings.FONTS_HEADER_SIZE + (textSizeAddition or 0), style or GW.settings.FONTS_OUTLINE)
+    elseif textSizeType == GW.TextSizeType.NORMAL then
+        object:SetFont(font, GW.settings.FONTS_NORMAL_SIZE + (textSizeAddition or 0), style or GW.settings.FONTS_OUTLINE)
+    elseif textSizeType == GW.TextSizeType.SMALL then
+        object:SetFont(font, GW.settings.FONTS_SMALL_SIZE + (textSizeAddition or 0), style or GW.settings.FONTS_OUTLINE)
+    end
+
+    -- register font for size changes
+    GW.texts[object] = true
+end
+
 local function addapi(object)
     local mt = getmetatable(object).__index
     if not object.GwKill then mt.GwKill = GwKill end
@@ -711,9 +799,10 @@ local function addapi(object)
     if not object.GwStyleButton then mt.GwStyleButton = GwStyleButton end
     if not object.GwKillEditMode then mt.GwKillEditMode = GwKillEditMode end
     if not object.GwHandleDropDownBox then mt.GwHandleDropDownBox = GwHandleDropDownBox end
+    if not object.GwSetFontTemplate then mt.GwSetFontTemplate = GwSetFontTemplate end
 end
 
-local handled = {Frame = true}
+local handled = { Frame = true }
 local object = CreateFrame("Frame")
 addapi(object)
 addapi(object:CreateTexture())

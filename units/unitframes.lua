@@ -74,33 +74,31 @@ local function createNormalUnitFrame(ftype, revert)
         --f.powerbar:SetReverseFill(true)
     end
 
-    f.healthString:SetFont(UNIT_NAME_FONT, 11)
+    f.healthString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     f.healthString:SetShadowOffset(1, -1)
 
-    if GW.settings.FONTS_ENABLED then -- for any reason blizzard is not supporting UTF8 if we set this font
-        f.nameString:SetFont(UNIT_NAME_FONT, 14)
-    end
+    f.nameString:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.HEADER)
     f.nameString:SetShadowOffset(1, -1)
 
-    f.threatString:SetFont(STANDARD_TEXT_FONT, 11)
+    f.threatString:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.TextSizeType.SMALL)
     f.threatString:SetShadowOffset(1, -1)
 
-    f.levelString:SetFont(UNIT_NAME_FONT, 14)
+    f.levelString:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.HEADER)
     f.levelString:SetShadowOffset(1, -1)
 
-    f.castingString:SetFont(UNIT_NAME_FONT, 12)
+    f.castingString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     f.castingString:SetShadowOffset(1, -1)
 
-    f.castingbarNormal.castingString:SetFont(UNIT_NAME_FONT, 12)
+    f.castingbarNormal.castingString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     f.castingbarNormal.castingString:SetShadowOffset(1, -1)
 
-    f.castingbarNormal.castingTimeString:SetFont(UNIT_NAME_FONT, 12)
+    f.castingbarNormal.castingTimeString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     f.castingbarNormal.castingTimeString:SetShadowOffset(1, -1)
 
-    f.castingTimeString:SetFont(UNIT_NAME_FONT, 12)
+    f.castingTimeString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     f.castingTimeString:SetShadowOffset(1, -1)
 
-    f.prestigeString:SetFont(UNIT_NAME_FONT, 12, "OUTLINED")
+    f.prestigeString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL, "OUTLINE")
 
     f.prestigebg:SetPoint("CENTER", f.prestigeString, "CENTER", -1, 1)
 
@@ -148,24 +146,22 @@ local function createNormalUnitFrameSmall(ftype)
     f.healPrediction:SetStatusBarColor(0.58431,0.9372,0.2980,0.60)
 
 
-    f.healthString:SetFont(UNIT_NAME_FONT, 11)
+    f.healthString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     f.healthString:SetShadowOffset(1, -1)
 
-    if GW.settings.FONTS_ENABLED then -- for any reason blizzard is not supporting UTF8 if we set this font
-        f.nameString:SetFont(UNIT_NAME_FONT, 14)
-    end
+    f.nameString:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.HEADER)
     f.nameString:SetShadowOffset(1, -1)
 
-    f.levelString:SetFont(UNIT_NAME_FONT, 14)
+    f.levelString:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.HEADER)
     f.levelString:SetShadowOffset(1, -1)
 
-    f.castingString:SetFont(UNIT_NAME_FONT, 12)
+    f.castingString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     f.castingString:SetShadowOffset(1, -1)
 
-    f.castingbarNormal.castingString:SetFont(UNIT_NAME_FONT, 12)
+    f.castingbarNormal.castingString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     f.castingbarNormal.castingString:SetShadowOffset(1, -1)
 
-    f.castingbarNormal.castingTimeString:SetFont(UNIT_NAME_FONT, 12)
+    f.castingbarNormal.castingTimeString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     f.castingbarNormal.castingTimeString:SetShadowOffset(1, -1)
 
     f.healthValue = 0
@@ -181,15 +177,22 @@ GW.AddForProfiling("unitframes", "createNormalUnitFrameSmall", createNormalUnitF
 
 local function updateHealthTextString(self, health, healthPrecentage)
     local healthString = ""
+    local formatFunction
+
+    if self.shortendHealthValues then
+        formatFunction = GW.ShortValue
+    else
+        formatFunction = CommaValue
+    end
 
     if self.showHealthValue and self.showHealthPrecentage then
         if not self.frameInvert then
-            healthString = CommaValue(health) .. " - " .. CommaValue(healthPrecentage * 100) .. "%"
+            healthString = formatFunction(health) .. " - " .. CommaValue(healthPrecentage * 100) .. "%"
         else
-            healthString = CommaValue(healthPrecentage * 100) .. "% - " .. CommaValue(health)
+            healthString = CommaValue(healthPrecentage * 100) .. "% - " .. formatFunction(health)
         end
     elseif self.showHealthValue and not self.showHealthPrecentage then
-        healthString = CommaValue(health)
+        healthString = formatFunction(health)
     elseif not self.showHealthValue and self.showHealthPrecentage then
         healthString = CommaValue(healthPrecentage * 100) .. "%"
     end
@@ -204,10 +207,6 @@ local function updateHealthbarColor(self)
         local color = GWGetClassColor(englishClass, true)
 
         self.health:SetStatusBarColor(color.r, color.g, color.b, color.a)
-      --  self.healthbar:SetVertexColor(color.r, color.g, color.b, color.a)
-      -- self.healthbarSpark:SetVertexColor(color.r, color.g, color.b, color.a)
-      --  self.healthbarFlash:SetVertexColor(color.r, color.g, color.b, color.a)
-      --  self.healthbarFlashSpark:SetVertexColor(color.r, color.g, color.b, color.a)
 
         self.nameString:SetTextColor(color.r + 0.3, color.g + 0.3, color.b + 0.3, color.a)
     else
@@ -926,6 +925,8 @@ local function ToggleTargetFrameSettings()
     GwTargetUnitFrame.displayBuffs = GW.settings.target_BUFFS
     GwTargetUnitFrame.displayDebuffs = GW.settings.target_DEBUFFS
 
+    GwTargetUnitFrame.shortendHealthValues = GW.settings.TARGET_UNIT_HEALTH_SHORT_VALUES
+
     GwTargetUnitFrame.showThreat = GW.settings.target_THREAT_VALUE_ENABLED
 
     GwTargetUnitFrame.auraPositionTop = GW.settings.target_AURAS_ON_TOP
@@ -1076,6 +1077,8 @@ local function ToggleFocusFrameSettings()
 
     GwFocusUnitFrame.displayBuffs = GW.settings.focus_BUFFS
     GwFocusUnitFrame.displayDebuffs = GW.settings.focus_DEBUFFS
+
+    GwFocusUnitFrame.shortendHealthValues = GW.settings.FOCUS_UNIT_HEALTH_SHORT_VALUES
 
     GwFocusUnitFrame.auraPositionTop = GW.settings.focus_AURAS_ON_TOP
 

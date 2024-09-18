@@ -82,6 +82,34 @@ local function CountTable(T)
 end
 GW.CountTable = CountTable
 
+GW.ShortPrefixValues = {}
+local function BuildPrefixValues()
+    if next(GW.ShortPrefixValues) then wipe(GW.ShortPrefixValues) end
+
+    GW.ShortPrefixValues = GW.copyTable(GW.ShortPrefixValues, GW.ShortPrefixStyles[GW.settings.ShortHealthValuePrefixStyle])
+    local shortValueDec = format("%%.%df", GW.settings.ShortHealthValuesDecimalLength or 1)
+
+    for _, style in ipairs(GW.ShortPrefixValues) do
+        style[3] = shortValueDec .. style[2]
+    end
+end
+GW.BuildPrefixValues = BuildPrefixValues
+
+local function ShortValue(value)
+    local abs_value = value<0 and -value or value
+    local values = GW.ShortPrefixValues
+
+    for i = 1, #values do
+        local arg1, arg2, arg3 = unpack(values[i])
+        if abs_value >= arg1 then
+            return format(arg3, value / arg1)
+        end
+    end
+
+    return format("%.0f", value)
+end
+GW.ShortValue = ShortValue
+
 local function SetPointsRestricted(frame)
 	if frame and not pcall(frame.GetPoint, frame) then
 		return true
@@ -146,6 +174,13 @@ local function RGBToHex(r, g, b, header, ending)
     return format("%s%02x%02x%02x%s", header or "|cff", r * 255, g * 255, b * 255, ending or "")
 end
 GW.RGBToHex = RGBToHex
+
+local function HexToRGB(hex)
+    local rhex, ghex, bhex = strsub(hex, 1, 2), strsub(hex, 3, 4), strsub(hex, 5, 6)
+	return tonumber(rhex, 16) / 255, tonumber(ghex, 16) / 255, tonumber(bhex, 16) / 255
+end
+GW.HexToRGB = HexToRGB
+
 
 local function GetUnitBattlefieldFaction(unit)
     local englishFaction, localizedFaction = UnitFactionGroup(unit)
@@ -624,7 +659,7 @@ end
 GW.FrameFlash = FrameFlash
 
 local function setItemLevel(button, quality, itemlink, slot)
-    button.itemlevel:SetFont(UNIT_NAME_FONT, 12, "THINOUTLINED")
+    button.itemlevel:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, "THINOUTLINE")
     if quality then
         local r, g, b = C_Item.GetItemQualityColor(quality or 1)
         if quality >= Enum.ItemQuality.Common and C_Item.GetItemQualityColor(quality) then
@@ -931,3 +966,75 @@ local function IsSpellTalented(spellID) -- this could be made to be a lot more e
     return false
 end
 GW.IsSpellTalented = IsSpellTalented
+
+local function moveFrameToPosition(frame, x, y)
+    local pos = GW.settings[frame.gwSetting]
+
+    if x and y then
+        if pos then
+            wipe(pos)
+        else
+            pos = {}
+        end
+        pos.point = "TOPLEFT"
+        pos.relativePoint = "TOPLEFT"
+        pos.xOfs = x
+        pos.yOfs = y
+
+        GW.settings[frame.gwSetting] = pos
+    end
+
+    frame.ClearAllPoints = nil
+    frame.SetPoint = nil
+    frame:ClearAllPoints()
+    frame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.xOfs, pos.yOfs)
+    frame.SetPoint = GW.NoOp
+    frame.ClearAllPoints = GW.NoOp
+end
+
+local function MakeFrameMovable(frame, target, setting, moveFrameOnShow)
+    if frame:IsMovable() then
+        return
+    end
+
+    if not target then
+        local point = GW.settings[setting]
+        frame:ClearAllPoints()
+        frame:SetPoint(point.point, UIParent, point.relativePoint, point.xOfs, point. yOfs)
+    end
+
+    target = target or frame
+
+    target.gwSetting = setting
+    frame:SetMovable(true)
+    frame:EnableMouse(true)
+    frame:SetScript("OnMouseDown", function(_, button)
+        if button == "LeftButton" then
+            target:StartMoving()
+        end
+    end)
+    frame:SetScript("OnMouseUp", function()
+        target:StopMovingOrSizing()
+
+        local x, y = target:GetLeft(), target:GetTop() - UIParent:GetTop()
+
+        moveFrameToPosition(target, x, y)
+    end)
+    if moveFrameOnShow then
+        frame:HookScript("OnShow", function()
+            moveFrameToPosition(target)
+        end)
+    end
+end
+GW.MakeFrameMovable = MakeFrameMovable
+
+local function UpdateFontSettings()
+    for text in pairs(GW.texts) do
+        if text then
+            text:GwSetFontTemplate(text.gwFont, text.gwTextSizeType, text.gwStyle, text.gwTextSizeAddition, true)
+        else
+            GW.texts[text] = nil
+        end
+    end
+end
+GW.UpdateFontSettings = UpdateFontSettings

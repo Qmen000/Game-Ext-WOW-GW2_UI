@@ -226,6 +226,13 @@ local function updateHealthData(self)
     local health = UnitHealth("pet")
     local healthMax = UnitHealthMax("pet")
     local healthprec = 0
+    local formatFunction
+
+    if GW.settings.PET_UNIT_HEALTH_SHORT_VALUES then
+        formatFunction = GW.ShortValue
+    else
+        formatFunction = CommaValue
+    end
 
     if health > 0 and healthMax > 0 then
         healthprec = health / healthMax
@@ -234,9 +241,10 @@ local function updateHealthData(self)
     self.health:SetFillAmount(healthprec)
 
     self.health.barOnUpdate = function()
-        self.health.text:SetText(CommaValue(health))
+        self.health.text:SetText(formatFunction(health))
     end
 end
+GW.UpdatePlayerPetHealthValues = updateHealthData
 
 local function updatePetData(self, event, unit)
     if not UnitExists("pet") then
@@ -348,7 +356,7 @@ local function LoadPetFrame(lm)
     RegisterStateDriver(playerPetFrame, "visibility", "[overridebar] hide; [vehicleui] hide; [petbattle] hide; [target=pet,exists] show; hide")
 
     playerPetFrame.health:SetStatusBarColor(COLOR_FRIENDLY[2].r, COLOR_FRIENDLY[2].g, COLOR_FRIENDLY[2].b)
-    playerPetFrame.health.text:SetFont(UNIT_NAME_FONT, 11)
+    playerPetFrame.health.text:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, nil, -1)
 
     TogglePetAuraPosition()
 

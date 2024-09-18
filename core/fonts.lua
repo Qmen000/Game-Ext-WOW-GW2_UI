@@ -21,7 +21,8 @@ local function setFont(fontObject, font, size, style, shadowX, shadowY, shadowA,
     end
 
     fontObject:SetFont(font, size, newStyle or style)
-    fontObject:SetShadowColor(shadowR or 0, shadowG or 0, shadowB or 0, shadowA or (shadow and (style == "" and 1 or 0.6)) or 0)
+    fontObject:SetShadowColor(shadowR or 0, shadowG or 0, shadowB or 0,
+        shadowA or (shadow and (style == "" and 1 or 0.6)) or 0)
     fontObject:SetShadowOffset(shadowX or (shadow and 1) or 0, shadowY or (shadow and -1) or 0)
 
     if r and g and b then
@@ -29,25 +30,74 @@ local function setFont(fontObject, font, size, style, shadowX, shadowY, shadowA,
     end
 end
 
+local function getNormalFontFamily()
+    local locale = GW.mylocal
+    -- get our saved font
+    local activeFont = GW.settings.FONT_NORMAL
+    -- if we use a custom font, fetch it from shared media
+    if GW.settings.CUSTOM_FONT_NORMAL ~= "NONE" then
+        activeFont = GW.Libs.LSM:Fetch("font", GW.settings.CUSTOM_FONT_NORMAL)
+    elseif GW.settings.FONT_STYLE_TEMPLATE ~= "BLIZZARD" then
+        if locale == "koKR" then
+            activeFont = "Interface/AddOns/GW2_UI/fonts/korean.ttf"
+        elseif locale == "zhCN" or locale == "zhTW" then
+            activeFont = "Interface/AddOns/GW2_UI/fonts/chinese-font.ttf"
+        elseif locale == "ruRU" then
+            activeFont = "Interface/AddOns/GW2_UI/fonts/menomonia_old.ttf"
+        end
+    elseif GW.settings.FONT_STYLE_TEMPLATE == "BLIZZARD" then
+        activeFont = ""
+    end
+    return activeFont
+end
+local function getHeaderFontFamily()
+    local locale = GW.mylocal
+    -- get our saved font
+    local activeFont = GW.settings.FONT_HEADERS
+    -- if we use a custom font, fetch it from shared media
+    if GW.settings.CUSTOM_FONT_HEADER ~= "NONE" then
+        activeFont = GW.Libs.LSM:Fetch("font", GW.settings.CUSTOM_FONT_HEADER)
+    elseif GW.settings.FONT_STYLE_TEMPLATE ~= "BLIZZARD" then
+        if locale == "koKR" then
+            activeFont = "Interface/AddOns/GW2_UI/fonts/korean.ttf"
+        elseif locale == "zhCN" or locale == "zhTW" then
+            activeFont = "Interface/AddOns/GW2_UI/fonts/chinese-font.ttf"
+        elseif locale == "ruRU" then
+            activeFont = "Interface/AddOns/GW2_UI/fonts/headlines_old.ttf"
+        end
+    elseif GW.settings.FONT_STYLE_TEMPLATE == "BLIZZARD" then
+        activeFont = ""
+    end
+    return activeFont
+end
+
 local function LoadFonts()
-    local normal = L["FONT_NORMAL"]
-    local bold = L["FONT_BOLD"]
-    local narrow = L["FONT_NARROW"]
-    local narrowBold = L["FONT_NARROW_BOLD"]
+    local addonFont = getNormalFontFamily()
+    local addonFontHeader = getHeaderFontFamily()
+    if addonFont == nil or addonFont == "" then
+        return
+    end
+    if addonFontHeader==nil or addonFontHeader==""then
+        addonFontHeader = addonFont
+    end
+    local normal = addonFont
+    local bold = addonFontHeader
+    local narrow = addonFont
+    local narrowBold = addonFont
     --local light = L["FONT_LIGHT"]
-    local damage = L["FONT_DAMAGE"]
+    local damage = addonFont
 
     -- game engine fonts
-    UNIT_NAME_FONT = damage
-    DAMAGE_TEXT_FONT = bold
+    UNIT_NAME_FONT = normal
+    DAMAGE_TEXT_FONT = addonFontHeader
     STANDARD_TEXT_FONT = normal
 
     -- default values
     UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = 14
-    CHAT_FONT_HEIGHTS = {6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
+    CHAT_FONT_HEIGHTS = { 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 }
 
     setFont(ChatFontNormal, narrow, nil, nil, 0.75, -0.75, 1)
-    setFont(NumberFontNormal, narrow, 12, "", 1.25, -1.25, 1)
+    setFont(NumberFontNormal, narrow, 14, "", 1.25, -1.25, 1)
     setFont(SystemFont_Tiny, normal)
     setFont(SystemFont_Small, narrow)
     setFont(SystemFont_Small2, narrow)
@@ -62,7 +112,7 @@ local function LoadFonts()
     setFont(SystemFont_Shadow_Med2, normal)
     setFont(SystemFont_Med3, normal)
     setFont(SystemFont_Shadow_Med3, normal)
-    setFont(SystemFont_Large, bold)
+    setFont(SystemFont_Large, normal)
     setFont(SystemFont_Shadow_Large, bold)
     setFont(SystemFont_Shadow_Large_Outline, bold)
     setFont(SystemFont_Huge1, normal)
@@ -80,7 +130,7 @@ local function LoadFonts()
     setFont(ReputationDetailFont, normal)
     setFont(FriendsFont_Normal, normal)
     setFont(FriendsFont_Small, normal)
-    setFont(FriendsFont_Large, bold)
+    setFont(FriendsFont_Large, damage)
     setFont(FriendsFont_UserText, narrow)
     setFont(GameFont_Gigantic, normal)
     setFont(ChatBubbleFont, normal)
@@ -88,9 +138,9 @@ local function LoadFonts()
     setFont(Fancy14Font, normal)
     setFont(Fancy22Font, normal)
     setFont(Fancy24Font, normal)
-    setFont(GameTooltipHeader, bold, 14, "", -1, -1, 1, 1, 1, 1, 0, 0, 0)
-    setFont(Tooltip_Med, normal, 12, "", -1, -1, 1, 1, 1, 1, 0, 0, 0)
-    setFont(Tooltip_Small, normal, 10, "", -1, -1, 1, 1, 1, 1, 0, 0, 0)
+    setFont(GameTooltipHeader, normal, 16, "", -1, -1, 1, 1, 1, 1, 0, 0, 0)
+    setFont(Tooltip_Med, normal, 14, "", -1, -1, 1, 1, 1, 1, 0, 0, 0)
+    setFont(Tooltip_Small, normal, 12, "", -1, -1, 1, 1, 1, 1, 0, 0, 0)
     setFont(NumberFont_Shadow_Small, narrow)
     setFont(NumberFont_OutlineThick_Mono_Small, narrow)
     setFont(NumberFont_Shadow_Med, narrow)
@@ -128,6 +178,7 @@ local function LoadFonts()
     setFont(Game48FontShadow, normal)
     setFont(Game60Font, normal)
     setFont(Game72Font, normal)
+    setFont(GameFontHighlight, normal)
     setFont(GameFontHighlightMedium, normal)
     setFont(GameFontHighlightSmall2, normal)
     setFont(GameFontNormalHuge2, normal)
@@ -136,8 +187,8 @@ local function LoadFonts()
     setFont(GameFontNormalMed1, normal)
     setFont(GameFontNormalMed2, normal)
     setFont(GameFontNormalMed3, normal)
+    setFont(GameFontNormalSmall, normal)
     setFont(GameFontNormalSmall2, normal)
-    setFont(GameTooltipHeader, normal)
     setFont(Number11Font, narrow)
     setFont(Number11Font, narrow)
     setFont(Number12Font, narrow)

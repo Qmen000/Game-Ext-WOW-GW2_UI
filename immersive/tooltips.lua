@@ -785,13 +785,23 @@ end
 local function SetTooltipFonts()
     local font = UNIT_NAME_FONT
     local fontOutline = ""
-    local headerSize = tonumber(GW.settings.TOOLTIP_FONT_SIZE)
-    local smallTextSize = tonumber(GW.settings.TOOLTIP_FONT_SIZE)
-    local textSize = tonumber(GW.settings.TOOLTIP_FONT_SIZE)
+    local headerSize = max(5, GW.settings.TOOLTIP_HEADER_FONT_SIZE)
+    local smallTextSize = max(5, GW.settings.TOOLTIP_SMALL_FONT_SIZE)
+    local textSize = GW.settings.TOOLTIP_FONT_SIZE
 
-    GameTooltipHeaderText:SetFont(font, headerSize, fontOutline)
+    GameTooltipHeaderText:SetFont(DAMAGE_TEXT_FONT, headerSize, fontOutline)
     GameTooltipTextSmall:SetFont(font, smallTextSize, fontOutline)
     GameTooltipText:SetFont(font, textSize, fontOutline)
+
+    if GameTooltip.hasMoney then
+        for i = 1, GameTooltip.numMoneyFrames do
+            _G["GameTooltipMoneyFrame" .. i .. "PrefixText"]:SetFont(font, textSize, fontOutline)
+            _G["GameTooltipMoneyFrame" .. i .. "SuffixText"]:SetFont(font, textSize, fontOutline)
+            _G["GameTooltipMoneyFrame" .. i .. "GoldButtonText"]:SetFont(font, textSize, fontOutline)
+            _G["GameTooltipMoneyFrame" .. i .. "SilverButtonText"]:SetFont(font, textSize, fontOutline)
+            _G["GameTooltipMoneyFrame" .. i .. "CopperButtonText"]:SetFont(font, textSize, fontOutline)
+        end
+    end
 
     if DatatextTooltip then
         DatatextTooltipTextLeft1:SetFont(font, textSize, fontOutline)
@@ -799,8 +809,7 @@ local function SetTooltipFonts()
     end
 
     for _, tt in ipairs(GameTooltip.shoppingTooltips) do
-        for i = 1, tt:GetNumRegions() do
-            local region = select(i, tt:GetRegions())
+        for _, region in next, { tt:GetRegions() } do
             if region:IsObjectType("FontString") then
                 region:SetFont(font, smallTextSize, fontOutline)
             end
@@ -1119,23 +1128,6 @@ local function LoadTooltips()
     end
 
     --Tooltip Fonts
-    -- hook here to avoid a taint
-    local moneyTooltipSetUp = false
-    hooksecurefunc("SetTooltipMoney", function()
-        if GameTooltip.hasMoney and not moneyTooltipSetUp then
-            local font = UNIT_NAME_FONT
-            local fontOutline = ""
-            local textSize = tonumber(GW.settings.TOOLTIP_FONT_SIZE)
-            for i = 1, GameTooltip.numMoneyFrames do
-                _G["GameTooltipMoneyFrame" .. i .. "PrefixText"]:SetFont(font, textSize, fontOutline)
-                _G["GameTooltipMoneyFrame" .. i .. "SuffixText"]:SetFont(font, textSize, fontOutline)
-                _G["GameTooltipMoneyFrame" .. i .. "GoldButtonText"]:SetFont(font, textSize, fontOutline)
-                _G["GameTooltipMoneyFrame" .. i .. "SilverButtonText"]:SetFont(font, textSize, fontOutline)
-                _G["GameTooltipMoneyFrame" .. i .. "CopperButtonText"]:SetFont(font, textSize, fontOutline)
-            end
-            moneyTooltipSetUp = true
-        end
-    end)
     SetTooltipFonts()
 
     RegisterMovableFrame(GameTooltip, "Tooltip", "GameTooltipPos", ALL .. ",Blizzard", {230, 80}, {"default"})

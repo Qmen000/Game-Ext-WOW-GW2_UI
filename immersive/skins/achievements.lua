@@ -24,17 +24,17 @@ local barColors = {
 GW.AchievementFrameSkinFunction.BarColors = barColors
 -- Text Helper functions
 local function setSmallText(self)
-    self:SetFont(UNIT_NAME_FONT, 11)
+    self:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     self:SetTextColor(0.7, 0.7, 0.7)
 end
 GW.AchievementFrameSkinFunction.SetSmallText = setSmallText
 local function setNormalText(self)
-    self:SetFont(UNIT_NAME_FONT, 12)
+    self:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     self:SetTextColor(1, 1, 1)
 end
 GW.AchievementFrameSkinFunction.SetNormalText = setNormalText
 local function setTitleText(self)
-    self:SetFont(DAMAGE_TEXT_FONT, 14)
+    self:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.HEADER)
     self:SetTextColor(1, 1, 1)
 end
 GW.AchievementFrameSkinFunction.SetTitleText = setTitleText
@@ -42,7 +42,7 @@ GW.AchievementFrameSkinFunction.SetTitleText = setTitleText
 -- Blizzard hacking starts here for overwriting functions to allow our own custom categories
 -- is there a less hacky way of doing this?
 -- DO NOT DELETE THINGS HERE IF DISABLE CUSTOM CATEGORIES
--- INSTED DON"T RUN AchievementFrameCategories_OnLoad
+-- INSTED DON'T RUN AchievementFrameCategories_OnLoad
 
 --Blizzard data values
 local hackingBlizzardFunction = false
@@ -65,7 +65,7 @@ local selectedCategoryID = 0
 -- this function overwrites AchievementCategoryTemplateMixin:Init(elementData)
 -- we need to replace it since custom categories are hard coded into the function
 -- Any changes made to AchievementCategoryTemplateMixin:Init needs to be reflected here
-local function customCategorieInit(self,elementData)
+local function customCategorieInit(self, elementData)
     if ( elementData.isChild ) then
         self.Button:SetWidth(ACHIEVEMENTUI_CATEGORIESWIDTH - 25);
         self.Button.Label:SetFontObject("GameFontHighlight");
@@ -88,10 +88,8 @@ local function customCategorieInit(self,elementData)
         categoryName = ACHIEVEMENT_SUMMARY_CATEGORY;
         numAchievements, numCompleted = GetNumCompletedAchievements(InGuildView());
     elseif ( id == "watchlist" ) then -- custom watchlist category
-        categoryName = L["Watch list"];
-        local trackedAchievements = C_ContentTracking.GetTrackedIDs(Enum.ContentTrackingType.Achievement)
-
-        numAchievements = #trackedAchievements
+        categoryName = L["Watch list"]
+        numAchievements = #C_ContentTracking.GetTrackedIDs(Enum.ContentTrackingType.Achievement)
         numCompleted = 0 -- might need to change or only used for bars?
     else
         categoryName, _, flags = GetCategoryInfo(id);
@@ -105,7 +103,7 @@ local function customCategorieInit(self,elementData)
     -- For the tooltip
     self.Button.name = categoryName;
     if ( id == FEAT_OF_STRENGTH_ID ) then
-        -- This is the feat of strength category since it"s sorted to the end of the list
+        -- This is the feat of strength category since it's sorted to the end of the list
         self.Button.text = FEAT_OF_STRENGTH_DESCRIPTION;
         self.Button.showTooltipFunc = AchievementFrameCategory_FeatOfStrengthTooltip;
     elseif ( id == GUILD_FEAT_OF_STRENGTH_ID ) then
@@ -161,7 +159,7 @@ end
 
 --- overrider for blizzard function
 -- AchievementFrameAchievements_UpdateDataProvider
-local oldFilter
+local wasPrevCatCustom = false
 local function UpdateCategoriesDataProvider()
 -- hackfix for AchievementFrame_GetOrSelectCurrentCategory()
 -- no other way of emulate its behaviour
@@ -174,14 +172,15 @@ local function UpdateCategoriesDataProvider()
     local customCat = category == "watchlist" or false
     local trackedAchievements = C_ContentTracking.GetTrackedIDs(Enum.ContentTrackingType.Achievement)
     if customCat then
-        oldFilter = ACHIEVEMENTUI_SELECTEDFILTER
-        ACHIEVEMENTUI_SELECTEDFILTER = function()
+        ACHIEVEMENTUI_SELECTEDFILTER = function(cat)
             return #trackedAchievements, 0, 0
         end
-    elseif oldFilter ~= nil then
-        ACHIEVEMENTUI_SELECTEDFILTER = oldFilter
-        oldFilter = nil
+    else
+        if wasPrevCatCustom then
+            ACHIEVEMENTUI_SELECTEDFILTER = AchievementFrame_GetCategoryNumAchievements_All
+        end
     end
+    wasPrevCatCustom = customCat
 
     local numAchievements, numCompleted, completedOffset = ACHIEVEMENTUI_SELECTEDFILTER(category);
     local fosShown = numAchievements == 0 and IsCategoryFeatOfStrength(category);
@@ -196,13 +195,13 @@ local function UpdateCategoriesDataProvider()
         if index <= numAchievements then
             local filteredIndex = index + completedOffset;
             local id = 0
-    if customCat then
-        id = trackedAchievements[index]
-        newDataProvider:Insert({category = category, id = id}); -- we use blizzard built in id look up insted of index (thank you twitter intigration)
-    else
-        id = GetAchievementInfo(category, filteredIndex);
-        newDataProvider:Insert({category = category, index = filteredIndex, id = id});
-    end
+            if customCat then
+                id = trackedAchievements[index]
+                newDataProvider:Insert({category = category, id = id}); -- we use blizzard built in id look up insted of index (thank you twitter intigration)
+            else
+                id = GetAchievementInfo(category, filteredIndex);
+                newDataProvider:Insert({category = category, index = filteredIndex, id = id});
+            end
         end
     end
     AchievementFrameAchievements.ScrollBox:SetDataProvider(newDataProvider);
@@ -225,7 +224,7 @@ local function AchievementFrameCategories_OnLoad(self)
     -- re build the scroll frame with our init function
     local view = CreateScrollBoxListLinearView();
     view:SetElementInitializer("AchievementCategoryTemplate", function(frame, elementData)
-        customCategorieInit(frame,elementData);
+        customCategorieInit(frame, elementData);
     end);
     ScrollUtil.InitScrollBoxListWithScrollBar(self.ScrollBox, self.ScrollBar, view);
 
@@ -269,11 +268,11 @@ local function HandleAchivementsScrollControls(self)
     bg:SetTexCoord(0,1,1,0)
 end
 
-local function catMenuButtonState(self,selected)
+local function catMenuButtonState(self, selected)
     if selected then
         selectedCategoryID = self.categoryID
         if hackingBlizzardFunction then
-           -- UpdateCategoriesDataProvider()
+            UpdateCategoriesDataProvider()
         end
     end
     ---zeeeebra
@@ -293,9 +292,9 @@ local function catMenuButtonState(self,selected)
         self.Button.arrow:Show()
         self.Button.arrow:SetSize(16,16)
         if not elementData.collapsed then
-        self.Button.arrow:SetRotation(-1.5707)
+            self.Button.arrow:SetRotation(-1.5707)
         else
-        self.Button.arrow:SetRotation(0)
+            self.Button.arrow:SetRotation(0)
         end
     else
         self.Button.Label:SetPoint("LEFT", self, "LEFT", 30, 0)
@@ -327,7 +326,7 @@ local function CatMenuButton(_, button)
     button.Label:SetTextColor(255 / 255, 241 / 255, 209 / 255)
     button.Label:SetShadowColor(0, 0, 0, 0)
     button.Label:SetShadowOffset(1, -1)
-    button.Label:SetFont(DAMAGE_TEXT_FONT, 14)
+    button.Label:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.HEADER)
     button.Label:SetJustifyH("LEFT")
     button.Label:SetJustifyV("MIDDLE")
 end
@@ -393,7 +392,7 @@ local function skinAchievementSummaryStatusBar(self)
 
     text:ClearAllPoints()
     text:SetPoint("RIGHT",self,"RIGHT",-5,0)
-    text:SetFont(DAMAGE_TEXT_FONT,11)
+    text:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.SMALL)
     text:SetTextColor(1,1,1)
     text:SetHeight(bar:GetHeight())
     text:SetJustifyV("MIDDLE")
@@ -454,7 +453,7 @@ local function skinCriteriaStatusbar(parentFrame,self)
         bColor.b
     )
 
-    text:SetFont(DAMAGE_TEXT_FONT,11)
+    text:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.SMALL)
     text:SetTextColor(1,1,1)
     text:SetHeight(bar:GetHeight())
     text:SetJustifyV("MIDDLE")
@@ -1033,7 +1032,7 @@ local function skinAchievementCompareSummaryStatusBar(self,isPlayer)
     setNormalText(title)
     text:ClearAllPoints()
     text:SetPoint("RIGHT",self,"RIGHT",-5,0)
-    text:SetFont(DAMAGE_TEXT_FONT,11)
+    text:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.SMALL)
     text:SetTextColor(1,1,1)
     text:SetHeight(bar:GetHeight())
     text:SetJustifyV("MIDDLE")
@@ -1062,54 +1061,6 @@ local function updatePointsDisplay()
     AchievementFrame.Header.Shield:SetTexCoord(0, 1, 0, 1);
 end
 
-local function moveFrameToPosition(frame, x, y)
-    local pos = GW.settings["AchievementWindow"]
-
-    if x and y then
-        if pos then
-            wipe(pos)
-        else
-            pos = {}
-        end
-        pos.point = "TOPLEFT"
-        pos.relativePoint = "TOPLEFT"
-        pos.xOfs = x
-        pos.yOfs = y
-        GW.settings.AchievementWindow = pos
-    end
-
-    frame:ClearAllPoints()
-    frame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.xOfs, pos.yOfs)
-end
-
-local function MakeMovable(frame, target)
-    if frame:IsMovable() then
-        return
-    end
-
-    if not target then
-        local point = GW.settings.AchievementWindow
-        frame:ClearAllPoints()
-        frame:SetPoint(point.point, UIParent, point.relativePoint, point.xOfs, point. yOfs)
-    end
-
-    target = target or frame
-
-    frame:SetMovable(true)
-    frame:EnableMouse(true)
-    frame:SetScript("OnMouseDown", function(_, button)
-        if button == "LeftButton" then
-            target:StartMoving()
-        end
-    end)
-    frame:SetScript("OnMouseUp", function()
-        target:StopMovingOrSizing()
-
-        local x, y = target:GetLeft(), target:GetTop() - UIParent:GetTop()
-
-        moveFrameToPosition(target, x, y)
-    end)
-end
 local function skinAchevement()
     AchievementFrameCategories_OnLoad(AchievementFrameCategories)
     -- function to "hack" the blizzard functions
@@ -1148,7 +1099,7 @@ local function skinAchevement()
 
     AchievementFrame.Header.Points:ClearAllPoints()
     AchievementFrame.Header.Points:SetPoint("LEFT", AchievementFrame.Header.Shield, "RIGHT", 10, 0)
-    AchievementFrame.Header.Points:SetFont(DAMAGE_TEXT_FONT, 24)
+    AchievementFrame.Header.Points:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 6)
 
     AchievementFrame.Header.Title:Hide()
 
@@ -1161,8 +1112,8 @@ local function skinAchevement()
     AchievementFrameHeader.breadCrumb = AchievementFrameHeader:CreateFontString(nil, "OVERLAY")
     AchievementFrameHeader.header:SetPoint("BOTTOMLEFT", 20, 8)
     AchievementFrameHeader.breadCrumb:SetPoint("LEFT", AchievementFrameHeader.header, "RIGHT", 20, 0)
-    AchievementFrameHeader.header:SetFont(DAMAGE_TEXT_FONT, 24)
-    AchievementFrameHeader.breadCrumb:SetFont(DAMAGE_TEXT_FONT, 14)
+    AchievementFrameHeader.header:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 6)
+    AchievementFrameHeader.breadCrumb:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.HEADER)
     AchievementFrameHeader.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
     AchievementFrameHeader.breadCrumb:SetTextColor(255 / 255, 241 / 255, 209 / 255)
     AchievementFrameHeader.header:SetWidth(AchievementFrameHeader.header:GetStringWidth())
@@ -1189,7 +1140,6 @@ local function skinAchevement()
     AchievementFrame:HookScript("OnShow",function()
         AchievementFrame:SetSize(853, 627)
         updateAchievementFrameTabLayout()
-        moveFrameToPosition(AchievementFrame)
     end)
 
     AchievementFrameHeader:ClearAllPoints()
@@ -1212,12 +1162,12 @@ local function skinAchevement()
     AchievementFrame.SearchBox:ClearAllPoints()
     AchievementFrame.SearchBox:SetPoint("BOTTOMLEFT", AchievementFrameCategories, "TOPLEFT", 0, 10)
     AchievementFrame.SearchBox:SetWidth(237)
-    AchievementFrame.SearchBox:SetFont(UNIT_NAME_FONT, 14, "")
+    AchievementFrame.SearchBox:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     GW.SkinTextBox(AchievementFrame.SearchBox.Middle, AchievementFrame.SearchBox.Left, AchievementFrame.SearchBox.Right)
     AchievementFrame.SearchBox:SetHeight(26)
     AchievementFrame.SearchBox.searchIcon:Hide()
-    AchievementFrame.SearchBox:SetFont(UNIT_NAME_FONT, 14, "")
-    AchievementFrame.SearchBox.Instructions:SetFont(UNIT_NAME_FONT, 14, "")
+    AchievementFrame.SearchBox:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
+    AchievementFrame.SearchBox.Instructions:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     AchievementFrame.SearchBox.Instructions:SetTextColor(178 / 255, 178 / 255, 178 / 255)
 
     AchievementFrame.SearchPreviewContainer:GwStripTextures()
@@ -1229,7 +1179,7 @@ local function skinAchevement()
         local sp = AchievementFrame.SearchPreviewContainer["SearchPreview" ..i ]
         if sp then
             sp:SetWidth(AchievementFrame.SearchPreviewContainer:GetWidth())
-            sp.Name:SetFont(UNIT_NAME_FONT, 12, "")
+            sp.Name:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
         end
     end
 
@@ -1584,13 +1534,13 @@ local function skinAchevement()
     end)
 
     -- make the frame movable
-    MakeMovable(AchievementFrame)
-    MakeMovable(AchievementFrame.Header, AchievementFrame)
+    GW.MakeFrameMovable(AchievementFrame, nil, "AchievementWindow", true)
+    GW.MakeFrameMovable(AchievementFrame.Header, AchievementFrame, "AchievementWindow")
 end
 
 local function LoadAchivementSkin()
     if not GW.settings.ACHIEVEMENT_SKIN_ENABLED then return end
 
-    GW.RegisterLoadHook(skinAchevement, "Blizzard_AchievementUI")
+    GW.RegisterLoadHook(skinAchevement, "Blizzard_AchievementUI", AchievementFrame)
 end
 GW.LoadAchivementSkin = LoadAchivementSkin

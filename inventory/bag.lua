@@ -618,7 +618,7 @@ local function LoadBag(helpers)
 
     -- setup bagheader stuff
     for i = 0, 5 do
-        _G["GwBagFrameGwBagHeader" .. i].nameString:SetFont(UNIT_NAME_FONT, 12, "")
+        _G["GwBagFrameGwBagHeader" .. i].nameString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
         _G["GwBagFrameGwBagHeader" .. i].nameString:SetTextColor(1, 1, 1)
         _G["GwBagFrameGwBagHeader" .. i].nameString:SetShadowColor(0, 0, 0, 0)
         _G["GwBagFrameGwBagHeader" .. i].icon2:Hide()
@@ -670,9 +670,9 @@ local function LoadBag(helpers)
     createBagBar(f.ItemFrame)
 
     -- skin some things not done in XML
-    f.headerString:SetFont(DAMAGE_TEXT_FONT, 20, "")
+    f.headerString:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 2)
     f.headerString:SetText(INVENTORY_TOOLTIP)
-    f.spaceString:SetFont(UNIT_NAME_FONT, 12, "")
+    f.spaceString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     f.spaceString:SetTextColor(1, 1, 1)
     f.spaceString:SetShadowColor(0, 0, 0, 0)
 
@@ -903,11 +903,11 @@ local function LoadBag(helpers)
     end
 
     -- setup money frame
-    f.bronze:SetFont(UNIT_NAME_FONT, 12, "")
+    f.bronze:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     f.bronze:SetTextColor(177 / 255, 97 / 255, 34 / 255)
-    f.silver:SetFont(UNIT_NAME_FONT, 12, "")
+    f.silver:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     f.silver:SetTextColor(170 / 255, 170 / 255, 170 / 255)
-    f.gold:SetFont(UNIT_NAME_FONT, 12, "")
+    f.gold:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     f.gold:SetTextColor(221 / 255, 187 / 255, 68 / 255)
 
     -- money frame tooltip
@@ -931,13 +931,13 @@ local function LoadBag(helpers)
     end)
 
     -- setup watch currencies
-    f.currency1:SetFont(UNIT_NAME_FONT, 12, "")
+    f.currency1:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     f.currency1:SetTextColor(1, 1, 1)
-    f.currency2:SetFont(UNIT_NAME_FONT, 12, "")
+    f.currency2:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     f.currency2:SetTextColor(1, 1, 1)
-    f.currency3:SetFont(UNIT_NAME_FONT, 12, "")
+    f.currency3:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     f.currency3:SetTextColor(1, 1, 1)
-    f.currency4:SetFont(UNIT_NAME_FONT, 12, "")
+    f.currency4:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     f.currency4:SetTextColor(1, 1, 1)
 
     -- set warch currencies tooltips

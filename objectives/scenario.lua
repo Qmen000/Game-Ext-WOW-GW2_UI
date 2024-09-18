@@ -212,57 +212,69 @@ local function updateCurrentScenario(self, event, ...)
         compassData.TYPE = "TORGHAST"
     end
 
-    if C_DelvesUI.HasActiveDelve(GW.Libs.GW2Lib:GetPlayerInstanceMapID()) then
-        local widgetInfo = C_UIWidgetManager.GetScenarioHeaderDelvesWidgetVisualizationInfo(6183)
+    -- check for active delves
+    local delvesWidgetInfo = C_UIWidgetManager.GetScenarioHeaderDelvesWidgetVisualizationInfo(6183)
+    if delvesWidgetInfo and delvesWidgetInfo.frameTextureKit and delvesWidgetInfo.frameTextureKit == "delves-scenario" then
+        local tierLevel = delvesWidgetInfo.tierText or ""
 
-        if widgetInfo then
-            local tierLevel = widgetInfo.tierText or ""
-
-            if GwObjectivesNotification then
-                GwObjectivesNotification.iconFrame.tooltipSpellID = widgetInfo.tierTooltipSpellID
-            end
-
-            compassData.TITLE = difficultyName .. " |cFFFFFFFF(" .. tierLevel .. ")|r - " .. widgetInfo.headerText
-
-            GwScenarioBlock.delvesFrame:Show()
-            GwScenarioBlock.delvesFrame.reward:Show()
-
-            local id = 1
-            for _, spellInfo in ipairs(widgetInfo.spells) do
-                if spellInfo.shownState ~= Enum.WidgetShownState.Hidden then
-                    local spellData = C_Spell.GetSpellInfo(spellInfo.spellID)
-
-                    SetPortraitToTexture(GwScenarioBlock.delvesFrame.spell[id].icon, spellData.iconID)
-                    GwScenarioBlock.delvesFrame.spell[id].icon:SetDesaturated(spellInfo.enabledState == Enum.WidgetEnabledState.Disabled)
-
-                    GwScenarioBlock.delvesFrame.spell[id].spellID = spellData.spellID
-                    GwScenarioBlock.delvesFrame.spell[id]:Show()
-
-                    id = id + 1
-                end
-            end
-
-            for i = id, 5 do
-                GwScenarioBlock.delvesFrame.spell[i].spellID = nil
-                GwScenarioBlock.delvesFrame.spell[i]:Hide()
-            end
-
-            -- handle rewards
-            if widgetInfo.rewardInfo.shownState ~= Enum.UIWidgetRewardShownState.Hidden then
-                local rewardTooltip = (widgetInfo.rewardInfo.shownState == Enum.UIWidgetRewardShownState.ShownEarned) and widgetInfo.rewardInfo.earnedTooltip or widgetInfo.rewardInfo.unearnedTooltip
-                GwScenarioBlock.delvesFrame.reward.tooltip = rewardTooltip
-
-                GwScenarioBlock.delvesFrame.reward.earned:SetShown(widgetInfo.rewardInfo.shownState == Enum.UIWidgetRewardShownState.ShownEarned)
-                GwScenarioBlock.delvesFrame.reward.unearned:SetShown(widgetInfo.rewardInfo.shownState == Enum.UIWidgetRewardShownState.ShownUnearned)
-
-                GwScenarioBlock.delvesFrame.reward:Show()
-            else
-                GwScenarioBlock.delvesFrame.reward:Hide()
-            end
-
-            compassData.COLOR = TRACKER_TYPE_COLOR.DELVE
-            compassData.TYPE = "DELVE"
+        if GwObjectivesNotification then
+            GwObjectivesNotification.iconFrame.tooltipSpellID = delvesWidgetInfo.tierTooltipSpellID
         end
+
+        compassData.TITLE = difficultyName .. " |cFFFFFFFF(" .. tierLevel .. ")|r - " .. delvesWidgetInfo.headerText
+
+        GwScenarioBlock.delvesFrame:Show()
+        GwScenarioBlock.delvesFrame.reward:Show()
+
+        local id = 1
+        for _, spellInfo in ipairs(delvesWidgetInfo.spells) do
+            if spellInfo.shownState ~= Enum.WidgetShownState.Hidden then
+                local spellData = C_Spell.GetSpellInfo(spellInfo.spellID)
+
+                SetPortraitToTexture(GwScenarioBlock.delvesFrame.spell[id].icon, spellData.iconID)
+                GwScenarioBlock.delvesFrame.spell[id].icon:SetDesaturated(spellInfo.enabledState == Enum.WidgetEnabledState.Disabled)
+
+                GwScenarioBlock.delvesFrame.spell[id].spellID = spellData.spellID
+                GwScenarioBlock.delvesFrame.spell[id]:Show()
+
+                id = id + 1
+            end
+        end
+
+        for i = id, 5 do
+            GwScenarioBlock.delvesFrame.spell[i].spellID = nil
+            GwScenarioBlock.delvesFrame.spell[i]:Hide()
+        end
+
+        -- handle death
+        if delvesWidgetInfo.currencies and #delvesWidgetInfo.currencies > 0 and delvesWidgetInfo.currencies[1].textEnabledState > 0 then
+            GwScenarioBlock.delvesFrame.deathCounter.tooltip = delvesWidgetInfo.currencies[1].tooltip
+            GwScenarioBlock.delvesFrame.deathCounter.counter:SetText(delvesWidgetInfo.currencies[1].text)
+            GwScenarioBlock.delvesFrame.deathCounter.icon:SetTexture(delvesWidgetInfo.currencies[1].iconFileID)
+
+            GwScenarioBlock.delvesFrame.deathCounter:Show()
+        else
+            GwScenarioBlock.delvesFrame.deathCounter:Show()
+        end
+
+            --[11:38:34]       textEnabledState=2, 
+            --[11:38:34]       iconFileID=6013778, 
+
+        -- handle rewards
+        if delvesWidgetInfo.rewardInfo.shownState ~= Enum.UIWidgetRewardShownState.Hidden then
+            local rewardTooltip = (delvesWidgetInfo.rewardInfo.shownState == Enum.UIWidgetRewardShownState.ShownEarned) and delvesWidgetInfo.rewardInfo.earnedTooltip or delvesWidgetInfo.rewardInfo.unearnedTooltip
+            GwScenarioBlock.delvesFrame.reward.tooltip = rewardTooltip
+
+            GwScenarioBlock.delvesFrame.reward.earned:SetShown(delvesWidgetInfo.rewardInfo.shownState == Enum.UIWidgetRewardShownState.ShownEarned)
+            GwScenarioBlock.delvesFrame.reward.unearned:SetShown(delvesWidgetInfo.rewardInfo.shownState == Enum.UIWidgetRewardShownState.ShownUnearned)
+
+            GwScenarioBlock.delvesFrame.reward:Show()
+        else
+            GwScenarioBlock.delvesFrame.reward:Hide()
+        end
+
+        compassData.COLOR = TRACKER_TYPE_COLOR.DELVE
+        compassData.TYPE = "DELVE"
     else
         GwScenarioBlock.delvesFrame:Hide()
     end
@@ -570,6 +582,47 @@ local function scenarioTimerOnEvent(_, event, ...)
 end
 GW.AddForProfiling("scenario", "scenarioTimerOnEvent", scenarioTimerOnEvent)
 
+local function UIWidgetTemplateTooltipFrameOnEnter(self)
+    if self.tooltip then
+        self.tooltipContainsHyperLink = false
+        self.preString = nil
+        self.hyperLinkString = nil
+        self.postString = nil
+        self.tooltipContainsHyperLink, self.preString, self.hyperLinkString, self.postString = ExtractHyperlinkString(self.tooltip)
+
+        EmbeddedItemTooltip:SetOwner(self, "ANCHOR_LEFT")
+
+        if self.tooltipContainsHyperLink then
+            local clearTooltip = true
+            if self.preString and self.preString:len() > 0 then
+                GameTooltip_AddNormalLine(EmbeddedItemTooltip, self.preString, true)
+                clearTooltip = false
+            end
+
+            GameTooltip_ShowHyperlink(EmbeddedItemTooltip, self.hyperLinkString, 0, 0, clearTooltip)
+
+            if self.postString and self.postString:len() > 0 then
+                GameTooltip_AddColoredLine(EmbeddedItemTooltip, self.postString, self.tooltipColor or HIGHLIGHT_FONT_COLOR, true)
+            end
+
+            self.UpdateTooltip = self.OnEnter
+
+            EmbeddedItemTooltip:Show()
+        else
+            local header, nonHeader = SplitTextIntoHeaderAndNonHeader(self.tooltip)
+            if header then
+                GameTooltip_AddColoredLine(EmbeddedItemTooltip, header, self.tooltipColor or NORMAL_FONT_COLOR, true)
+            end
+            if nonHeader then
+                GameTooltip_AddColoredLine(EmbeddedItemTooltip, nonHeader, self.tooltipColor or NORMAL_FONT_COLOR, true)
+            end
+            self.UpdateTooltip = nil
+
+            EmbeddedItemTooltip:SetShown(header ~= nil)
+        end
+    end
+end
+
 local function LoadScenarioFrame()
     GwQuesttrackerContainerScenario:SetScript("OnEvent", updateCurrentScenario)
 
@@ -605,31 +658,31 @@ local function LoadScenarioFrame()
     timerBlock.timerStringChest3 = timerBlock.timer.timerStringChest3
     timerBlock.timerBackground:ClearAllPoints()
     timerBlock.timerBackground:SetPoint("CENTER", timerBlock.timer, "CENTER")
-    timerBlock.timerlabel:SetFont(UNIT_NAME_FONT, 12)
+    timerBlock.timerlabel:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     timerBlock.timerlabel:SetTextColor(1, 1, 1)
     timerBlock.timerlabel:SetShadowOffset(1, -1)
-    timerBlock.timerString:SetFont(UNIT_NAME_FONT, 12)
+    timerBlock.timerString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     timerBlock.timerString:SetTextColor(1, 1, 1)
     timerBlock.timerString:SetShadowOffset(1, -1)
-    timerBlock.timerStringChest2:SetFont(UNIT_NAME_FONT, 10)
+    timerBlock.timerStringChest2:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, nil, -2)
     timerBlock.timerStringChest2:SetTextColor(1, 1, 1)
     timerBlock.timerStringChest2:SetShadowOffset(1, -1)
     timerBlock.timerStringChest2:ClearAllPoints()
     timerBlock.timerStringChest2:SetPoint("RIGHT", timerBlock.chestoverlay.chest2, "LEFT", -2, -6)
-    timerBlock.timerStringChest3:SetFont(UNIT_NAME_FONT, 10)
+    timerBlock.timerStringChest3:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, nil, -2)
     timerBlock.timerStringChest3:SetTextColor(1, 1, 1)
     timerBlock.timerStringChest3:SetShadowOffset(1, -1)
     timerBlock.timerStringChest3:ClearAllPoints()
     timerBlock.timerStringChest3:SetPoint("RIGHT", timerBlock.chestoverlay.chest3, "LEFT", -2, -6)
     timerBlock.deathcounter:ClearAllPoints()
     timerBlock.deathcounter:SetPoint("LEFT", timerBlock.timer, "RIGHT", -35, -14)
-    timerBlock.deathcounter.counterlabel:SetFont(UNIT_NAME_FONT, 10)
+    timerBlock.deathcounter.counterlabel:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, nil, -2)
     timerBlock.deathcounter.counterlabel:SetTextColor(1, 1, 1)
     timerBlock.deathcounter.counterlabel:SetShadowOffset(1, -1)
     timerBlock.score:ClearAllPoints()
     timerBlock.score:SetPoint("TOPLEFT", timerBlock.timer, "BOTTOMLEFT", 0, 0)
-    timerBlock.score.scoreString:SetFont(UNIT_NAME_FONT, 12)
-    timerBlock.score.scorelabel:SetFont(UNIT_NAME_FONT, 12)
+    timerBlock.score.scoreString:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
+    timerBlock.score.scorelabel:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     timerBlock.timer:SetScript(
         "OnShow",
         function(self)
@@ -725,50 +778,16 @@ local function LoadScenarioFrame()
         v:SetScript("OnLeave", GameTooltip_Hide)
     end
 
-    newBlock.delvesFrame.reward:SetScript("OnEnter", function(self)
-        if self.tooltip then
-            self.tooltipContainsHyperLink = false
-            self.preString = nil
-            self.hyperLinkString = nil
-            self.postString = nil
-            self.tooltipContainsHyperLink, self.preString, self.hyperLinkString, self.postString = ExtractHyperlinkString(self.tooltip)
-
-            EmbeddedItemTooltip:SetOwner(self, "ANCHOR_LEFT")
-
-            if self.tooltipContainsHyperLink then
-                local clearTooltip = true
-                if self.preString and self.preString:len() > 0 then
-                    GameTooltip_AddNormalLine(EmbeddedItemTooltip, self.preString, true)
-                    clearTooltip = false
-                end
-
-                GameTooltip_ShowHyperlink(EmbeddedItemTooltip, self.hyperLinkString, 0, 0, clearTooltip)
-
-                if self.postString and self.postString:len() > 0 then
-                    GameTooltip_AddColoredLine(EmbeddedItemTooltip, self.postString, self.tooltipColor or HIGHLIGHT_FONT_COLOR, true)
-                end
-
-                self.UpdateTooltip = self.OnEnter
-
-                EmbeddedItemTooltip:Show()
-            else
-                local header, nonHeader = SplitTextIntoHeaderAndNonHeader(self.tooltip)
-                if header then
-                    GameTooltip_AddColoredLine(EmbeddedItemTooltip, header, self.tooltipColor or NORMAL_FONT_COLOR, true)
-                end
-                if nonHeader then
-                    GameTooltip_AddColoredLine(EmbeddedItemTooltip, nonHeader, self.tooltipColor or NORMAL_FONT_COLOR, true)
-                end
-                self.UpdateTooltip = nil
-
-                EmbeddedItemTooltip:SetShown(header ~= nil)
-            end
-        end
-    end)
+    newBlock.delvesFrame.reward:SetScript("OnEnter", UIWidgetTemplateTooltipFrameOnEnter)
     newBlock.delvesFrame.reward:SetScript("OnLeave", function()
-        EmbeddedItemTooltip:Hide()
+        UIWidgetTemplateTooltipFrameMixin:OnLeave()
     end)
 
+    newBlock.delvesFrame.deathCounter:SetScript("OnEnter", UIWidgetTemplateTooltipFrameOnEnter)
+    newBlock.delvesFrame.deathCounter:SetScript("OnLeave", function()
+        UIWidgetTemplateTooltipFrameMixin:OnLeave()
+    end)
+    newBlock.delvesFrame.deathCounter.counter:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
 
     C_Timer.After(0.8, function() updateCurrentScenario(GwQuesttrackerContainerScenario) end)
 

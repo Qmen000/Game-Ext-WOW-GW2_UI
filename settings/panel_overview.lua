@@ -84,10 +84,7 @@ local function CharacterMenuButton_OnLoad(self, odd)
     else
         self:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-bg")
     end
-    self:GetFontString():SetTextColor(255 / 255, 241 / 255, 209 / 255)
-    self:GetFontString():SetShadowColor(0, 0, 0, 0)
-    self:GetFontString():SetShadowOffset(1, -1)
-    self:GetFontString():SetFont(DAMAGE_TEXT_FONT, 14)
+
     self:GetFontString():SetJustifyH("LEFT")
     self:GetFontString():SetPoint("LEFT", self, "LEFT", 5, 0)
 end
@@ -275,6 +272,7 @@ end
 local function LoadOverviewPanel(sWindow)
     local p = CreateFrame("Frame", nil, sWindow.panels, "GwSettingsSplashPanelTmpl")
 
+    sWindow.splashart = p.splashart
     p.splashart:AddMaskTexture(sWindow.backgroundMask)
 
     CharacterMenuButton_OnLoad(p.menu.welcomebtn, true)
@@ -361,6 +359,8 @@ local function LoadOverviewPanel(sWindow)
         sWindow.headerString:SetWidth(sWindow.headerString:GetStringWidth())
         sWindow.headerBreadcrumb:SetText(OVERVIEW)
     end)
+
+    GW.InitBeledarsSplashScreen(p)
 
     ShowChangelog(scroll)
 end

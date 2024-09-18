@@ -38,7 +38,7 @@ local function handleReward(frame, isMap)
         frame.Count:SetDrawLayer("OVERLAY")
         frame.Count:ClearAllPoints()
         frame.Count:SetPoint("TOPRIGHT", frame.Icon, "TOPRIGHT", 0, -3)
-        frame.Count:SetFont(UNIT_NAME_FONT, 12, "THINOUTLINED")
+        frame.Count:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, "THINOUTLINE")
         frame.Count:SetJustifyH("RIGHT")
     end
 
@@ -333,6 +333,7 @@ local function worldMapSkin()
 
     WorldMapFrame:GwStripTextures()
     GW.CreateFrameHeaderWithBody(WorldMapFrame, WorldMapFrameTitleText, "Interface/AddOns/GW2_UI/textures/character/questlog-window-icon", {QuestMapFrame})
+    WorldMapFrameTitleText:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 6)
 
     WorldMapFrame.BorderFrame:GwStripTextures()
     WorldMapFrame.BorderFrame:SetFrameStrata(WorldMapFrame:GetFrameStrata())
@@ -520,7 +521,7 @@ local function worldMapSkin()
 
     -- 11.0 Map Legend
     QuestMapFrame.MapLegend.BackButton:GwSkinButton(false, true)
-    QuestMapFrame.MapLegend.TitleText:SetFont(STANDARD_TEXT_FONT, 16) -- 16 is okayish
+    QuestMapFrame.MapLegend.TitleText:SetFont(STANDARD_TEXT_FONT, 16)
     QuestMapFrame.MapLegend.BorderFrame:SetAlpha(0)
     MapLegendScrollFrame:GwStripTextures()
     MapLegendScrollFrame:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true)

@@ -313,7 +313,7 @@ local function reskinMicroButton(btn, name, mbf, hook)
 
         btn.GwNotifyText:SetSize(24, 24)
         btn.GwNotifyText:SetPoint("CENTER", btn, "BOTTOM", 7, 2)
-        btn.GwNotifyText:SetFont(DAMAGE_TEXT_FONT, 12)
+        btn.GwNotifyText:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
         btn.GwNotifyText:SetTextColor(1, 1, 1, 1)
         btn.GwNotifyText:SetShadowColor(0, 0, 0, 0)
         btn.GwNotifyText:Hide()

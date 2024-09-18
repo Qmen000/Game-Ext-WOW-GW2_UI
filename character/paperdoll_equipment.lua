@@ -95,7 +95,7 @@ local function UpdateAzeriteItem(self)
 
         self.AzeriteTexture:SetAlpha(0)
         self.RankFrame.Texture:SetTexture()
-        self.RankFrame.Label:SetFont(UNIT_NAME_FONT, 12, "THINOUTLINED")
+        self.RankFrame.Label:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, "THINOUTLINE")
     end
 end
 
@@ -461,7 +461,7 @@ local function getStatListFrame(self, i)
     end
 
     local fm = CreateFrame("Frame", "GwPaperDollStat" .. i, self, "GwPaperDollStat")
-    fm.Value:SetFont(UNIT_NAME_FONT, 14)
+    fm.Value:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     fm.Value:SetText(ERRORS)
     fm.Label:SetFont(UNIT_NAME_FONT, 1)
     fm.Label:SetTextColor(0, 0, 0, 0)
@@ -479,7 +479,7 @@ local function getDurabilityListFrame(self)
     end
 
     local fm = CreateFrame("Frame", "GwPaperDollStatDurability", self, "GwPaperDollStat")
-    fm.Value:SetFont(UNIT_NAME_FONT, 14)
+    fm.Value:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     fm.Value:SetText(ERRORS)
     fm.Label:SetFont(UNIT_NAME_FONT, 1)
     fm.Label:SetTextColor(0, 0, 0, 0)
@@ -878,7 +878,7 @@ local function LoadPDBagList(fmMenu)
     fmPD3M:SetScript("OnReceiveDrag", EquipCursorItem)
     fmPD3M:HookScript("OnMouseDown", EquipCursorItem)
 
-    fmGPDS.header:SetFont(DAMAGE_TEXT_FONT, 14)
+    fmGPDS.header:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.NORMAL)
     fmGPDS.header:SetText(STAT_CATEGORY_ATTRIBUTES)
     fmGPDS:SetScript("OnEvent", stats_OnEvent)
     fmGPDS:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -918,9 +918,9 @@ local function LoadPDBagList(fmMenu)
     fmGPDS:RegisterEvent("CHARACTER_ITEM_FIXUP_NOTIFICATION")
     fmGPDS:RegisterEvent("UNIT_NAME_UPDATE")
 
-    fmGDR.characterName:SetFont(UNIT_NAME_FONT, 14)
-    fmGDR.characterData:SetFont(UNIT_NAME_FONT, 12)
-    fmGDR.itemLevel:SetFont(UNIT_NAME_FONT, 24)
+    fmGDR.characterName:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.HEADER)
+    fmGDR.characterData:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
+    fmGDR.itemLevel:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.BIG_HEADER, nil, 6)
     local color = GWGetClassColor(GW.myclass, true)
 
     SetClassIcon(fmGDR.classIcon, GW.myClassID)

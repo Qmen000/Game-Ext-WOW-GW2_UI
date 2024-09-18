@@ -123,7 +123,7 @@ local gw_fade_frames = {
     ChatFrameToggleVoiceMuteButton
 }
 
-local gw2StaffIcon = "|TInterface/AddOns/GW2_UI/Textures/chat/dev_label:14:24|t"
+local gw2StaffIcon = "|TInterface/AddOns/GW2_UI/Textures/chat/dev_label:14:14|t"
 local gw2StaffList = {
     -- Glow
     ["Zâmarâ-Antonidas"] = gw2StaffIcon,
@@ -1421,7 +1421,7 @@ end
 local function styleChatWindow(frame)
     local name = frame:GetName()
     local tab = GetTab(frame)
-    tab.Text:SetFont(DAMAGE_TEXT_FONT, 14, "")
+    tab.Text:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.NORMAL)
     tab.Text:SetTextColor(1, 1, 1)
 
     if frame.styled then return end
@@ -1565,7 +1565,7 @@ local function styleChatWindow(frame)
 
     --Character count
     local charCount = editbox:CreateFontString(nil, "ARTWORK")
-    charCount:SetFont(UNIT_NAME_FONT, 10, "")
+    charCount:SetFont(UNIT_NAME_FONT, 11, "")
     charCount:SetTextColor(190, 190, 190, 0.4)
     charCount:SetPoint("TOPRIGHT", editbox, "TOPRIGHT", -5, 0)
     charCount:SetPoint("BOTTOMRIGHT", editbox, "BOTTOMRIGHT", -5, 0)
@@ -1598,10 +1598,10 @@ local function styleChatWindow(frame)
     if GW.settings.CHAT_USE_GW2_STYLE then
         local chatFont = GW.Libs.LSM:Fetch("font", "GW2_UI_Chat")
         local _, fontHeight, fontFlags = frame:GetFont()
-        frame:SetFont(chatFont, fontHeight or 12, fontFlags)
-        editbox:SetFont(chatFont, fontHeight or 12, fontFlags)
-        _G[editbox:GetName() .. "Header"]:SetFont(chatFont, fontHeight or 12, fontFlags)
-    elseif GW.settings.FONTS_ENABLED and fontSize then
+        frame:SetFont(chatFont, fontHeight or 14, fontFlags)
+        editbox:SetFont(chatFont, fontHeight or 14, fontFlags)
+        _G[editbox:GetName() .. "Header"]:SetFont(chatFont, fontHeight or 14, fontFlags)
+    elseif GW.settings.FONT_STYLE_TEMPLATE ~= "BLIZZARD" and fontSize then
         if fontSize > 0 then
             frame:SetFont(STANDARD_TEXT_FONT, fontSize, "")
         elseif fontSize == 0 then
@@ -1729,7 +1729,7 @@ local function BuildCopyChatFrame()
     if GW.settings.CHAT_USE_GW2_STYLE then
         local chatFont = GW.Libs.LSM:Fetch("font", "GW2_UI_Chat")
         local _, fonzSize = editBox:GetFont()
-        editBox:SetFont(chatFont, fonzSize or 12, "")
+        editBox:SetFont(chatFont, fonzSize or 14, "")
     end
     editBox:SetScript("OnEscapePressed", function() frame:Hide() end)
     editBox:SetScript("OnTextChanged", function(_, userInput)
@@ -2096,7 +2096,7 @@ local function LoadChat()
         QuickJoinToastButton:SetPoint("RIGHT", GeneralDockManager, "LEFT", -6, 4)
         QuickJoinToastButton.QueueCount:GwKill()
         local _, _, fontFlags = QuickJoinToastButton.FriendCount:GetFont()
-        QuickJoinToastButton.FriendCount:SetFont(_, 12, fontFlags)
+        QuickJoinToastButton.FriendCount:SetFont(_, 14, fontFlags)
         QuickJoinToastButton.FriendsButton:GwStripTextures(true)
         QuickJoinToastButton.FriendCount:SetTextColor(1, 1, 1)
         QuickJoinToastButton.FriendCount:SetShadowOffset(1, 1)

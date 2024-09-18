@@ -40,6 +40,9 @@
     <Script file="genericTraintUI.lua"/>
     <Script file="AdventureMap.lua"/>
     <Script file="playerSpells.lua"/>
+    <Script file="auctionHouse.lua"/>
+    <Script file="battlefieldMap.lua"/>
+    <Script file="majorFaction.lua"/>
 
     <Script file="addons\immersion.lua"/>
     <Script file="addons\postal.lua"/>
@@ -47,4 +50,6 @@
     <Script file="addons\petTracker.lua"/>
     <Script file="addons\detailsProfile.lua"/>
     <Script file="addons\masqueSkin.lua"/>
+    <Script file="addons\auctionator.lua"/>
+    <Script file="addons\tsm.lua"/>
 </Ui>

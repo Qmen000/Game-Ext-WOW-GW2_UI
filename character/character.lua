@@ -301,7 +301,7 @@ local function loadBaseFrame()
     -- create the character window and secure bind its tab open/close functions
     local fmGCW = CreateFrame("Frame", "GwCharacterWindow", UIParent, "GwCharacterWindowTemplate")
     fmGCW:SetClampedToScreen(true)
-    fmGCW.WindowHeader:SetFont(DAMAGE_TEXT_FONT, 20)
+    fmGCW.WindowHeader:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 2)
     fmGCW.WindowHeader:SetTextColor(255 / 255, 241 / 255, 209 / 255)
     fmGCW:SetAttribute("windowpanelopen", nil)
     fmGCW.secure:SetAttribute("_onclick", charSecure_OnClick)
@@ -518,7 +518,7 @@ local function CharacterMenuBlank_OnLoad(self)
     fontString:SetTextColor(1, 1, 1, 1)
     fontString:SetShadowColor(0, 0, 0, 0)
     fontString:SetShadowOffset(1, -1)
-    fontString:SetFont(DAMAGE_TEXT_FONT, 14)
+    fontString:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.NORMAL)
 end
 GW.CharacterMenuBlank_OnLoad = CharacterMenuBlank_OnLoad
 
@@ -534,10 +534,7 @@ local function CharacterMenuButton_OnLoad(self, odd)
     else
         self:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-bg")
     end
-    self:GetFontString():SetTextColor(1, 1, 1, 1)
-    self:GetFontString():SetShadowColor(0, 0, 0, 0)
-    self:GetFontString():SetShadowOffset(1, -1)
-    self:GetFontString():SetFont(DAMAGE_TEXT_FONT, 14)
+
     self:GetFontString():SetJustifyH("LEFT")
     self:GetFontString():SetPoint("LEFT", self, "LEFT", 5, 0)
     GW.nextHeroPanelMenuButtonShadowOdd = not GW.nextHeroPanelMenuButtonShadowOdd
@@ -548,10 +545,6 @@ local function CharacterMenuButtonBack_OnLoad(self)
     self.hover:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover")
     self.limitHoverStripAmount = 1 --limit that value to 0.75 because we do not use the default hover texture
     self:ClearNormalTexture()
-    local fontString = self:GetFontString()
-    fontString:SetTextColor(1, 1, 1, 1)
-    fontString:SetShadowColor(0, 0, 0, 0)
-    fontString:SetShadowOffset(1, -1)
-    fontString:SetFont(DAMAGE_TEXT_FONT, 14)
+
 end
 GW.CharacterMenuButtonBack_OnLoad = CharacterMenuButtonBack_OnLoad

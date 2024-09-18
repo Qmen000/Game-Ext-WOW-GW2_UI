@@ -145,12 +145,12 @@ end
 GW.getSpriteByIndex = getSpriteByIndex
 
 local function TriggerButtonHoverAnimation(self, hover, to, duration)
-    local name = tostring(self)
+    local name = self.animationName or self.GetName and self:GetName() or tostring(self)
     hover:SetAlpha(1)
     duration = duration or math.min(1, self:GetWidth() * 0.002)
     AddToAnimation(
         name,
-        self.animationValue,
+        self.animationValue or 0,
         (to or 1),
         GetTime(),
         duration,
@@ -492,6 +492,9 @@ local function evAddonLoaded(self, addonName)
     GW.LoadPerksProgramSkin()
     GW.LoadAdventureMapSkin()
     GW.LoadPlayerSpellsSkin()
+    GW.LoadAuctionHouseSkin()
+    GW.LoadBattlefieldMapSkin()
+    GW.LoadMajorFactionsFrameSkin()
     GW.preLoadStatusBarMaskTextures()
 end
 AFP("evAddonLoaded", evAddonLoaded)
@@ -574,6 +577,24 @@ local function evPlayerEnteringWorld()
         end)
         GW.Notice("DB was converted Reload is needed /reload")
     end
+
+    -- migration for font module
+    if not GW.settings.fontModuleMigrationDone then
+        if not GW.settings.FONTS_ENABLED then
+            GW.settings.FONT_STYLE_TEMPLATE = "BLIZZARD"
+            GW.settings.FONTS_BIG_HEADER_SIZE = 16
+            GW.settings.FONTS_HEADER_SIZE = 14
+            GW.settings.FONTS_NORMAL_SIZE = 12
+            GW.settings.FONTS_SMALL_SIZE = 11
+            GW.settings.FONTS_OUTLINE = ""
+            GW.settings.FONT_NORMAL = ""
+            GW.settings.FONT_HEADERS = ""
+        end
+
+        GW.settings.FONTS_ENABLED = nil
+
+        GW.settings.fontModuleMigrationDone = true
+    end
 end
 AFP("evPlayerEnteringWorld", evPlayerEnteringWorld)
 
@@ -607,6 +628,11 @@ local function evPlayerLogin(self)
     --Create Settings window
     GW.LoadMovers(lm.layoutFrame)
     GW.LoadSettings()
+    GW.BuildPrefixValues()
+    GW.LoadFonts()
+
+    -- Create Warning Prompt
+    GW.CreateWarningPrompt()
 
     -- load alert settings
     GW.LoadAlertSystem()
@@ -656,6 +682,8 @@ local function evPlayerLogin(self)
     GW.LoadDetailsSkin()
     GW.LoadImmersionAddonSkin()
     GW.AddMasqueSkin()
+    GW.LoadAuctionatorAddonSkin()
+    GW.LoadTSMAddonSkin()
 
     GW.SkinAndEnhanceColorPicker()
     GW.AddCoordsToWorldMap()
@@ -676,10 +704,6 @@ local function evPlayerLogin(self)
         hudArtFrame.edgeTintBottomCornerLeft:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0, 0)
         hudArtFrame.edgeTintBottomCornerRight:ClearAllPoints()
         hudArtFrame.edgeTintBottomCornerRight:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, 0)
-    end
-
-    if GW.settings.FONTS_ENABLED then
-        GW.LoadFonts()
     end
 
     if not IsIncompatibleAddonLoadedOrOverride("FloatingCombatText", true) then -- Only touch this setting if no other addon for this is loaded
@@ -767,6 +791,7 @@ local function evPlayerLogin(self)
     GW.LoadMirrorTimers()
     GW.LoadAutoRepair()
     GW.LoadDragonFlightWorldEvents()
+    GW.ToggleInterruptAnncouncement()
 
     --Create unitframes
     if GW.settings.FOCUS_ENABLED then

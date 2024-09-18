@@ -496,7 +496,7 @@ local function LoadBattlegrounds()
     gwbgs.scoreRight:SetShadowColor(0, 0, 0, 1)
     gwbgs.scoreRight:SetShadowOffset(1, -1)
 
-    gwbgs.timer:SetFont(UNIT_NAME_FONT, 12)
+    gwbgs.timer:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     gwbgs.timer:SetShadowColor(0, 0, 0, 1)
     gwbgs.timer:SetShadowOffset(1, -1)
 

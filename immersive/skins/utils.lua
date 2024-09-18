@@ -200,9 +200,30 @@ end
 GW.HandleIcon = HandleIcon
 
 do
-    local function iconBorderColor(border, r, g, b, a)
-        border:GwStripTextures()
+    local iconColors = {
+        ['auctionhouse-itemicon-border-gray']		= {r = .61, g = .61, b = .61},
+        ['auctionhouse-itemicon-border-white']		= BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Common],
+        ['auctionhouse-itemicon-border-green']		= BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Uncommon],
+        ['auctionhouse-itemicon-border-blue']		= BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Rare],
+        ['auctionhouse-itemicon-border-purple']		= BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Epic],
+        ['auctionhouse-itemicon-border-orange']		= BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Legendary],
+        ['auctionhouse-itemicon-border-artifact']	= BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Artifact],
+        ['auctionhouse-itemicon-border-account']	= BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Heirloom]
+    }
 
+    local function iconBorderColorAtlas(border, atlas)
+        local color = iconColors[atlas]
+        if not color then return end
+
+        if border.customFunc then
+            local br, bg, bb = 1, 1, 1
+            border.customFunc(border, color.r, color.g, color.b, 1, br, bg, bb)
+        elseif border.customBackdrop then
+            border.customBackdrop:SetBackdropBorderColor(color.r, color.g, color.b)
+        end
+    end
+
+    local function iconBorderColorVertex(border, r, g, b, a)
         if border.customFunc then
             local br, bg, bb = 1, 1, 1
             border.customFunc(border, r, g, b, a, br, bg, bb)
@@ -211,7 +232,9 @@ do
         end
     end
 
-    local function iconBorderHide(border)
+    local function iconBorderHide(border, value)
+        if value == 0 then return end -- hiding blizz border
+
         local br, bg, bb = 1, 1, 1
         if border.customFunc then
             local r, g, b, a = border:GetVertexColor()
@@ -221,33 +244,49 @@ do
         end
     end
 
+    local function iconBorderShown(border, show)
+        if show then
+            border:Hide(0)
+        else
+            iconBorderHide(border)
+        end
+    end
+
     local function HandleIconBorder(border, backdrop, customFunc)
         if not backdrop then
             local parent = border:GetParent()
             backdrop = parent.backdrop or parent
         end
 
-        border.customBackdrop = backdrop
-
-        if not border.IconBorderHooked then
-            border:GwStripTextures()
-
-            hooksecurefunc(border, "SetVertexColor", iconBorderColor)
-            hooksecurefunc(border, "Hide", iconBorderHide)
-
-            border.IconBorderHooked = true
+        if border.customBackdrop ~= backdrop then
+            border.customBackdrop = backdrop
         end
 
         local r, g, b, a = border:GetVertexColor()
+        local atlas = iconColors[border.GetAtlas and border:GetAtlas()]
         if customFunc then
             border.customFunc = customFunc
             local br, bg, bb = 1, 1, 1
             customFunc(border, r, g, b, a, br, bg, bb)
+        elseif atlas then
+            backdrop:SetBackdropBorderColor(atlas.r, atlas.g, atlas.b, 1)
         elseif r then
             backdrop:SetBackdropBorderColor(r, g, b, a)
         else
             local br, bg, bb = 1, 1, 1
             backdrop:SetBackdropBorderColor(br, bg, bb)
+        end
+
+        if not border.IconBorderHooked then
+            border.IconBorderHooked = true
+            border:Hide()
+
+            hooksecurefunc(border, 'SetAtlas', iconBorderColorAtlas)
+            hooksecurefunc(border, "SetVertexColor", iconBorderColorVertex)
+            hooksecurefunc(border, "Hide", iconBorderHide)
+            hooksecurefunc(border, 'SetShown', iconBorderShown)
+            hooksecurefunc(border, 'Show', iconBorderShown)
+
         end
     end
     GW.HandleIconBorder = HandleIconBorder
@@ -405,9 +444,9 @@ do
             borderBox:GwStripTextures()
 
             local dropdown = borderBox.IconTypeDropdown
-			if dropdown then
-				dropdown:GwHandleDropDownBox()
-			end
+            if dropdown then
+                dropdown:GwHandleDropDownBox()
+            end
 
             local button = borderBox.SelectedIconArea and borderBox.SelectedIconArea.SelectedIconButton
             if button then
@@ -469,6 +508,8 @@ local function HandleTabs(self, isTop)
             self.borderFrame.top:Show()
         end
 
+        self.Text:SetPoint("CENTER", self, "CENTER", 0, 0)
+
         if self.SetTabSelected then
             hooksecurefunc(self, "SetTabSelected", function(tab)
                 if tab.isSelected then
@@ -476,19 +517,31 @@ local function HandleTabs(self, isTop)
                 else
                     tab.background:SetBlendMode("BLEND")
                 end
-
+                tab.Text:SetPoint("CENTER", self, "CENTER", 0, 0)
             end)
+            if self.isSelected then
+                self.background:SetBlendMode("MOD")
+            else
+                self.background:SetBlendMode("BLEND")
+            end
         else
             hooksecurefunc("PanelTemplates_DeselectTab", function(tab)
                 if self == tab then
                     tab.background:SetBlendMode("BLEND")
+                    tab.Text:SetPoint("CENTER", tab, "CENTER", 0, 0)
                 end
             end)
             hooksecurefunc("PanelTemplates_SelectTab", function(tab)
                 if self == tab then
                     tab.background:SetBlendMode("MOD")
+                    tab.Text:SetPoint("CENTER", tab, "CENTER", 0, 0)
                 end
             end)
+            if self.LeftActive and self.LeftActive:IsShown() then -- selected
+                self.background:SetBlendMode("MOD")
+            else
+                self.background:SetBlendMode("BLEND")
+            end
         end
 
         self.isSkinned = true
@@ -499,13 +552,15 @@ GW.HandleTabs = HandleTabs
 local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgrounds, detailBackgroundsXOffset)
     local header = CreateFrame("Frame", frame:GetName() .. "Header", frame, "GwFrameHeader")
     header.windowIcon:SetTexture(icon)
+    header:SetClampedToScreen(true)
+    header:SetMovable(true)
     frame.gwHeader = header
 
     if titleText then
         titleText:ClearAllPoints()
         titleText:SetParent(header)
         titleText:SetPoint("BOTTOMLEFT", header, "BOTTOMLEFT", 64, 10)
-        titleText:SetFont(DAMAGE_TEXT_FONT, 20)
+        titleText:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 2)
         titleText:SetTextColor(255 / 255, 241 / 255, 209 / 255)
     end
 
@@ -527,3 +582,227 @@ local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgroun
     end
 end
 GW.CreateFrameHeaderWithBody = CreateFrameHeaderWithBody
+
+
+local function HandleListIcon(frame)
+    if not frame.tableBuilder then return end
+
+    for i = 1, 22 do
+        local row = frame.tableBuilder.rows[i]
+        if row then
+            for j = 1, 4 do
+                local cell = row.cells and row.cells[j]
+                if cell and cell.Icon then
+                    if not cell.IsSkinned then
+                        GW.HandleIcon(cell.Icon)
+
+                        if cell.IconBorder then
+                            cell.IconBorder:GwKill()
+                        end
+
+                        cell.IsSkinned = true
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function HandleHeaders(frame)
+    local maxHeaders = frame.HeaderContainer:GetNumChildren()
+    for i, header in next, { frame.HeaderContainer:GetChildren() } do
+        if not header.IsSkinned then
+            header:DisableDrawLayer("BACKGROUND")
+
+            if not header.backdrop then
+                header:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithColorableBorder, true)
+                header.backdrop:SetBackdropBorderColor(1, 1, 1, 0.2)
+            end
+
+            header.IsSkinned = true
+        end
+
+        if header.backdrop then
+            header.backdrop:SetPoint("BOTTOMRIGHT", i < maxHeaders and -5 or 0, -2)
+        end
+    end
+
+    HandleListIcon(frame)
+end
+GW.HandleSrollBoxHeaders = HandleHeaders
+
+local function HandleScrollFrameHeaderButton(button, isLastButton)
+    if not button.IsSkinned then
+        button:DisableDrawLayer("BACKGROUND")
+
+        if not button.backdrop then
+            button:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithColorableBorder, true)
+            button.backdrop:SetBackdropBorderColor(1, 1, 1, 0.2)
+            button.backdrop:SetFrameLevel(button:GetFrameLevel())
+        end
+
+        button.IsSkinned = true
+    end
+
+    if button.backdrop then
+        button.backdrop:SetPoint("BOTTOMRIGHT", isLastButton and 0 or -5, -2)
+    end
+end
+GW.HandleScrollFrameHeaderButton = HandleScrollFrameHeaderButton
+
+local function AddMouseMotionPropagationToChildFrames(self)
+    for _, child in next, { self:GetChildren() } do
+        child:SetPropagateMouseMotion(true)
+        AddMouseMotionPropagationToChildFrames(child)
+    end
+end
+
+local function AddListItemChildHoverTexture(child)
+    child.Background = child:CreateTexture(nil, "BACKGROUND", nil, 0)
+    child.Background:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-bg")
+    child.Background:ClearAllPoints()
+    child.Background:SetPoint("TOPLEFT", child, "TOPLEFT", 0, 0)
+    child.Background:SetPoint("BOTTOMRIGHT", child, "BOTTOMRIGHT", 0, 0)
+    child.limitHoverStripAmount = 1 --limit that value to 0.75 because we do not use the default hover texture
+    if child.HighlightTexture then
+        child.HighlightTexture:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover")
+        child.HighlightTexture:SetVertexColor(0.8, 0.8, 0.8, 0.8)
+        child.HighlightTexture:GwSetInside(child.Background)
+        child:HookScript("OnEnter", function()
+            GW.TriggerButtonHoverAnimation(child, child.HighlightTexture)
+        end)
+    elseif child.Highlight then
+        child.Highlight:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover")
+        child.Highlight:SetVertexColor(0.8, 0.8, 0.8, 0.8)
+        child.Highlight:GwSetInside(child.Background)
+        child:HookScript("OnEnter", function()
+            GW.TriggerButtonHoverAnimation(child, child.Highlight)
+        end)
+    else -- create hover texture
+        child.gwHoverTexture = child:CreateTexture(nil, "ARTWORK", nil, 0)
+        child.gwHoverTexture:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover")
+        child.gwHoverTexture:SetVertexColor(0.8, 0.8, 0.8, 0.8)
+        child.gwHoverTexture:SetPoint("TOPLEFT", child, "TOPLEFT", 0, 0)
+        child.gwHoverTexture:SetPoint("BOTTOMRIGHT", child, "BOTTOMRIGHT", 0, 0)
+        child.gwHoverTexture:Hide()
+        child:HookScript("OnEnter", function()
+            child.gwHoverTexture:Show()
+            GW.TriggerButtonHoverAnimation(child, child.gwHoverTexture)
+        end)
+        child:HookScript("OnLeave", function()
+            child.gwHoverTexture:Hide()
+        end)
+
+        child.Selected = child:CreateTexture(nil, "ARTWORK", nil, 0)
+        child.Selected:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover")
+        child.Selected:SetVertexColor(0.8, 0.8, 0.8, 0.8)
+        child.Selected:SetPoint("TOPLEFT", child, "TOPLEFT", 0, 0)
+        child.Selected:SetPoint("BOTTOMRIGHT", child, "BOTTOMRIGHT", 0, 0)
+        child.Selected:Hide()
+    end
+
+    AddMouseMotionPropagationToChildFrames(child)
+end
+GW.AddListItemChildHoverTexture = AddListItemChildHoverTexture
+
+local function HandleItemListScrollBoxHover(self)
+    for _, child in next, { self.ScrollTarget:GetChildren() } do
+        if not child.IsSkinned then
+            AddListItemChildHoverTexture(child)
+
+            child.IsSkinned = true
+        end
+        child:SetPropagateMouseMotion(true)
+
+        --zebra
+        local zebra = child.GetOrderIndex and (child:GetOrderIndex() % 2) == 1 or false
+        if zebra then
+            child.Background:SetVertexColor(1, 1, 1, 1)
+        else
+            child.Background:SetVertexColor(0, 0, 0, 0)
+        end
+
+        if child.NormalTexture then
+            child.NormalTexture:SetAlpha(0)
+        end
+        if child.SelectedHighlight then
+            child.SelectedHighlight:SetColorTexture(0.5, 0.5, 0.5, .25)
+        end
+        if child.Selected then
+            child.Selected:SetColorTexture(0.5, 0.5, 0.5, .25)
+        end
+    end
+end
+GW.HandleItemListScrollBoxHover = HandleItemListScrollBoxHover
+
+local function SkinSideTabButton(self, iconTexture, tooltipText)
+    self.isSkinned = true
+    self:GwStripTextures()
+    self:SetSize(64, 40)
+    self.Text:Hide()
+
+    self.icon = self:CreateTexture(nil, "BACKGROUND", nil, 0)
+    self.icon:SetAllPoints()
+
+    self.icon:SetTexture(iconTexture)
+
+    self.icon:SetTexCoord(0.5, 1, 0, 0.625)
+
+    if tooltipText then
+        self:HookScript("OnEnter", function()
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:ClearLines()
+            GameTooltip:AddLine(tooltipText, 1, 1, 1)
+            GameTooltip:Show()
+        end)
+        self:HookScript("OnLeave", GameTooltip_Hide)
+    end
+
+    if self.SetTabSelected then
+        hooksecurefunc(self, "SetTabSelected", function(tab)
+            if tab.isSelected then
+                tab.icon:SetTexCoord(0, 0.5, 0, 0.625)
+            else
+                tab.icon:SetTexCoord(0.5, 1, 0, 0.625)
+            end
+        end)
+        if self.isSelected then
+            self.icon:SetTexCoord(0, 0.5, 0, 0.625)
+        end
+    else
+        hooksecurefunc("PanelTemplates_DeselectTab", function(tab)
+            if self == tab then
+                tab.icon:SetTexCoord(0.5, 1, 0, 0.625)
+            end
+        end)
+        hooksecurefunc("PanelTemplates_SelectTab", function(tab)
+            if self == tab then
+                tab.icon:SetTexCoord(0, 0.5, 0, 0.625)
+            end
+        end)
+        hooksecurefunc("PanelTemplates_TabResize", function(tab)
+            if self == tab then
+                tab:SetSize(64, 40)
+            end
+        end)
+
+        if not self:IsEnabled() then -- selected tab
+            self.icon:SetTexCoord(0, 0.5, 0, 0.625)
+        end
+    end
+end
+GW.SkinSideTabButton = SkinSideTabButton
+
+local function LockBlackButtonColor(button, r, g, b)
+    if r ~= 0 or g ~= 0 or b ~= 0 then
+        button:SetTextColor(0, 0, 0)
+    end
+end
+GW.LockBlackButtonColor = LockBlackButtonColor
+
+local function LockWhiteButtonColor(button, r, g, b)
+    if r ~= 1 or g ~= 1 or b ~= 1 then
+        button:SetTextColor(1, 1, 1)
+    end
+end
+GW.LockWhiteButtonColor = LockWhiteButtonColor

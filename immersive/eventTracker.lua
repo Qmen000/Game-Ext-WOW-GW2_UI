@@ -11,7 +11,43 @@ local settings = {
     }
 }
 
+local LeftButtonIcon = "|TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:13:11:0:-1:512:512:12:66:230:307|t"
+
 local function UpdateSettings()
+    settings.twwProfessions = {
+        enabled = GW.settings.WORLD_EVENTS_TWW_PROFESSIONS_ENABLED,
+        desaturate = GW.settings.WORLD_EVENTS_TWW_PROFESSIONS_DESATURATE,
+    }
+
+    settings.khazAlgarEmissary = {
+        enabled = GW.settings.WORLD_EVENTS_KHAZ_ALGAR_EMISSARY_ENABLED,
+        desaturate = GW.settings.WORLD_EVENTS_KHAZ_ALGAR_EMISSARY_DESATURATE,
+    }
+
+    settings.ringingDeeps = {
+        enabled = GW.settings.WORLD_EVENTS_RINGING_DEEPS_ENABLED,
+        desaturate = GW.settings.WORLD_EVENTS_RINGING_DEEPS_DESATURATE,
+    }
+
+    settings.spreadingTheLight = {
+        enabled = GW.settings.WORLD_EVENTS_SPREADING_THE_LIGHT_ENABLED,
+        desaturate = GW.settings.WORLD_EVENTS_SPREADING_THE_LIGHT_DESATURATE,
+    }
+
+    settings.underworldOperative = {
+        enabled = GW.settings.WORLD_EVENTS_UNDERWORLD_OPERATIVE_ENABLED,
+        desaturate = GW.settings.WORLD_EVENTS_UNDERWORLD_OPERATIVE_DESATURATE,
+    }
+
+    settings.theaterTroupe = {
+        enabled = GW.settings.WORLD_EVENTS_THEATER_TROUPE_ENABLED,
+        desaturate = GW.settings.WORLD_EVENTS_THEATER_TROUPE_DESATURATE,
+        alert = GW.settings.WORLD_EVENTS_THEATER_TROUPE_ALERT,
+        alertSeconds = GW.settings.WORLD_EVENTS_THEATER_TROUPE_ALERT_SECONDS,
+        stopAlertIfCompleted = GW.settings.WORLD_EVENTS_THEATER_TROUPE_STOP_ALERT_IF_COMPLETED,
+        flashTaskbar = GW.settings.WORLD_EVENTS_THEATER_TROUPE_FLASH_TASKBAR
+    }
+
     settings.communityFeast = {
         enabled = GW.settings.WORLD_EVENTS_COMMUNITY_FEAST_ENABLED,
         desaturate = GW.settings.WORLD_EVENTS_COMMUNITY_FEAST_DESATURATE,
@@ -90,6 +126,14 @@ local mapFrame
 local eventHandlers = {}
 
 local eventList = {
+    -- TWW
+    --"TWWProfessions",
+    "KhazAlgarEmissary",
+    "TheaterTroupe",
+    "RingingDeeps",
+    "SpreadingTheLight",
+    "UnderworldOperative",
+    -- DF
     "CommunityFeast",
     "SiegeOnDragonbaneKeep",
     "ResearchersUnderFire",
@@ -143,7 +187,20 @@ local env = {
         --[4397] = 5,
         --[4399] = 5,
         --[4400] = 5,
-    }
+    },
+    twwProfessionsWeekly = {
+        [4620669] = 84133,
+        [4620670] = 84127,
+        [4620672] = 84084,
+        [4620673] = 84128,
+        --[4620675] = 84134,
+        [4620676] = 84129,
+        [4620677] = 84130,
+        [4620678] = 84131,
+        --[4620679] = 84128,
+        --[4620680] = 83097,
+        [4620681] = 84132,
+    },
 }
 
 local colorPlatte = {
@@ -220,7 +277,192 @@ local function getGradientText(text, colorTable)
     )
 end
 
+local function worldMapIDSetter(idOrFunc)
+    return function(...)
+        if not WorldMapFrame or not WorldMapFrame:IsShown() or not WorldMapFrame.SetMapID then
+            return
+        end
+
+        local id = type(idOrFunc) == "function" and idOrFunc(...) or idOrFunc
+        WorldMapFrame:SetMapID(id)
+    end
+end
+
 local eventData = {
+    -- TWW
+    TWWProfessions = {
+        dbKey = "twwProfessions",
+        args = {
+            icon = 1392955,
+            type = "weekly",
+            checkAllCompleted = true,
+            questProgress = function()
+                local prof1, prof2 = GetProfessions()
+                local quests = {}
+
+                for _, prof in pairs({ prof1, prof2 }) do
+                    if prof then
+                        local name, iconID = GetProfessionInfo(prof)
+                        tinsert(quests, {
+                            questID = env.twwProfessionsWeekly[iconID],
+                            label = GW.GetIconString(iconID, 14, 14) .. " " .. name,
+                        })
+                    end
+                end
+
+                return quests
+            end,
+            hasWeeklyReward = false,
+            eventName = L["Professions Weekly"],
+            location = C_Map.GetMapInfo(2339).name,
+            label = L["Professions Weekly"],
+            completedText = CRITERIA_COMPLETED,
+            notCompletedText = CRITERIA_NOT_COMPLETED,
+            onClick = worldMapIDSetter(2339),
+            onClickHelpText = L["Click to show location"],
+        },
+    },
+    KhazAlgarEmissary = {
+        dbKey = "khazAlgarEmissary",
+        args = {
+            icon = 236681,
+            type = "weekly",
+            questIDs = {
+                82449,
+				82452,
+				82453,
+				82482,
+				82483,
+				82485,
+				82486,
+				82487,
+				82488,
+				82489,
+				82490,
+				82491,
+				82492,
+				82493,
+				82494,
+				82495,
+				82496,
+				82497,
+				82498,
+				82499,
+				82500,
+				82501,
+				82502,
+				82503,
+				82504,
+				82505,
+				82506,
+				82507,
+				82508,
+				82509,
+				82510,
+				82511,
+				82512,
+				82516,
+				82659,
+				82678,
+				82708,
+            },
+            hasWeeklyReward = true,
+            eventName = L["Khaz Algar Emissary"],
+            location = C_Map.GetMapInfo(2339).name,
+            label = L["Khaz Algar Emissary"],
+            completedText = CRITERIA_COMPLETED,
+            notCompletedText = CRITERIA_NOT_COMPLETED,
+            onClick = worldMapIDSetter(2339),
+            onClickHelpText = L["Click to show location"],
+        },
+    },
+    TheaterTroupe = {
+        dbKey = "theaterTroupe",
+        args = {
+            icon = 5788303,
+            type = "loopTimer",
+            questIDs = {83240},
+            hasWeeklyReward = true,
+            duration = 15 * 60,
+            interval = 60 * 60,
+            barColor = colorPlatte.bronze,
+            flash = true,
+            runningBarColor = colorPlatte.green,
+            eventName = L["Theater Troupe"],
+            location = C_Map.GetMapInfo(2248).name,
+            label = L["Theater"],
+            runningText = L["Performing"],
+            startTimestamp = (function()
+                local timestampTable = {
+                    [1] = 1724976005, -- NA
+                    [2] = 1724976005, -- KR
+                    [3] = 1724976005, -- EU
+                    [4] = 1724976005, -- TW
+                    [5] = 1724976005, -- CN
+                    [72] = 1724976000,
+                }
+
+                local region = GetCurrentRegion()
+                -- TW is not a real region, so we need to check the client language if player in KR
+                if region == 2 and GW.mylocal ~= "koKR" then
+                    region = 4
+                end
+
+                return timestampTable[region]
+            end)(),
+            onClick = worldMapIDSetter(2248),
+            onClickHelpText = L["Click to show location"],
+        },
+    },
+    RingingDeeps = {
+        dbKey = "ringingDeeps",
+        args = {
+            icon = 2120036,
+            type = "weekly",
+            questIDs = { 83333 },
+            hasWeeklyReward = true,
+            eventName = L["Ringing Deeps"],
+            location = C_Map.GetMapInfo(2214).name,
+            label = L["Ringing Deeps"],
+            completedText = CRITERIA_COMPLETED,
+            notCompletedText = CRITERIA_NOT_COMPLETED,
+            onClick = worldMapIDSetter(2214),
+            onClickHelpText = L["Click to show location"],
+        },
+    },
+    SpreadingTheLight = {
+        dbKey = "spreadingTheLight",
+        args = {
+            icon = 5927633,
+            type = "weekly",
+            questIDs = { 76586 },
+            hasWeeklyReward = true,
+            eventName = L["Spreading The Light"],
+            location = C_Map.GetMapInfo(2215).name,
+            label = L["Spreading The Light"],
+            completedText = CRITERIA_COMPLETED,
+            notCompletedText = CRITERIA_NOT_COMPLETED,
+            onClick = worldMapIDSetter(2215),
+            onClickHelpText = L["Click to show location"],
+        },
+    },
+    UnderworldOperative = {
+        dbKey = "underworldOperative",
+        args = {
+            icon = 5309857,
+            type = "weekly",
+            questIDs = { 80670, 80671, 80672 },
+            hasWeeklyReward = true,
+            eventName = L["Underworld Operative"],
+            location = C_Map.GetMapInfo(2255).name,
+            label = L["Underworld Operative"],
+            completedText = CRITERIA_COMPLETED,
+            notCompletedText = CRITERIA_NOT_COMPLETED,
+            onClick = worldMapIDSetter(2255),
+            onClickHelpText = L["Click to show location"],
+        },
+    },
+    --DF
     CommunityFeast = {
         dbKey = "communityFeast",
         args = {
@@ -257,7 +499,9 @@ local eventData = {
                 end
 
                 return timestampTable[region]
-            end)()
+            end)(),
+            onClick = worldMapIDSetter(2024),
+            onClickHelpText = L["Click to show location"]
         }
     },
     SiegeOnDragonbaneKeep = {
@@ -296,7 +540,9 @@ local eventData = {
                 end
 
                 return timestampTable[region]
-            end)()
+            end)(),
+            onClick = worldMapIDSetter(2022),
+            onClickHelpText = L["Click to show location"]
         }
     },
     ResearchersUnderFire = {
@@ -334,7 +580,9 @@ local eventData = {
                 end
 
             return timestampTable[region]
-            end)()
+            end)(),
+            onClick = worldMapIDSetter(2133),
+            onClickHelpText = L["Click to show location"]
         }
     },
     TimeRiftThaldraszus = {
@@ -372,7 +620,9 @@ local eventData = {
                 end
 
             return timestampTable[region]
-            end)()
+            end)(),
+            onClick = worldMapIDSetter(2025),
+            onClickHelpText = L["Click to show location"]
         }
     },
     SuperBloom = {
@@ -449,7 +699,9 @@ local eventData = {
                 end
 
                 return timestampTable[region]
-            end)()
+            end)(),
+            onClick = worldMapIDSetter(2024),
+            onClickHelpText = L["Click to show location"]
         }
     },
     IskaaranFishingNet = {
@@ -532,12 +784,150 @@ local eventData = {
                         end
                     end
                 }
-            }
+            },
+            onClick = worldMapIDSetter(2024),
+            onClickHelpText = L["Click to show location"]
         }
     }
 }
 
 local functionFactory = {
+    weekly = {
+        init = function(self)
+            self.icon = self:CreateTexture(nil, "ARTWORK")
+            self.icon:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true)
+            self.icon.backdrop:GwSetOutside(self.icon, 1, 1)
+            self.name = self:CreateFontString(nil, "OVERLAY")
+            self.completed = self:CreateFontString(nil, "OVERLAY")
+
+            self:SetScript("OnMouseDown", function()
+                if self.args.onClick then
+                    self.args:onClick()
+                end
+            end)
+        end,
+        setup = function(self)
+            self.icon:SetTexture(self.args.icon)
+            self.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+            self.icon:SetSize(22, 22)
+            self.icon:ClearAllPoints()
+            self.icon:SetPoint("LEFT", self, "LEFT", 0, 0)
+
+            self.name:SetFont(UNIT_NAME_FONT, 13, "OUTLINE")
+            self.name:ClearAllPoints()
+            self.name:SetPoint("TOPLEFT", self, "TOPLEFT", 30, -4)
+            self.name:SetText(self.args.label)
+
+            self.completed:SetFont(UNIT_NAME_FONT, 13, "OUTLINE")
+            self.completed:ClearAllPoints()
+            self.completed:SetPoint("TOPLEFT", self, "TOPLEFT", 30, -17)
+            self.completed:SetText(self.args.completedText)
+            self.completed:SetTextColor(GW.HexToRGB(infoColors["greyLight"]))
+        end,
+        ticker = {
+            interval = 2,
+            dateUpdater = function(self)
+                local completed = 0
+                if self.args.questIDs then
+                    local questIDs = type(self.args.questIDs) == "function" and self.args:questIDs() or self.args.questIDs
+                    -- lower than 0 means all quests need to be completed
+                    if self.args.checkAllCompleted then
+                        completed = 1 - #questIDs
+                    end
+                    for _, questID in pairs(questIDs) do
+                        if C_QuestLog.IsQuestFlaggedCompleted(questID) then
+                            completed = completed + 1
+                        end
+                    end
+                elseif self.args.questProgress then
+                    local questProgress = self.args.questProgress
+                    local numIds = 0
+                    if type(questProgress) == "function" then
+                        questProgress = questProgress(self.args)
+                    end
+
+                    for _, data in pairs(questProgress) do
+                        if data.questID then numIds = numIds + 1 end
+                        if data.questID and C_QuestLog.IsQuestFlaggedCompleted(data.questID) then
+                            completed = completed + 1
+                        end
+                    end
+
+                    if self.args.checkAllCompleted then
+                        completed = completed < numIds and 0 or 1
+                    end
+                end
+                self.isCompleted = (completed > 0)
+            end,
+
+            uiUpdater = function(self)
+                self.icon:SetDesaturated(self.args.desaturate and self.isCompleted)
+                self.completed:SetText(self.isCompleted and self.args.completedText or self.args.notCompletedText)
+                self.completed:SetTextColor(GW.HexToRGB(self.isCompleted and infoColors["greyLight"] or infoColors["danger"]))
+            end,
+            alert = GW.NoOp,
+        },
+        tooltip = {
+            onEnter = function(self)
+                GameTooltip:ClearLines()
+                GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 8)
+                GameTooltip:SetText(GW.GetIconString(self.args.icon, 16, 16) .. " " .. self.args.eventName, 1, 1, 1)
+
+                GameTooltip:AddLine(" ")
+
+                -- Location, Current Location, Next Location
+                for _, locationContext in ipairs({
+                    { LOCATION_COLON, self.args.location },
+                    { L["Current Location"], self.args.currentLocation },
+                    { L["Next Location"], self.args.nextLocation },
+                }) do
+                    local left, right = unpack(locationContext)
+                    if right then
+                        right = type(right) == "function" and right(self.args) or right
+                        GameTooltip:AddDoubleLine(left, right, 1, 1, 1)
+                    end
+                end
+
+                if self.args.questProgress then
+                    local questProgress = self.args.questProgress
+                    if type(questProgress) == "function" then
+                        questProgress = questProgress(self.args)
+                    end
+
+                    GameTooltip:AddLine(" ")
+                    GameTooltip:AddLine(L["Quest Progress"])
+                    for _, data in ipairs(questProgress) do
+                        if data.questID then
+                            local isCompleted = C_QuestLog.IsQuestFlaggedCompleted(data.questID)
+                            local color = isCompleted and "success" or "danger"
+                            local label = type(data.label) == "function" and data:label() or data.label
+                            if type(label) == "string" then
+                                GameTooltip:AddDoubleLine(label, StringByTemplate(isCompleted and CRITERIA_COMPLETED or CRITERIA_NOT_COMPLETED, color), 1, 1, 1)
+                            end
+                        end
+                    end
+                end
+
+                if self.args.hasWeeklyReward then
+                    if self.isCompleted then
+                        GameTooltip:AddDoubleLine(PVP_WEEKLY_REWARD, StringByTemplate(CRITERIA_COMPLETED, "success"), 1, 1, 1)
+                    else
+                        GameTooltip:AddDoubleLine(PVP_WEEKLY_REWARD, StringByTemplate(CRITERIA_NOT_COMPLETED, "danger"), 1, 1, 1)
+                    end
+                end
+
+                if self.args.onClickHelpText then
+                    GameTooltip:AddLine(" ")
+                    GameTooltip:AddLine(LeftButtonIcon .. " " .. self.args.onClickHelpText, 1, 1, 1)
+                end
+
+                GameTooltip:Show()
+            end,
+            onLeave = function(self)
+                GameTooltip:Hide()
+            end,
+        },
+    },
     onEnterAll = function(self)
         GameTooltip:ClearLines()
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -647,6 +1037,15 @@ local functionFactory = {
             self.statusBar.spark:SetBlendMode("ADD")
             self.statusBar.spark:SetPoint("CENTER", self.statusBar:GetStatusBarTexture(), "RIGHT", 0, 0)
             self.statusBar.spark:SetSize(4, 26)
+
+            self:SetScript(
+                "OnMouseDown",
+                function()
+                    if self.args.onClick then
+                        self.args:onClick()
+                    end
+                end
+            )
         end,
         setup = function(self)
             self.icon:SetTexture(self.args.icon)
@@ -659,11 +1058,11 @@ local functionFactory = {
             self.statusBar:SetPoint("TOPLEFT", self, "LEFT", 24, 2)
             self.statusBar:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", 0, 6)
 
-            self.timerText:SetFont(UNIT_NAME_FONT, 12, "OUTLINE")
+            self.timerText:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, "OUTLINE")
             self.timerText:ClearAllPoints()
             self.timerText:SetPoint("TOPRIGHT", self, "TOPRIGHT", -2, -6)
 
-            self.name:SetFont(UNIT_NAME_FONT, 12, "OUTLINE")
+            self.name:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, "OUTLINE")
             self.name:ClearAllPoints()
             self.name:SetPoint("TOPLEFT", self, "TOPLEFT", 25, -6)
             self.name:SetText(self.args.label)
@@ -709,7 +1108,11 @@ local functionFactory = {
                     self.statusBar:SetMinMaxValues(0, self.args.duration)
                     self.statusBar:SetValue(self.timeOver)
                     local tex = self.statusBar:GetStatusBarTexture()
-                    tex:SetGradient("HORIZONTAL", CreateColorFromTable(colorPlatte.running[1]), CreateColorFromTable(colorPlatte.running[2]))
+                    local platte = self.args.runningBarColor or colorPlatte.running
+                    tex:SetGradient("HORIZONTAL", CreateColorFromTable(platte[1]), CreateColorFromTable(platte[2]))
+                    if self.args.runningTextUpdater then
+                        self.runningTip:SetText(self.args:runningTextUpdater())
+                    end
                     self.runningTip:Show()
                     GW.FrameFlash(self.runningTip, 1, 0.3, 1, true)
                 else
@@ -784,6 +1187,26 @@ local functionFactory = {
                     GameTooltip:AddDoubleLine(STATUS .. ":", StringByTemplate(QUEUED_STATUS_WAITING, "greyLight"), 1, 1, 1)
                 end
 
+                if self.args.questProgress then
+                    local questProgress = self.args.questProgress
+                    if type(questProgress) == "function" then
+                        questProgress = questProgress(self.args)
+                    end
+
+                    GameTooltip:AddLine(" ")
+                    GameTooltip:AddLine(L["Quest Progress"])
+                    for _, data in ipairs(questProgress) do
+                        if data.questID then
+                            local isCompleted = C_QuestLog.IsQuestFlaggedCompleted(data.questID)
+                            local color = isCompleted and "success" or "danger"
+                            local label = type(data.label) == "function" and data:label() or data.label
+                            if type(label) == "string" then
+                                GameTooltip:AddDoubleLine(label, StringByTemplate(isCompleted and L["Completed"] or L["Not Completed"], color), 1, 1, 1)
+                            end
+                        end
+                    end
+                end
+
                 if self.args.hasWeeklyReward then
                     if self.isCompleted then
                         GameTooltip:AddDoubleLine(
@@ -802,6 +1225,11 @@ local functionFactory = {
                             1
                         )
                     end
+                end
+
+                if self.args.onClickHelpText then
+                    GameTooltip:AddLine(" ")
+                    GameTooltip:AddLine(LeftButtonIcon .. " " .. self.args.onClickHelpText, 1, 1, 1)
                 end
 
                 GameTooltip:Show()
@@ -1090,6 +1518,11 @@ local functionFactory = {
                     GameTooltip:AddDoubleLine(L["Bonus Net"], StringByTemplate(L["Not Set"], "danger"))
                 end
 
+                if self.args.onClickHelpText then
+                    GameTooltip:AddLine(" ")
+                    GameTooltip:AddLine(LeftButtonIcon .. " " .. self.args.onClickHelpText, 1, 1, 1)
+                end
+
                 GameTooltip:Show()
             end,
             onLeave = function()
@@ -1119,6 +1552,16 @@ end
 local trackers = {
     pool = {}
 }
+
+local function isOneEventEnabled()
+    for _, event in ipairs(eventList) do
+        local data = eventData[event]
+        if settings[data.dbKey].enabled == true then
+            return true
+        end
+    end
+    return false
+end
 
 function trackers:get(event)
     if self.pool[event] then
@@ -1153,16 +1596,19 @@ function trackers:get(event)
                 frame.tickerInstance:Cancel()
                 frame.tickerInstance = nil
             end
-            frame.tickerInstance = C_Timer.NewTicker(functions.ticker.interval, function()
-                if not settings.communityFeast.enabled and not settings.dragonbaneKeep.enabled and not settings.iskaaranFishingNet.enabled
-                    and not settings.researchersUnderFire.enabled and not settings.timeRiftThaldraszus.enabled and not settings.superBloom.enabled then
-                    return
-                end
+            frame.tickFunc = function()
                 functions.ticker.dateUpdater(frame)
                 functions.ticker.alert(frame)
                 if WorldMapFrame:IsShown() and frame:IsShown() then
                     functions.ticker.uiUpdater(frame)
                 end
+            end
+
+            frame.tickerInstance = C_Timer.NewTicker(functions.ticker.interval, function()
+                if not isOneEventEnabled() then
+                    return
+                end
+                frame.tickFunc()
             end)
         end
 
@@ -1254,24 +1700,30 @@ local function UpdateTrackers()
                 usedWidth = usedWidth + tracker:GetWidth() + 3.5
             end
             lastTracker = tracker
+
+            if tracker.tickFunc then tracker.tickFunc() end
         end
     end
     mapFrame:SetHeight(mapFrame.heightPerRow * rowIdx)
-    mapFrame:SetShown(settings.communityFeast.enabled or settings.dragonbaneKeep.enable or settings.iskaaranFishingNet.enabled or settings.researchersUnderFire.enabled or settings.timeRiftThaldraszus.enabled or settings.superBloom.enabled)
+    mapFrame:SetShown(isOneEventEnabled())
 end
 GW.UpdateWorldEventTrackers = UpdateTrackers
 
 local function LoadDragonFlightWorldEvents()
-    AddWorldMapFrame()
-    C_Timer.After(1, function()
-        WorldMapFrame:Show()
-        UpdateTrackers()
-        WorldMapFrame:Hide()
 
-        for event in pairs(eventHandlers) do
-            mapFrame:RegisterEvent(event)
-        end
-    end)
+    AddWorldMapFrame()
+    UpdateTrackers()
+
+    for event in pairs(eventHandlers) do
+        mapFrame:RegisterEvent(event)
+    end
+
+    EventRegistry:RegisterCallback("WorldMapOnShow", UpdateTrackers)
+    EventRegistry:RegisterCallback("WorldMapMinimized", function() C_Timer.After(0.1, UpdateTrackers) end)
+    EventRegistry:RegisterCallback("WorldMapMaximized", function() C_Timer.After(0.1, UpdateTrackers) end)
+    QuestMapFrame:HookScript("OnShow", UpdateTrackers)
+    QuestMapFrame:HookScript("OnHide", UpdateTrackers)
+
 end
 GW.LoadDragonFlightWorldEvents = LoadDragonFlightWorldEvents
 

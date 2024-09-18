@@ -65,6 +65,7 @@ local function updateHealthData(self)
     local predictionPrecentage = 0
     local healAbsorbPrecentage = 0
     local healthPrecentage = health/healthMax
+    local formatFunction
 
     self.healthPrecentage = healthPrecentage -- used for animation
     self.health:SetFillAmount(healthPrecentage - 0.035)
@@ -91,12 +92,18 @@ local function updateHealthData(self)
     local hv = ""
     local av = ""
 
+    if GW.settings.PLAYER_UNIT_HEALTH_SHORT_VALUES then
+        formatFunction = GW.ShortValue
+    else
+        formatFunction = CommaValue
+    end
+
     if GW.settings.PLAYER_UNIT_HEALTH == "PREC" then
         hv = CommaValue(health / healthMax * 100) .. "%"
     elseif GW.settings.PLAYER_UNIT_HEALTH == "VALUE" then
-        hv = CommaValue(health)
+        hv = formatFunction(health)
     elseif GW.settings.PLAYER_UNIT_HEALTH == "BOTH" then
-        hv = CommaValue(health) .. "\n" .. CommaValue(health / healthMax * 100) .. "%"
+        hv = formatFunction(health) .. "\n" .. CommaValue(health / healthMax * 100) .. "%"
     end
 
     if GW.settings.PLAYER_UNIT_ABSORB == "PREC" then
@@ -308,29 +315,33 @@ local function LoadHealthGlobe()
     AddToClique(hg)
 
     -- set text/font stuff
-    hg.hSize = 14
     if GW.settings.PLAYER_UNIT_ABSORB == "BOTH" then
-        hg.aSize = 12
         hg.text_a:ClearAllPoints()
         hg.text_a:SetPoint("CENTER", hg, "CENTER", 0, 25)
-    else
-        hg.aSize = 14
-    end
 
-    hg.text_h.value:SetFont(DAMAGE_TEXT_FONT, hg.hSize)
+        hg.text_a.value:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.SMALL)
+        hg.text_a.value:SetShadowColor(1, 1, 1, 0)
+
+        for i, v in ipairs(hg.text_a.shadow) do
+            v:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.SMALL)
+            v:SetShadowColor(1, 1, 1, 0)
+            v:SetTextColor(0, 0, 0, 1 / i)
+        end
+    else
+        hg.text_a.value:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.NORMAL)
+        hg.text_a.value:SetShadowColor(1, 1, 1, 0)
+
+        for i, v in ipairs(hg.text_a.shadow) do
+            v:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.NORMAL)
+            v:SetShadowColor(1, 1, 1, 0)
+            v:SetTextColor(0, 0, 0, 1 / i)
+        end
+    end
+    hg.text_h.value:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.HEADER, nil, -1)
     hg.text_h.value:SetShadowColor(1, 1, 1, 0)
 
-    hg.text_a.value:SetFont(DAMAGE_TEXT_FONT, hg.aSize)
-    hg.text_a.value:SetShadowColor(1, 1, 1, 0)
-
     for i, v in ipairs(hg.text_h.shadow) do
-        v:SetFont(DAMAGE_TEXT_FONT, hg.hSize)
-        v:SetShadowColor(1, 1, 1, 0)
-        v:SetTextColor(0, 0, 0, 1 / i)
-    end
-
-    for i, v in ipairs(hg.text_a.shadow) do
-        v:SetFont(DAMAGE_TEXT_FONT, hg.aSize)
+        v:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.HEADER, nil, -1)
         v:SetShadowColor(1, 1, 1, 0)
         v:SetTextColor(0, 0, 0, 1 / i)
     end

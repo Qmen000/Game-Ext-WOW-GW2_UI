@@ -577,7 +577,7 @@ local function HandleExpansionButton()
     local garrisonType = C_Garrison.GetLandingPageGarrisonType()
     garrison.garrisonType = garrisonType
 
-    if garrison.garrisonMode then
+    if garrison:IsInGarrisonMode() then
         if (garrisonType == Enum.GarrisonType.Type_6_0_Garrison) then
             garrison.faction = UnitFactionGroup("player")
             garrison.title = GARRISON_LANDING_PAGE_TITLE;
@@ -639,7 +639,7 @@ local function HandleAddonCompartmentButton()
         if not AddonCompartmentFrame.gw2Handled then
             AddonCompartmentFrame:GwStripTextures()
             AddonCompartmentFrame:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder)
-            AddonCompartmentFrame.Text:SetFont(UNIT_NAME_FONT, 12, "NONE")
+            AddonCompartmentFrame.Text:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
             AddonCompartmentFrame:SetSize(18, 18)
             AddonCompartmentFrame.gw2Handled = true
         end
@@ -724,7 +724,8 @@ local function LoadMinimap()
     TimeManagerClockButton:GwKill()
     MinimapCluster.Tracking.Button:SetParent(GW.HiddenFrame)
 
-    GwMapGradient.location = GwMapGradient:CreateFontString(nil, "OVERLAY", "GW_Standard_Button_Font_Small", 7)
+    GwMapGradient.location = GwMapGradient:CreateFontString(nil, "OVERLAY")
+    GwMapGradient.location:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, nil, -2)
     GwMapGradient.location:SetPoint("TOP", Minimap, "TOP", 0, -2)
     GwMapGradient.location:SetJustifyH("CENTER")
     GwMapGradient.location:SetJustifyV("MIDDLE")
@@ -791,6 +792,9 @@ local function LoadMinimap()
     --Time
     GwMapTime = CreateFrame("Button", "GwMapTime", Minimap, "GwMapTime")
     GwMapTime:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    GwMapTime.Time:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.TextSizeType.NORMAL)
+    GwMapTime.Time:SetTextColor(1, 1, 1)
+    GwMapTime.Time:SetShadowOffset(2, -2)
     GwMapTime.timeTimer = C_Timer.NewTicker(0.2, function()
         GwMapTime.Time:SetText(GameTime_GetTime(false))
     end)
@@ -802,15 +806,19 @@ local function LoadMinimap()
 
     --coords
     GwMapCoords = CreateFrame("Button", "GwMapCoords", Minimap, "GwMapCoords")
+    GwMapCoords.Coords:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.TextSizeType.NORMAL)
+    GwMapCoords.Coords:SetTextColor(1, 1, 1)
+    GwMapCoords.Coords:SetShadowOffset(2, -2)
     GwMapCoords.Coords:SetText(NOT_APPLICABLE)
-    GwMapCoords.Coords:SetFont(STANDARD_TEXT_FONT, 12, "")
     GwMapCoords.MapCoordsMiniMapPrecision = GW.settings.MINIMAP_COORDS_PRECISION
     ToogleMinimapCoorsLable()
 
     --FPS
     GwMapFPS = CreateFrame("Button", "GwMapFPS", Minimap, "GwMapFPS")
+    GwMapFPS.fps:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.TextSizeType.NORMAL)
+    GwMapFPS.fps:SetTextColor(1, 1, 1)
+    GwMapFPS.fps:SetShadowOffset(2, -2)
     GwMapFPS.fps:SetText(NOT_APPLICABLE)
-    GwMapFPS.fps:SetFont(STANDARD_TEXT_FONT, 12)
     ToogleMinimapFpsLable()
 
     --CalenderIcon

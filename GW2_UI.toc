@@ -64,6 +64,7 @@ core\LFGPlayerInfo.lua
 core\statusbars.xml
 core\statusbars.lua
 
+settings\splashScreen.lua
 settings\settings_menu.lua
 settings\settings.xml
 settings\panel_modules.xml
@@ -92,6 +93,7 @@ settings\layouts.lua
 settings\moveableFrameHandler.lua
 settings\panel_overview.lua
 settings\panel_overview.xml
+settings\panel_fonts.lua
 
 core\EditMode.lua
 
@@ -225,6 +227,7 @@ immersive\tooltips.lua
 immersive\damagetext.xml
 immersive\damagetext.lua
 immersive\eventTracker.lua
+immersive\interruptAnnouncement.lua
 
 objectives\scenarioWidgets\heroicVisions.lua
 objectives\scenarioWidgets\jailersTower.lua
