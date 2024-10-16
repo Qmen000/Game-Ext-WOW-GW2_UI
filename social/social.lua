@@ -314,9 +314,12 @@ local function mover_SavePosition(self, x, y)
 end
 GW.AddForProfiling("social", "mover_SavePosition", mover_SavePosition)
 
--- TODO: this doesn't work if bindings are updated in combat, but who does that?!
 local function click_OnEvent(self, event)
     if event ~= "UPDATE_BINDINGS" then
+        return
+    end
+    if InCombatLockdown() then
+        GW.CombatQueue_Queue("social_update_keybind", click_OnEvent, {self, event})
         return
     end
     ClearOverrideBindings(self)
@@ -358,13 +361,15 @@ local function loadBaseFrame()
     FriendsFrame.Show = FriendsFrame.Hide
 
     table.insert(UISpecialFrames, fmGSW:GetName())
-    fmGSW:SetClampedToScreen(true)
     fmGSW.WindowHeader:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 2)
-    fmGSW.WindowHeader:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    fmGSW.WindowHeader:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     fmGSW:SetAttribute("windowpanelopen", nil)
     fmGSW.secure:SetAttribute("_onclick", socialSecure_OnClick)
     fmGSW.secure:SetFrameRef("GwSocialWindow", fmGSW)
     fmGSW:SetAttribute("_onattributechanged", socialSecure_OnAttributeChanged)
+
+    fmGSW:SetClampedToScreen(true)
+	fmGSW:SetClampRectInsets(-fmGSW.Left:GetWidth(), 0, fmGSW.Header:GetHeight() - 10, 0)
 
     fmGSW.SoundOpen = function()
         PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
@@ -444,6 +449,29 @@ local function loadBaseFrame()
     -- set binding change handlers
     fmGSW.secure:HookScript("OnEvent", click_OnEvent)
     fmGSW.secure:RegisterEvent("UPDATE_BINDINGS")
+
+    fmGSW.backgroundMask = UIParent:CreateMaskTexture()
+    fmGSW.backgroundMask:SetPoint("TOPLEFT", fmGSW, "TOPLEFT", -64, 64)
+    fmGSW.backgroundMask:SetPoint("BOTTOMRIGHT", fmGSW, "BOTTOMLEFT",-64, 0)
+    fmGSW.backgroundMask:SetTexture("Interface/AddOns/GW2_UI/textures/masktest", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+    fmGSW.background:AddMaskTexture(fmGSW.backgroundMask)
+
+    fmGSW:HookScript("OnShow", function()
+        GW.AddToAnimation("SOCIALPANEL_ONSHOW",
+            0,
+            1,
+            GetTime(),
+            GW.WINDOW_FADE_DURATION,
+            function(p)
+                fmGSW:SetAlpha(p)
+                fmGSW.backgroundMask:SetPoint("BOTTOMRIGHT", fmGSW.background, "BOTTOMLEFT", GW.lerp(-64, fmGSW.background:GetWidth(), p) , 0)
+            end,
+            1,
+            function()
+                fmGSW.backgroundMask:SetPoint("BOTTOMRIGHT", fmGSW.background, "BOTTOMLEFT", fmGSW.background:GetWidth() + 200, 0)
+            end
+        )
+    end)
 end
 GW.AddForProfiling("social", "loadBaseFrame", loadBaseFrame)
 

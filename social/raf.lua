@@ -26,6 +26,11 @@ end
 
 local function LoadRecruitAFriendList(tabContainer)
     local RAFFrame = CreateFrame("Frame", "GwRAFWindow", tabContainer, "GwRAFWindow")
+    for tab in RecruitAFriendRewardsFrame.rewardTabPool:EnumerateActive() do
+        tab:HookScript("OnClick", function(self)
+            RecruitAFriendFrame:SetSelectedRAFVersion(self.rafVersion);
+        end)
+    end
 
     RecruitAFriendFrame.RewardClaiming:SetParent(RAFFrame.claming)
     RecruitAFriendFrame.RewardClaiming:ClearAllPoints()
@@ -42,6 +47,7 @@ local function LoadRecruitAFriendList(tabContainer)
 
     RecruitAFriendFrame.RewardClaiming.MonthCount:ClearAllPoints()
     RecruitAFriendFrame.RewardClaiming.MonthCount:SetPoint("TOPLEFT", 120, -15)
+    RecruitAFriendFrame.RewardClaiming.MonthCount:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
 
     RecruitAFriendFrame.RewardClaiming.NextRewardName:ClearAllPoints()
     RecruitAFriendFrame.RewardClaiming.NextRewardName:SetPoint("TOPLEFT", 120, -48)
@@ -73,7 +79,7 @@ local function LoadRecruitAFriendList(tabContainer)
     RecruitAFriendFrame.RecruitList.Header:SetSize(450, 20)
     RecruitAFriendFrame.RecruitList.Header.Background:Hide()
     RecruitAFriendFrame.RecruitList.Header.RecruitedFriends:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 2)
-    RecruitAFriendFrame.RecruitList.Header.RecruitedFriends:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    RecruitAFriendFrame.RecruitList.Header.RecruitedFriends:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
 
     RecruitAFriendFrame.RecruitmentButton:SetParent(RAFFrame.RecruitList)
     RecruitAFriendFrame.RecruitmentButton:ClearAllPoints()
@@ -88,6 +94,7 @@ local function LoadRecruitAFriendList(tabContainer)
     RecruitAFriendRewardsFrame:GwCreateBackdrop(GW.BackdropTemplates.Default, true)
     RecruitAFriendRewardsFrame.Background:SetAlpha(0)
     RecruitAFriendRewardsFrame.Watermark:SetAlpha(0)
+    RecruitAFriendRewardsFrame.Title:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
 
     hooksecurefunc(RecruitAFriendRewardsFrame, "UpdateRewards", RAFRewards)
     RAFRewards()

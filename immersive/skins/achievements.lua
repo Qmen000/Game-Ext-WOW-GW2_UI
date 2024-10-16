@@ -323,7 +323,7 @@ local function CatMenuButton(_, button)
     button.arrow:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrow_right")
     button.arrow:SetSize(16,16)
 
-    button.Label:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    button.Label:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     button.Label:SetShadowColor(0, 0, 0, 0)
     button.Label:SetShadowOffset(1, -1)
     button.Label:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.HEADER)
@@ -869,8 +869,8 @@ local function updateAchievementFrameTabLayout()
         local f = _G["AchievementFrameTab"..i]
         if f and f:IsShown() then
             f:ClearAllPoints()
-            f:SetPoint("TOPRIGHT",AchivementFrameLeftPanel,"TOPLEFT", 1, -32 + (-40 * x))
-            f:SetParent(AchivementFrameLeftPanel)
+            f:SetPoint("TOPRIGHT",AchievementFrame.LeftSidePanel,"TOPLEFT", 1, -32 + (-40 * x))
+            f:SetParent(AchievementFrame.LeftSidePanel)
             updateAchievementFrameTab(f,i)
             x = x + 1
         end
@@ -1084,8 +1084,6 @@ local function skinAchevement()
 
     AchievementFrame:SetSize(853, 627)
 
-    CreateFrame("Frame", "AchivementFrameLeftPanel", AchievementFrame, "GwWindowLeftPanel")
-
     AchievementFrameCategories:SetSize(221, 426)
     AchievementFrameCategories:ClearAllPoints()
     AchievementFrameCategories:SetPoint("TOPLEFT", 10, -172)
@@ -1103,8 +1101,8 @@ local function skinAchevement()
 
     AchievementFrame.Header.Title:Hide()
 
-    GW.CreateFrameHeaderWithBody(AchievementFrame, nil, "Interface/AddOns/GW2_UI/textures/character/worldmap-window-icon", nil, 0, 0)
-
+    GW.CreateFrameHeaderWithBody(AchievementFrame, nil, "Interface/AddOns/GW2_UI/textures/character/worldmap-window-icon", nil, 0, true, true)
+    AchivementFrameLeftPanel = AchievementFrame.LeftSidePanel -- needed for krowis skin
     AchievementFrameHeader.windowIcon:ClearAllPoints()
     AchievementFrameHeader.windowIcon:SetPoint("CENTER", AchievementFrameHeader, "BOTTOMLEFT", -26, 26)
     AchievementFrameHeader.windowIcon:SetTexture("Interface/AddOns/GW2_UI/textures/character/achievements-window-icon")
@@ -1114,8 +1112,8 @@ local function skinAchevement()
     AchievementFrameHeader.breadCrumb:SetPoint("LEFT", AchievementFrameHeader.header, "RIGHT", 20, 0)
     AchievementFrameHeader.header:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 6)
     AchievementFrameHeader.breadCrumb:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.HEADER)
-    AchievementFrameHeader.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
-    AchievementFrameHeader.breadCrumb:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    AchievementFrameHeader.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
+    AchievementFrameHeader.breadCrumb:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     AchievementFrameHeader.header:SetWidth(AchievementFrameHeader.header:GetStringWidth())
     AchievementFrameHeader.header:SetText(ACHIEVEMENTS)
     AchievementFrameHeader.breadCrumb:SetText("")
@@ -1508,34 +1506,12 @@ local function skinAchevement()
         AchievementFrameSummaryAchievement4:SetHeight(height)
         updateAchievementFrameSummaryAchievement(AchievementFrameSummaryAchievement4, select(4, ...))
     end)
-
-    local bgMask = UIParent:CreateMaskTexture()
-    bgMask:SetPoint("TOPLEFT", AchievementFrame, "TOPLEFT", -64, 64)
-    bgMask:SetPoint("BOTTOMRIGHT", AchievementFrame, "BOTTOMLEFT", -64, 0)
-    bgMask:SetTexture(
-        "Interface/AddOns/GW2_UI/textures/masktest",
-        "CLAMPTOBLACKADDITIVE",
-        "CLAMPTOBLACKADDITIVE"
-    )
-    AchievementFrame.tex:AddMaskTexture(bgMask)
-    AchievementFrameHeader.BGLEFT:AddMaskTexture(bgMask)
-    AchievementFrameHeader.BGRIGHT:AddMaskTexture(bgMask)
-    AchivementFrameLeftPanel.background:AddMaskTexture(bgMask)
-    AchievementFrame.backgroundMask = bgMask
-
-    AchievementFrame:HookScript("OnShow",function()
-    AddToAnimation("ACHIVEMENTFRAME_PANEL_ONSHOW", 0, 1, GetTime(), GW.WINDOW_FADE_DURATION,
-        function(p)
-            AchievementFrame:SetAlpha(p)
-            bgMask:SetPoint("BOTTOMRIGHT", AchievementFrame.tex, "BOTTOMLEFT", lerp(-64, AchievementFrame.tex:GetWidth(), p), 0)
-        end, 1, function()
-            bgMask:SetPoint("BOTTOMRIGHT", AchievementFrame.tex, "BOTTOMLEFT", AchievementFrame.tex:GetWidth() + 200 , 0)
-        end)
-    end)
-
     -- make the frame movable
     GW.MakeFrameMovable(AchievementFrame, nil, "AchievementWindow", true)
     GW.MakeFrameMovable(AchievementFrame.Header, AchievementFrame, "AchievementWindow")
+
+    AchievementFrame:SetClampedToScreen(true)
+    AchievementFrame:SetClampRectInsets(-40, 0, AchievementFrame.Header:GetHeight() - 40, 0)
 end
 
 local function LoadAchivementSkin()

@@ -219,21 +219,21 @@ local sessionCommandToButtonAtlas = {
     [_G.Enum.QuestSessionCommand.Start] = "QuestSharing-DialogIcon",
     [_G.Enum.QuestSessionCommand.Stop] = "QuestSharing-Stop-DialogIcon"
 }
-local function hook_UpdateExecuteCommandAtlases(s, command)
-    s.ExecuteSessionCommand:SetNormalTexture("")
-    s.ExecuteSessionCommand:SetPushedTexture("")
-    s.ExecuteSessionCommand:SetDisabledTexture("")
+local function UpdateExecuteCommandAtlases(frame, command)
+    frame.ExecuteSessionCommand:SetNormalTexture("")
+    frame.ExecuteSessionCommand:SetPushedTexture("")
+    frame.ExecuteSessionCommand:SetDisabledTexture("")
     local atlas = sessionCommandToButtonAtlas[command]
     if atlas then
-        s.ExecuteSessionCommand.normalIcon:SetAtlas(atlas)
+        frame.ExecuteSessionCommand.normalIcon:SetAtlas(atlas)
     end
 end
-AFP("hook_UpdateExecuteCommandAtlases", hook_UpdateExecuteCommandAtlases)
+AFP("UpdateExecuteCommandAtlases", UpdateExecuteCommandAtlases)
 
 local function hook_NotifyDialogShow(_, dialog)
     if not dialog.isSkinned then
         dialog:GwStripTextures()
-        dialog:GwCreateBackdrop()
+        dialog:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true)
         dialog.ButtonContainer.Confirm:GwSkinButton(false, true)
         dialog.ButtonContainer.Decline:GwSkinButton(false, true)
         if dialog.MinimizeButton then
@@ -332,7 +332,7 @@ local function worldMapSkin()
     function WorldDungeonEntrancePinMixin:UpdateMousePropagation() end
 
     WorldMapFrame:GwStripTextures()
-    GW.CreateFrameHeaderWithBody(WorldMapFrame, WorldMapFrameTitleText, "Interface/AddOns/GW2_UI/textures/character/questlog-window-icon", {QuestMapFrame})
+    GW.CreateFrameHeaderWithBody(WorldMapFrame, WorldMapFrameTitleText, "Interface/AddOns/GW2_UI/textures/character/questlog-window-icon", {QuestMapFrame}, nil, false, true)
     WorldMapFrameTitleText:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 6)
 
     WorldMapFrame.BorderFrame:GwStripTextures()
@@ -468,25 +468,17 @@ local function worldMapSkin()
     QuestMapFrame.QuestSessionManagement:GwStripTextures()
 
     local ExecuteSessionCommand = QuestMapFrame.QuestSessionManagement.ExecuteSessionCommand
-    ExecuteSessionCommand:GwCreateBackdrop()
-    ExecuteSessionCommand:GwSkinButton(false, true, false, true)
+    ExecuteSessionCommand:GwStripTextures()
+    ExecuteSessionCommand:GwStyleButton()
 
     local icon = ExecuteSessionCommand:CreateTexture(nil, "ARTWORK")
     icon:SetPoint("TOPLEFT", 0, 0)
     icon:SetPoint("BOTTOMRIGHT", 0, 0)
     ExecuteSessionCommand.normalIcon = icon
 
-    hooksecurefunc(QuestMapFrame.QuestSessionManagement, "UpdateExecuteCommandAtlases", hook_UpdateExecuteCommandAtlases)
-    hooksecurefunc(_G.QuestSessionManager, "NotifyDialogShow", hook_NotifyDialogShow)
+    hooksecurefunc(QuestMapFrame.QuestSessionManagement, "UpdateExecuteCommandAtlases", UpdateExecuteCommandAtlases)
+    hooksecurefunc(QuestSessionManager, "NotifyDialogShow", hook_NotifyDialogShow)
     hooksecurefunc("QuestLogQuests_Update", hook_QuestLogQuests_Update)
-
-    local qms = _G.QuestModelScene
-    local w, h = qms:GetSize()
-    qms:GwStripTextures()
-    qms.tex = qms:CreateTexture(nil, "BACKGROUND", nil, 0)
-    qms.tex:SetPoint("TOP", qms, "TOP", 0, 20)
-    qms.tex:SetSize(w + 30, h + 60)
-    qms.tex:SetTexture("Interface/AddOns/GW2_UI/textures/party/manage-group-bg")
 
     -- Addons
     if _G["AtlasLootToggleFromWorldMap2"] then
@@ -514,10 +506,12 @@ local function worldMapSkin()
         WorldMapFrame.mover:SetPoint("BOTTOMLEFT", WorldMapFrame, "TOPLEFT", 0, -20)
         WorldMapFrame.mover:SetPoint("BOTTOMRIGHT", WorldMapFrame, "TOPRIGHT", 0, 20)
         WorldMapFrame.mover:RegisterForDrag("LeftButton")
-        WorldMapFrame:SetClampedToScreen(true)
         WorldMapFrame.mover:SetScript("OnDragStart", mover_OnDragStart)
         WorldMapFrame.mover:SetScript("OnDragStop", mover_OnDragStop)
     end
+
+    WorldMapFrame:SetClampedToScreen(true)
+    WorldMapFrame:SetClampRectInsets(0, 0, WorldMapFrameHeader:GetHeight() - 30, 0)
 
     -- 11.0 Map Legend
     QuestMapFrame.MapLegend.BackButton:GwSkinButton(false, true)

@@ -11,11 +11,45 @@ local InitPanel = GW.InitPanel
 local settingsMenuAddButton = GW.settingsMenuAddButton
 local addGroupHeader = GW.AddGroupHeader
 
+
+--general Grid Settings
+local function LoadGeneralGridSettings(panel)
+    local general = CreateFrame("Frame", "GwSettingsRaidPanel", panel, "GwSettingsPanelScrollTmpl")
+    general.header:SetFont(DAMAGE_TEXT_FONT, 20)
+    general.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
+    general.header:SetText(L["Group Frames"] )
+    general.sub:SetFont(UNIT_NAME_FONT, 12)
+    general.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
+    general.sub:SetText(L["Edit the party and raid options to suit your needs."])
+
+    general.header:SetWidth(general.header:GetStringWidth())
+    general.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
+    general.breadcrumb:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
+    general.breadcrumb:SetText(GENERAL)
+
+    addOptionSlider(
+        general.scroll.scrollchild,
+        GW.NewSign .. L["Name Update Rate"],
+        L["Maximum tick rate allowed for name updates per second."],
+        "tagUpdateRate",
+        function(value)
+            GW.oUF.Tags:SetEventUpdateTimer(value)
+        end,
+        0.05,
+        0.5,
+        nil,
+        2,
+        nil,
+        0.01
+    )
+    return general
+end
+
 -- Profiles
 local function LoadRaid10Profile(panel)
     local raid10 = CreateFrame("Frame", "GwSettingsRaidPanel", panel, "GwSettingsRaidPanelTmpl")
     raid10.header:SetFont(DAMAGE_TEXT_FONT, 20)
-    raid10.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    raid10.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     raid10.header:SetText(L["Group Frames"] )
     raid10.sub:SetFont(UNIT_NAME_FONT, 12)
     raid10.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
@@ -23,7 +57,7 @@ local function LoadRaid10Profile(panel)
 
     raid10.header:SetWidth(raid10.header:GetStringWidth())
     raid10.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
-    raid10.breadcrumb:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    raid10.breadcrumb:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     raid10.breadcrumb:SetText(RAID..": 10")
 
     raid10.preview:SetWidth(raid10.preview:GetFontString():GetStringWidth() + 5)
@@ -41,6 +75,7 @@ local function LoadRaid10Profile(panel)
 
     addOption(raid10.scroll.scrollchild, L["Enable Raid 10 grid"], L["Display a separate raid grid for groups from 1 to 10 players"], "RAID10_ENABLED", function(value) raid10.preview:SetEnabled(value); GW.UpdateGridSettings("RAID10", nil, true); GW.UpdateGridSettings("RAID25", nil, true); GW.UpdateGridSettings("RAID40", nil, true) end, nil, {["RAID_FRAMES"] = true})
     addOption(raid10.scroll.scrollchild, RAID_USE_CLASS_COLORS, L["Use the class color instead of class icons."], "RAID_CLASS_COLOR_RAID10", function() GW.UpdateGridSettings("RAID10") end, nil, {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true})
+    addOption(raid10.scroll.scrollchild, GW.NewSign .. L["Hide class icon"], nil, "RAID_HIDE_CLASS_ICON_RAID10", function() GW.UpdateGridSettings("RAID10") end, nil, {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true, ["RAID_CLASS_COLOR_RAID10"] = false})
     addOption(raid10.scroll.scrollchild, DISPLAY_POWER_BARS, L["Display the power bars on the raid units."], "RAID_POWER_BARS_RAID10", function() GW.UpdateGridSettings("RAID10") end, nil, {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true})
     addOption(raid10.scroll.scrollchild, SHOW_DEBUFFS, OPTION_TOOLTIP_SHOW_ALL_ENEMY_DEBUFFS, "RAID_SHOW_DEBUFFS_RAID10", function() GW.UpdateGridSettings("RAID10") end, nil, {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true})
     addOption(raid10.scroll.scrollchild, DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispell."], "RAID_ONLY_DISPELL_DEBUFFS_RAID10", function() GW.UpdateGridSettings("RAID10") end, nil, {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true, ["RAID_SHOW_DEBUFFS"] = true})
@@ -50,7 +85,7 @@ local function LoadRaid10Profile(panel)
     addOption(raid10.scroll.scrollchild, L["Tank Icon"], nil, "RAID_SHOW_TANK_ICON_RAID10", function() GW.UpdateGridSettings("RAID10") end, nil, {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true})
     addOption(raid10.scroll.scrollchild, L["Leader/Assist Icon"], nil, "RAID_SHOW_LEADER_ICON_RAID10", function() GW.UpdateGridSettings("RAID10") end, nil, {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true})
     addOption(raid10.scroll.scrollchild, L["Start Near Center"], L["The initial group will start near the center and grow out."], "UNITFRAME_ANCHOR_FROM_CENTER_RAID10", function() GW.UpdateGridSettings("RAID10", true) end, nil, {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true})
-    addOption(raid10.scroll.scrollchild, L["Shorten health values"], nil, "RAID_SHORT_HEALTH_VALUES_RAID10", function() GW.UpdateGridSettings("RAID10") end, nil, {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true})
+    addOption(raid10.scroll.scrollchild, GW.NewSign .. L["Shorten health values"], nil, "RAID_SHORT_HEALTH_VALUES_RAID10", function() GW.UpdateGridSettings("RAID10") end, nil, {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true})
     addOptionDropdown(
         raid10.scroll.scrollchild,
         L["Show Aura Tooltips"],
@@ -276,7 +311,7 @@ end
 local function LoadRaid25Profile(panel)
     local raid25 = CreateFrame("Frame", "GwSettingsRaidPanel", panel, "GwSettingsRaidPanelTmpl")
     raid25.header:SetFont(DAMAGE_TEXT_FONT, 20)
-    raid25.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    raid25.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     raid25.header:SetText(L["Group Frames"] )
     raid25.sub:SetFont(UNIT_NAME_FONT, 12)
     raid25.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
@@ -284,7 +319,7 @@ local function LoadRaid25Profile(panel)
 
     raid25.header:SetWidth(raid25.header:GetStringWidth())
     raid25.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
-    raid25.breadcrumb:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    raid25.breadcrumb:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     raid25.breadcrumb:SetText(RAID..": 25")
 
     raid25.preview:SetWidth(raid25.preview:GetFontString():GetStringWidth() + 5)
@@ -302,6 +337,7 @@ local function LoadRaid25Profile(panel)
 
     addOption(raid25.scroll.scrollchild, L["Enable Raid 25 grid"], L["Display a separate raid grid for groups from 11 to 25 players"], "RAID25_ENABLED", function(value) raid25.preview:SetEnabled(value); GW.UpdateGridSettings("RAID10", nil, true); GW.UpdateGridSettings("RAID25", nil, true); GW.UpdateGridSettings("RAID40", nil, true) end, nil, {["RAID_FRAMES"] = true})
     addOption(raid25.scroll.scrollchild, RAID_USE_CLASS_COLORS, L["Use the class color instead of class icons."], "RAID_CLASS_COLOR_RAID25", function() GW.UpdateGridSettings("RAID25") end, nil, {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true})
+    addOption(raid25.scroll.scrollchild, GW.NewSign .. L["Hide class icon"], nil, "RAID_HIDE_CLASS_ICON_RAID25", function() GW.UpdateGridSettings("RAID25") end, nil, {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true, ["RAID_CLASS_COLOR_RAID25"] = false})
     addOption(raid25.scroll.scrollchild, DISPLAY_POWER_BARS, L["Display the power bars on the raid units."], "RAID_POWER_BARS_RAID25", function() GW.UpdateGridSettings("RAID25") end, nil, {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true})
     addOption(raid25.scroll.scrollchild, SHOW_DEBUFFS, OPTION_TOOLTIP_SHOW_ALL_ENEMY_DEBUFFS, "RAID_SHOW_DEBUFFS_RAID25", function() GW.UpdateGridSettings("RAID25") end, nil, {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true})
     addOption(raid25.scroll.scrollchild, DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispell."], "RAID_ONLY_DISPELL_DEBUFFS_RAID25", function() GW.UpdateGridSettings("RAID25") end, nil, {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true, ["RAID_SHOW_DEBUFFS"] = true})
@@ -311,7 +347,7 @@ local function LoadRaid25Profile(panel)
     addOption(raid25.scroll.scrollchild, L["Tank Icon"], nil, "RAID_SHOW_TANK_ICON_RAID25", function() GW.UpdateGridSettings("RAID25") end, nil, {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true})
     addOption(raid25.scroll.scrollchild, L["Leader/Assist Icon"], nil, "RAID_SHOW_LEADER_ICON_RAID25", function() GW.UpdateGridSettings("RAID25") end, nil, {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true})
     addOption(raid25.scroll.scrollchild, L["Start Near Center"], L["The initial group will start near the center and grow out."], "UNITFRAME_ANCHOR_FROM_CENTER_RAID25", function() GW.UpdateGridSettings("RAID25", true) end, nil, {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true})
-    addOption(raid25.scroll.scrollchild, L["Shorten health values"], nil, "RAID_SHORT_HEALTH_VALUES_RAID25", function() GW.UpdateGridSettings("RAID25") end, nil, {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true})
+    addOption(raid25.scroll.scrollchild, GW.NewSign .. L["Shorten health values"], nil, "RAID_SHORT_HEALTH_VALUES_RAID25", function() GW.UpdateGridSettings("RAID25") end, nil, {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true})
     addOptionDropdown(
         raid25.scroll.scrollchild,
         L["Show Aura Tooltips"],
@@ -537,7 +573,7 @@ end
 local function LoadRaid40Profile(panel)
     local raid40 = CreateFrame("Frame", "GwSettingsRaidPanel", panel, "GwSettingsRaidPanelTmpl")
     raid40.header:SetFont(DAMAGE_TEXT_FONT, 20)
-    raid40.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    raid40.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     raid40.header:SetText(L["Group Frames"] )
     raid40.sub:SetFont(UNIT_NAME_FONT, 12)
     raid40.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
@@ -545,7 +581,7 @@ local function LoadRaid40Profile(panel)
 
     raid40.header:SetWidth(raid40.header:GetStringWidth())
     raid40.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
-    raid40.breadcrumb:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    raid40.breadcrumb:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     raid40.breadcrumb:SetText(RAID..": 40")
 
     raid40.preview:SetWidth(raid40.preview:GetFontString():GetStringWidth() + 5)
@@ -562,6 +598,7 @@ local function LoadRaid40Profile(panel)
     raid40.preview:SetEnabled(GW.settings.RAID_FRAMES)
 
     addOption(raid40.scroll.scrollchild, RAID_USE_CLASS_COLORS, L["Use the class color instead of class icons."], "RAID_CLASS_COLOR", function(value) raid40.preview:SetEnabled(value); GW.UpdateGridSettings("RAID40") end, nil, {["RAID_FRAMES"] = true})
+    addOption(raid40.scroll.scrollchild, GW.NewSign .. L["Hide class icon"], nil, "RAID_HIDE_CLASS_ICON", function() GW.UpdateGridSettings("RAID40") end, nil, {["RAID_FRAMES"] = true, ["RAID_CLASS_COLOR"] = false})
     addOption(raid40.scroll.scrollchild, DISPLAY_POWER_BARS, L["Display the power bars on the raid units."], "RAID_POWER_BARS", function() GW.UpdateGridSettings("RAID40") end, nil, {["RAID_FRAMES"] = true})
     addOption(raid40.scroll.scrollchild, SHOW_DEBUFFS, OPTION_TOOLTIP_SHOW_ALL_ENEMY_DEBUFFS, "RAID_SHOW_DEBUFFS", function() GW.UpdateGridSettings("RAID40") end, nil, {["RAID_FRAMES"] = true})
     addOption(raid40.scroll.scrollchild, DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispell."], "RAID_ONLY_DISPELL_DEBUFFS", function() GW.UpdateGridSettings("RAID40") end, nil, {["RAID_FRAMES"] = true, ["RAID_SHOW_DEBUFFS"] = true})
@@ -571,7 +608,7 @@ local function LoadRaid40Profile(panel)
     addOption(raid40.scroll.scrollchild, L["Tank Icon"], nil, "RAID_SHOW_TANK_ICON", function() GW.UpdateGridSettings("RAID40") end, nil, {["RAID_FRAMES"] = true})
     addOption(raid40.scroll.scrollchild, L["Leader/Assist Icon"], nil, "RAID_SHOW_LEADER_ICON", function() GW.UpdateGridSettings("RAID40") end, nil, {["RAID_FRAMES"] = true})
     addOption(raid40.scroll.scrollchild, L["Start Near Center"], L["The initial group will start near the center and grow out."], "UNITFRAME_ANCHOR_FROM_CENTER", function() GW.UpdateGridSettings("RAID40", true) end, nil, {["RAID_FRAMES"] = true})
-    addOption(raid40.scroll.scrollchild, L["Shorten health values"], nil, "RAID_SHORT_HEALTH_VALUES", function() GW.UpdateGridSettings("RAID40") end, nil, {["RAID_FRAMES"] = true})
+    addOption(raid40.scroll.scrollchild, GW.NewSign .. L["Shorten health values"], nil, "RAID_SHORT_HEALTH_VALUES", function() GW.UpdateGridSettings("RAID40") end, nil, {["RAID_FRAMES"] = true})
     addOptionDropdown(
         raid40.scroll.scrollchild,
         L["Show Aura Tooltips"],
@@ -797,7 +834,7 @@ end
 local function LoadRaidPetProfile(panel)
     local p = CreateFrame("Frame", "GwSettingsRaidPanel", panel, "GwSettingsRaidPanelTmpl")
     p.header:SetFont(DAMAGE_TEXT_FONT, 20)
-    p.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    p.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     p.header:SetText(L["Group Frames"] )
     p.sub:SetFont(UNIT_NAME_FONT, 12)
     p.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
@@ -805,7 +842,7 @@ local function LoadRaidPetProfile(panel)
 
     p.header:SetWidth(p.header:GetStringWidth())
     p.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
-    p.breadcrumb:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    p.breadcrumb:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     p.breadcrumb:SetText(PET)
 
     p.preview:SetWidth(p.preview:GetFontString():GetStringWidth() + 5)
@@ -827,7 +864,7 @@ local function LoadRaidPetProfile(panel)
     addOption(p.scroll.scrollchild, L["Dungeon & Raid Debuffs"], L["Show important Dungeon & Raid debuffs"], "RAID_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF_PET", function() GW.UpdateGridSettings("RAID_PET") end, nil, {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true})
     addOption(p.scroll.scrollchild, RAID_TARGET_ICON, L["Displays the Target Markers on the Raid Unit Frames"], "RAID_UNIT_MARKERS_PET", function() GW.UpdateGridSettings("RAID_PET") end, nil, {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true})
     addOption(p.scroll.scrollchild, L["Start Near Center"], L["The initial group will start near the center and grow out."], "UNITFRAME_ANCHOR_FROM_CENTER_PET", function() GW.UpdateGridSettings("RAID_PET", true) end, nil, {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true})
-    addOption(p.scroll.scrollchild, L["Shorten health values"], nil, "RAID_SHORT_HEALTH_VALUES_PET", function() GW.UpdateGridSettings("RAID_PET") end, nil, {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true})
+    addOption(p.scroll.scrollchild, GW.NewSign .. L["Shorten health values"], nil, "RAID_SHORT_HEALTH_VALUES_PET", function() GW.UpdateGridSettings("RAID_PET") end, nil, {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true})
     addOptionDropdown(
         p.scroll.scrollchild,
         L["Show Aura Tooltips"],
@@ -1026,7 +1063,7 @@ end
 local function LoadPartyProfile(panel)
     local party = CreateFrame("Frame", "GwSettingsRaidPartyPanel", panel, "GwSettingsRaidPanelTmpl")
     party.header:SetFont(DAMAGE_TEXT_FONT, 20)
-    party.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    party.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     party.header:SetText(L["Group Frames"])
     party.sub:SetFont(UNIT_NAME_FONT, 12)
     party.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
@@ -1034,7 +1071,7 @@ local function LoadPartyProfile(panel)
 
     party.header:SetWidth(party.header:GetStringWidth())
     party.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
-    party.breadcrumb:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    party.breadcrumb:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     party.breadcrumb:SetText(PARTY)
 
     party.preview:SetWidth(party.preview:GetFontString():GetStringWidth() + 5)
@@ -1052,6 +1089,7 @@ local function LoadPartyProfile(panel)
 
     addOption(party.scroll.scrollchild, USE_RAID_STYLE_PARTY_FRAMES, OPTION_TOOLTIP_USE_RAID_STYLE_PARTY_FRAMES, "RAID_STYLE_PARTY", function(value) party.preview:SetEnabled(value);  GW.UpdateGridSettings("PARTY"); GW.ShowRlPopup = true end, nil, {["RAID_FRAMES"] = true})
     addOption(party.scroll.scrollchild, RAID_USE_CLASS_COLORS, L["Use the class color instead of class icons."], "RAID_CLASS_COLOR_PARTY", function() GW.UpdateGridSettings("PARTY") end, nil, {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true})
+    addOption(party.scroll.scrollchild, GW.NewSign .. L["Hide class icon"], nil, "RAID_HIDE_CLASS_ICON_PARTY", function() GW.UpdateGridSettings("PARTY") end, nil, {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true, ["RAID_CLASS_COLOR_PARTY"] = false})
     addOption(party.scroll.scrollchild, DISPLAY_POWER_BARS, L["Display the power bars on the raid units."], "RAID_POWER_BARS_PARTY", function() GW.UpdateGridSettings("PARTY") end, nil, {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true})
     addOption(party.scroll.scrollchild, SHOW_DEBUFFS, OPTION_TOOLTIP_SHOW_ALL_ENEMY_DEBUFFS, "RAID_SHOW_DEBUFFS_PARTY", function() GW.UpdateGridSettings("PARTY") end, nil, {["RAID_FRAMES"] = true})
     addOption(party.scroll.scrollchild, DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispell."], "RAID_ONLY_DISPELL_DEBUFFS_PARTY", function() GW.UpdateGridSettings("PARTY") end, nil, {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true, ["RAID_SHOW_DEBUFFS_PARTY"] = true})
@@ -1061,7 +1099,8 @@ local function LoadPartyProfile(panel)
     addOption(party.scroll.scrollchild, L["Tank Icon"], nil, "RAID_SHOW_TANK_ICON_PARTY", function() GW.UpdateGridSettings("PARTY") end, nil, {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true})
     addOption(party.scroll.scrollchild, L["Leader/Assist Icon"], nil, "RAID_SHOW_LEADER_ICON_PARTY", function() GW.UpdateGridSettings("PARTY") end, nil, {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true})
     addOption(party.scroll.scrollchild, L["Start Near Center"], L["The initial group will start near the center and grow out."], "UNITFRAME_ANCHOR_FROM_CENTER_PARTY", function() GW.UpdateGridSettings("PARTY", true) end, nil, {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true})
-    addOption(party.scroll.scrollchild, L["Shorten health values"], nil, "RAID_SHORT_HEALTH_VALUES_PARTY", function() GW.UpdateGridSettings("PARTY") end, nil, {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true})
+    addOption(party.scroll.scrollchild, GW.NewSign .. L["Shorten health values"], nil, "RAID_SHORT_HEALTH_VALUES_PARTY", function() GW.UpdateGridSettings("PARTY") end, nil, {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true})
+    addOption(party.scroll.scrollchild, GW.NewSign .. L["Player frame in group"], L["Show your player frame as part of the group"], "RAID_SHOW_PLAYER_PARTY", function() GW.UpdateGridSettings("PARTY", true) end, nil, {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true})
     addOptionDropdown(
         party.scroll.scrollchild,
         L["Show Aura Tooltips"],
@@ -1272,7 +1311,7 @@ end
 local function LoadMaintankProfile(panel)
     local tank = CreateFrame("Frame", "GwSettingsRaidPanel", panel, "GwSettingsRaidPanelTmpl")
     tank.header:SetFont(DAMAGE_TEXT_FONT, 20)
-    tank.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    tank.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     tank.header:SetText(L["Group Frames"] )
     tank.sub:SetFont(UNIT_NAME_FONT, 12)
     tank.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
@@ -1280,7 +1319,7 @@ local function LoadMaintankProfile(panel)
 
     tank.header:SetWidth(tank.header:GetStringWidth())
     tank.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
-    tank.breadcrumb:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    tank.breadcrumb:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     tank.breadcrumb:SetText(MAINTANK)
 
     tank.preview:SetWidth(tank.preview:GetFontString():GetStringWidth() + 5)
@@ -1297,7 +1336,8 @@ local function LoadMaintankProfile(panel)
     tank.preview:SetEnabled(GW.settings.RAID_MAINTANK_FRAMES_ENABLED)
 
     addOption(tank.scroll.scrollchild, L["Enable Maintank grid"], nil, "RAID_MAINTANK_FRAMES_ENABLED", function(value) tank.preview:SetEnabled(value); GW.UpdateGridSettings("TANK", nil, true) end, nil, {["RAID_FRAMES"] = true})
-    addOption(tank.scroll.scrollchild, RAID_USE_CLASS_COLORS, L["Use the class color instead of class icons."], "RAID_CLASS_COLOR_TANK0", function() GW.UpdateGridSettings("TANK") end, nil, {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true})
+    addOption(tank.scroll.scrollchild, RAID_USE_CLASS_COLORS, L["Use the class color instead of class icons."], "RAID_CLASS_COLOR_TANK", function() GW.UpdateGridSettings("TANK") end, nil, {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true})
+    addOption(tank.scroll.scrollchild, GW.NewSign .. L["Hide class icon"], nil, "RAID_HIDE_CLASS_ICON_TANK", function() GW.UpdateGridSettings("TANK") end, nil, {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true, ["RAID_CLASS_COLOR_TANK"] = false})
     addOption(tank.scroll.scrollchild, DISPLAY_POWER_BARS, L["Display the power bars on the raid units."], "RAID_POWER_BARS_TANK", function() GW.UpdateGridSettings("TANK") end, nil, {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true})
     addOption(tank.scroll.scrollchild, SHOW_DEBUFFS, OPTION_TOOLTIP_SHOW_ALL_ENEMY_DEBUFFS, "RAID_SHOW_DEBUFFS_TANK", function() GW.UpdateGridSettings("TANK") end, nil, {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true})
     addOption(tank.scroll.scrollchild, DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispell."], "RAID_ONLY_DISPELL_DEBUFFS_TANK", function() GW.UpdateGridSettings("TANK") end, nil, {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true, ["RAID_SHOW_DEBUFFS"] = true})
@@ -1306,7 +1346,7 @@ local function LoadMaintankProfile(panel)
     addOption(tank.scroll.scrollchild, L["Role Icon"], nil, "RAID_SHOW_ROLE_ICON_TANK", function() GW.UpdateGridSettings("TANK") end, nil, {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true})
     addOption(tank.scroll.scrollchild, L["Tank Icon"], nil, "RAID_SHOW_TANK_ICON_TANK", function() GW.UpdateGridSettings("TANK") end, nil, {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true})
     addOption(tank.scroll.scrollchild, L["Leader/Assist Icon"], nil, "RAID_SHOW_LEADER_ICON_TANK", function() GW.UpdateGridSettings("TANK") end, nil, {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true})
-    addOption(tank.scroll.scrollchild, L["Shorten health values"], nil, "RAID_SHORT_HEALTH_VALUES_TANK", function() GW.UpdateGridSettings("TANK") end, nil,  {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true})
+    addOption(tank.scroll.scrollchild, GW.NewSign .. L["Shorten health values"], nil, "RAID_SHORT_HEALTH_VALUES_TANK", function() GW.UpdateGridSettings("TANK") end, nil,  {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true})
     addOptionDropdown(
         tank.scroll.scrollchild,
         L["Show Aura Tooltips"],
@@ -1452,7 +1492,7 @@ local function LoadRaidPanel(sWindow)
     p.header:Hide()
     p.sub:Hide()
 
-    local profilePanles = {LoadRaid40Profile(p), LoadRaid25Profile(p), LoadRaid10Profile(p), LoadMaintankProfile(p), LoadRaidPetProfile(p), LoadPartyProfile(p)}
+    local profilePanles = {LoadGeneralGridSettings(p), LoadRaid40Profile(p), LoadRaid25Profile(p), LoadRaid10Profile(p), LoadMaintankProfile(p), LoadRaidPetProfile(p), LoadPartyProfile(p)}
     createCat(L["Group Frames"], L["Edit the group settings."], p, profilePanles)
     settingsMenuAddButton(L["Group Frames"], p, profilePanles)
 
@@ -1462,5 +1502,6 @@ local function LoadRaidPanel(sWindow)
     InitPanel(profilePanles[4], true)
     InitPanel(profilePanles[5], true)
     InitPanel(profilePanles[6], true)
+    InitPanel(profilePanles[7], true)
 end
 GW.LoadRaidPanel = LoadRaidPanel

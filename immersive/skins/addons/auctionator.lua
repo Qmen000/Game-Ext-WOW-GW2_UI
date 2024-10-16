@@ -2,15 +2,6 @@ local _, GW = ...
 
 local skinLoaded = false
 
-local function AddDetailsBackground(frame, detailBackgroundsXOffset)
-    local detailBg = frame:CreateTexture(nil, "BACKGROUND", nil, 7)
-    detailBg:SetPoint("TOPLEFT", frame, "TOPLEFT", detailBackgroundsXOffset or 0, 0)
-    detailBg:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
-    detailBg:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-questlog-background")
-    detailBg:SetTexCoord(0, 0.70703125, 0, 0.580078125)
-    frame.tex = detailBg
-end
-
 local function SkinItem(item)
     if item.Icon and not item.backdrop then
         GW.HandleIcon(item.Icon, true, GW.BackdropTemplates.ColorableBorderOnly)
@@ -80,8 +71,8 @@ local function SkinAuctionator()
                 end
 
                 tab:ClearAllPoints()
-                tab:SetPoint("TOPRIGHT", GwAuctionsHouseFrameLeftPanel, "TOPLEFT", 1, -32 + (-40 * GW.ActionHouseTabsAdded))
-                tab:SetParent(GwAuctionsHouseFrameLeftPanel)
+                tab:SetPoint("TOPRIGHT", AuctionHouseFrame.LeftSidePanel, "TOPLEFT", 1, -32 + (-40 * GW.ActionHouseTabsAdded))
+                tab:SetParent(AuctionHouseFrame.LeftSidePanel)
                 tab:SetSize(64, 40)
                 GW.ActionHouseTabsAdded = GW.ActionHouseTabsAdded + 1
             end
@@ -90,22 +81,22 @@ local function SkinAuctionator()
 
     -- AuctionatorConfigFrame
     AuctionatorConfigFrame:GwStripTextures()
-    AddDetailsBackground(AuctionatorConfigFrame)
+    GW.AddDetailsBackground(AuctionatorConfigFrame)
     AuctionatorConfigFrame.OptionsButton:GwSkinButton(false, true)
     AuctionatorConfigFrame.ScanButton:GwSkinButton(false, true)
     GW.SkinTextBox(AuctionatorConfigFrame.DiscordLink.InputBox.Middle, AuctionatorConfigFrame.DiscordLink.InputBox.Left, AuctionatorConfigFrame.DiscordLink.InputBox.Right)
     GW.SkinTextBox(AuctionatorConfigFrame.BugReportLink.InputBox.Middle, AuctionatorConfigFrame.BugReportLink.InputBox.Left, AuctionatorConfigFrame.BugReportLink.InputBox.Right)
-    AuctionatorConfigFrame.AuthorHeading.HeadingText:SetTextColor(255 / 255, 241 / 255, 209 / 255)
-    AuctionatorConfigFrame.ContributorsHeading.HeadingText:SetTextColor(255 / 255, 241 / 255, 209 / 255)
-    AuctionatorConfigFrame.VersionHeading.HeadingText:SetTextColor(255 / 255, 241 / 255, 209 / 255)
-    AuctionatorConfigFrame.EngageHeading.HeadingText:SetTextColor(255 / 255, 241 / 255, 209 / 255)
-    AuctionatorConfigFrame.TranslatorsHeading.HeadingText:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    AuctionatorConfigFrame.AuthorHeading.HeadingText:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
+    AuctionatorConfigFrame.ContributorsHeading.HeadingText:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
+    AuctionatorConfigFrame.VersionHeading.HeadingText:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
+    AuctionatorConfigFrame.EngageHeading.HeadingText:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
+    AuctionatorConfigFrame.TranslatorsHeading.HeadingText:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
 
     -- AuctionatorCancellingFrame
     AuctionatorCancellingFrame:GwStripTextures()
     AuctionatorCancellingFrame.ResultsListing:GwStripTextures()
     AuctionatorCancellingFrame.HistoricalPriceInset:GwStripTextures()
-    AddDetailsBackground(AuctionatorCancellingFrame.HistoricalPriceInset)
+    GW.AddDetailsBackground(AuctionatorCancellingFrame.HistoricalPriceInset)
     AuctionatorCancellingFrame.UndercutScanContainer.StartScanButton:GwSkinButton(false, true)
     AuctionatorCancellingFrame.UndercutScanContainer.CancelNextButton:GwSkinButton(false, true)
     AuctionatorCancelUndercutButton:GwSkinButton(false, true)
@@ -135,8 +126,8 @@ local function SkinAuctionator()
     selling.BagInset:GwStripTextures()
     GW.HandleTrimScrollBar(selling.BagListing.View.ScrollBar)
     GW.HandleScrollControls(selling.BagListing.View)
-    AddDetailsBackground(selling.HistoricalPriceInset, -1)
-    AddDetailsBackground(selling.BagListing)
+    GW.AddDetailsBackground(selling.HistoricalPriceInset, -1)
+    GW.AddDetailsBackground(selling.BagListing)
     selling.SaleItemFrame.MaxButton:GwSkinButton(false, true)
     selling.SaleItemFrame.PostButton:GwSkinButton(false, true)
     selling.SaleItemFrame.SkipButton:GwSkinButton(false, true)
@@ -278,11 +269,11 @@ local function SkinAuctionator()
     GW.HandleScrollControls(buyingFrame.ResultsListing.ScrollArea)
     hooksecurefunc(buyingFrame.ResultsListing.ScrollArea.ScrollBox, "Update", GW.HandleItemListScrollBoxHover)
 
-    AddDetailsBackground(list.ShoppingResultsInset, 2)
-    AddDetailsBackground(list.ListsContainer.Inset, 2)
-    AddDetailsBackground(list.RecentsContainer.Inset, 2)
-    AddDetailsBackground(buyingFrame)
-    AddDetailsBackground(buyingFrame.ResultsListing)
+    GW.AddDetailsBackground(list.ShoppingResultsInset, 2)
+    GW.AddDetailsBackground(list.ListsContainer.Inset, 2)
+    GW.AddDetailsBackground(list.RecentsContainer.Inset, 2)
+    GW.AddDetailsBackground(buyingFrame)
+    GW.AddDetailsBackground(buyingFrame.ResultsListing)
 
     list.SearchOptions.AddToListButton:GwSkinButton(false, true)
     list.SearchOptions.MoreButton:GwSkinButton(false, true)

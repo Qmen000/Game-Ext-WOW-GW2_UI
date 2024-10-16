@@ -510,7 +510,7 @@ local function GwSkinScrollBar(frame)
 
     if Thumb then
         Thumb:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/scrollbarmiddle")
-        Thumb:SetSize(12, Thumb:GetSize())
+        Thumb:SetSize(12, Thumb:GetHeight())
     end
 end
 
@@ -542,11 +542,8 @@ local function GwHandleDropDownBox(frame, backdropTemplate, hookLayout, dropdown
     tex:SetSize(14, 14)
 
     if text then
-        text:ClearAllPoints()
-        text:SetPoint("LEFT", frame, "LEFT", 8, 0)
         text:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
         text:SetTextColor(178 / 255, 178 / 255, 178 / 255)
-        text:SetHeight(frame:GetHeight())
         text:SetJustifyH("LEFT")
         text:SetJustifyV("MIDDLE")
     end

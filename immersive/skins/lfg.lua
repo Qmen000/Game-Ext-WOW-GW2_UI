@@ -25,11 +25,11 @@ local function HandleGoldIcon(button)
     nameFrame:SetSize(118, 39)
 end
 
-local function SkinItemButton(parentFrame, _, index)
+local function SkinItemButton(parentFrame, _, index, _, _, _, _, _, _, quality)
     local parentName = parentFrame:GetName()
     local item = _G[parentName .. "Item" .. index]
     if item and not item.backdrop then
-        item:GwCreateBackdrop()
+        item:GwCreateBackdrop(GW.BackdropTemplates.ColorableBorderOnly)
         item.backdrop:ClearAllPoints()
         item.backdrop:SetPoint("LEFT", 1, 0)
         item.backdrop:SetSize(42, 42)
@@ -50,7 +50,16 @@ local function SkinItemButton(parentFrame, _, index)
         item.roleIcon1:SetParent(item.backdrop)
         item.roleIcon2:SetParent(item.backdrop)
 
-        GW.HandleIconBorder(item.IconBorder)
+        GW.HandleIconBorder(item.IconBorder, item.backdrop)
+        item.IconBorder:GwKill()
+    end
+    if quality then
+        local color = BAG_ITEM_QUALITY_COLORS[quality]
+        local r, g, b = 1, 1, 1
+        if color then
+            r, g, b = color.r, color.g, color.b
+        end
+        item.backdrop:SetBackdropBorderColor(r, g, b)
     end
 end
 
@@ -100,8 +109,7 @@ local function SkinLookingForGroupFrames()
         LFDQueueFrame,
         RaidFinderQueueFrame,
         LFGListPVEStub
-    })
-    CreateFrame("Frame", "GwPVEFrameLeftPanel", PVEFrame, "GwWindowLeftPanel")
+    }, nil, true, true)
     PVEFrameTitleText:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 6)
 
     -- copied from blizzard need to icon switching
@@ -136,8 +144,8 @@ local function SkinLookingForGroupFrames()
 		end
 
 		tab:ClearAllPoints()
-		tab:SetPoint("TOPRIGHT", GwPVEFrameLeftPanel, "TOPLEFT", 1, -32 + (-40 * (idx - 1)))
-		tab:SetParent(GwPVEFrameLeftPanel)
+		tab:SetPoint("TOPRIGHT", PVEFrame.LeftSidePanel, "TOPLEFT", 1, -32 + (-40 * (idx - 1)))
+		tab:SetParent(PVEFrame.LeftSidePanel)
 		tab:SetSize(64, 40)
     end
 
@@ -339,18 +347,21 @@ local function SkinLookingForGroupFrames()
     HandleGoldIcon("LFDQueueFrameRandomScrollFrameChildFrameMoneyReward")
     HandleGoldIcon("RaidFinderQueueFrameScrollFrameChildFrameMoneyReward")
 
-    LFDQueueFrameRandomScrollFrameChildFrameTitle:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    LFDQueueFrameRandomScrollFrameChildFrameTitle:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     LFDQueueFrameRandomScrollFrameChildFrameTitle:SetShadowColor(0, 0, 0, 0)
     LFDQueueFrameRandomScrollFrameChildFrameTitle:SetShadowOffset(1, -1)
     LFDQueueFrameRandomScrollFrameChildFrameTitle:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER)
 
-    LFDQueueFrameRandomScrollFrameChildFrameRewardsLabel:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    LFDQueueFrameRandomScrollFrameChildFrameRewardsLabel:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     LFDQueueFrameRandomScrollFrameChildFrameRewardsLabel:SetShadowColor(0, 0, 0, 0)
     LFDQueueFrameRandomScrollFrameChildFrameRewardsLabel:SetShadowOffset(1, -1)
     LFDQueueFrameRandomScrollFrameChildFrameRewardsLabel:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER)
 
     LFDQueueFrameRandomScrollFrameChildFrameDescription:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
     LFDQueueFrameRandomScrollFrameChildFrameRewardsDescription:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.NORMAL)
+
+    GW.HandleTrimScrollBar(LFDQueueFrameRandomScrollFrame.ScrollBar)
+    GW.HandleScrollControls(LFDQueueFrameRandomScrollFrame)
 
     hooksecurefunc("LFGDungeonListButton_SetDungeon", function(button)
         if button and button.expandOrCollapseButton:IsShown() then
@@ -412,7 +423,7 @@ local function SkinLookingForGroupFrames()
     LFGListFrame.CategorySelection.FindGroupButton:ClearAllPoints()
     LFGListFrame.CategorySelection.FindGroupButton:SetPoint("BOTTOMRIGHT", -6, 3)
 
-    LFGListFrame.CategorySelection.Label:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    LFGListFrame.CategorySelection.Label:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     LFGListFrame.CategorySelection.Label:SetShadowColor(0, 0, 0, 0)
     LFGListFrame.CategorySelection.Label:SetShadowOffset(1, -1)
     LFGListFrame.CategorySelection.Label:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.HEADER)
@@ -497,7 +508,7 @@ local function SkinLookingForGroupFrames()
     LFGListFrame.SearchPanel.SignUpButton:ClearAllPoints()
     LFGListFrame.SearchPanel.SignUpButton:SetPoint("BOTTOMRIGHT", -6, 3)
     LFGListFrame.SearchPanel.ResultsInset:GwStripTextures()
-    LFGListFrame.SearchPanel.CategoryName:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    LFGListFrame.SearchPanel.CategoryName:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     GW.HandleTrimScrollBar(LFGListFrame.SearchPanel.ScrollBar, true)
     GW.HandleScrollControls(LFGListFrame.SearchPanel)
 
@@ -506,17 +517,12 @@ local function SkinLookingForGroupFrames()
             if not child.IsSkinned and child.Name then
                 child.Name:SetTextColor(1, 1, 1)
                 hooksecurefunc(child.Name, "SetTextColor", GW.LockWhiteButtonColor)
+                GW.AddListItemChildHoverTexture(child)
                 child.IsSkinned = true
             end
         end
+        GW.HandleItemListScrollBoxHover(self)
     end)
-
-    if not LFGListFrame.SearchPanel.ResultsInset.SetBackdrop then
-        Mixin(LFGListFrame.SearchPanel.ResultsInset, _G.BackdropTemplateMixin)
-        LFGListFrame.SearchPanel.ResultsInset:HookScript("OnSizeChanged", LFGListFrame.SearchPanel.ResultsInset.OnBackdropSizeChanged)
-    end
-    LFGListFrame.SearchPanel.ResultsInset:SetBackdrop(GW.BackdropTemplates.DefaultWithColorableBorder)
-    LFGListFrame.SearchPanel.ResultsInset:SetBackdropBorderColor(0, 0, 0, 1)
 
     LFGListFrame.SearchPanel.FilterButton:GwSkinButton(false, true)
     LFGListFrame.SearchPanel.FilterButton:SetPoint("LEFT", LFGListFrame.SearchPanel.SearchBox, "RIGHT", 5, 0)
@@ -527,19 +533,28 @@ local function SkinLookingForGroupFrames()
     LFGListFrame.SearchPanel.RefreshButton.Icon:SetPoint("CENTER")
 
     hooksecurefunc("LFGListApplicationViewer_UpdateApplicant", function(button)
-        if not button.DeclineButton.template then
+        if not button.DeclineButton.isSkinned then
             button.DeclineButton:GwSkinButton(false, true)
+            if button.DeclineButton.Icon then
+                button.DeclineButton.Icon:SetDrawLayer("ARTWORK", 7)
+            end
         end
-        if not button.InviteButton.template then
+        if not button.InviteButton.isSkinned then
             button.InviteButton:GwSkinButton(false, true)
+            if button.InviteButton.Icon then
+                button.InviteButton.Icon:SetDrawLayer("ARTWORK", 7)
+            end
         end
-        if not button.InviteButtonSmall.template then
+        if not button.InviteButtonSmall.isSkinned then
             button.InviteButtonSmall:GwSkinButton(false, true)
+            if button.InviteButtonSmall.Icon then
+                button.InviteButtonSmall.Icon:SetDrawLayer("ARTWORK", 7)
+            end
         end
     end)
 
     hooksecurefunc("LFGListSearchEntry_Update", function(button)
-        if not button.CancelButton.template then
+        if not button.CancelButton.isSkinned then
             button.CancelButton:GwSkinButton(true)
             button.CancelButton:SetSize(18, 18)
         end
@@ -584,13 +599,12 @@ local function SkinLookingForGroupFrames()
 
     LFGListFrame.ApplicationViewer.Inset:GwStripTextures()
     LFGListFrame.ApplicationViewer.UnempoweredCover.Background:SetAlpha(0)
+    LFGListFrame.ApplicationViewer.UnempoweredCover.Label:SetTextColor(1, 1, 1)
+    LFGListFrame.ApplicationViewer.UnempoweredCover.Waitdot1:SetVertexColor(1, 1, 1)
+    LFGListFrame.ApplicationViewer.UnempoweredCover.Waitdot2:SetVertexColor(1, 1, 1)
+    LFGListFrame.ApplicationViewer.UnempoweredCover.Waitdot3:SetVertexColor(1, 1, 1)
 
-    local detailBg = LFGListFrame.ApplicationViewer.UnempoweredCover:CreateTexture(nil, "BACKGROUND", nil, 7)
-    detailBg:SetPoint("TOPLEFT", LFGListFrame.ApplicationViewer.UnempoweredCover, "TOPLEFT", 0, 0)
-    detailBg:SetPoint("BOTTOMRIGHT", LFGListFrame.ApplicationViewer.UnempoweredCover, "BOTTOMRIGHT", 0, 0)
-    detailBg:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-questlog-background")
-    detailBg:SetTexCoord(0, 0.70703125, 0, 0.580078125)
-    LFGListFrame.ApplicationViewer.UnempoweredCover.tex = detailBg
+    GW.AddDetailsBackground(LFGListFrame.ApplicationViewer.UnempoweredCover)
 
     GW.HandleScrollFrameHeaderButton(LFGListFrame.ApplicationViewer.NameColumnHeader)
     GW.HandleScrollFrameHeaderButton(LFGListFrame.ApplicationViewer.RoleColumnHeader)
@@ -622,6 +636,8 @@ local function SkinLookingForGroupFrames()
 
     GW.HandleTrimScrollBar(LFGListFrame.ApplicationViewer.ScrollBar, true)
     GW.HandleScrollControls(LFGListFrame.ApplicationViewer)
+
+    hooksecurefunc(LFGListFrame.ApplicationViewer.ScrollBox, "Update", GW.HandleItemListScrollBoxHover)
 
     hooksecurefunc("LFGListApplicationViewer_UpdateInfo", function(frame)
         frame.RemoveEntryButton:ClearAllPoints()
@@ -751,29 +767,9 @@ local function SkinLookingForGroupFrames()
         end
     end)
 
-    local bgMask = UIParent:CreateMaskTexture()
-	bgMask:SetPoint("TOPLEFT", PVEFrame, "TOPLEFT", -64, 64)
-	bgMask:SetPoint("BOTTOMRIGHT", PVEFrame, "BOTTOMLEFT", -64, 0)
-	bgMask:SetTexture("Interface/AddOns/GW2_UI/textures/masktest", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-	PVEFrame.tex:AddMaskTexture(bgMask)
-	PVEFrame.gwHeader.BGLEFT:AddMaskTexture(bgMask)
-	PVEFrame.gwHeader.BGRIGHT:AddMaskTexture(bgMask)
-	GwPVEFrameLeftPanel.background:AddMaskTexture(bgMask)
-	PVEFrame.backgroundMask = bgMask
-
-	PVEFrame:HookScript("OnShow",function()
-		GW.AddToAnimation("APVEFRAMEFRAME_PANEL_ONSHOW", 0, 1, GetTime(), GW.WINDOW_FADE_DURATION,
-			function(p)
-				PVEFrame:SetAlpha(p)
-				bgMask:SetPoint("BOTTOMRIGHT", PVEFrame.tex, "BOTTOMLEFT", GW.lerp(-64, PVEFrame.tex:GetWidth(), p), 0)
-			end,
-			1,
-			function()
-				bgMask:SetPoint("BOTTOMRIGHT", PVEFrame.tex, "BOTTOMLEFT", PVEFrame.tex:GetWidth() + 200 , 0)
-			end)
-	end)
-
     GW.MakeFrameMovable(PVEFrame, nil, "PvEWindow", true)
+    PVEFrame:SetClampedToScreen(true)
+    PVEFrame:SetClampRectInsets(-40, 0, PVEFrameHeader:GetHeight() - 30, 0)
 end
 
 local function ApplyPvPUISkin()
@@ -803,7 +799,7 @@ local function ApplyPvPUISkin()
         bu.arrow:SetPoint("RIGHT", bu, "RIGHT", 0, 0)
         bu.arrow:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-arrow")
 
-        bu.Name:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+        bu.Name:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
         bu.Name:SetShadowColor(0, 0, 0, 0)
         bu.Name:SetShadowOffset(1, -1)
         bu.Name:SetJustifyH("LEFT")
@@ -860,12 +856,7 @@ local function ApplyPvPUISkin()
     ConquestFrame:GwStripTextures()
 
     for _, v in pairs({ HonorFrame, ConquestFrame, LFGListPVPStub }) do
-        local detailBg = v:CreateTexture(nil, "BACKGROUND", nil, 0)
-        detailBg:SetPoint("TOPLEFT", v, "TOPLEFT", 0, -10)
-        detailBg:SetPoint("BOTTOMRIGHT", v, "BOTTOMRIGHT", 0, 0)
-        detailBg:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-questlog-background")
-        detailBg:SetTexCoord(0, 0.70703125, 0, 0.580078125)
-        v.tex = detailBg
+        GW.AddDetailsBackground(v, nil, -10)
     end
 
     LFGListPVPStub.tex:ClearAllPoints()
@@ -1083,7 +1074,7 @@ local function ApplyChallengesUISkin()
 
     hooksecurefunc(ChallengesFrame, "Update", function(frame)
         for _, child in ipairs(frame.DungeonIcons) do
-            if not child.template then
+            if not child.isSkinned then
                 child:GetRegions():SetAlpha(0)
                 if not child.SetBackdrop then
                     _G.Mixin(child, _G.BackdropTemplateMixin)
@@ -1104,6 +1095,8 @@ local function ApplyChallengesUISkin()
                 child.Icon:SetDrawLayer("ARTWORK")
                 child.HighestLevel:SetDrawLayer("OVERLAY")
                 child.Icon:GwSetInside()
+
+                child.isSkinned = true
             end
         end
     end)

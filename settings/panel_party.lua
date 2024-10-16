@@ -9,7 +9,7 @@ local settingsMenuAddButton = GW.settingsMenuAddButton;
 local function LoadPartyPanel(sWindow)
     local p = CreateFrame("Frame", "GwSettingsPartyPanel", sWindow.panels, "GwSettingsPartyPanelTmpl")
     p.header:SetFont(DAMAGE_TEXT_FONT, 20)
-    p.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    p.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     p.header:SetText(CHAT_MSG_PARTY)
     p.sub:SetFont(UNIT_NAME_FONT, 12)
     p.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
@@ -24,7 +24,7 @@ local function LoadPartyPanel(sWindow)
     addOption(p, L["Dungeon & Raid Debuffs"], L["Show important Dungeon & Raid debuffs"], "PARTY_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF", nil, nil, {["PARTY_FRAMES"] = true, ["RAID_STYLE_PARTY"] = false})
     addOption(p, L["Player frame in group"], L["Show your player frame as part of the group"], "PARTY_PLAYER_FRAME", GW.UpdatePlayerInPartySetting, nil, {["PARTY_FRAMES"] = true, ["RAID_STYLE_PARTY"] = false})
     addOption(p, COMPACT_UNIT_FRAME_PROFILE_DISPLAYPETS, nil, "PARTY_SHOW_PETS", GW.UpdatePartyPetVisibility, nil, {["PARTY_FRAMES"] = true, ["RAID_STYLE_PARTY"] = false})
-    addOption(p, L["Shorten health values"], nil, "PARTY_UNIT_HEALTH_SHORT_VALUES", GW.UpdatePartyFrames, nil, {["PARTY_FRAMES"] = true, ["RAID_STYLE_PARTY"] = false})
+    addOption(p, GW.NewSign .. L["Shorten health values"], nil, "PARTY_UNIT_HEALTH_SHORT_VALUES", GW.UpdatePartyFrames, nil, {["PARTY_FRAMES"] = true, ["RAID_STYLE_PARTY"] = false})
 
     addOptionDropdown(
         p,

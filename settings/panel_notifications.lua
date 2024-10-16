@@ -10,14 +10,14 @@ local settingsMenuAddButton = GW.settingsMenuAddButton;
 local function LoadNotificationsPanel(sWindow)
     local p = CreateFrame("Frame", nil, sWindow.panels, "GwSettingsPanelScrollTmpl")
     p.header:SetFont(DAMAGE_TEXT_FONT, 20)
-    p.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    p.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     p.header:SetText(COMMUNITIES_NOTIFICATION_SETTINGS_DIALOG_SETTINGS_LABEL)
     p.header:SetWidth(p.header:GetStringWidth())
     p.sub:SetFont(UNIT_NAME_FONT, 12)
     p.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
     p.sub:SetText(nil)
     p.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
-    p.breadcrumb:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    p.breadcrumb:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     p.breadcrumb:SetText(L["Vignettes"])
 
     createCat(COMMUNITIES_NOTIFICATION_SETTINGS_DIALOG_SETTINGS_LABEL, L["Edit your GW2 notifications."], p, {p})
@@ -27,6 +27,43 @@ local function LoadNotificationsPanel(sWindow)
     for _, sound in next, GW.Libs.LSM:List("sound") do
         tinsert(soundKeys, sound)
     end
+
+
+    addOption(p.scroll.scrollchild, GW.NewSign .. L["Bots"], nil, "alertFrameNotificatioBot", nil, nil, {["ALERTFRAME_ENABLED"] = true})
+    addOptionDropdown(
+        p.scroll.scrollchild,
+        nil,
+        nil,
+        "alertFrameNotificatioBotSound",
+        nil,
+        soundKeys,
+        soundKeys,
+        nil,
+        {["ALERTFRAME_ENABLED"] = true, ["alertFrameNotificatioBot"] = true},
+        nil,
+        nil,
+        nil,
+        true,
+        true
+    )
+
+    addOption(p.scroll.scrollchild, GW.NewSign .. L["Feasts"], nil, "alertFrameNotificatioFeast", nil, nil, {["ALERTFRAME_ENABLED"] = true})
+    addOptionDropdown(
+        p.scroll.scrollchild,
+        nil,
+        nil,
+        "alertFrameNotificatioFeastSound",
+        nil,
+        soundKeys,
+        soundKeys,
+        nil,
+        {["ALERTFRAME_ENABLED"] = true, ["alertFrameNotificatioFeast"] = true},
+        nil,
+        nil,
+        nil,
+        true,
+        true
+    )
 
     addOption(p.scroll.scrollchild, PLAYER_LEVEL_UP, nil, "ALERTFRAME_NOTIFICATION_LEVEL_UP", nil, nil, {["ALERTFRAME_ENABLED"] = true})
     addOptionDropdown(

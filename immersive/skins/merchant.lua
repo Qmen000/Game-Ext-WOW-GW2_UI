@@ -74,7 +74,7 @@ local function LoadMerchantFrameSkin()
     MerchantFrame.NineSlice:Hide()
     MerchantFrame.TopTileStreaks:Hide()
 
-    GW.CreateFrameHeaderWithBody(MerchantFrame, MerchantFrameTitleText, "Interface/AddOns/GW2_UI/textures/character/macro-window-icon", {MerchantFrameInset, MerchantMoneyInset})
+    GW.CreateFrameHeaderWithBody(MerchantFrame, MerchantFrameTitleText, "Interface/AddOns/GW2_UI/textures/character/macro-window-icon", {MerchantFrameInset, MerchantMoneyInset}, nil, false, true)
     MerchantFrame.gwHeader.windowIcon:SetSize(65, 65)
     MerchantFrame.gwHeader.windowIcon:ClearAllPoints()
     MerchantFrame.gwHeader.windowIcon:SetPoint("CENTER", MerchantFrame.gwHeader.BGLEFT, "LEFT", 25, -5)
@@ -182,8 +182,18 @@ local function LoadMerchantFrameSkin()
         MerchantSellAllJunkButton:GetRegions():GwSetInside()
     end
 
-    GW.HandleNextPrevButton(MerchantNextPageButton, nil, true)
-    GW.HandleNextPrevButton(MerchantPrevPageButton, nil, true)
+
+    for _, btn in next, {MerchantNextPageButton, MerchantPrevPageButton} do
+        GW.HandleNextPrevButton(btn, nil, true)
+        for _, c in pairs( {btn:GetRegions()} ) do
+            if c:GetObjectType() == "FontString" then
+                c:SetTextColor(1, 1, 1)
+                break
+            end
+        end
+    end
+    MerchantPageText:SetTextColor(1, 1, 1)
+
     MerchantNextPageButton:ClearAllPoints()
     MerchantNextPageButton:SetPoint("LEFT", MerchantPageText, "RIGHT", 100, 4)
 

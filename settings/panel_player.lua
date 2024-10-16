@@ -17,23 +17,23 @@ local function LoadPlayerPanel(sWindow)
 
     local p_player = CreateFrame("Frame", nil, p, "GwSettingsPanelScrollTmpl")
     p_player.header:SetFont(DAMAGE_TEXT_FONT, 20)
-    p_player.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    p_player.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     p_player.header:SetText(PLAYER)
     p_player.sub:SetFont(UNIT_NAME_FONT, 12)
     p_player.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
     p_player.sub:SetText(L["Modify the player frame settings."])
     p_player.header:SetWidth(p_player.header:GetStringWidth())
     p_player.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
-    p_player.breadcrumb:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    p_player.breadcrumb:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     p_player.breadcrumb:SetText(GENERAL)
 
     local p_player_aura = CreateFrame("Frame", nil, p, "GwSettingsPanelScrollTmpl")
     p_player_aura.header:SetFont(DAMAGE_TEXT_FONT, 20)
-    p_player_aura.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    p_player_aura.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     p_player_aura.header:SetText(PLAYER)
     p_player_aura.header:SetWidth(p_player_aura.header:GetStringWidth())
     p_player_aura.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
-    p_player_aura.breadcrumb:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    p_player_aura.breadcrumb:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     p_player_aura.breadcrumb:SetText(L["Buffs"])
     p_player_aura.sub:SetFont(UNIT_NAME_FONT, 12)
     p_player_aura.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
@@ -41,14 +41,14 @@ local function LoadPlayerPanel(sWindow)
 
     local p_player_debuff = CreateFrame("Frame", nil, p, "GwSettingsPanelScrollTmpl")
     p_player_debuff.header:SetFont(DAMAGE_TEXT_FONT, 20)
-    p_player_debuff.header:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    p_player_debuff.header:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     p_player_debuff.header:SetText(PLAYER)
     p_player_debuff.sub:SetFont(UNIT_NAME_FONT, 12)
     p_player_debuff.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
     p_player_debuff.sub:SetText("")
     p_player_debuff.header:SetWidth(p_player_debuff.header:GetStringWidth())
     p_player_debuff.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
-    p_player_debuff.breadcrumb:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+    p_player_debuff.breadcrumb:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     p_player_debuff.breadcrumb:SetText(L["Debuffs"])
 
     createCat(PLAYER, L["Modify the player frame settings."], p, {p_player, p_player_aura, p_player_debuff})
@@ -61,12 +61,14 @@ local function LoadPlayerPanel(sWindow)
     addOption(p_player.scroll.scrollchild, L["Show an additional resource bar"], nil, "PLAYER_AS_TARGET_FRAME_SHOW_RESSOURCEBAR", function() GW.ShowRlPopup = true end, nil, {["HEALTHGLOBE_ENABLED"] = true, ["PLAYER_AS_TARGET_FRAME"] = true, ["POWERBAR_ENABLED"] = true})
     addOption(p_player.scroll.scrollchild, L["PvP Indicator"], nil, "PLAYER_SHOW_PVP_INDICATOR", nil, nil, {["HEALTHGLOBE_ENABLED"] = true})
     addOption(p_player.scroll.scrollchild, L["Player de/buff animation"], L["Shows an animation for new de/buffs"], "PLAYER_AURA_ANIMATION", nil, nil, {["PLAYER_BUFFS_ENABLED"] = true})
-    addOption(p_player.scroll.scrollchild, L["Advanced Casting Bar"], L["Enable or disable the advanced casting bar."], "CASTINGBAR_DATA", function(value) GW.TogglePlayerEnhancedCastbar(GwCastingBarPlayer, value); GW.TogglePlayerEnhancedCastbar(GwCastingBarPet, value); end, nil, {["CASTINGBAR_ENABLED"] = true})
     addOption(p_player.scroll.scrollchild, L["Show spell queue window on castingbar"], nil, "PLAYER_CASTBAR_SHOW_SPELL_QUEUEWINDOW", nil, nil, {["CASTINGBAR_ENABLED"] = true, ["CASTINGBAR_DATA"] = true})
     addOption(p_player.scroll.scrollchild, L["Show character item info"], L["Display gems and enchants on the GW2 character panel"], "SHOW_CHARACTER_ITEM_INFO", function() GW.ToggleCharacterItemInfo() end, nil, {["USE_CHARACTER_WINDOW"] = true})
     addOption(p_player.scroll.scrollchild, L["Hide Blizzard dragon riding vigor"], nil, "HIDE_BLIZZARD_VIGOR_BAR", nil, nil, {["HEALTHGLOBE_ENABLED"] = true})
     addOption(p_player.scroll.scrollchild, L["Show classpower bar only in combat"], nil, "CLASSPOWER_ONLY_SHOW_IN_COMBAT", function() GW.UpdateClassPowerVisibilitySetting(GwPlayerClassPower, true) end, nil, {["CLASS_POWER"] = true})
-    addOption(p_player.scroll.scrollchild,  L["Shorten health values"], nil, "PLAYER_UNIT_HEALTH_SHORT_VALUES", function() GW.UpdateHealthglobeSettings(); GW.UpdatePlayerFrameSettings() end, nil, {["HEALTHGLOBE_ENABLED"] = true})
+    addOption(p_player.scroll.scrollchild, GW.NewSign .. L["Shorten health values"], nil, "PLAYER_UNIT_HEALTH_SHORT_VALUES", function() GW.UpdateHealthglobeSettings(); GW.UpdatePlayerFrameSettings() end, nil, {["HEALTHGLOBE_ENABLED"] = true})
+    addOption(p_player.scroll.scrollchild, GW.NewSign .. L["Shorten shield values"], nil, "PLAYER_UNIT_SHIELD_SHORT_VALUES", function() GW.UpdateHealthglobeSettings(); GW.UpdatePlayerFrameSettings() end, nil, {["HEALTHGLOBE_ENABLED"] = true})
+    addOption(p_player.scroll.scrollchild, L["Advanced Casting Bar"], L["Enable or disable the advanced casting bar."], "CASTINGBAR_DATA", function(value) GW.TogglePlayerEnhancedCastbar(GwCastingBarPlayer, value); GW.TogglePlayerEnhancedCastbar(GwCastingBarPet, value); end, nil, {["CASTINGBAR_ENABLED"] = true})
+    addOption(p_player.scroll.scrollchild, GW.NewSign .. L["Ticks"], L["Display tick marks on the castbar for channelled spells. This will adjust automatically for spells like Drain Soul and add additional ticks based on haste."], "showPlayerCastBarTicks", nil, nil, {["CASTINGBAR_ENABLED"] = true})
 
     addOptionDropdown(
         p_player.scroll.scrollchild,
@@ -197,7 +199,7 @@ local function LoadPlayerPanel(sWindow)
     )
     addOptionSlider(
         p_player_aura.scroll.scrollchild,
-        GW.NewSign .. L["Horizontal Spacing"],
+        L["Horizontal Spacing"],
         nil,
         "PlayerBuffFrame_HorizontalSpacing",
         function()
@@ -211,7 +213,7 @@ local function LoadPlayerPanel(sWindow)
     )
     addOptionSlider(
         p_player_aura.scroll.scrollchild,
-        GW.NewSign .. L["Vertical Spacing"],
+        L["Vertical Spacing"],
         nil,
         "PlayerBuffFrame_VerticalSpacing",
         function()
@@ -225,7 +227,7 @@ local function LoadPlayerPanel(sWindow)
     )
     addOptionSlider(
         p_player_aura.scroll.scrollchild,
-        GW.NewSign .. L["Max Wraps"],
+        L["Max Wraps"],
         L["Limit the number of rows"],
         "PlayerBuffFrame_MaxWraps",
         function()
@@ -338,7 +340,7 @@ local function LoadPlayerPanel(sWindow)
     )
     addOptionSlider(
         p_player_debuff.scroll.scrollchild,
-        GW.NewSign .. L["Horizontal Spacing"],
+        L["Horizontal Spacing"],
         nil,
         "PlayerDebuffFrame_HorizontalSpacing",
         function()
@@ -352,7 +354,7 @@ local function LoadPlayerPanel(sWindow)
     )
     addOptionSlider(
         p_player_debuff.scroll.scrollchild,
-        GW.NewSign .. L["Vertical Spacing"],
+        L["Vertical Spacing"],
         nil,
         "PlayerDebuffFrame_VerticalSpacing",
         function()
@@ -366,7 +368,7 @@ local function LoadPlayerPanel(sWindow)
     )
     addOptionSlider(
         p_player_debuff.scroll.scrollchild,
-        GW.NewSign .. L["Max Wraps"],
+        L["Max Wraps"],
         L["Limit the number of rows"],
         "PlayerDebuffFrame_MaxWraps",
         function()

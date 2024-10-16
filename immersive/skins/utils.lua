@@ -369,13 +369,14 @@ local function HandleTrimScrollBar(frame)
 
     local thumb = frame:GetThumb()
     if thumb then
-        thumb:DisableDrawLayer("ARTWORK")
+        thumb.Begin:Hide()
+        thumb.End:Hide()
+        thumb.Middle:Hide()
         thumb:DisableDrawLayer("BACKGROUND")
-        thumb:GwCreateBackdrop("ScrollBar")
-        thumb.backdrop:SetFrameLevel(thumb:GetFrameLevel() + 1)
-        local h = thumb:GetHeight()
-        thumb:SetSize(12, h)
-        --thumb:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/scrollbarmiddle")
+        thumb.gwTex = thumb:CreateTexture(nil, "ARTWORK")
+        thumb.gwTex:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/scrollbarmiddle")
+        thumb.gwTex:SetAllPoints(thumb)
+        thumb:SetWidth(12)
     end
 end
 GW.HandleTrimScrollBar = HandleTrimScrollBar
@@ -439,6 +440,7 @@ do
         frame:GwStripTextures()
         frame:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true)
         frame:SetHeight(frame:GetHeight() + 10)
+        frame:EnableMouse(true)
 
         if borderBox then
             borderBox:GwStripTextures()
@@ -549,7 +551,7 @@ local function HandleTabs(self, isTop)
 end
 GW.HandleTabs = HandleTabs
 
-local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgrounds, detailBackgroundsXOffset)
+local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgrounds, detailBackgroundsXOffset, addLeftSidePanel, addFrameOpenAnimation)
     local header = CreateFrame("Frame", frame:GetName() .. "Header", frame, "GwFrameHeader")
     header.windowIcon:SetTexture(icon)
     header:SetClampedToScreen(true)
@@ -561,7 +563,7 @@ local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgroun
         titleText:SetParent(header)
         titleText:SetPoint("BOTTOMLEFT", header, "BOTTOMLEFT", 64, 10)
         titleText:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 2)
-        titleText:SetTextColor(255 / 255, 241 / 255, 209 / 255)
+        titleText:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     end
 
     local tex = frame:CreateTexture(nil, "BACKGROUND", nil, 0)
@@ -580,9 +582,52 @@ local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgroun
             v.tex = detailBg
         end
     end
+
+
+    if addLeftSidePanel then
+        frame.LeftSidePanel = CreateFrame("Frame", frame:GetName() .. "LeftPanel", frame, "GwWindowLeftPanel")
+    end
+
+    if addFrameOpenAnimation then
+        local bgMask = UIParent:CreateMaskTexture()
+        bgMask:SetPoint("TOPLEFT", frame, "TOPLEFT", -64, 64)
+        bgMask:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", -64, 0)
+        bgMask:SetTexture(
+            "Interface/AddOns/GW2_UI/textures/masktest",
+            "CLAMPTOBLACKADDITIVE",
+            "CLAMPTOBLACKADDITIVE"
+        )
+
+        frame.tex:AddMaskTexture(bgMask)
+        header.BGLEFT:AddMaskTexture(bgMask)
+        header.BGRIGHT:AddMaskTexture(bgMask)
+        if frame.LeftSidePanel then
+            frame.LeftSidePanel.background:AddMaskTexture(bgMask)
+        end
+        frame.backgroundMask = bgMask
+
+        frame:HookScript("OnShow",function()
+        GW.AddToAnimation((frame.GetName and frame:GetName() or tostring(frame)) .. "_PANEL_ONSHOW", 0, 1, GetTime(), GW.WINDOW_FADE_DURATION,
+            function(p)
+                frame:SetAlpha(p)
+                bgMask:SetPoint("BOTTOMRIGHT", frame.tex, "BOTTOMLEFT", GW.lerp(-64, frame.tex:GetWidth(), p), 0)
+            end, 1, function()
+                bgMask:SetPoint("BOTTOMRIGHT", frame.tex, "BOTTOMLEFT", frame.tex:GetWidth() + 200 , 0)
+            end)
+        end)
+    end
 end
 GW.CreateFrameHeaderWithBody = CreateFrameHeaderWithBody
 
+local function AddDetailsBackground(frame, detailBackgroundsXOffset, detailBackgroundsYOffset)
+    local detailBg = frame:CreateTexture(nil, "BACKGROUND", nil, 7)
+    detailBg:SetPoint("TOPLEFT", frame, "TOPLEFT", detailBackgroundsXOffset or 0, detailBackgroundsYOffset or 0)
+    detailBg:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+    detailBg:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-questlog-background")
+    detailBg:SetTexCoord(0, 0.70703125, 0, 0.580078125)
+    frame.tex = detailBg
+end
+GW.AddDetailsBackground = AddDetailsBackground
 
 local function HandleListIcon(frame)
     if not frame.tableBuilder then return end
@@ -633,7 +678,9 @@ GW.HandleSrollBoxHeaders = HandleHeaders
 
 local function HandleScrollFrameHeaderButton(button, isLastButton)
     if not button.IsSkinned then
-        button:DisableDrawLayer("BACKGROUND")
+        if button.DisableDrawLayer then
+            button:DisableDrawLayer("BACKGROUND")
+        end
 
         if not button.backdrop then
             button:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithColorableBorder, true)
@@ -652,7 +699,9 @@ GW.HandleScrollFrameHeaderButton = HandleScrollFrameHeaderButton
 
 local function AddMouseMotionPropagationToChildFrames(self)
     for _, child in next, { self:GetChildren() } do
-        child:SetPropagateMouseMotion(true)
+        if not InCombatLockdown() then
+            child:SetPropagateMouseMotion(true)
+        end
         AddMouseMotionPropagationToChildFrames(child)
     end
 end
@@ -693,12 +742,12 @@ local function AddListItemChildHoverTexture(child)
             child.gwHoverTexture:Hide()
         end)
 
-        child.Selected = child:CreateTexture(nil, "ARTWORK", nil, 0)
-        child.Selected:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover")
-        child.Selected:SetVertexColor(0.8, 0.8, 0.8, 0.8)
-        child.Selected:SetPoint("TOPLEFT", child, "TOPLEFT", 0, 0)
-        child.Selected:SetPoint("BOTTOMRIGHT", child, "BOTTOMRIGHT", 0, 0)
-        child.Selected:Hide()
+        child.gwSelected = child:CreateTexture(nil, "ARTWORK", nil, 0)
+        child.gwSelected:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover")
+        child.gwSelected:SetVertexColor(0.8, 0.8, 0.8, 1)
+        child.gwSelected:SetPoint("TOPLEFT", child, "TOPLEFT", 0, 0)
+        child.gwSelected:SetPoint("BOTTOMRIGHT", child, "BOTTOMRIGHT", 0, 0)
+        child.gwSelected:Hide()
     end
 
     AddMouseMotionPropagationToChildFrames(child)
@@ -712,7 +761,9 @@ local function HandleItemListScrollBoxHover(self)
 
             child.IsSkinned = true
         end
-        child:SetPropagateMouseMotion(true)
+        if not InCombatLockdown() then
+            child:SetPropagateMouseMotion(true)
+        end
 
         --zebra
         local zebra = child.GetOrderIndex and (child:GetOrderIndex() % 2) == 1 or false
@@ -724,6 +775,9 @@ local function HandleItemListScrollBoxHover(self)
 
         if child.NormalTexture then
             child.NormalTexture:SetAlpha(0)
+        end
+        if child.BackgroundHighlight then
+            child.BackgroundHighlight:SetAlpha(0)
         end
         if child.SelectedHighlight then
             child.SelectedHighlight:SetColorTexture(0.5, 0.5, 0.5, .25)

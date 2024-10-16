@@ -234,8 +234,11 @@ local function encounterJournalSkin()
     EJ.LootJournalItems:GwStripTextures()
     EncounterJournalMonthlyActivitiesFrame.FilterList:GwStripTextures()
 
-    GW.CreateFrameHeaderWithBody(EJ, EncounterJournalTitleText, "Interface/AddOns/GW2_UI/textures/character/worldmap-window-icon", {EJ.LootJournalItems, EncounterJournalMonthlyActivitiesFrame.FilterList})
+    GW.CreateFrameHeaderWithBody(EJ, EncounterJournalTitleText, "Interface/AddOns/GW2_UI/textures/character/worldmap-window-icon", {EJ.LootJournalItems, EncounterJournalMonthlyActivitiesFrame.FilterList}, nil, false, true)
     EncounterJournalTitleText:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.TextSizeType.BIG_HEADER, nil, 6)
+
+    EJ:SetClampedToScreen(true)
+    EJ:SetClampRectInsets(0, 0, EJ.gwHeader:GetHeight() - 20, 0)
 
     EJ.instanceSelect.Title:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
     EJ.instanceSelect.Title:SetFont(DAMAGE_TEXT_FONT, 16, "")
@@ -301,6 +304,7 @@ local function encounterJournalSkin()
     EncounterJournalMonthlyActivitiesFrame.HeaderContainer.Title:SetShadowOffset(1, -1)
 
     EncounterJournalMonthlyActivitiesFrame.BarComplete.PendingRewardsText:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
+    EncounterJournalMonthlyActivitiesFrame.BarComplete.AllRewardsCollectedText:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
 
     local loaded
     hooksecurefunc(EncounterJournalMonthlyActivitiesFrame.FilterList.ScrollBox, "Update", function(frame)
@@ -316,7 +320,7 @@ local function encounterJournalSkin()
                 child.Texture:SetAlpha(0)
                 child.gwHooked = true
                 hooksecurefunc(child, "UpdateStateInternal", function(_, selected)
-                    child.Selected:SetShown(selected)
+                    child.gwSelected:SetShown(selected)
                     child.Label:SetFont(UNIT_NAME_FONT, 16)
                 end)
             end
@@ -346,20 +350,28 @@ local function encounterJournalSkin()
 
     EncounterJournalMonthlyActivitiesTab:ClearAllPoints()
 	EncounterJournalMonthlyActivitiesTab:SetPoint('TOPLEFT', EncounterJournal, 'BOTTOMLEFT', 0, 0)
+    EncounterJournalMonthlyActivitiesTab.ClearAllPoints = GW.NoOp
+    EncounterJournalMonthlyActivitiesTab.SetPoint = GW.NoOp
 
 	EncounterJournalSuggestTab:ClearAllPoints()
 	EncounterJournalSuggestTab:SetPoint('LEFT', EncounterJournalMonthlyActivitiesTab, 'RIGHT', 0, 0)
+    EncounterJournalSuggestTab.ClearAllPoints = GW.NoOp
     EncounterJournalSuggestTab.SetPoint = GW.NoOp
 
 	EncounterJournalDungeonTab:ClearAllPoints()
 	EncounterJournalDungeonTab:SetPoint('LEFT', EncounterJournalSuggestTab, 'RIGHT', 0, 0)
+    EncounterJournalDungeonTab.ClearAllPoints = GW.NoOp
     EncounterJournalDungeonTab.SetPoint = GW.NoOp
 
 	EncounterJournalRaidTab:ClearAllPoints()
 	EncounterJournalRaidTab:SetPoint('LEFT', EncounterJournalDungeonTab, 'RIGHT', 0, 0)
+    EncounterJournalRaidTab.ClearAllPoints = GW.NoOp
+    EncounterJournalRaidTab.SetPoint = GW.NoOp
 
 	EncounterJournalLootJournalTab:ClearAllPoints()
 	EncounterJournalLootJournalTab:SetPoint('LEFT', EncounterJournalRaidTab, 'RIGHT', 0, 0)
+    EncounterJournalLootJournalTab.ClearAllPoints = GW.NoOp
+    EncounterJournalLootJournalTab.SetPoint = GW.NoOp
 
     EncounterJournalMonthlyActivitiesFrame.HelpButton:GwKill()
 
