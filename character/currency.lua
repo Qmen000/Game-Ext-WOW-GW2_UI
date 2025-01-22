@@ -1,6 +1,5 @@
 local _, GW = ...
 local CharacterMenuButton_OnLoad = GW.CharacterMenuButton_OnLoad
-local CommaValue = GW.CommaValue
 
 local selectedLongInstanceID = nil
 
@@ -356,9 +355,9 @@ local function UpdateTokenSkins(frame)
         end
 
         if child.elementData.maxQuantity and child.elementData.maxQuantity > 0 then
-            child.Content.Count:SetText(CommaValue(child.elementData.quantity) .. " / " .. CommaValue(child.elementData.maxQuantity))
+            child.Content.Count:SetText(GW.GetLocalizedNumber(child.elementData.quantity) .. " / " .. GW.GetLocalizedNumber(child.elementData.maxQuantity))
         elseif child.elementData.quantity and child.Content then
-            child.Content.Count:SetText(CommaValue(child.elementData.quantity))
+            child.Content.Count:SetText(GW.GetLocalizedNumber(child.elementData.quantity))
         end
 
         if child.Content and child.Content.WatchedCurrencyCheck then
@@ -414,14 +413,17 @@ local function SkinTokenFrame()
     CurrencyTransferMenu.AmountSelector.TransferAmountLabel:SetTextColor(1, 1, 1)
     CurrencyTransferMenu.SourceBalancePreview.Label:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     CurrencyTransferMenu.SourceBalancePreview.Label:SetTextColor(1, 1, 1)
+    CurrencyTransferMenu.SourceBalancePreview.BalanceInfo.CurrencyIcon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
     CurrencyTransferMenu.PlayerBalancePreview.Label:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
     CurrencyTransferMenu.PlayerBalancePreview.Label:SetTextColor(1, 1, 1)
+    CurrencyTransferMenu.PlayerBalancePreview.BalanceInfo.CurrencyIcon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
 
     CurrencyTransferMenu:GwStripTextures()
     CurrencyTransferMenu:GwCreateBackdrop(GW.BackdropTemplates.Default)
     CurrencyTransferMenu.CloseButton:GwSkinButton(true)
     CurrencyTransferMenu.SourceSelector.Dropdown:GwHandleDropDownBox()
     GW.SkinTextBox(CurrencyTransferMenu.AmountSelector.InputBox.Middle, CurrencyTransferMenu.AmountSelector.InputBox.Left, CurrencyTransferMenu.AmountSelector.InputBox.Right)
+    CurrencyTransferMenu.AmountSelector.MaxQuantityButton:GwSkinButton(false, true)
     CurrencyTransferMenu.ConfirmButton:GwSkinButton(false, true)
     CurrencyTransferMenu.CancelButton:GwSkinButton(false, true)
 
@@ -496,7 +498,6 @@ local function UpdateTransferHistorySkins(self)
 end
 
 local function LoadCurrency(tabContainer)
-    -- setup the currency window as a HybridScrollFrame and init each of the faux frame buttons
     local curwin_outer = CreateFrame("Frame", "GWCharacterCurrenyRaidInfoFrame", tabContainer, "GwCurrencyWindow")
 
     --take over TokenFrame
@@ -504,14 +505,16 @@ local function LoadCurrency(tabContainer)
     TokenFrame:SetParent(curwin_outer.Currency)
     TokenFrame:ClearAllPoints()
     TokenFrame:SetPoint("TOPLEFT", curwin_outer.Currency, "TOPLEFT", 0, -15)
-    TokenFrame:SetSize(580, 596)
+    TokenFrame:SetSize(580, 576)
     TokenFrame.ScrollBox:SetParent(TokenFrame)
     TokenFrame.ScrollBox:ClearAllPoints()
     TokenFrame.ScrollBox:SetPoint("TOPLEFT", TokenFrame, 4, 0)
-    TokenFrame.ScrollBox:SetPoint("BOTTOMRIGHT", TokenFrame, -10, 0)
+    TokenFrame.ScrollBox:SetPoint("BOTTOMRIGHT", TokenFrame, -20, 0)
 
     --skin that frame here
     SkinTokenFrame()
+
+    TokenFrame.Hide = TokenFrame.Show
 
     hooksecurefunc(TokenFrame, "SetShown", function(self)
         self:Show()
@@ -540,6 +543,10 @@ local function LoadCurrency(tabContainer)
             self:SetPoint("BOTTOMRIGHT", TokenFrame, -22, 0)
         end
     end)
+
+    BackpackTokenFrame.GetMaxTokensWatched = function()
+        return 4
+    end
 
     -- setup transfer history
     local curHistroyWin = curwin_outer.CurrencyTransferHistoryScroll

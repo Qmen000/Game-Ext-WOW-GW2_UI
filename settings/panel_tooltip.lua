@@ -20,7 +20,7 @@ local function LoadTooltipPanel(sWindow)
     settingsMenuAddButton(L["Tooltips"],p, {})
 
     addOption(p.scroll.scrollchild, L["Cursor Tooltips"], L["Anchor the tooltips to the cursor."], "TOOLTIP_MOUSE", nil, nil, {["TOOLTIPS_ENABLED"] = true})
-    addOption(p.scroll.scrollchild, L["Advanced Tooltips"], L["Displays additional information in the tooltip (further information is displayed when the SHIFT key is pressed)"], "ADVANCED_TOOLTIP", function() GW.ShowRlPopup = true end, nil, {["TOOLTIPS_ENABLED"] = true})
+    addOption(p.scroll.scrollchild, L["Advanced Tooltips"], L["Displays additional information in the tooltip (further information is displayed when the SHIFT key is pressed)"], "ADVANCED_TOOLTIP", nil, nil, {["TOOLTIPS_ENABLED"] = true})
     addOption(p.scroll.scrollchild, L["Current Mount"], L["Display current mount the unit is riding."], "ADVANCED_TOOLTIP_SHOW_MOUNT", nil, nil, {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true})
     addOption(p.scroll.scrollchild, L["Target Info"], L["When in a raid group, show if anyone in your raid is targeting the current tooltip unit."], "ADVANCED_TOOLTIP_SHOW_TARGET_INFO", nil, nil, {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true})
     addOption(p.scroll.scrollchild, SHOW_PLAYER_TITLES, L["Display player titles."], "ADVANCED_TOOLTIP_SHOW_PLAYER_TITLES", nil, nil, {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true})
@@ -31,7 +31,7 @@ local function LoadTooltipPanel(sWindow)
     addOption(p.scroll.scrollchild, L["Gender"], L["Displays the player character's gender."], "ADVANCED_TOOLTIP_SHOW_GENDER", nil, nil, {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true})
     addOption(p.scroll.scrollchild, DUNGEON_SCORE, nil, "ADVANCED_TOOLTIP_SHOW_DUNGEONSCORE", nil, nil, {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true})
     addOption(p.scroll.scrollchild, CHALLENGE_MODE_KEYSTONE_NAME:format("_"):gsub(": _", ""), L["Adds descriptions for mythic keystone properties to their tooltips."], "ADVANCED_TOOLTIP_SHOW_KEYSTONEINFO", nil, nil, {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true})
-    addOption(p.scroll.scrollchild, L["Show Health bar text"], nil, "ADVANCED_TOOLTIP_SHOW_HEALTHBAR_TEXT", function(value) GW.UpdateTooltipSettings(); if not GameTooltip:IsForbidden() then if value then GameTooltipStatusBar.text:Show(); else GameTooltipStatusBar.text:Hide() end end end, nil, {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true})
+    addOption(p.scroll.scrollchild, L["Show Health bar text"], nil, "ADVANCED_TOOLTIP_SHOW_HEALTHBAR_TEXT", function(value) if not GameTooltip:IsForbidden() then if value then GameTooltipStatusBar.text:Show(); else GameTooltipStatusBar.text:Hide() end end end, nil, {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true})
     addOption(p.scroll.scrollchild, L["Hide in combat"], L["Hide different kind of tooltips during combat."], "HIDE_TOOLTIP_IN_COMBAT", nil, nil, {["TOOLTIPS_ENABLED"] = true})
     addOption(p.scroll.scrollchild, L["Show premade group info"], L["Add LFG group info to tooltip."], "TOOLTIP_SHOW_PREMADE_GROUP_INFO", nil, nil, {["TOOLTIPS_ENABLED"] = true}, "LfgInfo")
     addOptionDropdown(
@@ -154,18 +154,15 @@ local function LoadTooltipPanel(sWindow)
         L["Display how many of a certain item you have in your possession."],
         "ADVANCED_TOOLTIP_OPTION_ITEMCOUNT",
         nil,
-        {"NONE", "BAG", "BANK", "BOTH"},
-        {
-            NONE,
-            INVTYPE_BAG,
-            BANK,
-            STATUS_TEXT_BOTH
-        },
+        {"Bag", "Bank", "Stack"},
+        {INVTYPE_BAG, BANK, L["Stack Size"]},
         nil,
-        {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true}
+        {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true},
+        true
     )
-    addOption(p.scroll.scrollchild, L["Include Reagents"], nil, "ADVANCED_TOOLTIP_OPTION_ITEMCOUNT_INCLUDE_REAGENTS", nil, nil, {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true, ["ADVANCED_TOOLTIP_OPTION_ITEMCOUNT"] = {"BANK", "BOTH"}})
-    addOption(p.scroll.scrollchild, L["Include Warband"], nil, "ADVANCED_TOOLTIP_OPTION_ITEMCOUNT_INCLUDE_WARBAND", nil, nil, {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true, ["ADVANCED_TOOLTIP_OPTION_ITEMCOUNT"] = {"BANK", "BOTH"}})
+
+    addOption(p.scroll.scrollchild, L["Include Reagents"], nil, "ADVANCED_TOOLTIP_OPTION_ITEMCOUNT_INCLUDE_REAGENTS", nil, nil, {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true})
+    addOption(p.scroll.scrollchild, L["Include Warband"], nil, "ADVANCED_TOOLTIP_OPTION_ITEMCOUNT_INCLUDE_WARBAND", nil, nil, {["TOOLTIPS_ENABLED"] = true, ["ADVANCED_TOOLTIP"] = true})
     addOptionDropdown(
         p.scroll.scrollchild,
         L["Cursor Anchor Type"],

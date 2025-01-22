@@ -117,14 +117,13 @@ local function DatabaseMigration(globalDb, privateDb)
         GW.globalSettings:SetProfile(oldActiveProfileName)
     end
 
-    --GW2UI_PRIVATE_SETTINGS = nil
-    --GW2UI_PRIVATE_LAYOUTS = nil
-    --GW2UI_SETTINGS_PROFILES = nil
-    --GW2UI_LAYOUTS = nil
-    --GW2UI_SETTINGS_DB_03 = nil
+    GW2UI_PRIVATE_SETTINGS = nil
+    GW2UI_PRIVATE_LAYOUTS = nil
+    GW2UI_SETTINGS_PROFILES = nil
+    GW2UI_LAYOUTS = nil
+    GW2UI_SETTINGS_DB_03 = nil
 end
 GW.DatabaseMigration = DatabaseMigration
-
 
 local function Migration()
     -- migration for frame positions
@@ -188,6 +187,35 @@ local function Migration()
         GW.settings.timeStampFormat = timestampFormat
 
         GW.settings.chatTimeStampMigrationDone = true
+    end
+
+    -- migration of tooltip item count
+    if type(GW.settings.ADVANCED_TOOLTIP_OPTION_ITEMCOUNT) == "string" then
+        local db = {
+            Bank = true,
+            Bag = true,
+            Stack = false
+        }
+        if GW.settings.ADVANCED_TOOLTIP_OPTION_ITEMCOUNT == "BANK" then
+            db.Bank = true
+            db.Bag = false
+        elseif GW.settings.ADVANCED_TOOLTIP_OPTION_ITEMCOUNT == "BAG" then
+            db.Bank = false
+            db.Bag = true
+        elseif GW.settings.ADVANCED_TOOLTIP_OPTION_ITEMCOUNT == "BOTH" then
+            db.Bank = true
+            db.Bag = true
+        elseif GW.settings.ADVANCED_TOOLTIP_OPTION_ITEMCOUNT == "NONE" then
+            db.Bank = false
+            db.Bag = false
+        end
+
+        GW.settings.ADVANCED_TOOLTIP_OPTION_ITEMCOUNT = db
+    end
+
+    -- migrationtarget frame itemlevel
+    if type(GW.settings.target_ILVL) == "boolean" then
+        GW.settings.target_ILVL = GW.settings.target_ILVL == true and "ITEM_LEVEL" or "PVP_LEVEL"
     end
 end
 GW.Migration = Migration

@@ -123,9 +123,6 @@ local function resetSearchables()
         of:ClearAllPoints()
         of:SetParent(of.searchAble.og_parent)
         of:SetPoint(of.searchAble.og_point, of.searchAble.og_relativePoint, of.searchAble.og_x, of.searchAble.og_y)
-        if of.searchAble.og_dd_container_parent then
-            of.container:SetParent(of.searchAble.og_dd_container_parent)
-        end
     end
 
     matchingOptionFrames = {}
@@ -178,16 +175,16 @@ local function searchInputChanged(self)
     if not self:HasFocus() then return end
 
     local text = self:GetText()
-    if text == nil or text == "" then
+    if text == nil or text == "" or text == SEARCH then
+        self.clearButton:Hide()
         return
     end
-    if text == SEARCH then
-        return
-    end
+
     resetMenu(true)
     hideBreadCrumbFrames()
     self:SetTextColor(1, 1, 1)
     switchCat(nil, GwSettingsSearchResultPanel)
+    self.clearButton:Show()
 
     local box_padding = 8
     local pY = -48
@@ -215,11 +212,7 @@ local function searchInputChanged(self)
                     og_relativePoint = relativeTo,
                     og_x = xOfs,
                     og_y = yOfs,
-                    og_dd_container_parent = nil
                 }
-                if of.optionType == "dropdown" then
-                    of.searchAble.og_dd_container_parent = of.container:GetParent()
-                end
                 matchingOptionFrames[#matchingOptionFrames + 1] = of
 
                 if first then
@@ -248,9 +241,6 @@ local function searchInputChanged(self)
                 of:ClearAllPoints()
                 of:SetParent(GwSettingsSearchResultPanel.scroll.scrollchild)
                 of:SetPoint("TOPLEFT", GwSettingsSearchResultPanel.scroll.scrollchild, "TOPLEFT", padding.x, padding.y)
-                if of.optionType == "dropdown" then
-                of.container:SetParent(GwSettingsSearchResultPanel.scroll)
-                end
 
                 if not of.newLine then
                     padding.x = padding.x + of:GetWidth() + box_padding
@@ -407,10 +397,16 @@ local function loadSettingsSearchAbleMenu()
     GwSettingsMenuSearchable.search.input:SetTextColor(178 / 255, 178 / 255, 178 / 255)
     GwSettingsMenuSearchable.search.input:SetText(SEARCH)
     GwSettingsMenuSearchable.search.input:SetScript("OnEscapePressed", fnGWP_input_OnEscapePressed)
-    GwSettingsMenuSearchable.search.input:SetScript("OnEditFocusGained", function(self) if self:GetText()==SEARCH then self:SetText("") end end)
-    GwSettingsMenuSearchable.search.input:SetScript("OnEditFocusLost", function(self) if self:GetText()==nil or self:GetText()=="" then self:SetTextColor(178 / 255, 178 / 255, 178 / 255) self:SetText(SEARCH) end end)
+    GwSettingsMenuSearchable.search.input:SetScript("OnEditFocusGained", function(self) if self:GetText()==SEARCH then self:SetText("") end self.clearButton:Show() end)
+    GwSettingsMenuSearchable.search.input:SetScript("OnEditFocusLost", function(self) if self:GetText()==nil or self:GetText()=="" then self:SetTextColor(178 / 255, 178 / 255, 178 / 255) self:SetText(SEARCH) self.clearButton:Hide() end end)
     GwSettingsMenuSearchable.search.input:SetScript("OnEnterPressed", fnGWP_input_OnEnterPressed)
-    GwSettingsMenuSearchable.search.input:SetScript("OnTextChanged",searchInputChanged)
+    GwSettingsMenuSearchable.search.input:SetScript("OnTextChanged", searchInputChanged)
+    GwSettingsMenuSearchable.search.input.clearButton:SetScript("OnClick", function(self)
+        self:GetParent():ClearFocus()
+        self:GetParent():SetText(SEARCH)
+        GW.SettingsFrameSwitchCategorieModule(2)
+    end)
+
 
     -- load the scrollbox on first load
     GwSettingsMenuSearchable.firstTimeLoaded = true

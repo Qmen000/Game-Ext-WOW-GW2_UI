@@ -50,6 +50,7 @@ local function switchCat(index)
         end
     end
 end
+GW.SettingsFrameSwitchCategorieModule = switchCat
 AddForProfiling("settings", "switchCat", switchCat)
 
 local fnF_OnEnter = function(self)
@@ -198,10 +199,12 @@ local function AddGroupHeader(panel, name)
 end
 GW.AddGroupHeader = AddGroupHeader
 
-local function AddOptionColorPicker(panel, name, desc, optionName, callback, params, dependence, incompatibleAddons, forceNewLine, groupHeaderName, isPrivateSetting)
-    local opt = AddOption(panel, name, desc, optionName, callback, params, dependence, incompatibleAddons, forceNewLine, groupHeaderName, isPrivateSetting)
+local function AddOptionColorPicker(panel, name, desc, optionName, getterSetter, default, callback, params, dependence, incompatibleAddons, forceNewLine, groupHeaderName)
+    local opt = AddOption(panel, name, desc, optionName, callback, params, dependence, incompatibleAddons, forceNewLine, groupHeaderName)
 
     opt.optionType = "colorPicker"
+    opt.getterSetter = getterSetter
+    opt.default = default
 
     return opt
 end
@@ -251,7 +254,7 @@ local function setDependenciesOption(type, name, SetEnable, deactivateColor, ove
         elseif type == "text" then
             _G[name].inputFrame.input:SetTextColor(0.82, 0, 0)
         elseif type == "dropdown" then
-            _G[name].button.string:SetTextColor(0.82, 0, 0)
+            _G[name].dropDown.Text:SetTextColor(0.82, 0, 0)
         end
     elseif overrideColor then
         _G[name].title:SetTextColor(1, 0.65, 0)
@@ -260,7 +263,7 @@ local function setDependenciesOption(type, name, SetEnable, deactivateColor, ove
         elseif type == "text" then
             _G[name].inputFrame.input:SetTextColor(1, 0.65, 0)
         elseif type == "dropdown" then
-            _G[name].button.string:SetTextColor(1, 0.65, 0)
+            _G[name].dropDown.Text:SetTextColor(1, 0.65, 0)
         end
     elseif SetEnable then
         _G[name].title:SetTextColor(1, 1, 1)
@@ -275,11 +278,13 @@ local function setDependenciesOption(type, name, SetEnable, deactivateColor, ove
             _G[name].inputFrame.input:Enable()
             _G[name].inputFrame.input:SetTextColor(1, 1, 1)
         elseif type == "dropdown" then
-            _G[name].button:Enable()
-            _G[name].button.string:SetTextColor(1, 1, 1)
+            _G[name].dropDown:Enable()
+            _G[name].dropDown.Text:SetTextColor(1, 1, 1)
         elseif type == "button" then
             _G[name]:Enable()
             _G[name].title:SetTextColor(0, 0, 0)
+        elseif type == "colorPicker" then
+            _G[name].button:Enable()
         end
     else
         _G[name].title:SetTextColor(0.4, 0.4, 0.4)
@@ -294,10 +299,12 @@ local function setDependenciesOption(type, name, SetEnable, deactivateColor, ove
             _G[name].inputFrame.input:Disable()
             _G[name].inputFrame.input:SetTextColor(0.4, 0.4, 0.4)
         elseif type == "dropdown" then
-            _G[name].button:Disable()
-            _G[name].button.string:SetTextColor(0.4, 0.4, 0.4)
+            _G[name].dropDown:Disable()
+            _G[name].dropDown.Text:SetTextColor(0.4, 0.4, 0.4)
         elseif type == "button" then
             _G[name]:Disable()
+        elseif type == "colorPicker" then
+            _G[name].button:Disable()
         end
     end
 end
@@ -340,74 +347,48 @@ local function checkDependenciesOnLoad()
     end
 end
 
-local function loadDropDown(scrollFrame)
-    local USED_DROPDOWN_HEIGHT
-
-    local offset = HybridScrollFrame_GetOffset(scrollFrame)
-    local ddCount = scrollFrame.numEntries
-
-    for i = 1, #scrollFrame.buttons do
-        local slot = scrollFrame.buttons[i]
-
-        local idx = i + offset
-        if idx > ddCount then
-            -- empty row (blank starter row, final row, and any empty entries)
-            slot:Hide()
-            slot.option = nil
-            slot.optionName = nil
-            slot.optionDisplayName = nil
-        else
-            if scrollFrame.data then
-                if not scrollFrame.data.hasCheckbox then
-                    slot.checkbutton:Hide()
-                    slot.string:ClearAllPoints()
-                    slot.string:SetPoint("LEFT", 5, 0)
-                else
-                    slot.checkbutton:Show()
-                end
-                if not scrollFrame.data.hasSound then
-                    slot.soundButton:Hide()
-                else
-                    slot.soundButton:Show()
-                end
-
-                if scrollFrame.data.isFont then
-                    slot.string:SetFont(GW.Libs.LSM:Fetch("font", scrollFrame.data.options[idx]), 12, "")
-                end
-
-                slot.string:SetText(scrollFrame.data.options_names[idx])
-                slot.option = scrollFrame.data.options[idx]
-                slot.optionName = scrollFrame.data.optionName
-                slot.optionDisplayName = scrollFrame.data.options_names[idx]
-
-                if scrollFrame.data.hasCheckbox then
-                    local settingstable = scrollFrame.of.isPrivateSetting and GW.private[scrollFrame.data.optionName] or GW.settings[scrollFrame.data.optionName]
-                    if type(settingstable[scrollFrame.data.options[idx]]) == "table" then
-                        slot.checkbutton:SetChecked(settingstable[scrollFrame.data.options[idx]].enable)
-                    else
-                        slot.checkbutton:SetChecked(settingstable[scrollFrame.data.options[idx]] == nil and true or settingstable[scrollFrame.data.options[idx]])
-                    end
-                end
-
-                slot:Show()
-            else
-                slot:Hide()
-            end
-        end
+local function ColorPickerFrameCallback(restore, frame, buttonBackground)
+    if ColorPickerFrame.noColorCallback then return end
+    local newR, newG, newB
+    if restore then
+     -- The user bailed, we extract the old color from the table created by ShowColorPicker.
+     newR, newG, newB = unpack(restore)
+    else
+     -- Something changed
+      newR, newG, newB = ColorPickerFrame.Content.ColorPicker:GetColorRGB()
     end
+    -- Update our internal storage.
 
-    USED_DROPDOWN_HEIGHT = 20 * ddCount
-    HybridScrollFrame_Update(scrollFrame, USED_DROPDOWN_HEIGHT, 120)
+    local color = frame.getterSetter
+    local changed = color.r ~= newR or color.g ~= newG or color.b ~= newB
+    color.r = newR
+    color.g = newG
+    color.b = newB
+    frame.getterSetter = color
+    buttonBackground:SetColorTexture(newR, newG, newB)
+
+    if frame.callback then
+        frame.callback(newR, newG, newB, changed)
+    end
 end
 
-local function ShowColorPicker(r, g, b, a, changedCallback)
+local function ShowColorPicker(frame)
+    local r, g, b = frame.getterSetter.r, frame.getterSetter.g, frame.getterSetter.b
     ColorPickerFrame.Content.ColorPicker:SetColorRGB(r, g, b)
-    ColorPickerFrame.hasOpacity = (a ~= nil)
-    ColorPickerFrame.opacity = a
-    ColorPickerFrame.previousValues = {r, g, b, a}
-    ColorPickerFrame.func = changedCallback
-    ColorPickerFrame.opacityFunc = changedCallback
-    ColorPickerFrame.cancelFunc = changedCallback
+    ColorPickerFrame.hasOpacity = (frame.getterSetter.a ~= nil)
+    ColorPickerFrame.opacity = frame.getterSetter.a
+    ColorPickerFrame.previousValues = {r, g, b, frame.getterSetter.a}
+    ColorPickerFrame.func = function() ColorPickerFrameCallback(nil, frame, frame.button.bg) end
+    ColorPickerFrame.opacityFunc = function() ColorPickerFrameCallback(nil, frame, frame.button.bg) end
+    ColorPickerFrame.cancelFunc = function(restore) ColorPickerFrameCallback(restore, frame, frame.button.bg) end
+
+    if frame.default then
+        if not GwColorPPDefault.defaultColor then
+            GwColorPPDefault.defaultColor = {}
+        end
+
+        GwColorPPDefault.defaultColor = frame.default
+    end
     ColorPickerFrame:Show()
     ColorPickerFrame:SetFrameStrata('FULLSCREEN_DIALOG')
     ColorPickerFrame:SetClampedToScreen(true)
@@ -428,7 +409,7 @@ local function updateSettingsFrameSettingsValue(setting, value, setSetting)
                 end
                 if of.optionType == "slider" then
                     of.slider:SetValue(value)
-                    of.inputFrame.input:SetText(tonumber(value))
+                    of.inputFrame.input:SetText(RoundDec(value, of.decimalNumbers))
                 end
 
                 found = true
@@ -439,6 +420,45 @@ local function updateSettingsFrameSettingsValue(setting, value, setSetting)
     end
 end
 GW.updateSettingsFrameSettingsValue = updateSettingsFrameSettingsValue
+
+local function RefreshSettingsAfterProfileSwitch()
+    GW.disableGridUpdate = true
+    GW.IsInProfileSwitch = true
+    for _, panel in pairs(GW.getOptionReference()) do
+        for _, of in pairs(panel.options) do
+            if of.optionType == "slider" then
+                of.slider:SetValue(RoundDec((of.isPrivateSetting and GW.private[of.optionName] or GW.settings[of.optionName]), of.decimalNumbers))
+                of.inputFrame.input:SetText(RoundDec(of.isPrivateSetting and GW.private[of.optionName] or GW.settings[of.optionName], of.decimalNumbers))
+                if of.callback then
+                    of.callback()
+                end
+            elseif of.optionType == "boolean" then
+                of.checkbutton:SetChecked(of.isPrivateSetting and GW.private[of.optionName] or GW.settings[of.optionName])
+                if of.callback then
+                    local toSet = of.checkbutton:GetChecked()
+                    of.callback(toSet, of.optionName)
+                end
+            elseif of.optionType == "text" then
+                of.inputFrame.input:SetText(of.isPrivateSetting and GW.private[of.optionName] or GW.settings[of.optionName] or "")
+                if of.callback then
+                    of.callback(of.inputFrame.input)
+                end
+            elseif of.optionType == "colorPicker" then
+                local color = of.getterSetter -- here we have a setter/getter like GW.settings.SETTINGNAME
+                of.button.bg:SetColorTexture(color.r, color.g, color.b)
+            elseif of.optionType == "dropdown" then
+                of.dropDown:GenerateMenu()
+            end
+        end
+    end
+    checkDependenciesOnLoad()
+    GW.ShowRlPopup = false
+    GW.disableGridUpdate = false
+    -- Update grids with new settings
+    GW.UpdateGridSettings("ALL", nil, true)
+    GW.IsInProfileSwitch = false
+end
+GW.RefreshSettingsAfterProfileSwitch = RefreshSettingsAfterProfileSwitch
 
 local panelUniqueID = 0
 local function InitPanel(panel, hasScroll)
@@ -523,7 +543,6 @@ local function InitPanel(panel, hasScroll)
         optionReference[panelUniqueID].options[#optionReference[panelUniqueID].options + 1] = of
 
         of.optionName = v.optionName
-        of.perSpec = v.perSpec
         of.decimalNumbers = v.decimalNumbers
         of.options = v.options
         of.options_names = v.options_names
@@ -531,6 +550,10 @@ local function InitPanel(panel, hasScroll)
         of.optionType = v.optionType
         of.groupHeaderName = v.groupHeaderName
         of.isPrivateSetting = v.isPrivateSetting
+        of.callback = v.callback
+        of.hasCheckbox = v.hasCheckbox
+        of.getterSetter = v.getterSetter
+        of.default = v.default
         --need this for searchables
         of.forceNewLine = v.forceNewLine
 
@@ -545,21 +568,15 @@ local function InitPanel(panel, hasScroll)
 
         of:ClearAllPoints()
         of:SetPoint("TOPLEFT", (hasScroll and panel.scroll.scrollchild or panel), "TOPLEFT", padding.x, padding.y)
-        of.title:SetText(v.name)
         of.title:SetFont(DAMAGE_TEXT_FONT, 12)
         of.title:SetTextColor(1, 1, 1)
         of.title:SetShadowColor(0, 0, 0, 1)
+        of.title:SetText(v.name)
 
         if v.optionType == "dropdown" and v.noNewLine ~= nil and v.noNewLine then
             of.title:Hide()
-            of.container:ClearAllPoints()
-            of.container:SetPoint("LEFT", -10, 0)
-            of.button:ClearAllPoints()
-            of.button:SetPoint("LEFT", -10, 0)
-        end
-
-        if hasScroll and v.optionType == "dropdown" then
-            of.container:SetParent(panel)
+            of.dropDown:ClearAllPoints()
+            of.dropDown:SetPoint("LEFT", 50, 0)
         end
 
         of:SetScript(
@@ -575,210 +592,185 @@ local function InitPanel(panel, hasScroll)
         of:SetScript("OnLeave", GameTooltip_Hide)
 
         if v.optionType == "colorPicker" then
-            local color = of.isPrivateSetting and GW.private[of.optionName] or GW.settings[of.optionName]
-            of.button.bg:SetColorTexture(color.r, color.g, color.b)
+            local setting = of.getterSetter
+            of.button.bg:SetColorTexture(setting.r, setting.g, setting.b)
             of.button:SetScript("OnClick", function()
                 if ColorPickerFrame:IsShown() then
                     HideUIPanel(ColorPickerFrame)
                 else
-                    color = of.isPrivateSetting and GW.private[of.optionName] or GW.settings[of.optionName]
-                    ShowColorPicker(color.r, color.g, color.b, nil, function(restore)
-                        if ColorPickerFrame.noColorCallback then return end
-                        local newR, newG, newB
-                        if restore then
-                         -- The user bailed, we extract the old color from the table created by ShowColorPicker.
-                         newR, newG, newB = unpack(restore)
-                        else
-                         -- Something changed
-                          newR, newG, newB = ColorPickerFrame.Content.ColorPicker:GetColorRGB()
-                        end
-                        -- Update our internal storage.
-
-                        local color = of.isPrivateSetting and GW.private[of.optionName] or GW.settings[of.optionName]
-                        color.r = newR
-                        color.g = newG
-                        color.b = newB
-                        if of.isPrivateSetting then
-                            GW.private[of.optionName] = color
-                        else
-                            GW.settings[of.optionName] = color
-                        end
-                        of.button.bg:SetColorTexture(newR, newG, newB)
-                    end)
+                    ShowColorPicker(of)
                 end
             end)
         elseif v.optionType == "dropdown" then
-            local scrollFrame = of.container.contentScroll
-            scrollFrame.numEntries = #v.options
-            scrollFrame.scrollBar.thumbTexture:SetSize(12, 30)
-            scrollFrame.scrollBar:ClearAllPoints()
-            scrollFrame.scrollBar:SetPoint("TOPRIGHT", -3, -12)
-            scrollFrame.scrollBar:SetPoint("BOTTOMRIGHT", -3, 12)
-            scrollFrame.scrollBar.scrollUp:SetPoint("TOPRIGHT", 0, 12)
-            scrollFrame.scrollBar.scrollDown:SetPoint("BOTTOMRIGHT", 0, -12)
-            scrollFrame.scrollBar:SetFrameLevel(scrollFrame:GetFrameLevel() + 5)
+            of.dropDown.OnButtonStateChanged = GW.NoOp
 
-            scrollFrame.data = GW.copyTable(nil, v)
-            scrollFrame.of = of
-            scrollFrame.update = loadDropDown
-            scrollFrame.scrollBar.doNotHide = false
-            HybridScrollFrame_CreateButtons(scrollFrame, "GwDropDownItemTmpl", 0, 0, "TOPLEFT", "TOPLEFT", 0, 0, "TOP", "BOTTOM")
-            for i = 1, #scrollFrame.buttons do
-                local slot = scrollFrame.buttons[i]
-                slot:SetWidth(scrollFrame:GetWidth())
-                slot.string:SetFont(UNIT_NAME_FONT, 12)
-                slot.hover:SetAlpha(0.5)
-                slot.of = of
-                if not slot.ScriptsHooked then
-                    slot:HookScript("OnClick", function(self)
-                        if v.hasCheckbox then return end
-                        of.button.string:SetText(self.optionDisplayName)
-
-                        if of.container:IsShown() then
-                            of.container:Hide()
-                        else
-                            of.container:Show()
+            of.dropDown:GwHandleDropDownBox(nil, nil, nil, 260)
+            of.dropDown:HookScript("OnMouseDown", function(_, button)
+                if v.isIncompatibleAddonLoaded or v.isIncompatibleAddonLoadedButOverride then
+                    if IsControlKeyDown() and button == "LeftButton" then
+                        if v.isIncompatibleAddonLoaded and not v.isIncompatibleAddonLoadedButOverride then
+                            -- Set override value
+                            SetOverrideIncompatibleAddons(v.incompatibleAddonsType, true)
+                        elseif not v.isIncompatibleAddonLoaded and v.isIncompatibleAddonLoadedButOverride then
+                            -- Remove override value
+                            SetOverrideIncompatibleAddons(v.incompatibleAddonsType, false)
                         end
+                    end
+                end
+            end)
 
-                        if of.isPrivateSetting then
-                            GW.private[self.optionName] = self.option
-                        else
-                            GW.settings[self.optionName] = self.option
-                        end
+            of.dropDown:SetSelectionText(function(selections)
+                if #selections == 0 then
+                    return L["No option selected"]
+                elseif #selections > 5 then
+                    return L["More than 5 options selected (#%s)"]:format(#selections)
+                end
 
-                        if v.isFont then
-                            of.button.string:SetFont(GW.Libs.LSM:Fetch("font", self.optionDisplayName), 12, "")
+                local texts = {}
+                local text
+                for _, selection in ipairs(selections) do
+                    if not selection:IsSelectionIgnored() then
+                        table.insert(texts, MenuUtil.GetElementText(selection))
+                    end
+                end
+                if #texts > 0 then
+                    text = table.concat(texts, LIST_DELIMITER)
+                end
 
-                        end
+                return text
+            end);
 
-                        if v.callback then
-                            v.callback(self.option)
-                        end
-                        --Check all dependencies on this option
-                        checkDependenciesOnLoad()
-                    end)
-                    slot.checkbutton:HookScript("OnClick", function(self)
-                        local toSet = false
-                        if self:GetChecked() then
-                            toSet = true
-                        end
+            of.dropDown:SetupMenu(function(drowpdown, rootDescription)
+                local buttonSize = 20
+                local maxButtons = 10
+                rootDescription:SetScrollMode(buttonSize * maxButtons)
 
-                        if of.isPrivateSetting then
-                            if type(GW.private[self:GetParent().optionName][self:GetParent().option]) == "table" then
-                                GW.private[self:GetParent().optionName][self:GetParent().option].enable = toSet
+                for idx, option in pairs(v.options) do
+                    local function IsSelected(data)
+                        if v.hasCheckbox then
+                            local settingstable = of.isPrivateSetting and GW.private[data.optionName] or GW.settings[data.optionName]
+                            local isSelected = false
+                            if type(settingstable[option]) == "table" then
+                                isSelected = settingstable[option].enable
                             else
-                                GW.private[self:GetParent().optionName][self:GetParent().option] = toSet
+                                isSelected = settingstable[option] == nil and true or settingstable[option]
+                            end
+                            if GW.IsInProfileSwitch and v.callback then
+                                v.callback(isSelected, data.option)
+                            end
+                            return isSelected
+                        else
+                            if GW.IsInProfileSwitch and v.callback then
+                                v.callback(data.option)
+                                if v.isFont then
+                                    of.dropDown.Text:SetFont(GW.Libs.LSM:Fetch("font", data.option), 12, "")
+                                else
+                                    of.dropDown.Text:SetFont(UNIT_NAME_FONT, 12)
+                                end
+                            end
+                            if of.isPrivateSetting then
+                                return GW.private[data.optionName] == data.option
+                            else
+                                return GW.settings[data.optionName] == data.option
+                            end
+                        end
+                    end
+                    local function SetSelected(data)
+                        if v.hasCheckbox then
+                            local isSelected = true
+
+                            if of.isPrivateSetting then
+                                if type(GW.private[data.optionName][data.option]) == "table" then
+                                    isSelected = not GW.private[data.optionName][data.option].enable
+                                    GW.private[data.optionName][data.option].enable = isSelected
+                                else
+                                    isSelected = not GW.private[data.optionName][data.option]
+                                    GW.private[data.optionName][data.option] = isSelected
+                                end
+                            else
+                                if type(GW.settings[data.optionName][data.option]) == "table" then
+                                    isSelected = not GW.settings[data.optionName][data.option].enable
+                                    GW.settings[data.optionName][data.option].enable = isSelected
+                                else
+                                    isSelected = not GW.settings[data.optionName][data.option]
+                                    GW.settings[data.optionName][data.option] = isSelected
+                                end
+                            end
+
+                            if v.callback then
+                                v.callback(isSelected, data.option)
                             end
                         else
-                            if type(GW.settings[self:GetParent().optionName][self:GetParent().option]) == "table" then
-                                GW.settings[self:GetParent().optionName][self:GetParent().option].enable = toSet
+                            if of.isPrivateSetting then
+                                GW.private[data.optionName] = data.option
                             else
-                                GW.settings[self:GetParent().optionName][self:GetParent().option] = toSet
+                                GW.settings[data.optionName] = data.option
+                            end
+
+                            if v.isFont then
+                                of.dropDown.Text:SetFont(GW.Libs.LSM:Fetch("font", data.option), 12, "")
+                            else
+                                of.dropDown.Text:SetFont(UNIT_NAME_FONT, 12)
+                            end
+
+                            if v.callback then
+                                v.callback(data.option)
                             end
                         end
-
-                        if v.callback then
-                            v.callback(toSet, self:GetParent().option)
-                        end
-                        --Check all dependencies on this option
                         checkDependenciesOnLoad()
+                    end
+
+                    local entryButton
+                    if v.hasCheckbox then
+                        entryButton = rootDescription:CreateCheckbox(v.options_names[idx], IsSelected, SetSelected, {optionName = v.optionName, option = option})
+                    else
+                        entryButton = rootDescription:CreateRadio(v.options_names[idx], IsSelected, SetSelected, {optionName = v.optionName, option = option})
+                    end
+
+                    entryButton:AddInitializer(function(button, description, menu)
+                        if v.hasCheckbox then
+                            GW.BlizzardDropdownCheckButtonInitializer(button, description, menu)
+                        else
+                            GW.BlizzardDropdownRadioButtonInitializer(button, description, menu)
+                        end
+
+                        if v.hasSound then
+                            local soundButton = MenuTemplates.AttachAutoHideButton(button, "Interface/AddOns/GW2_UI/textures/chat/channel_vc_sound_on")
+                            soundButton:SetSize(14, 14)
+                            soundButton:SetPoint("RIGHT")
+                            soundButton:SetScript("OnClick", function()
+                                PlaySoundFile(GW.Libs.LSM:Fetch("sound", option), "Master")
+                            end)
+                        end
                     end)
-                    slot:HookScript("OnEnter", function()
-                        slot.hover:Show()
-                    end)
-                    slot.checkbutton:HookScript("OnEnter", function()
-                        slot.hover:Show()
-                    end)
-                    slot:HookScript("OnLeave", function()
-                        slot.hover:Hide()
-                    end)
-                    slot.checkbutton:HookScript("OnLeave", function()
-                        slot.hover:Hide()
-                    end)
+
                     if v.tooltipType then
                         if v.tooltipType == "spell" then
-                            slot:HookScript("OnEnter", function(self)
-                                -- show the spell tooltip
-                                GameTooltip_SetDefaultAnchor(GameTooltip, self)
-                                GameTooltip:SetSpellByID(self.option)
-                                GameTooltip:Show()
+                            entryButton:SetTooltip(function(tooltip, elementDescription)
+                                GameTooltip:SetSpellByID(option)
                             end)
                         elseif v.tooltipType == "encounter" then
-                            slot:HookScript("OnEnter", function(self)
-                                local name, desc = EJ_GetEncounterInfo(self.option)
-                                GameTooltip_SetDefaultAnchor(GameTooltip, self)
-                                GameTooltip_SetTitle(GameTooltip, name)
-                                GameTooltip_AddNormalLine(GameTooltip, desc, nil, true)
-                                GameTooltip:Show()
+                            entryButton:SetTooltip(function(tooltip, elementDescription)
+                                local name, desc = EJ_GetEncounterInfo(option)
+                                GameTooltip:AddLine(name, 1, 1, 1)
+                                GameTooltip:AddLine(desc, 1, 1, 1, true)
                             end)
                         end
-                        slot:HookScript("OnLeave", function()
-                            GameTooltip:Hide()
-                        end)
-                    end
-                    slot.soundButton:HookScript("OnClick", function(self)
-                        PlaySoundFile(GW.Libs.LSM:Fetch("sound", self:GetParent().option), "Master")
-                    end)
-                    slot.ScriptsHooked = true
-                end
-            end
-            loadDropDown(scrollFrame)
-            -- set current settings value
-            for key, val in pairs(v.options) do
-                if of.isPrivateSetting then
-                    if GW.private[of.optionName] == val then
-                        of.button.string:SetText(v.options_names[key])
-                        break
-                    end
-                else
-                    if GW.settings[of.optionName] == val then
-                        of.button.string:SetText(v.options_names[key])
-                        break
                     end
                 end
-            end
+            end)
+
             if v.isFont then
-                of.button.string:SetFont(GW.Libs.LSM:Fetch("font", of.button.string:GetText()), 12, "")
+                of.dropDown.Text:SetFont(GW.Libs.LSM:Fetch("font", of.dropDown.Text:GetText()), 12, "")
             else
-                of.button.string:SetFont(UNIT_NAME_FONT, 12)
+                of.dropDown.Text:SetFont(UNIT_NAME_FONT, 12)
             end
 
-            of.button:SetScript(
-                "OnClick",
-                function(self, button) -- if incompatible addons is loaded, check for override click
-                    if v.isIncompatibleAddonLoaded or v.isIncompatibleAddonLoadedButOverride then
-                        if IsControlKeyDown() and button == "LeftButton" then
-                            if v.isIncompatibleAddonLoaded and not v.isIncompatibleAddonLoadedButOverride then
-                                -- Set override value
-                                SetOverrideIncompatibleAddons(v.incompatibleAddonsType, true)
-                            elseif not v.isIncompatibleAddonLoaded and v.isIncompatibleAddonLoadedButOverride then
-                                -- Remove override value
-                                SetOverrideIncompatibleAddons(v.incompatibleAddonsType, false)
-                            end
-                        end
-                        return
-                    end
-                    local dd = self:GetParent()
-                    if dd.container:IsShown() then
-                        dd.container:Hide()
-                    else
-                        dd.container:Show()
-                    end
-                end
-            )
-            scrollFrame:SetScript(
-                "OnMouseDown",
-                function(self)
-                    if self:GetParent():IsShown() then
-                        self:GetParent():Hide()
-                    else
-                        self:GetParent():Show()
-                    end
-                end
-            )
+            of.dropDown:Enable()
+            of.dropDown.Text:SetTextColor(1, 1, 1) -- init text color for options without deps
         elseif v.optionType == "slider" then
             of.slider:SetMinMaxValues(v.min, v.max)
-            of.slider:SetValue(RoundDec((of.isPrivateSetting and GW.private[of.optionName] or GW.settings[of.optionName])))
+            of.slider:SetValue(RoundDec((of.isPrivateSetting and GW.private[of.optionName] or GW.settings[of.optionName]), of.decimalNumbers))
             if v.step then of.slider:SetValueStep(v.step) end
             of.slider:SetObeyStepOnDrag(true)
             of.slider:SetScript(
@@ -964,7 +956,7 @@ local function InitPanel(panel, hasScroll)
                         end
                         return
                     end
-                    if v.callback ~= nil then
+                    if v.callback then
                         v.callback()
                     end
                     --Check all dependencies on this option
@@ -975,43 +967,11 @@ local function InitPanel(panel, hasScroll)
             of.title:SetShadowColor(0, 0, 0, 0)
         elseif v.optionType == "header" then
             of.title:SetFont(DAMAGE_TEXT_FONT, 16)
-            --of.title:SetTextColor(1, 1, 1)
-            --of.title:SetShadowColor(0, 0, 0, 1)
-        end
-
-        if of.perSpec then
-            local onUpdate = function (self)
-                self:SetScript("OnUpdate", nil)
-                local val = of.isPrivateSetting and GW.private[of.optionName] or GW.settings[of.optionName]
-
-                if v.optionType == "dropdown" then
-                    for i,value in pairs(v.options) do
-                        if value == val then self.button.string:SetText(v.options_names[i]) break end
-                    end
-                elseif v.optionType == "slider" then
-                    self.slider:SetValue(val)
-                elseif v.optionType == "text" then
-                    self.input:SetText(val)
-                elseif v.optionType == "boolean" then
-                    self.checkbutton:SetChecked(val)
-                end
-
-                if v.callback and v.optionType ~= "slider" then
-                    v.callback()
-                end
-            end
-            of:SetScript("OnEvent", function (self, e)
-                if e == "PLAYER_SPECIALIZATION_CHANGED" then
-                    self:SetScript("OnUpdate", onUpdate)
-                end
-            end)
-            of:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
         end
 
         if not newLine then
             padding.x = padding.x + of:GetWidth() + box_padding
         else
-
             padding.x = maximumXSize + 10
         end
     end
@@ -1109,6 +1069,7 @@ local function LoadSettings()
 
     GW.LoadOverviewPanel(sWindow)
     GW.LoadModulesPanel(sWindow)
+    GW.LoadGeneralPanel(sWindow)
     GW.LoadPlayerPanel(sWindow)
     GW.LoadTargetPanel(sWindow)
     GW.LoadActionbarPanel(sWindow)

@@ -461,6 +461,7 @@ local function setActionButtonStyle(buttonName, noBackDrop, isStanceButton, isPe
 
     btn:GetPushedTexture():SetSize(btnWidth, btnWidth)
 
+
     if btn.Border then
         btn.Border:SetSize(btnWidth, btnWidth)
         btn.Border:SetBlendMode("BLEND")
@@ -494,6 +495,9 @@ local function setActionButtonStyle(buttonName, noBackDrop, isStanceButton, isPe
     end
     if btn.AutoCastOverlay then
         btn.AutoCastOverlay:SetSize(btnWidth, btnWidth)
+        --btn.AutoCastOverlay.Mask:ClearAllPoints()
+        --btn.AutoCastOverlay.Mask:SetPoint("TOPLEFT", 1, -1)
+        --btn.AutoCastOverlay.Mask:SetPoint("BOTTOMRIGHT", -1, 1)
     end
     if btn.NewActionTexture then
         btn.NewActionTexture:SetSize(btnWidth, btnWidth)

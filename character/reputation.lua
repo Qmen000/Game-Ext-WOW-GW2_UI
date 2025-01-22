@@ -1,6 +1,5 @@
 local _, GW = ...
 local L = GW.L
-local CommaValue = GW.CommaValue
 local RoundDec = GW.RoundDec
 local FACTION_BAR_COLORS = GW.FACTION_BAR_COLORS
 local RT = GW.REP_TEXTURES
@@ -556,8 +555,8 @@ local function setReputationDetails(frame, data)
         frame.currentRank:SetText(friendInfo.friendshipFactionID and friendInfo.reaction or currentRank)
         frame.nextRank:SetText(L["Paragon"] .. (currentValue > threshold and (" (" .. RoundDec(currentValue / threshold, 0) .. "x)") or ""))
 
-        frame.currentValue:SetText(CommaValue(value))
-        frame.nextValue:SetText(CommaValue(threshold))
+        frame.currentValue:SetText(GW.GetLocalizedNumber(value))
+        frame.nextValue:SetText(GW.GetLocalizedNumber(threshold))
 
         local percent = math.floor(RoundDec(((value - 0) / (threshold - 0)) * 100))
         frame.percentage:SetText(percent .. "%")
@@ -576,19 +575,15 @@ local function setReputationDetails(frame, data)
         frame.StatusBar:SetStatusBarColor(FACTION_BAR_COLORS[5].r, FACTION_BAR_COLORS[5].g, FACTION_BAR_COLORS[5].b)
 
         if (friendInfo.nextThreshold) then
-            frame.currentValue:SetText(CommaValue(friendInfo.standing - friendInfo.reactionThreshold))
-            frame.nextValue:SetText(CommaValue(friendInfo.nextThreshold - friendInfo.reactionThreshold))
+            frame.currentValue:SetText(GW.GetLocalizedNumber(friendInfo.standing - friendInfo.reactionThreshold))
+            frame.nextValue:SetText(GW.GetLocalizedNumber(friendInfo.nextThreshold - friendInfo.reactionThreshold))
 
             local percent =
                 math.floor(RoundDec(((friendInfo.standing - friendInfo.reactionThreshold) / (friendInfo.nextThreshold - friendInfo.reactionThreshold)) * 100))
             if percent == -1 then
                 frame.percentage:SetText("0%")
             else
-                frame.percentage:SetText(
-                    (math.floor(
-                        RoundDec(((friendInfo.standing - friendInfo.reactionThreshold) / (friendInfo.nextThreshold - friendInfo.reactionThreshold)) * 100)
-                    )) .. "%"
-                )
+                frame.percentage:SetText(percent .. "%")
             end
 
             frame.StatusBar:SetValue((friendInfo.standing - friendInfo.reactionThreshold) / (friendInfo.nextThreshold - friendInfo.reactionThreshold))
@@ -621,8 +616,8 @@ local function setReputationDetails(frame, data)
                 frame.nextRank:SetText(RENOWN_LEVEL_LABEL .. majorFactionData.renownLevel + 1)
                 frame.currentRank:SetText(RENOWN_LEVEL_LABEL .. majorFactionData.renownLevel)
 
-                frame.currentValue:SetText(CommaValue(majorFactionData.renownReputationEarned or 0))
-                frame.nextValue:SetText(CommaValue(majorFactionData.renownLevelThreshold))
+                frame.currentValue:SetText(GW.GetLocalizedNumber(majorFactionData.renownReputationEarned or 0))
+                frame.nextValue:SetText(GW.GetLocalizedNumber(majorFactionData.renownLevelThreshold))
                 frame.percentage:SetText((math.floor((majorFactionData.renownReputationEarned or 0) / majorFactionData.renownLevelThreshold * 100) .. "%"))
 
                 frame.StatusBar:SetValue((majorFactionData.renownReputationEarned or 0) / majorFactionData.renownLevelThreshold)
@@ -631,7 +626,7 @@ local function setReputationDetails(frame, data)
     else
         frame.currentRank:SetText(currentRank)
         frame.nextRank:SetText(nextRank)
-        frame.currentValue:SetText(CommaValue(data.earnedValue - data.bottomValue))
+        frame.currentValue:SetText(GW.GetLocalizedNumber(data.earnedValue - data.bottomValue))
         local ldiff = data.topValue - data.bottomValue
         if ldiff == 0 then
             ldiff = 1
@@ -643,7 +638,7 @@ local function setReputationDetails(frame, data)
             frame.percentage:SetText(percent .. "%")
         end
 
-        frame.nextValue:SetText(CommaValue(ldiff))
+        frame.nextValue:SetText(GW.GetLocalizedNumber(ldiff))
 
         frame.StatusBar:SetMinMaxValues(0, 1)
         frame.StatusBar:SetValue((data.earnedValue - data.bottomValue) / ldiff)
@@ -853,6 +848,11 @@ local function InitCategorieButton(button, elementData)
     end
 end
 
+local function SetSearchboxInstructions(editbox, text)
+    editbox.Instructions:SetTextColor(0.5, 0.5, 0.5)
+    editbox.Instructions:SetText(text)
+end
+
 local function LoadReputation(tabContainer)
     local fmGPR = CreateFrame("Frame", "GwPaperReputation", tabContainer, "GwPaperReputation")
 
@@ -880,11 +880,12 @@ local function LoadReputation(tabContainer)
         UpdateDetailsData(GwRepDetailFrame.Details)
     end
     fmGPR.Categories:SetScript("OnEvent", fnGPR_OnEvent)
-    fmGPR.input:SetText(SEARCH .. "...")
+    SetSearchboxInstructions(fmGPR.input, SEARCH .. "...")
+    fmGPR.input:SetText("")
     fmGPR.input:SetScript("OnEnterPressed", nil)
     local fnGPR_input_OnTextChanged = function(self)
         local text = self:GetText()
-        if text == SEARCH .. "..." or text == "" then
+        if text == "" then
             isSearchResult = nil
             UpdateDetailsData(GwRepDetailFrame.Details)
             self.clearButton:Hide()
@@ -894,18 +895,15 @@ local function LoadReputation(tabContainer)
         UpdateDetailsData(GwRepDetailFrame.Details)
         self.clearButton:Show()
     end
-    fmGPR.input:SetScript("OnTextChanged", fnGPR_input_OnTextChanged)
+    fmGPR.input:HookScript("OnTextChanged", fnGPR_input_OnTextChanged)
     local fnGPR_input_OnEscapePressed = function(self)
         self:ClearFocus()
-        self:SetText(SEARCH .. "...")
+        self:SetText("")
         isSearchResult = nil
         UpdateDetailsData(GwRepDetailFrame.Details)
     end
     fmGPR.input:SetScript("OnEscapePressed", fnGPR_input_OnEscapePressed)
     local fnGPR_input_OnEditFocusGained = function(self)
-        if self:GetText() == SEARCH .. "..." then
-            self:SetText("")
-        end
         self.clearButton:Show()
         --update saved reputations
         updateSavedReputation()
@@ -913,14 +911,13 @@ local function LoadReputation(tabContainer)
     fmGPR.input:SetScript("OnEditFocusGained", fnGPR_input_OnEditFocusGained)
     local fnGPR_input_OnEditFocusLost = function(self)
         if self:GetText() == "" then
-            self:SetText(SEARCH .. "...")
             self.clearButton:Hide()
         end
     end
     fmGPR.input:SetScript("OnEditFocusLost", fnGPR_input_OnEditFocusLost)
     fmGPR.input.clearButton:SetScript("OnClick", function(self)
         self:GetParent():ClearFocus()
-        self:GetParent():SetText(SEARCH .. "...")
+        self:GetParent():SetText("")
         isSearchResult = nil
         UpdateDetailsData(GwRepDetailFrame.Details)
     end)

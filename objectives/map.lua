@@ -112,8 +112,8 @@ GW.AddForProfiling("map", "hideMiniMapIcons", hideMiniMapIcons)
 
 local function MapCoordsMiniMap_OnEnter(self)
     GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 5)
-    GameTooltip:AddLine(L["Map Coordinates"])
-    GameTooltip:AddLine(L["Left Click to toggle higher precision coordinates."], 1, 1, 1, true)
+    GameTooltip:AddLine(L["Map Coordinates"], 1, 1, 1)
+    GameTooltip:AddLine(L["Left Click to toggle higher precision coordinates."], 0.8, 0.8, 0.8, true)
     GameTooltip:SetMinimumWidth(100)
     GameTooltip:Show()
 end
@@ -122,7 +122,7 @@ GW.AddForProfiling("map", "MapCoordsMiniMap_OnEnter", MapCoordsMiniMap_OnEnter)
 local function mapCoordsMiniMap_setCoords(self)
     local x, y, xT, yT = GW.Libs.GW2Lib:GetPlayerLocationCoords()
     if x and y then
-        self.Coords:SetText(RoundDec(xT, self.MapCoordsMiniMapPrecision) .. ", " .. RoundDec(yT, self.MapCoordsMiniMapPrecision))
+        self.Coords:SetText(GW.GetLocalizedNumber(xT, GW.settings.MINIMAP_COORDS_PRECISION) .. "/" .. GW.GetLocalizedNumber(yT, GW.settings.MINIMAP_COORDS_PRECISION))
     else
         self.Coords:SetText(NOT_APPLICABLE)
     end
@@ -133,13 +133,12 @@ local function MapCoordsMiniMap_OnClick(self, button)
     if button == "LeftButton" then
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 
-        if self.MapCoordsMiniMapPrecision == 0 then
-            self.MapCoordsMiniMapPrecision = 2
+        if GW.settings.MINIMAP_COORDS_PRECISION == 0 then
+            GW.settings.MINIMAP_COORDS_PRECISION = 2
         else
-            self.MapCoordsMiniMapPrecision = 0
+            GW.settings.MINIMAP_COORDS_PRECISION = 0
         end
 
-        GW.settings.MINIMAP_COORDS_PRECISION = self.MapCoordsMiniMapPrecision
         mapCoordsMiniMap_setCoords(self)
     end
 end
@@ -348,7 +347,7 @@ local function SetupMiniMapTrackingDropdown(self)
         local isHunterClass = GW.myclass == "HUNTER"
 
         if not showAll then
-            rootDescription:CreateButton(UNCHECK_ALL, function()
+            local allButton = rootDescription:CreateButton(UNCHECK_ALL, function()
                 trackingState:ClearSelections();
 
                 for index = 1, C_Minimap.GetNumTrackingTypes() do
@@ -360,6 +359,7 @@ local function SetupMiniMapTrackingDropdown(self)
 
                 return MenuResponse.Refresh;
             end);
+            allButton:AddInitializer(GW.BlizzardDropdownButtonInitializer)
         end
 
         local hunterInfo = {};
@@ -419,6 +419,8 @@ local function SetupMiniMapTrackingDropdown(self)
                     local uv0, uv1 = .0625, .9;
                     rightTexture:SetTexCoord(uv0, uv1, uv0, uv1);
                 end
+
+                GW.BlizzardDropdownCheckButtonInitializer(button, description, menu)
 
                 -- The size is explicitly provided because this requires a right-justified icon.
                 local width, height = fontString:GetUnboundedStringWidth() + 60, 20;
@@ -832,7 +834,6 @@ local function LoadMinimap()
     GwMapCoords.Coords:SetTextColor(1, 1, 1)
     GwMapCoords.Coords:SetShadowOffset(2, -2)
     GwMapCoords.Coords:SetText(NOT_APPLICABLE)
-    GwMapCoords.MapCoordsMiniMapPrecision = GW.settings.MINIMAP_COORDS_PRECISION
     ToogleMinimapCoorsLable()
 
     --FPS

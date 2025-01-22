@@ -192,49 +192,6 @@ function GwStandardButton_OnLeave(self)
     TriggerButtonHoverAnimation(self, self.hover, 0, 0.1)
 end
 
-local function barAnimation(self, barWidth, sparkWidth)
-    local snap = (animations[self.animationName].progress * 100) / 5
-
-    local round_closest = 0.05 * snap
-
-    local spark_min = math.floor(snap)
-    local spark_current = snap
-
-    local spark_prec = spark_current - spark_min
-
-    local spark =
-        math.min(barWidth - sparkWidth, math.floor(barWidth * round_closest) - math.floor(sparkWidth * spark_prec))
-    local bI = 17 - math.max(1, RoundInt(16 * spark_prec))
-
-    self.spark:SetTexCoord(bloodSpark[bI].left, bloodSpark[bI].right, bloodSpark[bI].top, bloodSpark[bI].bottom)
-
-    self:SetValue(round_closest)
-    self.spark:ClearAllPoints()
-    self.spark:SetPoint("LEFT", spark, 0)
-end
-AFP("barAnimation", barAnimation)
-
-local function Bar(self, value)
-    if self == nil then
-        return
-    end
-    local barWidth = self:GetWidth()
-    local sparkWidth = self.spark:GetWidth()
-
-    AddToAnimation(
-        self.animationName,
-        self.animationValue,
-        value,
-        GetTime(),
-        0.2,
-        function()
-            barAnimation(self, barWidth, sparkWidth)
-        end
-    )
-    self.animationValue = value
-end
-GW.Bar = Bar
-
 local function SetClassIcon(self, class)
     if class == nil then
         class = 0
@@ -338,9 +295,11 @@ end
 GW.getBestPixelScale = getBestPixelScale
 
 local function PixelPerfection()
-    GW.scale = getBestPixelScale()
-    GW.border = ((1 / GW.scale) - ((1 - (768 / GW.screenHeight)) / GW.scale)) * 2
-    UIParent:SetScale(GW.scale)
+    if GW.settings.PIXEL_PERFECTION and not GetCVarBool("useUiScale") then
+        GW.scale = getBestPixelScale()
+        GW.border = ((1 / GW.scale) - ((1 - (768 / GW.screenHeight)) / GW.scale)) * 2
+        UIParent:SetScale(GW.scale)
+    end
 end
 GW.PixelPerfection = PixelPerfection
 
@@ -404,35 +363,17 @@ local function RegisterLoadHook(func, name, cond)
 end
 GW.RegisterLoadHook = RegisterLoadHook
 
-local function hookOmniCDLoad()
-    local func = OmniCD and OmniCD.AddUnitFrameData
-    if func then
-        func("GW2_UI-Party", "GwPartyFrame", "unit", 1)
-        func("GW2_UI-Raid40", "GW2_Raid40Group%dUnitButton", "unit", 1, nil, 5)
-        func("GW2_UI-Raid40-RWS", "GW2_Raid40Group%dUnitButton", "unit", 1, nil, 40) -- 'Raid Wide Sorting'
-        func("GW2_UI-Raid25", "GW2_Raid25Group%dUnitButton", "unit", 1, nil, 5)
-        func("GW2_UI-Raid25-RWS", "GW2_Raid25Group%dUnitButton", "unit", 1, nil, 25) -- 'Raid Wide Sorting'
-        func("GW2_UI-Raid10", "GW2_Raid10Group%dUnitButton", "unit", 1, nil, 5)
-        func("GW2_UI-Raid10-RWS", "GW2_Raid10Group%dUnitButton", "unit", 1, nil, 10) -- 'Raid Wide Sorting'
-        func("GW2_UI-Party-Grid", "GW2_RaidPetGroup1UnitButton", "unit", 1, nil, 40)
-        func("GW2_UI-RaidPet", "GW2_PartyGroup1UnitButton", "unit", 1, nil, 5)
-        func("GW2_UI-Maintank", "GW2_MaintankGroup1UnitButton", "unit", 1, nil, 5)
-    end
-end
-AFP("hookOmniCDLoad", hookOmniCDLoad)
-RegisterLoadHook(hookOmniCDLoad, "OmniCD", OmniCD)
-
 local function UpdateDb()
     GW.settings = GW.globalSettings.profile
 end
 
-local function evAddonLoaded(self, addonName)
-    if addonName ~= "GW2_UI" then
-        local loadHook = addonLoadHooks[addonName]
+local function evAddonLoaded(self, loadedAddonName)
+    if loadedAddonName ~= "GW2_UI" then
+        local loadHook = addonLoadHooks[loadedAddonName]
         if loadHook and type(loadHook) == "function" then
-            Debug("run load hook for addon", addonName)
+            Debug("run load hook for addon", loadedAddonName)
             xpcall(loadHook, errorhandler)
-            addonLoadHooks[addonName] = nil
+            addonLoadHooks[loadedAddonName] = nil
         end
         return
     else
@@ -444,6 +385,8 @@ local function evAddonLoaded(self, addonName)
 
         GW.charSettings = GW.Libs.AceDB:New('GW2UI_PRIVATE_DB', GW.privateDefaults)
         GW.private = GW.charSettings.profile
+
+        GW.UpdateGw2ClassColors()
 
         -- setup default values on load, which are required for same skins
         if GW.settings.PIXEL_PERFECTION and not GetCVarBool("useUiScale") then
@@ -495,7 +438,7 @@ local function evAddonLoaded(self, addonName)
     GW.LoadAuctionHouseSkin()
     GW.LoadBattlefieldMapSkin()
     GW.LoadMajorFactionsFrameSkin()
-    GW.preLoadStatusBarMaskTextures()
+    GW.PreloadStatusBarMaskTextures()
 end
 AFP("evAddonLoaded", evAddonLoaded)
 
@@ -577,6 +520,13 @@ local function evPlayerEnteringWorld()
         end)
         GW.Notice("DB was converted Reload is needed /reload")
     end
+
+    -- remove old databse
+    GW2UI_PRIVATE_SETTINGS = nil
+    GW2UI_PRIVATE_LAYOUTS = nil
+    GW2UI_SETTINGS_PROFILES = nil
+    GW2UI_LAYOUTS = nil
+    GW2UI_SETTINGS_DB_03 = nil
 end
 AFP("evPlayerEnteringWorld", evPlayerEnteringWorld)
 
@@ -626,6 +576,7 @@ local function evPlayerLogin(self)
     local lm = GW.LoadMainbarLayout()
 
     --Create Settings window
+    GW.SetUpDatabaseForProfileSpecSwitch()
     GW.LoadMovers(lm.layoutFrame)
     GW.LoadSettings()
     GW.BuildPrefixValues()
@@ -633,11 +584,6 @@ local function evPlayerLogin(self)
 
     -- Create Warning Prompt
     GW.CreateWarningPrompt()
-
-    -- load alert settings
-    GW.LoadAlertSystem()
-    GW.SetupAlertFramePosition()
-    GW.LoadOurAlertSubSystem()
 
     -- disable Move Anything bag handling
     disableMABags()
@@ -690,6 +636,16 @@ local function evPlayerLogin(self)
     GW.MakeAltPowerBarMovable()
     GW.WidgetUISetup()
 
+    -- make sure to load the objetives tracker before we load the altert system prevent some errors with other addons
+    if GW.settings.QUESTTRACKER_ENABLED and not IsIncompatibleAddonLoadedOrOverride("Objectives", true) then
+        GW.LoadQuestTracker()
+    end
+
+    -- load alert settings
+    GW.LoadAlertSystem()
+    GW.SetupAlertFramePosition()
+    GW.LoadOurAlertSubSystem()
+
     --Create hud art
     hudArtFrame = GW.LoadHudArt()
 
@@ -738,10 +694,6 @@ local function evPlayerLogin(self)
         QueueStatusButton:SetParent(UIParent)
     end
 
-    if GW.settings.QUESTTRACKER_ENABLED and not IsIncompatibleAddonLoadedOrOverride("Objectives", true) then
-        GW.LoadQuestTracker()
-    end
-
     if GW.settings.TOOLTIPS_ENABLED then
         GW.LoadTooltips()
     end
@@ -763,9 +715,7 @@ local function evPlayerLogin(self)
         GW.LoadDragonBar(hg, true)
     end
 
-    if GW.settings.POWERBAR_ENABLED and (GW.settings.PLAYER_AS_TARGET_FRAME and GW.settings.PLAYER_AS_TARGET_FRAME_SHOW_RESSOURCEBAR or not GW.settings.PLAYER_AS_TARGET_FRAME) then
-        GW.LoadPowerBar()
-    end
+    GW.LoadPowerBar()
 
     if not IsIncompatibleAddonLoadedOrOverride("Inventory", true) then -- Only touch this setting if no other addon for this is loaded
         if GW.settings.BAGS_ENABLED then
@@ -794,15 +744,12 @@ local function evPlayerLogin(self)
     --Create unitframes
     if GW.settings.FOCUS_ENABLED then
         GW.LoadFocus()
-        if GW.settings.focus_TARGET_ENABLED then
-            GW.LoadTargetOfUnit("Focus")
-        end
+        GW.LoadTargetOfUnit("Focus")
     end
     if GW.settings.TARGET_ENABLED then
         GW.LoadTarget()
-        if GW.settings.target_TARGET_ENABLED then
-            GW.LoadTargetOfUnit("Target")
-        end
+
+        GW.LoadTargetOfUnit("Target")
 
         -- move zone text frame
         if not IsFrameModified("ZoneTextFrame") then
@@ -892,6 +839,8 @@ local function evPlayerLogin(self)
 
     self:SetScript("OnUpdate", gw_OnUpdate)
     GW.UpdateCharData()
+
+    GW.SetupSingingSockets()
 
     GW.HandleBlizzardEditMode()
 end

@@ -90,7 +90,7 @@ local function BuildPrefixValues()
     local shortValueDec = format("%%.%df", GW.settings.ShortHealthValuesDecimalLength or 1)
 
     for _, style in ipairs(GW.ShortPrefixValues) do
-        style[3] = shortValueDec .. style[2]
+        style[3] = shortValueDec
     end
 end
 GW.BuildPrefixValues = BuildPrefixValues
@@ -102,18 +102,18 @@ local function ShortValue(value)
     for i = 1, #values do
         local arg1, arg2, arg3 = unpack(values[i])
         if abs_value >= arg1 then
-            return format(arg3, value / arg1)
+            return GW.GetLocalizedNumber(format(arg3, value / arg1)) .. arg2
         end
     end
 
-    return format("%.0f", value)
+    return GW.GetLocalizedNumber(format("%.0f", value))
 end
 GW.ShortValue = ShortValue
 
 local function SetPointsRestricted(frame)
-	if frame and not pcall(frame.GetPoint, frame) then
-		return true
-	end
+    if frame and not pcall(frame.GetPoint, frame) then
+        return true
+    end
 end
 GW.SetPointsRestricted = SetPointsRestricted
 
@@ -126,7 +126,7 @@ local function FormatMoneyForChat(amount)
     local copper = mod(value, COPPER_PER_SILVER)
 
     if gold > 0 then
-        str = format("%s%s |r|TInterface/AddOns/GW2_UI/textures/icons/Coins:12:12:0:0:64:32:22:42:1:20|t%s", goldcolor, GW.CommaValue(gold), " ")
+        str = format("%s%s |r|TInterface/AddOns/GW2_UI/textures/icons/Coins:12:12:0:0:64:32:22:42:1:20|t%s", goldcolor, GW.GetLocalizedNumber(gold), " ")
     end
     if silver > 0 or gold > 0 then
         str = format("%s%s%d |r|TInterface/AddOns/GW2_UI/textures/icons/Coins:12:12:0:0:64:32:43:64:1:20|t%s", str, silvercolor, silver, (copper > 0 or gold > 0) and " " or "")
@@ -138,6 +138,24 @@ local function FormatMoneyForChat(amount)
     return str
 end
 GW.FormatMoneyForChat = FormatMoneyForChat
+
+local function GetDefaultClassColor(class)
+    local color
+    if GW.settings.BLIZZARDCLASSCOLOR_ENABLED then
+        color = RAID_CLASS_COLORS[class]
+    else
+        color = GW.privateDefaults.profile.Gw2ClassColor[class]
+    end
+    if type(color) ~= "table" then return end
+    if not color.colorStr then
+        color.colorStr = GW.RGBToHex(color.r, color.g, color.b, "ff")
+    elseif strlen(color.colorStr) == 6 then
+        color.colorStr = "ff" .. color.colorStr
+    end
+
+    return color
+end
+GW.GetDefaultClassColor = GetDefaultClassColor
 
 do
     local function GWGetClassColor(class, useClassColor, forNameString, alwaysUseBlizzardColors)
@@ -166,6 +184,7 @@ do
     GW.GWGetClassColor = GWGetClassColor
 end
 
+
 --RGB to Hex
 local function RGBToHex(r, g, b, header, ending)
     r = r <= 1 and r >= 0 and r or 1
@@ -177,7 +196,7 @@ GW.RGBToHex = RGBToHex
 
 local function HexToRGB(hex)
     local rhex, ghex, bhex = strsub(hex, 1, 2), strsub(hex, 3, 4), strsub(hex, 5, 6)
-	return tonumber(rhex, 16) / 255, tonumber(ghex, 16) / 255, tonumber(bhex, 16) / 255
+    return tonumber(rhex, 16) / 255, tonumber(ghex, 16) / 255, tonumber(bhex, 16) / 255
 end
 GW.HexToRGB = HexToRGB
 
@@ -203,8 +222,6 @@ local function GetUnitBattlefieldFaction(unit)
     return englishFaction, localizedFaction
 end
 GW.GetUnitBattlefieldFaction = GetUnitBattlefieldFaction
-
-
 
 local function FillTable(T, map, ...)
     wipe(T)
@@ -288,6 +305,61 @@ local function RoundDec(number, decimals)
 end
 GW.RoundDec = RoundDec
 
+local function GetLocalizedNumber(number, numberDecimal)
+    local DECIMAL_DELIMITER = GW.settings.NumberFormat == "POINT" and "." or ","
+    local LARGE_NUMBER_DELIMITER = GW.settings.NumberFormat == "POINT" and "," or "."
+    local formattedNumber, integerPart, decimalPart
+
+    -- Wandelt die Zahl in einen String um
+    local zahlStr = tostring(number)
+
+    -- Bestimme die Position des Dezimaltrennzeichens
+    local decimalPos = string.find(zahlStr, "%.")
+
+    if decimalPos then
+        -- Teile die Zahl in Ganzzahl und Dezimalteil
+        integerPart = string.sub(zahlStr, 1, decimalPos - 1)
+        decimalPart = string.sub(zahlStr, decimalPos + 1)
+    else
+        -- Falls kein Dezimaltrennzeichen vorhanden ist, setze den Dezimalteil auf leer
+        integerPart = zahlStr
+        decimalPart = ""
+    end
+
+    -- Tausendertrennzeichen in der Ganzzahl hinzufügen
+    local formattedInteger = {}
+    local len = #integerPart
+
+    -- Von rechts nach links durch die Ganzzahl laufen und in eine Tabelle speichern
+    local count = 0  -- Zähler für Gruppen von 3 Ziffern
+    for i = len, 1, -1 do
+        local currentChar = integerPart:sub(i, i)
+
+        -- Tausendertrennzeichen hinzufügen, wenn nötig
+        if count > 0 and count % 3 == 0 then
+            table.insert(formattedInteger, 1, LARGE_NUMBER_DELIMITER)
+        end
+
+        -- Füge das aktuelle Zeichen zur formatierten Ganzzahl hinzu
+        table.insert(formattedInteger, 1, currentChar)
+        count = count + 1
+    end
+
+    -- Wenn Dezimalteil vorhanden ist, füge ihn hinzu
+    if numberDecimal then
+        decimalPart = string.sub(decimalPart, 1, numberDecimal)
+    end
+    if #decimalPart > 0 then
+        formattedNumber = table.concat(formattedInteger) .. DECIMAL_DELIMITER .. decimalPart
+    else
+        formattedNumber = table.concat(formattedInteger)
+    end
+
+    return formattedNumber
+end
+GW.GetLocalizedNumber = GetLocalizedNumber
+-- /dump GetLocalizedNumber2(5600000.345, 3)
+
 local function CommaValue(n)
     n = RoundDec(n)
     local left, num, right = string.match(n, "^([^%d]*%d)(%d*)(.-)$")
@@ -324,34 +396,34 @@ end
 GW.Diff = Diff
 
 local function lerp(v0, v1, t)
-  t = max(0,min(1,t))
+t = max(0,min(1,t))
     if v0 == nil then
         v0 = 0
     end
-   return (1 - t) * v0 + t * v1;
+return (1 - t) * v0 + t * v1;
 end
 GW.lerp = lerp
 local function lerpEaseOut(v0,v1,t)
-  t = min(1,t)
-  t = math.sin(t * math.pi * 0.5);
+t = min(1,t)
+t = math.sin(t * math.pi * 0.5);
 
-  return lerp(v0,v1,t)
+return lerp(v0,v1,t)
 end
 GW.lerpEaseOut = lerpEaseOut
 
 local function signum(number)
-   if number > 0 then
-      return 1
-   elseif number < 0 then
-      return -1
-   else
-      return 0
-   end
+if number > 0 then
+    return 1
+elseif number < 0 then
+    return -1
+else
+    return 0
+end
 end
 
 local function MoveTowards( current,  target,  maxDelta)
     if math.abs(target - current) <= maxDelta then
-      return target;
+    return target;
     end
     return current + signum(target - current) * maxDelta;
 end
@@ -768,26 +840,23 @@ end
 GW.TextGradient = TextGradient
 
 local function StatusBarColorGradient(bar, value, max, backdrop)
-	if not (bar and value) then return end
+    if not (bar and value) then return end
 
-	local current = (not max and value) or (value and max and max ~= 0 and value / max)
-	if not current then return end
+    local current = (not max and value) or (value and max and max ~= 0 and value / max)
+    if not current then return end
 
-	local r, g, b = ColorGradient(current, 0.8, 0, 0, 0.8, 0.8, 0, 0, 0.8,  0)
-	bar:SetStatusBarColor(r, g, b)
+    local r, g, b = ColorGradient(current, 0.8, 0, 0, 0.8, 0.8, 0, 0, 0.8,  0)
+    bar:SetStatusBarColor(r, g, b)
 
-	if not backdrop then
-		backdrop = bar.backdrop
-	end
+    if not backdrop then
+        backdrop = bar.backdrop
+    end
 
-	if backdrop then
-		backdrop:SetBackdropColor(r * 0.25, g * 0.25, b * 0.25)
-	end
+    if backdrop then
+        backdrop:SetBackdropColor(r * 0.25, g * 0.25, b * 0.25)
+    end
 end
 GW.StatusBarColorGradient = StatusBarColorGradient
-
-
-
 
 
 local Fn = function (...) return not GW.Matches(...) end
@@ -932,17 +1001,17 @@ end
 GW.GetClassIconStringWithStyle = GetClassIconStringWithStyle
 
 local function IsGroupMember(name)
-	if name then
-		if UnitInParty(name) then
-			return 1
-		elseif UnitInRaid(name) then
-			return 2
-		elseif name == GW.myname then
-			return 3
-		end
-	end
+    if name then
+        if UnitInParty(name) then
+            return 1
+        elseif UnitInRaid(name) then
+            return 2
+        elseif name == GW.myname then
+            return 3
+        end
+    end
 
-	return false
+    return false
 end
 GW.IsGroupMember = IsGroupMember
 
@@ -1069,3 +1138,68 @@ local function GetInstanceImages(raid)
     end
 end
 GW.GetInstanceImages = GetInstanceImages
+
+local function BlizzardDropdownRadioButtonInitializer(button, description, menu)
+    button.highlight:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/button_hover")
+    button.highlight:SetDrawLayer("BACKGROUND")
+    button.highlight:SetBlendMode("BLEND")
+    button.highlight:SetAlpha(0.5)
+    button.leftTexture1:SetSize(13, 13)
+    --button.leftTexture1:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkbox")
+    button.leftTexture1:SetPoint("LEFT", 0, 0)
+    if button.leftTexture2 then
+        button.leftTexture2:SetSize(13, 13)
+        --button.leftTexture2:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkboxchecked")
+        button.leftTexture2:SetPoint("CENTER", button.leftTexture1, "CENTER", 0, 0)
+    end
+    if not button.gwHooked then
+        hooksecurefunc(button.highlight, "SetAlpha", function(self, a)
+            if a ~= 0.5 then
+                self:SetAlpha(0.5)
+            end
+        end)
+        button.gwHooked = true
+    end
+end
+GW.BlizzardDropdownRadioButtonInitializer = BlizzardDropdownRadioButtonInitializer
+
+local function BlizzardDropdownCheckButtonInitializer(button, description, menu)
+    button.highlight:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/button_hover")
+    button.highlight:SetDrawLayer("BACKGROUND")
+    button.highlight:SetBlendMode("BLEND")
+    button.highlight:SetAlpha(0.5)
+    button.leftTexture1:SetSize(13, 13)
+    button.leftTexture1:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkbox")
+    if button.leftTexture2 then
+        button.leftTexture2:SetSize(13, 13)
+        button.leftTexture2:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkboxchecked")
+        button.leftTexture2:SetPoint("CENTER", button.leftTexture1, "CENTER", 0, 0)
+    end
+    if not button.gwHooked then
+        hooksecurefunc(button.highlight, "SetAlpha", function(self, a)
+            if a ~= 0.5 then
+                self:SetAlpha(0.5)
+            end
+        end)
+        button.gwHooked = true
+    end
+end
+GW.BlizzardDropdownCheckButtonInitializer = BlizzardDropdownCheckButtonInitializer
+
+local function BlizzardDropdownButtonInitializer(button, description, menu)
+    button.highlight:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/button_hover")
+    button.highlight:SetDrawLayer("BACKGROUND")
+    button.highlight:SetBlendMode("BLEND")
+    button.highlight:SetAlpha(0.5)
+    if not button.gwHooked then
+        hooksecurefunc(button.highlight, "SetAlpha", function(self, a)
+            if a ~= 0.5 then
+                self:SetAlpha(0.5)
+            end
+        end)
+        button.gwHooked = true
+    end
+end
+GW.BlizzardDropdownButtonInitializer = BlizzardDropdownButtonInitializer
+
+

@@ -102,7 +102,7 @@ local function updateGuildButton(self, event)
             return
         end
 
-        local _, _, numOnlineMembers = GetNumGuildMembers()
+        local _, numOnlineMembers = GetNumGuildMembers()
 
         if numOnlineMembers ~= nil and numOnlineMembers > 0 then
             gmb.GwNotifyDark:Show()
@@ -187,21 +187,6 @@ local function bag_OnUpdate(self, elapsed)
     self.GwNotifyText:Show()
 end
 AFP("bag_OnUpdate", bag_OnUpdate)
-
-local function modifyMicroAlert(alert, microButton)
-    if not alert then return end --TODO: Alerts are changed
-    alert.GwMicroButton = microButton
-    alert.Arrow.Arrow:SetTexCoord(0.78515625, 0.99218750, 0.58789063, 0.54687500)
-    alert.Arrow.Glow:SetTexCoord(0.40625000, 0.66015625, 0.82812500, 0.77343750)
-    alert.Arrow.Glow:ClearAllPoints()
-    alert.Arrow.Glow:SetPoint("BOTTOM")
-
-    alert.Arrow:ClearAllPoints()
-    alert.Arrow:SetPoint("BOTTOMLEFT", alert, "TOPLEFT", 4, -4)
-    alert:ClearAllPoints()
-    alert:SetPoint("TOPLEFT", microButton, "BOTTOMLEFT", -18, -20)
-end
-AFP("modifyMicroAlert", modifyMicroAlert)
 
 local function reskinMicroButton(btn, name, mbf, hook)
     if btn:IsProtected() and InCombatLockdown() then return end
@@ -371,13 +356,24 @@ end
 AFP("update_OnEnter", update_OnEnter)
 
 -- mail icon
+local function mailIconTooltip()
+    local senders = { GetLatestThreeSenders() }
+	local headerText = #senders >= 1 and HAVE_MAIL_FROM or HAVE_MAIL
+    GameTooltip:AddLine(headerText, 1, 1, 1)
+    for _, sender in ipairs(senders) do
+        GameTooltip:AddLine(sender, 1, 1, 1)
+	end
+
+	GameTooltip:Show()
+end
+
 local function mailIconOnEvent(self, event)
     if event == "UPDATE_PENDING_MAIL" then
         if HasNewMail() then
             self:Show()
             self.GwNotify:Show()
             if GameTooltip:IsOwned(self) then
-                MinimapMailFrameUpdate()
+                mailIconTooltip()
             end
         else
             self:Hide()
@@ -389,7 +385,7 @@ end
 local function mailIconOnEnter(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     if GameTooltip:IsOwned(self) then
-        MinimapMailFrameUpdate()
+        mailIconTooltip()
     end
 end
 
@@ -409,10 +405,9 @@ end
 
 local function workOrderIconOnEnter(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    local wrap = false
-    GameTooltip_AddNormalLine(GameTooltip, MAILFRAME_CRAFTING_ORDERS_TOOLTIP_TITLE, wrap)
+    GameTooltip:AddLine(MAILFRAME_CRAFTING_ORDERS_TOOLTIP_TITLE, 1, 1, 1)
     for _, countInfo in ipairs(self.countInfos) do
-        GameTooltip_AddNormalLine(GameTooltip, PERSONAL_CRAFTING_ORDERS_AVAIL_FMT:format(countInfo.numPersonalOrders, countInfo.professionName), wrap)
+        GameTooltip:AddLine(PERSONAL_CRAFTING_ORDERS_AVAIL_FMT:format(countInfo.numPersonalOrders, countInfo.professionName), 1, 1, 1)
     end
     GameTooltip:Show()
 end
@@ -892,14 +887,5 @@ local function LoadMicroMenu()
     -- fix alert positions and hide the micromenu bar
     MicroButtonAndBagsBar:SetAlpha(0)
     MicroButtonAndBagsBar:EnableMouse(false)
-    modifyMicroAlert(CollectionsMicroButtonAlert, CollectionsMicroButton)
-    modifyMicroAlert(LFDMicroButtonAlert, LFDMicroButton)
-    modifyMicroAlert(EJMicroButtonAlert, EJMicroButton)
-    modifyMicroAlert(StoreMicroButtonAlert, StoreMicroButton)
-    if GW.settings.USE_CHARACTER_WINDOW then
-        modifyMicroAlert(CharacterMicroButtonAlert, GwCharacterMicroButton)
-    else
-        modifyMicroAlert(CharacterMicroButtonAlert, CharacterMicroButton)
-    end
 end
 GW.LoadMicroMenu = LoadMicroMenu

@@ -66,39 +66,16 @@ local function LoadHudPanel(sWindow)
     settingsMenuAddButton(UIOPTIONS_MENU, p, {general, minimap, worldmap, fct})
 
     --GENERAL
-    addOptionSlider(
-        general.scroll.scrollchild,
-        GW.NewSign .. L["Shorten values decimal length"],
-        L["Controls the amount of decimals used for shorted values"],
-        "ShortHealthValuesDecimalLength",
-        GW.BuildPrefixValues,
-        0,
-        4,
-        nil,
-        0,
-        nil,
-        1
-    )
-    addOptionDropdown(
-        general.scroll.scrollchild,
-        GW.NewSign .. L["Shorten value prefix style"],
-        nil,
-        "ShortHealthValuePrefixStyle",
-        GW.BuildPrefixValues,
-        {"TCHINESE", "CHINESE", "ENGLISH", "GERMAN", "KOREAN", "METRIC"},
-        {"萬, 億", "万, 亿", "K, M, B, T", "Tsd, Mio, Mrd, Bio", "천, 만, 억", "k, M, G, T"}
-    )
-
     addOption(general.scroll.scrollchild, L["Show HUD background"], L["The HUD background changes color in the following situations: In Combat, Not In Combat, In Water, Low HP, Ghost"], "HUD_BACKGROUND", function() GW.ToggleHudBackground() end)
     addOption(general.scroll.scrollchild, L["Dynamic HUD"], L["Enable or disable the dynamically changing HUD background."], "HUD_SPELL_SWAP", nil, nil, {["HUD_BACKGROUND"] = true})
-    addOption(general.scroll.scrollchild, L["AFK Mode"], L["When you go AFK, display the AFK screen."], "AFK_MODE", GW.ToggelAfkMode)
     addOption(general.scroll.scrollchild, L["Mark Quest Reward"], L["Marks the most valuable quest reward with a gold coin."], "QUEST_REWARDS_MOST_VALUE_ICON", function() GW.ResetQuestRewardMostValueIcon() end)
     addOption(general.scroll.scrollchild, L["XP Quest Percent"], L["Shows the xp you got from that quest in % based on your current needed xp for next level."], "QUEST_XP_PERCENT")
     addOption(general.scroll.scrollchild, L["Fade Menu Bar"], L["The main menu icons will fade when you move your cursor away."], "FADE_MICROMENU", function(value) Gw2MicroBarFrame.cf:SetAttribute("shouldFade", value) Gw2MicroBarFrame.cf:SetShown(not value) if value then Gw2MicroBarFrame.cf.fadeOut(Gw2MicroBarFrame.cf) else Gw2MicroBarFrame.cf.fadeIn(Gw2MicroBarFrame.cf) end end)
     addOption(general.scroll.scrollchild, L["Show event timer micro menu icon"], L["Displays an micro menu icon for the world map event timers"], "MICROMENU_EVENT_TIMER_ICON", function() GW.ToggleEventTimerMicroMenuIcon(Gw2MicroBarFrame.cf) end)    
 
     addOption(general.scroll.scrollchild, DISPLAY_BORDERS, L["Toggle the borders around the screen"], "BORDER_ENABLED", GW.ToggleHudBackground)
-    addOption(general.scroll.scrollchild, L["Fade Group Manage Button"], L["The Group Manage Button will fade when you move the cursor away."], "FADE_GROUP_MANAGE_FRAME", function() GW.ShowRlPopup = true end, nil, {["PARTY_FRAMES"] = true})
+    addOption(general.scroll.scrollchild, L["Fade Group Manage Button"], L["The Group Manage Button will fade when you move the cursor away."], "FADE_GROUP_MANAGE_FRAME", GW.ToggleRaidControllFrame, nil, {["PARTY_FRAMES"] = true})
+    addOption(general.scroll.scrollchild, GW.NewSign .. L["Singing Sockets Info"], L["Adds a Singing sockets selection tool on the Socketing Frame"], "singingSockets")
     addOption(
         general.scroll.scrollchild,
         L["Pixel Perfect Mode"],
@@ -114,7 +91,7 @@ local function LoadHudPanel(sWindow)
         L["HUD Scale"],
         L["Change the HUD size."],
         "HUD_SCALE",
-        function() GW.UpdateHudScale(); GW.ShowRlPopup = true end,
+        function() GW.UpdateHudScale(); GW.ShowRlPopup = true end, --TODO blizzard actionbars
         0.5,
         1.5,
         nil,
@@ -144,31 +121,18 @@ local function LoadHudPanel(sWindow)
             L["Party / Raid"],
         }
     )
-    addOptionDropdown(
-        general.scroll.scrollchild,
-        L["Auto Repair"],
-        L["Automatically repair using the following method when visiting a merchant."],
-        "AUTO_REPAIR",
-        nil,
-        {"NONE", "PLAYER", "GUILD"},
-        {
-            NONE_KEY,
-            PLAYER,
-            GUILD,
-        }
-    )
     addOptionSlider(
         general.scroll.scrollchild,
-        L["Extended Vendor"],
-        L["The number of pages shown in the merchant frame. Set 1 to disable."],
-        "EXTENDED_VENDOR_NUM_PAGES",
-        function() GW.ShowRlPopup = true end,
-        1,
-        6,
+        GW.NewSign .. L["Talking Head Scale"],
         nil,
-        0,
+        "TalkingHeadFrameScale",
+        GW.ScaleTalkingHeadFrame,
+        0.5,
+        2,
         nil,
-        1
+        2,
+        {["TALKINGHEAD_SKIN_ENABLED"] = true},
+        0.01
     )
 
     --MINIMAP

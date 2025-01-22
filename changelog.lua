@@ -14,6 +14,71 @@ AddChange(string addonVersion, table changeList)
    string description
   }
 ]]
+addChange("7.11.0",{
+    {ct.feature, [=[dded option to hide target item level display]=]},
+    {ct.feature, [=[Added option to show Singing Socket gems]=]},
+    {ct.change, [=[Update auctionator skin]=]},
+    {ct.bug, [=[Repuration error]=]},
+    {ct.bug, [=[Notification tooltip]=]},
+    {ct.bug, [=[Fix inverted statusbar]=]},
+    {ct.bug, [=[Party frame auras can stuck sometimes]=]},
+})
+
+addChange("7.10.0",{
+    {ct.feature, [=[Added Talking Head Scaler]=]},
+    {ct.feature, [=[Target/Focus frame bars no inverted in inverted mode]=]},
+    {ct.change, [=[Optimize aura handling for all unitframes]=]},
+    {ct.change, [=[Optimize Healthbar and Powerbar handling]=]},
+    {ct.bug, [=[Fix PetTracker loading]=]},
+})
+
+addChange("7.9.3",{
+    {ct.change, [=[Remove CUSTOM_CLASS_COLOR support and cahnge it to GW2 Class colors]=]},
+    {ct.change, [=[Add option to set number format]=]},
+})
+
+addChange("7.9.2",{
+    {ct.change, [=[TRP3 chat support]=]},
+})
+
+addChange("7.9.1",{
+    {ct.change, [=[TRP3 chat support]=]},
+})
+
+addChange("7.9.0",{
+    {ct.feature, [=[Added grid out of range alpha value setting]=]},
+    {ct.feature, [=[Added custom class color support]=]},
+    {ct.change, [=[Update more dropdowns]=]},
+    {ct.change, [=[Use local number delimiter]=]},
+    {ct.change, [=[11.0.7 changes]=]},
+    {ct.bug, [=[Fix PetTracker integration]=]},
+    {ct.bug, [=[Fix Blizzard mirror timer not shown]=]},
+    {ct.bug, [=[Setting search works again]=]},
+})
+
+addChange("7.8.0",{
+    {ct.feature, [=[Add option to hook profiles to a spec. This will switch the profile on spec switch]=]},
+    {ct.feature, [=[Add todoloo support for GW2 Objectives tracker]=]},
+    {ct.feature, [=[Add searchbox for player titles]=]},
+    {ct.feature, [=[Add slash command to clear tracked but already earned achievements (blizzard bug): /gw2 clear achievements]=]},
+    {ct.feature, [=[Add option to change profile icons]=]},
+    {ct.feature, [=[Add TRP3 support for GW2 chatbubbles]=]},
+    {ct.change, [=[Added fraction icons to the guild datatext]=]},
+    {ct.change, [=[Change all dropdown elements to new blizzard ui system]=]},
+    {ct.change, [=[Allow max 4 watched tokens with gw2 bags enabled]=]},
+    {ct.bug, [=[Objectives tracker bonus step names]=]},
+    {ct.bug, [=[Achievement skin scroll height]=]},
+    {ct.bug, [=[Grid aura indicators now only shows player auras]=]},
+    {ct.bug, [=[Fix dodgebar for some classes]=]},
+    {ct.bug, [=[Fix objectives tracker loading order]=]},
+})
+
+addChange("7.7.2",{
+    {ct.bug, [=[Guild data info lua error]=]},
+    {ct.change, [=[Skin updates]=]},
+    {ct.change, [=[Guild data info text]=]},
+    {ct.change, [=[Stackcount setting]=]},
+})
 
 addChange("7.7.1",{
     {ct.change, [=[Add Dracthyr fraction to tooltip]=]},

@@ -5,6 +5,9 @@ local ClearStorage = GW.ClearStorage
 local UpdateCharData = GW.UpdateCharData
 local FormatMoneyForChat = GW.FormatMoneyForChat
 
+local FACTION_ALLIANCE_ICON = "|TInterface/AddOns/GW2_UI/Textures/social/GameIcons/Launcher/Alliance:13:13|t"
+local FACTION_HORDE_ICON = "|TInterface/AddOns/GW2_UI/Textures/social/GameIcons/Launcher/Horde:13:13|t"
+
 local function GetGraysValue()
     local value = 0
 
@@ -109,7 +112,7 @@ local function Money_OnEnter(self)
             local color = GW.GWGetClassColor(g.class, true, true)
             local factionTexture = ""
             if g.faction and g.faction ~= "" and g.faction ~= "Neutral" then
-                factionTexture = format("|TInterface/FriendsFrame/PlusManz-%s:14|t ", g.faction)
+                factionTexture = g.faction == "Alliance" and FACTION_ALLIANCE_ICON or FACTION_HORDE_ICON
             elseif g.faction and g.faction ~= "" and g.faction == "Neutral" then
                 factionTexture = "|TInterface/Timer/Panda-Logo:14|t "
             end

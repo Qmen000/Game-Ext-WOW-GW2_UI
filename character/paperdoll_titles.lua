@@ -1,12 +1,18 @@
 local _, GW = ...
+local L = GW.L
 
 local savedPlayerTitles = {}
+local showEarned = true;
+local showUnearned = false;
 
 local function title_OnClick(self)
     if not self.titleId then
         return
     end
     SetCurrentTitle(self.titleId)
+
+    self:GetParent():GetParent():GetParent().input:SetText("")
+    self:GetParent():GetParent():GetParent().input.clearButton:Hide()
 end
 GW.AddForProfiling("paperdoll_titles", "title_OnClick", title_OnClick)
 
@@ -23,7 +29,6 @@ local function Titles_InitButton(button, elementData)
 
     if not button.isSkinned then
         button.name:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL)
-        button.name:SetTextColor(1, 1, 1)
         button:HookScript("OnClick", title_OnClick)
         GW.AddListItemChildHoverTexture(button)
 
@@ -40,24 +45,38 @@ local function Titles_InitButton(button, elementData)
         button.zebra:SetVertexColor(0, 0, 0, 0)
     end
 
+    if playerTitle.isKnown then
+        button:Enable();
+        button.name:SetTextColor(1, 1, 1)
+    else
+        button:Disable();
+        button.name:SetTextColor(0.60, 0.60, 0.60)
+    end
+
     button.gwSelected:SetShown(GetCurrentTitle() == button.titleId)
 end
 
-local function saveKnowenTitles()
-    savedPlayerTitles[1] = {}
-    savedPlayerTitles[1].name = "       "
-    savedPlayerTitles[1].id = -1
+local function saveKnowenTitles(titlewin, searchString)
+    wipe(savedPlayerTitles)
+    local tableIndex = 0
+    if showEarned then
+        savedPlayerTitles[1] = {}
+        savedPlayerTitles[1].name = "       "
+        savedPlayerTitles[1].id = -1
+        savedPlayerTitles[1].isKnown = true
 
-    local tableIndex = 1
+        tableIndex = 1
+    end
 
     for i = 1, GetNumTitles() do
-        if IsTitleKnown(i) then
+        if (showEarned and IsTitleKnown(i)) or (showUnearned and not IsTitleKnown(i)) then
             local tempName, playerTitle = GetTitleName(i)
-            if (tempName and playerTitle) then
+            if tempName and playerTitle and ((searchString and string.find(string.lower(tempName), string.lower(searchString)) or searchString == nil)) then
                 tableIndex = tableIndex + 1
                 savedPlayerTitles[tableIndex] = savedPlayerTitles[tableIndex] or {}
                 savedPlayerTitles[tableIndex].name = strtrim(tempName)
                 savedPlayerTitles[tableIndex].id = i
+                savedPlayerTitles[tableIndex].isKnown = IsTitleKnown(i)
             end
         end
     end
@@ -69,38 +88,131 @@ local function saveKnowenTitles()
         end
     )
     savedPlayerTitles[1].name = PLAYER_TITLE_NONE
+
+    UpdateScrollBox(titlewin)
 end
 GW.AddForProfiling("paperdoll_titles", "saveKnowenTitles", saveKnowenTitles)
 
-local function LoadPDTitles(fmMenu)
-    local titlewin_outer = CreateFrame("Frame", "GwTitleWindow", GwPaperDoll, "GwTitleWindow")
+local function SetSearchboxInstructions(editbox, text)
+    editbox.Instructions:SetTextColor(0.5, 0.5, 0.5)
+    editbox.Instructions:SetText(text)
+end
 
-    saveKnowenTitles()
+local function ResetFilter()
+    showEarned = true
+    showUnearned = false
+
+    GwTitleWindow.input:SetText("")
+    GwTitleWindow.input.clearButton:Hide()
+    saveKnowenTitles(GwTitleWindow)
+end
+
+local function ShowFiterDropDown(self)
+    local menu = MenuUtil.CreateContextMenu(self, function(ownerRegion, rootDescription)
+        local check = rootDescription:CreateCheckbox(ACHIEVEMENTFRAME_FILTER_COMPLETED,function() return showEarned end, function() showEarned = not showEarned; GwTitleWindow.input:SetText(""); GwTitleWindow.input.clearButton:Hide(); saveKnowenTitles(GwTitleWindow) end)
+        check:AddInitializer(GW.BlizzardDropdownCheckButtonInitializer)
+
+        check = rootDescription:CreateCheckbox(L["Unearned"],function() return showUnearned end, function() showUnearned = not showUnearned; GwTitleWindow.input:SetText(""); GwTitleWindow.input.clearButton:Hide(); saveKnowenTitles(GwTitleWindow) end)
+        check:AddInitializer(GW.BlizzardDropdownCheckButtonInitializer)
+
+        check:SetTooltip(function(tooltip, elementDescription)
+            tooltip:SetText(MenuUtil.GetElementText(elementDescription), 1, 1, 1)
+            tooltip:AddLine(L["You may see duplicated titles that are unavailable to your faction"], 1, 1, 1)
+        end);
+    end)
+
+    menu:SetClosedCallback(function()
+        if not showEarned and not showUnearned then
+            ResetFilter()
+        end
+    end)
+end
+
+local function LoadPDTitles(fmMenu)
+    local titlewin = CreateFrame("Frame", "GwTitleWindow", GwPaperDoll, "GwTitleWindow")
+
+    SetSearchboxInstructions(titlewin.input, SEARCH .. "...")
+    titlewin.input:SetText("")
+    titlewin.input:SetScript("OnEnterPressed", nil)
+    titlewin.input:HookScript("OnTextChanged", function(self)
+        local text = self:GetText()
+        if text == "" then
+            saveKnowenTitles(titlewin)
+            self.clearButton:Hide()
+            return
+        end
+        saveKnowenTitles(titlewin, text)
+        self.clearButton:Show()
+    end)
+
+    titlewin.input:SetScript("OnEscapePressed", function(self)
+        self:ClearFocus()
+        self:SetText("")
+        saveKnowenTitles(titlewin)
+    end)
+
+    titlewin.input:SetScript("OnEditFocusGained", function(self)
+        self.clearButton:Show()
+        saveKnowenTitles(titlewin)
+    end)
+
+    titlewin.input:SetScript("OnEditFocusLost", function(self)
+        if self:GetText() == "" then
+            self.clearButton:Hide()
+        end
+    end)
+    titlewin.input.clearButton:SetScript("OnClick", function(self)
+        self:GetParent():ClearFocus()
+        self:GetParent():SetText("")
+        saveKnowenTitles(titlewin)
+    end)
+
+    titlewin.filter:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(FILTER, 1, 1, 1)
+        if showUnearned == true then
+            GameTooltip:AddLine(L["Right Click To Reset Filter"], 1, 0.82, 0, true)
+        end
+        GameTooltip:Show()
+    end)
+    titlewin.filter:SetScript("OnLeave", GameTooltip_Hide)
+    titlewin.filter:SetScript("OnClick", function(self, button)
+        if button == "LeftButton" then
+            GameTooltip:Hide()
+            ShowFiterDropDown(self)
+        elseif button == "RightButton" then
+            -- reset filter
+            ResetFilter()
+            if self:IsMouseMotionFocus() then
+                GameTooltip:Hide()
+                self:OnEnter()
+            end
+        end
+    end)
 
     local view = CreateScrollBoxListLinearView()
     view:SetElementInitializer("GwTitleButtonTemplate", function(button, elementData)
         Titles_InitButton(button, elementData);
     end)
-    ScrollUtil.InitScrollBoxListWithScrollBar(titlewin_outer.ScrollBox, titlewin_outer.ScrollBar, view)
-    GW.HandleTrimScrollBar(titlewin_outer.ScrollBar)
-    GW.HandleScrollControls(titlewin_outer)
-    titlewin_outer.ScrollBar:SetHideIfUnscrollable(true)
+    ScrollUtil.InitScrollBoxListWithScrollBar(titlewin.ScrollBox, titlewin.ScrollBar, view)
+    GW.HandleTrimScrollBar(titlewin.ScrollBar)
+    GW.HandleScrollControls(titlewin)
+    titlewin.ScrollBar:SetHideIfUnscrollable(true)
 
-    UpdateScrollBox(titlewin_outer)
+    saveKnowenTitles(titlewin)
 
     -- update title window when a title update event occurs
-    titlewin_outer:SetScript(
+    titlewin:SetScript(
         "OnEvent",
-        function(self)
-            if GW.inWorld and self:IsShown() then
-                saveKnowenTitles()
-                UpdateScrollBox(titlewin_outer)
+        function()
+            if GW.inWorld then
+                saveKnowenTitles(titlewin)
             end
         end
     )
-    titlewin_outer:RegisterEvent("KNOWN_TITLES_UPDATE")
-    titlewin_outer:RegisterEvent("UNIT_NAME_UPDATE")
+    titlewin:RegisterEvent("KNOWN_TITLES_UPDATE")
+    titlewin:RegisterEvent("UNIT_NAME_UPDATE")
 
-    fmMenu:SetupBackButton(titlewin_outer.backButton, CHARACTER .. ": " .. PAPERDOLL_SIDEBAR_TITLES)
+    fmMenu:SetupBackButton(titlewin.backButton, CHARACTER .. ": " .. PAPERDOLL_SIDEBAR_TITLES)
 end
 GW.LoadPDTitles = LoadPDTitles

@@ -2,7 +2,6 @@ local _, GW = ...
 local COLOR_FRIENDLY = GW.COLOR_FRIENDLY
 local LoadAuras = GW.LoadAuras
 local PowerBarColorCustom = GW.PowerBarColorCustom
-local CommaValue = GW.CommaValue
 local UpdateBuffLayout = GW.UpdateBuffLayout
 local RegisterMovableFrame = GW.RegisterMovableFrame
 
@@ -204,59 +203,17 @@ local function UpdatePetCooldown(self)
     end
 end
 
-local function updatePowerData(self)
-    local powerType, powerToken = UnitPowerType("pet")
-    local resource = UnitPower("pet", powerType)
-    local resourceMax = UnitPowerMax("pet", powerType)
-    local resourcePrec = 0
-
-    if resource ~= nil and resource > 0 and resourceMax > 0 then
-        resourcePrec = resource / resourceMax
-    end
-
-    if PowerBarColorCustom[powerToken] then
-        local pwcolor = PowerBarColorCustom[powerToken]
-        self.resource:SetStatusBarColor(pwcolor.r, pwcolor.g, pwcolor.b)
-    end
-
-    self.resource:SetFillAmount(resourcePrec)
-end
-
-local function updateHealthData(self)
-    local health = UnitHealth("pet")
-    local healthMax = UnitHealthMax("pet")
-    local healthprec = 0
-    local formatFunction
-
-    if GW.settings.PET_UNIT_HEALTH_SHORT_VALUES then
-        formatFunction = GW.ShortValue
-    else
-        formatFunction = CommaValue
-    end
-
-    if health > 0 and healthMax > 0 then
-        healthprec = health / healthMax
-    end
-
-    self.health:SetFillAmount(healthprec)
-
-    self.health.barOnUpdate = function()
-        self.health.text:SetText(formatFunction(health))
-    end
-end
-GW.UpdatePlayerPetHealthValues = updateHealthData
-
-local function updatePetData(self, event, unit)
+local function updatePetData(self, event, unit, ...)
     if not UnitExists("pet") then
         return
     end
     if event == "PLAYER_ENTERING_WORLD" then
         SetPortraitTexture(self.portrait, "pet")
         UpdatePetActionBar(self, event, unit)
-        updateHealthData(self)
-        updatePowerData(self)
+        GW.UpdateHealthBar(self)
+        GW.UpdatePowerBar(self, true)
     elseif event == "UNIT_AURA" then
-        UpdateBuffLayout(self, event, unit)
+        GW.UpdateBuffLayout(self, event, unit, ...)
         return
     elseif event == "UNIT_PORTRAIT_UPDATE" or event == "UNIT_MODEL_CHANGED" then
         SetPortraitTexture(self.portrait, "pet")
@@ -275,15 +232,15 @@ local function updatePetData(self, event, unit)
         SetPortraitTexture(self.portrait, "pet")
         UpdatePetActionBar(self, event, unit)
         if event == "UNIT_PET" then
-            updateHealthData(self)
-            updatePowerData(self)
+            GW.UpdateHealthBar(self)
+            GW.UpdatePowerBar(self, true)
         end
     elseif event == "PET_BAR_UPDATE_COOLDOWN" then
         UpdatePetCooldown(self)
     elseif event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
-        updateHealthData(self)
+        GW.UpdateHealthBar(self)
     elseif event == "UNIT_POWER_FREQUENT" or event == "UNIT_MAXPOWER" then
-        updatePowerData(self)
+        GW.UpdatePowerBar(self)
     end
 end
 GW.AddForProfiling("petbar", "updatePetData", updatePetData)
@@ -291,10 +248,14 @@ GW.AddForProfiling("petbar", "updatePetData", updatePetData)
 local function TogglePetAuraPosition()
     GwPlayerPetFrame.auraPositionUnder = GW.settings.PET_AURAS_UNDER
 
+    GwPlayerPetFrame.auras:ClearAllPoints()
     if GwPlayerPetFrame.auraPositionUnder then
-        GwPlayerPetFrame.auras:ClearAllPoints()
-        GwPlayerPetFrame.auras:SetPoint("TOPLEFT", GwPlayerPetFrame.resource, "BOTTOMLEFT", 0, -5)
+        GwPlayerPetFrame.auras:SetPoint("TOPLEFT", GwPlayerPetFrame.powerbar, "BOTTOMLEFT", 0, -5)
+    else
+        GwPlayerPetFrame.auras:SetPoint("TOPRIGHT", GwPlayerPetFrame.Background, "BOTTOMRIGHT", -3, 100)
     end
+
+    GwPlayerPetFrame.auras:ForceUpdate()
 end
 GW.TogglePetAuraPosition = TogglePetAuraPosition
 
@@ -332,10 +293,10 @@ local function LoadPetFrame(lm)
     local playerPetFrame = CreateFrame("Button", "GwPlayerPetFrame", UIParent, "GwPlayerPetFrameTmpl")
 
     GW.hookStatusbarBehaviour(playerPetFrame.health, true)
-    GW.hookStatusbarBehaviour(playerPetFrame.resource, true)
+    GW.hookStatusbarBehaviour(playerPetFrame.powerbar, true)
 
     playerPetFrame.health.customMaskSize = 64
-    playerPetFrame.resource.customMaskSize = 64
+    playerPetFrame.powerbar.customMaskSize = 64
 
     playerPetFrame.buttons = {}
 
@@ -348,6 +309,18 @@ local function LoadPetFrame(lm)
 
     hooksecurefunc(PetActionBar, "Update", UpdateAutoCast)
 
+    playerPetFrame.updateHealthTextString = function(self, health)
+        local formatFunction
+
+        if GW.settings.PET_UNIT_HEALTH_SHORT_VALUES then
+            formatFunction = GW.ShortValue
+        else
+            formatFunction = GW.GetLocalizedNumber
+        end
+
+        self.health.text:SetText(formatFunction(health))
+    end
+
     playerPetFrame:SetAttribute("*type1", "target")
     playerPetFrame:SetAttribute("*type2", "togglemenu")
     playerPetFrame:SetAttribute("unit", "pet")
@@ -358,8 +331,6 @@ local function LoadPetFrame(lm)
     playerPetFrame.health:SetStatusBarColor(COLOR_FRIENDLY[2].r, COLOR_FRIENDLY[2].g, COLOR_FRIENDLY[2].b)
     playerPetFrame.health.text:GwSetFontTemplate(UNIT_NAME_FONT, GW.TextSizeType.SMALL, nil, -1)
 
-    TogglePetAuraPosition()
-
     playerPetFrame:SetScript("OnEnter", function(self)
         if self.unit then
             GameTooltip:ClearLines()
@@ -368,6 +339,19 @@ local function LoadPetFrame(lm)
             GameTooltip:Show()
         end
     end)
+
+    playerPetFrame.unit = "pet"
+
+    playerPetFrame.debuffFilter = "PLAYER"
+    playerPetFrame.displayBuffs = 32
+    playerPetFrame.displayDebuffs = 40
+    playerPetFrame.auras.smallSize = 20
+    playerPetFrame.auras.bigSize = 24
+
+    LoadAuras(playerPetFrame)
+
+    TogglePetAuraPosition()
+
     playerPetFrame:SetScript("OnLeave", GameTooltip_Hide)
     playerPetFrame:SetScript("OnEvent", updatePetData)
     playerPetFrame:HookScript(
@@ -376,13 +360,6 @@ local function LoadPetFrame(lm)
             updatePetData(self, "UNIT_PET", "pet")
         end
     )
-    playerPetFrame.unit = "pet"
-
-    playerPetFrame.displayBuffs = true
-    playerPetFrame.displayDebuffs = true
-    playerPetFrame.debuffFilter = "player"
-
-    LoadAuras(playerPetFrame)
 
     playerPetFrame:RegisterUnitEvent("UNIT_PET", "player")
     playerPetFrame:RegisterUnitEvent("UNIT_POWER_FREQUENT", "pet")

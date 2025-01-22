@@ -1,7 +1,6 @@
 local _, GW = ...
 local RoundDec = GW.RoundDec
 local lerp = GW.lerp
-local CommaValue = GW.CommaValue
 local animations = GW.animations
 local AddToAnimation = GW.AddToAnimation
 local IsIn = GW.IsIn
@@ -184,7 +183,7 @@ local function FormatObjectiveNumbers(text)
     numNeeded = tonumber(numNeeded)
 
     if numItems ~= nil and numNeeded ~= nil then
-        return CommaValue(numItems) .. " / " .. CommaValue(numNeeded) .. " " .. itemName
+        return GW.GetLocalizedNumber(numItems) .. " / " .. GW.GetLocalizedNumber(numNeeded) .. " " .. itemName
     end
     return text
 end
@@ -374,6 +373,12 @@ local function CreateTrackerObject(name, parent)
             LFGListUtil_FindQuestGroup(self:GetParent().id, true)
         end
     end)
+    f.groupButton:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self)
+	    GameTooltip:AddLine(TOOLTIP_TRACKER_FIND_GROUP_BUTTON, HIGHLIGHT_FONT_COLOR:GetRGB());
+	    GameTooltip:Show()
+    end)
+    f.groupButton:SetScript("OnLeave", GameTooltip_Hide)
 
     f.turnin:SetScale(fTracker:GetScale() * 0.9)
     f.popupQuestAccept:SetScale(fTracker:GetScale() * 0.9)
@@ -930,7 +935,7 @@ end
 local function QuestTrackerLayoutChanged()
     updateExtraQuestItemPositions()
     -- adjust scrolframe height
-    local height = fCollection:GetHeight() + fMonthlyActivity:GetHeight() + fRecipe:GetHeight() + fBonus:GetHeight() + fQuest:GetHeight() + fCampaign:GetHeight() + fAchv:GetHeight() + 60 + (GwQuesttrackerContainerWQT and GwQuesttrackerContainerWQT:GetHeight() or 0) + (GwQuesttrackerContainerPetTracker and GwQuesttrackerContainerPetTracker:GetHeight() or 0)
+    local height = fCollection:GetHeight() + fMonthlyActivity:GetHeight() + fRecipe:GetHeight() + fBonus:GetHeight() + fQuest:GetHeight() + fCampaign:GetHeight() + fAchv:GetHeight() + 60 + (GwQuesttrackerContainerWQT and GwQuesttrackerContainerWQT:GetHeight() or 0) + (GwQuesttrackerContainerPetTracker and GwQuesttrackerContainerPetTracker:GetHeight() or 0) + (GwQuesttrackerContainerTodoloo and GwQuesttrackerContainerTodoloo:GetHeight() or 0)
     local scroll = 0
     local trackerHeight = GW.settings.QuestTracker_pos_height - fBoss:GetHeight() - fArenaBG:GetHeight() - fScen:GetHeight() - fNotify:GetHeight()
     if height > tonumber(trackerHeight) then
@@ -1431,7 +1436,6 @@ local function LoadQuestTracker()
     fQuest.header.title:SetTextColor(TRACKER_TYPE_COLOR.QUEST.r, TRACKER_TYPE_COLOR.QUEST.g, TRACKER_TYPE_COLOR.QUEST.b)
 
     fQuest.init = false
-    tracker_OnEvent(fQuest, "LOAD")
 
     GW.LoadBossFrame()
     if not C_AddOns.IsAddOnLoaded("sArena") then
@@ -1445,6 +1449,7 @@ local function LoadQuestTracker()
     GW.LoadCollectionTracking(fCollection)
     GW.LoadWQTAddonSkin()
     GW.LoadPetTrackerAddonSkin()
+    GW.LoadTodolooAddonSkin()
 
     GW.ToggleCollapseObjectivesInChallangeMode()
 
@@ -1552,5 +1557,7 @@ local function LoadQuestTracker()
     fTracker:ClearAllPoints()
     fTracker:SetPoint("TOPLEFT", fTracker.gwMover)
     fTracker:SetHeight(GW.settings.QuestTracker_pos_height)
+
+    tracker_OnEvent(fQuest, "LOAD")
 end
 GW.LoadQuestTracker = LoadQuestTracker

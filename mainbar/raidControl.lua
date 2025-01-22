@@ -57,6 +57,16 @@ local function fnGMIG_OnEvent(self)
     self.groupCounter:SetText("|TInterface/AddOns/GW2_UI/textures/party/roleicon-tank:0:0:0:2:64:64:4:60:4:60|t " .. numTank .. "    |TInterface/AddOns/GW2_UI/textures/party/roleicon-healer:0:0:0:2:64:64:4:60:4:60|t " .. numHeal .. "    |TInterface/AddOns/GW2_UI/textures/party/roleicon-dps:15:15:0:0:64:64:4:60:4:60|t " .. numDamage)
 end
 
+local function ToggleVisibility()
+    if not created then return end
+    if GW.settings.FADE_GROUP_MANAGE_FRAME then
+        GwManageGroupButton.fadeOut()
+    else
+        GwManageGroupButton.fadeIn()
+    end
+end
+GW.ToggleRaidControllFrame = ToggleVisibility
+
 local function CreateRaidControlFrame()
     if created then return end
     created = true
@@ -294,35 +304,39 @@ local function CreateRaidControlFrame()
 
     fnGMIG_OnEvent(GwGroupManage.inGroup)
 
+    local fo = fmGMGB:CreateAnimationGroup("fadeOut")
+    local fi = fmGMGB:CreateAnimationGroup("fadeIn")
+    local fadeOut = fo:CreateAnimation("Alpha")
+    local fadeIn = fi:CreateAnimation("Alpha")
+    fo:SetScript("OnFinished", function(self)
+        self:GetParent():SetAlpha(0)
+    end)
+    fi:SetScript("OnFinished", function(self)
+        self:GetParent():SetAlpha(1)
+    end)
+    fadeOut:SetStartDelay(0.25)
+    fadeOut:SetFromAlpha(1.0)
+    fadeOut:SetToAlpha(0.0)
+    fadeOut:SetDuration(0.15)
+    fadeIn:SetFromAlpha(0.0)
+    fadeIn:SetToAlpha(1.0)
+    fadeIn:SetDuration(0.15)
+    fmGMGB.fadeOut = function()
+        fi:Stop()
+        fo:Stop()
+        fo:Play()
+    end
+    fmGMGB.fadeIn = function()
+        fi:Stop()
+        fo:Stop()
+        fi:Play()
+    end
+    fmGMGB:SetAlpha(0)
+
     if GW.settings.FADE_GROUP_MANAGE_FRAME then
-        local fo = fmGMGB:CreateAnimationGroup("fadeOut")
-        local fi = fmGMGB:CreateAnimationGroup("fadeIn")
-        local fadeOut = fo:CreateAnimation("Alpha")
-        local fadeIn = fi:CreateAnimation("Alpha")
-        fo:SetScript("OnFinished", function(self)
-            self:GetParent():SetAlpha(0)
-        end)
-        fi:SetScript("OnFinished", function(self)
-            self:GetParent():SetAlpha(1)
-        end)
-        fadeOut:SetStartDelay(0.25)
-        fadeOut:SetFromAlpha(1.0)
-        fadeOut:SetToAlpha(0.0)
-        fadeOut:SetDuration(0.15)
-        fadeIn:SetFromAlpha(0.0)
-        fadeIn:SetToAlpha(1.0)
-        fadeIn:SetDuration(0.15)
-        fmGMGB.fadeOut = function()
-            fi:Stop()
-            fo:Stop()
-            fo:Play()
-        end
-        fmGMGB.fadeIn = function()
-            fi:Stop()
-            fo:Stop()
-            fi:Play()
-        end
-        fmGMGB:SetAlpha(0)
+        fmGMGB.fadeOut()
+    else
+        fmGMGB.fadeIn()
     end
 end
 GW.CreateRaidControlFrame = CreateRaidControlFrame

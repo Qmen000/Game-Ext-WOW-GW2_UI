@@ -1,6 +1,7 @@
 local _, GW = ...
 local L = GW.L
 local addOption = GW.AddOption
+local addOptionDropdown = GW.AddOptionDropdown
 local createCat = GW.CreateCat
 local InitPanel = GW.InitPanel
 local settingsMenuAddButton = GW.settingsMenuAddButton;
@@ -75,8 +76,8 @@ local function LoadTargetPanel(sWindow)
 
     --PET
     addOption(pPlayerPet.scroll.scrollchild, L["Display Portrait Damage"], L["Display Portrait Damage on this frame"], "PET_FLOATING_COMBAT_TEXT", GW.TogglePetFrameCombatFeedback, nil, {["PETBAR_ENABLED"] = true})
-    addOption(pPlayerPet.scroll.scrollchild, L["Show auras below"], nil, "PET_AURAS_UNDER", function() GW.TogglePetAuraPosition() end, nil, {["PETBAR_ENABLED"] = true})
-    addOption(pPlayerPet.scroll.scrollchild, GW.NewSign .. L["Shorten health values"], nil, "PET_UNIT_HEALTH_SHORT_VALUES", GW.UpdatePlayerPetHealthValues, nil, {["PETBAR_ENABLED"] = true})
+    addOption(pPlayerPet.scroll.scrollchild, L["Show auras below"], nil, "PET_AURAS_UNDER", GW.TogglePetAuraPosition, nil, {["PETBAR_ENABLED"] = true})
+    addOption(pPlayerPet.scroll.scrollchild, GW.NewSign .. L["Shorten health values"], nil, "c", function() if GwPlayerPetFrame then GW.UpdateHealthBar(GwPlayerPetFrame) end end, nil, {["PETBAR_ENABLED"] = true})
 
     --TARGET
     addOption(p_target.scroll.scrollchild, SHOW_ENEMY_CAST, nil, "target_SHOW_CASTBAR", GW.ToggleTargetFrameSettings, nil, {["TARGET_ENABLED"] = true})
@@ -88,16 +89,27 @@ local function LoadTargetPanel(sWindow)
     addOption(p_target.scroll.scrollchild, L["Dungeon & Raid Debuffs"], L["Show important Dungeon & Raid debuffs"], "target_BUFFS_FILTER_IMPORTANT", GW.ToggleTargetFrameSettings, nil, {["TARGET_ENABLED"] = true, ["target_DEBUFFS"] = true})
     addOption(p_target.scroll.scrollchild, SHOW_ALL_ENEMY_DEBUFFS_TEXT, L["Display all of the target's debuffs."], "target_BUFFS_FILTER_ALL", GW.ToggleTargetFrameSettings, nil, {["TARGET_ENABLED"] = true, ["target_DEBUFFS"] = true})
     addOption(p_target.scroll.scrollchild, SHOW_BUFFS, L["Display the target's buffs."], "target_BUFFS", GW.ToggleTargetFrameSettings, nil, {["TARGET_ENABLED"] = true})
-    addOption(p_target.scroll.scrollchild, L["Display Average Item Level"], L["Display the average item level instead of prestige level for friendly units."], "target_SHOW_ILVL", GW.ToggleTargetFrameSettings, nil, {["TARGET_ENABLED"] = true})
     addOption(p_target.scroll.scrollchild, L["Show Threat"], L["Show Threat"], "target_THREAT_VALUE_ENABLED", GW.ToggleTargetFrameSettings, nil, {["TARGET_ENABLED"] = true})
-    addOption(p_target.scroll.scrollchild, L["Show Combo Points on Target"], L["Show combo points on target, below the health bar."], "target_HOOK_COMBOPOINTS", function() GW.ShowRlPopup = true; GW.ToggleTargetFrameSettings() end, nil,{["TARGET_ENABLED"] = true})
+    addOption(p_target.scroll.scrollchild, L["Show Combo Points on Target"], L["Show combo points on target, below the health bar."], "target_HOOK_COMBOPOINTS", function() GW.ToggleTargetFrameSettings() end, nil,{["TARGET_ENABLED"] = true})
     addOption(p_target.scroll.scrollchild, L["Advanced Casting Bar"], L["Enable or disable the advanced casting bar."], "target_CASTINGBAR_DATA", GW.ToggleTargetFrameSettings, nil, {["TARGET_ENABLED"] = true})
     addOption(p_target.scroll.scrollchild, BUFFS_ON_TOP, nil, "target_AURAS_ON_TOP", GW.ToggleTargetFrameSettings, nil, {["TARGET_ENABLED"] = true})
     addOption(p_target.scroll.scrollchild, L["Display Portrait Damage"], L["Display Portrait Damage on this frame"], "target_FLOATING_COMBAT_TEXT", GW.ToggleTargetFrameCombatFeedback, nil, {["TARGET_ENABLED"] = true})
     addOption(p_target.scroll.scrollchild, L["Invert target frame"], nil, "target_FRAME_INVERT", function() GW.ShowRlPopup = true end, nil, {["TARGET_ENABLED"] = true})
     addOption(p_target.scroll.scrollchild, L["Show alternative background texture"], nil, "target_FRAME_ALT_BACKGROUND", GW.ToggleTargetFrameSettings, nil, {["TARGET_ENABLED"] = true})
+    addOptionDropdown(
+        p_target.scroll.scrollchild,
+        L["Display additional information (ilvl, pvp level)"],
+        L["Display the average item level, prestige level for friendly units or disable it."],
+        "target_ILVL",
+        GW.ToggleTargetFrameSettings,
+        {"ITEM_LEVEL", "PVP_LEVEL", "NONE"},
+        {STAT_AVERAGE_ITEM_LEVEL, L["PvP Level"], NONE},
+        nil,
+        {["TARGET_ENABLED"] = true}
+    )
+
     --TARGET OF TARGET
-    addOption(pTargetOfTarget.scroll.scrollchild, SHOW_TARGET_OF_TARGET_TEXT, L["Enable the target of target frame."], "target_TARGET_ENABLED", function() GW.ShowRlPopup = true end, nil, {["TARGET_ENABLED"] = true})
+    addOption(pTargetOfTarget.scroll.scrollchild, SHOW_TARGET_OF_TARGET_TEXT, L["Enable the target of target frame."], "target_TARGET_ENABLED", function() GW.ToggleTargetOfUnitFrame("Target") end, nil, {["TARGET_ENABLED"] = true})
     addOption(pTargetOfTarget.scroll.scrollchild, SHOW_ENEMY_CAST, nil, "target_TARGET_SHOW_CASTBAR", function() GW.ToggleTargetTargetFrameSetting("Target") end, nil, {["TARGET_ENABLED"] = true, ["target_TARGET_ENABLED"] = true})
 
     --FOCUS
@@ -113,9 +125,21 @@ local function LoadTargetPanel(sWindow)
     addOption(p_focus.scroll.scrollchild, BUFFS_ON_TOP, nil, "focus_AURAS_ON_TOP", GW.ToggleFocusFrameSettings, nil, {["FOCUS_ENABLED"] = true})
     addOption(p_focus.scroll.scrollchild, L["Invert focus frame"], nil, "focus_FRAME_INVERT", function() GW.ShowRlPopup = true end, nil, {["FOCUS_ENABLED"] = true})
     addOption(p_focus.scroll.scrollchild, L["Show alternative background texture"], nil, "focus_FRAME_ALT_BACKGROUND", GW.ToggleFocusFrameSettings, nil, {["FOCUS_ENABLED"] = true})
+    addOptionDropdown(
+        p_focus.scroll.scrollchild,
+        L["Display additional information (ilvl, pvp level)"],
+        L["Display the average item level, prestige level for friendly units or disable it."],
+        "focus_ILVL",
+        GW.ToggleTargetFrameSettings,
+        {"ITEM_LEVEL", "PVP_LEVEL", "NONE"},
+        {STAT_AVERAGE_ITEM_LEVEL, L["PvP Level"], NONE},
+        nil,
+        {["FOCUS_ENABLED"] = true}
+    )
+    
     --TARGET OF FOCUS
-    addOption(pTargetOfFocus.scroll.scrollchild, MINIMAP_TRACKING_FOCUS, L["Display the focus target frame."], "focus_TARGET_ENABLED", function() GW.ShowRlPopup = true end, nil, {["FOCUS_ENABLED"] = true})
-    addOption(pTargetOfFocus.scroll.scrollchild, SHOW_ENEMY_CAST, nil, "focus_TARGET_SHOW_CASTBAR", GW.ToggleTargetTargetFrameSetting, nil, {["FOCUS_ENABLED"] = true, ["focus_TARGET_ENABLED"] = true})
+    addOption(pTargetOfFocus.scroll.scrollchild, MINIMAP_TRACKING_FOCUS, L["Display the focus target frame."], "focus_TARGET_ENABLED", function() GW.ToggleTargetOfUnitFrame("Focus") end, nil, {["FOCUS_ENABLED"] = true})
+    addOption(pTargetOfFocus.scroll.scrollchild, SHOW_ENEMY_CAST, nil, "focus_TARGET_SHOW_CASTBAR", function() GW.ToggleTargetTargetFrameSetting("Focus") end , nil, {["FOCUS_ENABLED"] = true, ["focus_TARGET_ENABLED"] = true})
 
     InitPanel(pPlayerPet, true)
     InitPanel(p_target, true)

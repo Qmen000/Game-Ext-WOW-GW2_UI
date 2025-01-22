@@ -332,7 +332,7 @@ local function Friends_OnEnter(self)
     if onlineFriends > 0 then
         for _, info in ipairs(friendTable) do
             if info.online then
-                local zoneText = GW.Libs.GW2Lib:GetPlayerLocationZoneText()
+                zoneText = GW.Libs.GW2Lib:GetPlayerLocationZoneText()
                 if zoneText and (zoneText == info.zone) then zonec = activezone else zonec = inactivezone end
                 classc, levelc = GW.GWGetClassColor(info.class, true, true), GetQuestDifficultyColor(info.level)
                 if not classc then classc = levelc end

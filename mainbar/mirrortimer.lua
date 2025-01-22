@@ -2,7 +2,8 @@ local _, GW = ...
 
 local function HandleMirrorTimer(self, timer)
 	local bar = self:GetAvailableTimer(timer)
-	if bar then
+	if not bar then return end
+	if not bar.atlasHolder then
 		bar.atlasHolder = CreateFrame("Frame", nil, bar)
 		bar.atlasHolder:SetClipsChildren(true)
 		bar.atlasHolder:GwSetInside()

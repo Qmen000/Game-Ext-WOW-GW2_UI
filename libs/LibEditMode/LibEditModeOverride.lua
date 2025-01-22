@@ -1,6 +1,6 @@
 -- Copyright 2022-2023 plusmouse. Licensed under terms found in LICENSE file.
 
-local lib = LibStub:NewLibrary("LibEditModeOverride-1.0", 10)
+local lib = LibStub:NewLibrary("LibEditModeOverride-1.0-GW2", 10)
 
 if not lib then return end
 
@@ -312,6 +312,7 @@ end
 eventFrame:SetScript("OnEvent", function(self)
   SetLayoutBackToGw2Layout(nil, eventFrame.layoutIndex)
 end)
+
 function lib:RegisterForLayoutChangeBackToGW2Layout()
   hooksecurefunc(EditModeManagerFrame, "SelectLayout", SetLayoutBackToGw2Layout)
 end

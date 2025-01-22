@@ -29,7 +29,6 @@ local function LoadSkinsPanel(sWindow)
     addOption(p.scroll.scrollchild, L["Talking Head"], nil, "TALKINGHEAD_SKIN_ENABLED", function() GW.ShowRlPopup = true end)
     addOption(p.scroll.scrollchild, L["Misc Frames"], nil, "MISC_SKIN_ENABLED", function() GW.ShowRlPopup = true end)
     addOption(p.scroll.scrollchild, FLIGHT_MAP, nil, "FLIGHTMAP_SKIN_ENABLED", function() GW.ShowRlPopup = true end)
-    addOption(p.scroll.scrollchild, L["Blizzard Class Colors"], nil, "BLIZZARDCLASSCOLOR_ENABLED", function() GW.ShowRlPopup = true end)
     addOption(p.scroll.scrollchild, ADDON_LIST, nil, "ADDONLIST_SKIN_ENABLED", function() GW.ShowRlPopup = true end)
     addOption(p.scroll.scrollchild, MACRO, nil, "MACRO_SKIN_ENABLED", function() GW.ShowRlPopup = true end)
     addOption(p.scroll.scrollchild, MINIMAP_TRACKING_MAILBOX, nil, "MAIL_SKIN_ENABLED", function() GW.ShowRlPopup = true end)
@@ -64,8 +63,9 @@ local function LoadSkinsPanel(sWindow)
 
     addOption(p.scroll.scrollchild, "|cffaaaaaa[AddOn]|r World Quest Tracker", nil, "SKIN_WQT_ENABLED", function() GW.ShowRlPopup = true end, nil, {["QUESTTRACKER_ENABLED"] = true}, "Objectives")
     addOption(p.scroll.scrollchild, "|cffaaaaaa[AddOn]|r Immersion", nil, "IMMERSIONADDON_SKIN_ENABLED", function() GW.ShowRlPopup = true end)
-    addOption(p.scroll.scrollchild, "|cffaaaaaa[AddOn]|r PetTracker", nil, "SKIN_PETTRACKER_ENABLED", function() GW.ShowRlPopup = true end)
+    addOption(p.scroll.scrollchild, "|cffaaaaaa[AddOn]|r PetTracker", nil, "SKIN_PETTRACKER_ENABLED", function() GW.ShowRlPopup = true end, nil, {["QUESTTRACKER_ENABLED"] = true}, "Objectives")
     addOption(p.scroll.scrollchild, "|cffaaaaaa[AddOn]|r Auctionator", nil, "AUCTIONATOR_SKIN_ENABLED", function() GW.ShowRlPopup = true end, nil, {["AuctionHouseSkinEnabled"] = true})
+    addOption(p.scroll.scrollchild, "|cffaaaaaa[AddOn]|r Todoloo", nil, "SKIN_TODOLOO_ENABLED", function() GW.ShowRlPopup = true end)
 
     InitPanel(p, true)
 end

@@ -234,8 +234,8 @@
                     <Layer level="ARTWORK" textureSubLevel="2">
                         <Texture parentKey="bg" file="Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar">
                             <Anchors>
-                                <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="4" y="-4"/>
-                                <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" x="-4" y="4"/>
+                                <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="1" y="-1"/>
+                                <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" x="-1" y="1"/>
                             </Anchors>
                         </Texture>
                     </Layer>
@@ -261,99 +261,12 @@
             </Layer>
         </Layers>
        <Frames>
-            <Frame hidden="true" frameStrata="HIGH" parentKey="container">
-                <Size x="250" y="20"/>
+            <DropdownButton parentKey="dropDown" inherits="WowStyle1DropdownTemplate">
+                <Size x="260" y="25"/>
                 <Anchors>
-                    <Anchor point="RIGHT" relativePoint="RIGHT" x="-10" y="0"/>
+                    <Anchor point="RIGHT" relativePoint="RIGHT" x="-5" y="0"/>
                 </Anchors>
-                <Frames>
-                    <ScrollFrame parentKey="contentScroll" inherits="GwHybridScrollFrameTemplate">
-                        <Size x="250" y="120"></Size>
-                        <Anchors>
-                            <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="0" y="-20"></Anchor>
-                        </Anchors>
-                    </ScrollFrame>
-                </Frames>
-            </Frame>
-            <Button parentKey="button">
-                <Size x="250" y="20"/>
-                <Anchors>
-                    <Anchor point="RIGHT" relativePoint="RIGHT" x="-10" y="0"/>
-                </Anchors>
-                <Layers>
-                    <Layer level="BACKGROUND" textureSubLevel="2">
-                        <Texture file="Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar">
-                            <Color r="0" b="0" g="0"/>
-                            <Anchors>
-                                <Anchor point="TOPLEFT" relativePoint="TOPLEFT"/>
-                                <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT"/>
-                            </Anchors>
-                        </Texture>
-                    </Layer>
-                    <Layer level="OVERLAY" textureSubLevel="3">
-                        <FontString parentKey="string" text="" inherits="GameFontNormalSmall" justifyH="LEFT" justifyV="MIDDLE">
-                            <Size x="240" y="20"/>
-                            <Color r="1" b="1" g="1"/>
-                            <Anchors>
-                                <Anchor point="CENTER"/>
-                            </Anchors>
-                        </FontString>
-                    </Layer>
-                    <Layer level="OVERLAY" textureSubLevel="4">
-                        <Texture file="Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down">
-                            <Color r="1" g="1" b="1" a="1"/>
-                            <Size x="18" y="18"/>
-                            <Anchors>
-                                <Anchor point="RIGHT"/>
-                            </Anchors>
-                        </Texture>
-                    </Layer>
-                </Layers>
-            </Button>
-        </Frames>
-    </Button>
-
-    <Button name="GwDropDownItemTmpl" frameStrata="HIGH" virtual="true">
-        <Size x="250" y="20"/>
-        <Layers>
-            <Layer level="OVERLAY" textureSubLevel="2">
-                <Texture parentKey="bg" file="Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar">
-                    <Color r="0" b="0" g="0"/>
-                    <Anchors>
-                        <Anchor point="TOPLEFT" relativePoint="TOPLEFT"/>
-                        <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT"/>
-                    </Anchors>
-                </Texture>
-                <FontString parentKey="string" text="" inherits="GameFontNormalSmall" justifyH="LEFT" justifyV="MIDDLE">
-                    <Size x="240" y="20"/>
-                    <Color r="1" b="1" g="1"/>
-                    <Anchors>
-                        <Anchor point="LEFT" x="25" y="0"/>
-                    </Anchors>
-                </FontString>
-            </Layer>
-             <Layer level="OVERLAY" textureSubLevel="100">
-                <Texture parentKey="hover" file="Interface/AddOns/GW2_UI/textures/uistuff/button_hover" setAllPoints="true" hidden="true"/>
-            </Layer>
-        </Layers>
-        <Frames>
-            <CheckButton parentKey="checkbutton" checked="false">
-                <HitRectInsets left="0" right="0" top="0" bottom="0"/>
-                <Size x="16" y="16"/>
-                <Anchors>
-                    <Anchor point="LEFT" relativePoint="LEFT" x="5"/>
-                </Anchors>
-                <NormalTexture file="Interface/AddOns/GW2_UI/textures/uistuff/checkbox"/>
-                <CheckedTexture file="Interface/AddOns/GW2_UI/textures/uistuff/checkboxchecked"/>
-            </CheckButton>
-            <Button parentKey="soundButton">
-                <NormalTexture file="Interface/AddOns/GW2_UI/textures/chat/channel_vc_sound_on"/>
-                <HighlightTexture file="Interface/AddOns/GW2_UI/textures/chat/channel_vc_sound_on_highlight"/>
-                <Size x="12" y="12"/>
-                <Anchors>
-                    <Anchor point="RIGHT" relativePoint="RIGHT" x="-18" y="0"/>
-                </Anchors>
-            </Button>
+            </DropdownButton>
         </Frames>
     </Button>
 
@@ -867,87 +780,35 @@
                     <Button parentKey="lockHud" inherits="GwStandardButton" text="LOCK HUD">
                         <Size x="170" y="20" />
                         <Anchors>
-                            <Anchor point="TOPLEFT" relativeKey="$parent.seperator" relativePoint="BOTTOMLEFT" x="0" y="-5" />
+                            <Anchor point="TOPLEFT" relativeKey="$parent.seperator" relativePoint="BOTTOMLEFT" x="0" y="-3" />
                         </Anchors>
                     </Button>
                     <Button parentKey="hidePlaceholder" inherits="GwStandardButton" text="HIDE PLACEHOLDERS">
                         <Size x="170" y="20" />
                         <Anchors>
-                            <Anchor point="TOPLEFT" relativeKey="$parent.lockHud" relativePoint="BOTTOMLEFT" x="0" y="-5" />
+                            <Anchor point="TOPLEFT" relativeKey="$parent.lockHud" relativePoint="BOTTOMLEFT" x="0" y="-3" />
                         </Anchors>
                     </Button>
-                     <Button parentKey="tagDropdown">
-                        <Size x="170" y="20"/>
+                    <DropdownButton parentKey="tagDropdown" inherits="WowStyle1DropdownTemplate">
+                        <Size x="125" y="25"/>
                         <Anchors>
-                            <Anchor point="TOPLEFT" relativeKey="$parent.hidePlaceholder" relativePoint="BOTTOMLEFT" x="0" y="-5"/>
+                            <Anchor point="TOPLEFT" relativeKey="$parent.hidePlaceholder" relativePoint="BOTTOMLEFT" x="50" y="-3"/>
                         </Anchors>
                         <Layers>
                             <Layer level="OVERLAY" textureSubLevel="2">
                                 <FontString parentKey="title" text="Settings" inherits="GameFontNormalSmall" justifyH="LEFT">
                                     <Size x="125" y="12"/>
-                                    <Color r="1" b="0.73" g="0.93"/>
                                     <Anchors>
-                                        <Anchor point="LEFT" x="0" y="0"/>
+                                        <Anchor point="LEFT" x="-50" y="0"/>
                                     </Anchors>
                                 </FontString>
                             </Layer>
                         </Layers>
-                        <Frames>
-                            <Frame hidden="true" frameStrata="HIGH" parentKey="container">
-                                <Size x="80" y="20"/>
-                                <Anchors>
-                                    <Anchor point="RIGHT" relativePoint="RIGHT" x="-10" y="0"/>
-                                </Anchors>
-                                <Frames>
-                                    <ScrollFrame parentKey="contentScroll" inherits="GwHybridScrollFrameTemplate">
-                                        <Size x="90" y="120"></Size>
-                                        <Anchors>
-                                            <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="10" y="-25"></Anchor>
-                                        </Anchors>
-                                    </ScrollFrame>
-                                </Frames>
-                            </Frame>
-                            <Button parentKey="button">
-                                <Size x="80" y="20"/>
-                                <Anchors>
-                                    <Anchor point="RIGHT" relativePoint="RIGHT" x="0" y="0"/>
-                                </Anchors>
-                                <Layers>
-                                    <Layer level="BACKGROUND" textureSubLevel="2">
-                                        <Texture file="Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar">
-                                            <Color r="0" b="0" g="0"/>
-                                            <Anchors>
-                                                <Anchor point="TOPLEFT" relativePoint="TOPLEFT"/>
-                                                <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT"/>
-                                            </Anchors>
-                                        </Texture>
-                                    </Layer>
-                                    <Layer level="OVERLAY" textureSubLevel="3">
-                                        <FontString parentKey="string" text="" inherits="GameFontNormalSmall" justifyH="LEFT" justifyV="MIDDLE">
-                                            <Size x="75" y="20"/>
-                                            <Color r="1" b="1" g="1"/>
-                                            <Anchors>
-                                                <Anchor point="CENTER"/>
-                                            </Anchors>
-                                        </FontString>
-                                    </Layer>
-                                    <Layer level="OVERLAY" textureSubLevel="4">
-                                        <Texture file="Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down">
-                                            <Color r="1" g="1" b="1" a="1"/>
-                                            <Size x="18" y="18"/>
-                                            <Anchors>
-                                                <Anchor point="RIGHT"/>
-                                            </Anchors>
-                                        </Texture>
-                                    </Layer>
-                                </Layers>
-                            </Button>
-                        </Frames>
-                    </Button>
+                    </DropdownButton>
                     <Button parentKey="showGrid" inherits="GwStandardButton" text="SHOW GRID">
                         <Size x="170" y="20" />
                         <Anchors>
-                            <Anchor point="TOPLEFT" relativeKey="$parent.tagDropdown" relativePoint="BOTTOMLEFT" x="0" y="-5" />
+                            <Anchor point="TOPLEFT" relativeKey="$parent.tagDropdown" relativePoint="BOTTOMLEFT" x="-50" y="-3" />
                         </Anchors>
                     </Button>
                     <Frame parentKey="gridAlign" inherits="GwStandardInputField">
@@ -989,164 +850,59 @@
             </Layer>
         </Layers>
         <Frames>
-            <Button parentKey="savedLayoutDropDown">
-                <Size x="125" y="40"/>
-                <Anchors>
-                    <Anchor point="TOPLEFT" relativeKey="$parent.desc" relativePoint="BOTTOMLEFT" x="0" y="0"/>
-                </Anchors>
+            <DropdownButton parentKey="savedLayoutDropDown" inherits="WowStyle1DropdownTemplate">
+                <Size x="125" y="25"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.desc" relativePoint="BOTTOMLEFT" x="-10" y="0"/>
+				</Anchors>
                 <Layers>
-                    <Layer level="OVERLAY" textureSubLevel="2">
-                        <FontString parentKey="title" text="Settings" inherits="GameFontNormalSmall" justifyH="LEFT">
-                            <Size x="125" y="12"/>
-                            <Color r="1" b="0.73" g="0.93"/>
-                            <Anchors>
-                                <Anchor point="TOPLEFT" x="0" y="0"/>
-                            </Anchors>
-                        </FontString>
-                    </Layer>
-                </Layers>
-                <Frames>
-                    <Frame hidden="true" frameStrata="HIGH" parentKey="container">
-                        <Size x="125" y="20"/>
-                        <Anchors>
-                            <Anchor point="RIGHT" relativePoint="RIGHT" x="-10" y="0"/>
-                        </Anchors>
-                        <Frames>
-                            <ScrollFrame parentKey="contentScroll" inherits="GwHybridScrollFrameTemplate">
-                                <Size x="140" y="120"></Size>
-                                <Anchors>
-                                    <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="10" y="-30"></Anchor>
-                                </Anchors>
-                            </ScrollFrame>
-                        </Frames>
-                    </Frame>
-                    <Button parentKey="button">
-                        <Size x="125" y="20"/>
-                        <Anchors>
-                            <Anchor point="RIGHT" relativePoint="RIGHT" x="0" y="-5"/>
-                        </Anchors>
-                        <Layers>
-                            <Layer level="BACKGROUND" textureSubLevel="2">
-                                <Texture file="Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar">
-                                    <Color r="0" b="0" g="0"/>
-                                    <Anchors>
-                                        <Anchor point="TOPLEFT" relativePoint="TOPLEFT"/>
-                                        <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT"/>
-                                    </Anchors>
-                                </Texture>
-                            </Layer>
-                            <Layer level="OVERLAY" textureSubLevel="3">
-                                <FontString parentKey="string" text="" inherits="GameFontNormalSmall" justifyH="LEFT" justifyV="MIDDLE">
-                                    <Size x="115" y="20"/>
-                                    <Color r="1" b="1" g="1"/>
-                                    <Anchors>
-                                        <Anchor point="CENTER"/>
-                                    </Anchors>
-                                </FontString>
-                            </Layer>
-                            <Layer level="OVERLAY" textureSubLevel="4">
-                                <Texture file="Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down">
-                                    <Color r="1" g="1" b="1" a="1"/>
-                                    <Size x="18" y="18"/>
-                                    <Anchors>
-                                        <Anchor point="RIGHT"/>
-                                    </Anchors>
-                                </Texture>
-                            </Layer>
-                        </Layers>
-                    </Button>
-                </Frames>
-            </Button>
-            <Button parentKey="rename" inherits="GwStandardButton" text="">
+					<Layer level="BACKGROUND">
+						<FontString parentKey="title" inherits="GameFontNormal" text="Layouts" justifyH="LEFT">
+							<Anchors>
+								<Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="8" y="3"/>
+							</Anchors>
+						</FontString>
+				  	</Layer>
+				</Layers>
+			</DropdownButton>
+
+            <Button parentKey="rename" inherits="GwStandardButtonNoOutline" text="">
                 <NormalTexture file="Interface/AddOns/GW2_UI/textures/uistuff/rename-quill"/>
                 <DisabledTexture file="Interface/AddOns/GW2_UI/textures/uistuff/rename-quill"/>
                 <Size x="20" y="18" />
                 <Anchors>
-                    <Anchor point="LEFT" relativeKey="$parent.savedLayoutDropDown" relativePoint="RIGHT" x="5" y="-5"/>
+                    <Anchor point="LEFT" relativeKey="$parent.savedLayoutDropDown" relativePoint="RIGHT" x="3" y="-2"/>
                 </Anchors>
             </Button>
 
             <Button parentKey="new" inherits="GwStandardButton" text="NEW">
-                <Size x="72" y="15" />
+                <Size x="69" y="15" />
                 <Anchors>
-                    <Anchor point="TOPLEFT" relativeKey="$parent.savedLayoutDropDown" relativePoint="BOTTOMLEFT" x="0" y="0"/>
+                    <Anchor point="TOPLEFT" relativeKey="$parent.savedLayoutDropDown" relativePoint="BOTTOMLEFT" x="7" y="-5"/>
                 </Anchors>
             </Button>
             <Button parentKey="delete" inherits="GwStandardButton" text="DELETE">
-                <Size x="73" y="15" />
+                <Size x="69" y="15" />
                 <Anchors>
                     <Anchor point="LEFT" relativeKey="$parent.new" relativePoint="RIGHT" x="5" y="0"/>
                 </Anchors>
             </Button>
 
-            <Button parentKey="specsDropDown">
-                <Size x="150" y="40"/>
-                <Anchors>
-                    <Anchor point="TOPLEFT" relativeKey="$parent.new" relativePoint="BOTTOMLEFT" x="0" y="-20"/>
-                </Anchors>
+            <DropdownButton parentKey="specsDropDown" inherits="WowStyle1DropdownTemplate">
+                <Size x="150" y="25"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.new" relativePoint="BOTTOMLEFT" x="-7" y="-30"/>
+				</Anchors>
                 <Layers>
-                    <Layer level="OVERLAY" textureSubLevel="2">
-                        <FontString parentKey="title" text="Settings" inherits="GameFontNormalSmall" justifyH="LEFT">
-                            <Size x="150" y="12"/>
-                            <Color r="1" b="0.73" g="0.93"/>
-                            <Anchors>
-                                <Anchor point="TOPLEFT" x="0" y="0"/>
-                            </Anchors>
-                        </FontString>
-                    </Layer>
-                </Layers>
-                <Frames>
-                    <Frame hidden="true" frameStrata="HIGH" parentKey="container">
-                        <Size x="150" y="20"/>
-                        <Anchors>
-                            <Anchor point="RIGHT" relativePoint="RIGHT" x="-10" y="0"/>
-                        </Anchors>
-                        <Frames>
-                            <ScrollFrame parentKey="contentScroll" inherits="GwHybridScrollFrameTemplate">
-                                <Size x="140" y="120"></Size>
-                                <Anchors>
-                                    <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="10" y="-25"></Anchor>
-                                </Anchors>
-                            </ScrollFrame>
-                        </Frames>
-                    </Frame>
-                    <Button parentKey="button">
-                        <Size x="150" y="20"/>
-                        <Anchors>
-                            <Anchor point="RIGHT" relativePoint="RIGHT" x="0" y="-5"/>
-                        </Anchors>
-                        <Layers>
-                            <Layer level="BACKGROUND" textureSubLevel="2">
-                                <Texture file="Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar">
-                                    <Color r="0" b="0" g="0"/>
-                                    <Anchors>
-                                        <Anchor point="TOPLEFT" relativePoint="TOPLEFT"/>
-                                        <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT"/>
-                                    </Anchors>
-                                </Texture>
-                            </Layer>
-                            <Layer level="OVERLAY" textureSubLevel="3">
-                                <FontString parentKey="string" text="" inherits="GameFontNormalSmall" justifyH="LEFT" justifyV="MIDDLE">
-                                    <Size x="140" y="20"/>
-                                    <Color r="1" b="1" g="1"/>
-                                    <Anchors>
-                                        <Anchor point="CENTER"/>
-                                    </Anchors>
-                                </FontString>
-                            </Layer>
-                            <Layer level="OVERLAY" textureSubLevel="4">
-                                <Texture file="Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down">
-                                    <Color r="1" g="1" b="1" a="1"/>
-                                    <Size x="18" y="18"/>
-                                    <Anchors>
-                                        <Anchor point="RIGHT"/>
-                                    </Anchors>
-                                </Texture>
-                            </Layer>
-                        </Layers>
-                    </Button>
-                </Frames>
-            </Button>
+					<Layer level="BACKGROUND">
+						<FontString parentKey="title" inherits="GameFontNormal" text="Layouts" justifyH="LEFT">
+							<Anchors>
+								<Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="8" y="3"/>
+							</Anchors>
+						</FontString>
+				  	</Layer>
+				</Layers>
+			</DropdownButton>
         </Frames>
     </Frame>
 
@@ -1203,6 +959,40 @@
                 <FontString inherits="GameFontNormalSmall">
                     <Color r="1" b="1" g="1"/>
                 </FontString>
+                <Frames>
+                    <Button parentKey="clearButton" hidden="true">
+                        <Size x="17" y="17"/>
+                        <Anchors>
+                            <Anchor point="RIGHT" x="-3" y="0"/>
+                        </Anchors>
+                        <Layers>
+                            <Layer level="ARTWORK">
+                                <Texture atlas="common-search-clearbutton" useAtlasSize="false" alpha="0.5" parentKey="texture">
+                                    <Size x="10" y="10"/>
+                                    <Anchors>
+                                        <Anchor point="TOPLEFT" x="3" y="-3"/>
+                                    </Anchors>
+                                </Texture>
+                            </Layer>
+                        </Layers>
+                        <Scripts>
+                            <OnEnter>
+                                self.texture:SetAlpha(1.0);
+                            </OnEnter>
+                            <OnLeave>
+                                self.texture:SetAlpha(0.5);
+                            </OnLeave>
+                            <OnMouseDown>
+                                if self:IsEnabled() then
+                                    self.texture:SetPoint("TOPLEFT", self, "TOPLEFT", 4, -4);
+                                end
+                            </OnMouseDown>
+                            <OnMouseUp>
+                                self.texture:SetPoint("TOPLEFT", self, "TOPLEFT", 3, -3);
+                            </OnMouseUp>
+                        </Scripts>
+                    </Button>
+                </Frames>
             </EditBox>
         </Frames>
     </Frame>

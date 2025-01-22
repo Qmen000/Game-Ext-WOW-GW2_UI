@@ -8,8 +8,26 @@ GW.privateDefaults = {
         PLAYER_TRACKED_DODGEBAR_SPELL = "",
         PLAYER_TRACKED_DODGEBAR_SPELL_ID = 0,
         ISKAARAN_FISHING_NET_DATA = {},
-        CHAT_KEYWORDS_ALERT_COLOR= {r = .5, g = .5, b = .5},
+        CHAT_KEYWORDS_ALERT_COLOR = {r = .5, g = .5, b = .5},
         ChatHistoryLog = {},
+
+        -- GW2 Class colors
+        Gw2ClassColor = {
+            WARRIOR = { r = 90 / 255, g = 54 / 255, b = 38 / 255, a = 1 },
+            PALADIN = { r = 177 / 255, g = 72 / 255, b = 117 / 255, a = 1 },
+            HUNTER = { r = 99 / 255, g = 125 / 255, b = 53 / 255, a = 1 },
+            ROGUE = { r = 190 / 255, g = 183 / 255, b = 79 / 255, a = 1 },
+            PRIEST = { r = 205 / 255, g = 205 / 255, b = 205 / 255, a = 1 },
+            DEATHKNIGHT = { r = 148 / 255, g = 62 / 255, b = 62 / 255, a = 1 },
+            SHAMAN = { r = 30 / 255, g = 44 / 255, b = 149 / 255, a = 1 },
+            --MAGE = {r = 62 / 255, g = 121 / 255, b = 149 / 255, a = 1},
+            MAGE = { r = 101 / 255, g = 157 / 255, b = 184 / 255, a = 1 },
+            WARLOCK = { r = 125 / 255, g = 88 / 255, b = 154 / 255, a = 1 },
+            MONK = { r = 66 / 255, g = 151 / 255, b = 112 / 255, a = 1 },
+            DRUID = { r = 158 / 255, g = 103 / 255, b = 37 / 255, a = 1 },
+            DEMONHUNTER = { r = 72 / 255, g = 38 / 255, b = 148 / 255, a = 1 },
+            EVOKER = { r = 56 / 255, g = 99 / 255, b = 113 / 255, a = 1 }
+        },
     },
 }
 
@@ -50,6 +68,8 @@ GW.globalDefault = {
         PETBAR_ENABLED = true,
         BORDER_ENABLED = true,
 
+        NumberFormat = "POINT",
+
         FONT_STYLE_TEMPLATE = "GW2",
         FONT_NORMAL = "Interface/AddOns/GW2_UI/fonts/menomonia.ttf",
         FONT_HEADERS = "",
@@ -70,7 +90,11 @@ GW.globalDefault = {
         HIDE_TOOLTIP_IN_COMBAT_UNIT = "ALL",
         HIDE_TOOLTIP_IN_COMBAT_OVERRIDE = "NONE",
         TOOLTIP_HEALTHBAER_POSITION = "BOTTOM",
-        ADVANCED_TOOLTIP_OPTION_ITEMCOUNT = "BOTH",
+        ADVANCED_TOOLTIP_OPTION_ITEMCOUNT = {
+            Bank = true,
+            Bag = true,
+            Stack = true
+        },
         ADVANCED_TOOLTIP_OPTION_ITEMCOUNT_INCLUDE_REAGENTS = true,
         ADVANCED_TOOLTIP_OPTION_ITEMCOUNT_INCLUDE_WARBAND = true,
         ADVANCED_TOOLTIP_SHOW_MOUNT = true,
@@ -112,6 +136,8 @@ GW.globalDefault = {
         PET_AURAS_UNDER= false,
 
         BUTTON_ASSIGNMENTS= true,
+
+        singingSockets = true,
 
         HUD_BACKGROUND= true,
         HUD_SPELL_SWAP= true,
@@ -249,7 +275,6 @@ GW.globalDefault = {
         target_BUFFS_FILTER= true,
         target_BUFFS_FILTER_ALL= false,
         target_BUFFS_FILTER_IMPORTANT= false,
-        target_ILVL= false,
         target_THREAT_VALUE_ENABLED= false,
         target_HOOK_COMBOPOINTS= false,
         target_HEALTH_VALUE_ENABLED= false,
@@ -260,6 +285,7 @@ GW.globalDefault = {
         target_FLOATING_COMBAT_TEXT= true,
         target_FRAME_INVERT= false,
         target_FRAME_ALT_BACKGROUND= false,
+        target_ILVL = "PVP_LEVEL",
 
         focus_TARGET_ENABLED= true,
         focus_TARGET_SHOW_CASTBAR= true,
@@ -271,6 +297,7 @@ GW.globalDefault = {
         focus_BUFFS_FILTER= true,
         focus_BUFFS_FILTER_ALL= false,
         focus_BUFFS_FILTER_IMPORTANT= false,
+        focus_ILVL = "PVP_LEVEL",
 
         focus_HEALTH_VALUE_ENABLED= false,
         focus_HEALTH_VALUE_TYPE= false,
@@ -460,14 +487,7 @@ GW.globalDefault = {
         },
         ZoneAbilityFramePos_scale= 1,
 
-        TalkingHeadFrame_pos= {
-            point= "BOTTOM",
-            relativePoint= "BOTTOM",
-            xOfs= 0,
-            yOfs= 372,
-            hasMoved= false,
-        },
-        TalkingHeadFrame_pos_scale= 0.9,
+        TalkingHeadFrameScale= 0.9,
 
         HealthGlobe_pos= {
             point= "BOTTOM",
@@ -670,6 +690,7 @@ GW.globalDefault = {
         RAID_SHOW_TANK_ICON_TANK= true,
         RAID_SHOW_LEADER_ICON_TANK= true,
         RAID_SHORT_HEALTH_VALUES_TANK = false,
+        RAID_OUT_OF_RANGE_ALPHA_TANK = 0.2,
 
         raidMaintank_pos= {
             point= "TOPLEFT",
@@ -707,6 +728,7 @@ GW.globalDefault = {
         RAID_SHOW_TANK_ICON_PET= false, -- always
         RAID_SHOW_LEADER_ICON_PET= false, -- always
         RAID_SHORT_HEALTH_VALUES_PET = false,
+        RAID_OUT_OF_RANGE_ALPHA_PET = 0.2,
 
         raid_pet_pos= {
             point= "TOPLEFT",
@@ -743,6 +765,7 @@ GW.globalDefault = {
         RAID_SHOW_TANK_ICON= true,
         RAID_SHOW_LEADER_ICON= true,
         RAID_SHORT_HEALTH_VALUES = false,
+        RAID_OUT_OF_RANGE_ALPHA = 0.2,
 
         raid_pos= {
             point= "TOPLEFT",
@@ -780,6 +803,7 @@ GW.globalDefault = {
         RAID_SHOW_TANK_ICON_RAID25= true,
         RAID_SHOW_LEADER_ICON_RAID25= true,
         RAID_SHORT_HEALTH_VALUES_RAID25 = false,
+        RAID_OUT_OF_RANGE_ALPHA_RAID25 = 0.2,
 
         raid25_pos= {
             point= "TOPLEFT",
@@ -817,6 +841,7 @@ GW.globalDefault = {
         RAID_SHOW_TANK_ICON_RAID10= true,
         RAID_SHOW_LEADER_ICON_RAID10= true,
         RAID_SHORT_HEALTH_VALUES_RAID10 = false,
+        RAID_OUT_OF_RANGE_ALPHA_RAID10 = 0.2,
 
         raid10_pos= {
             point= "TOPLEFT",
@@ -854,6 +879,7 @@ GW.globalDefault = {
         RAID_SHOW_LEADER_ICON_PARTY= true,
         RAID_SHORT_HEALTH_VALUES_PARTY = false,
         RAID_SHOW_PLAYER_PARTY = true, -- only for party grid
+        RAID_OUT_OF_RANGE_ALPHA_PARTY = 0.2,
 
         raid_party_pos= {
             point= "TOPLEFT",
@@ -866,6 +892,8 @@ GW.globalDefault = {
         RAID_STYLE_PARTY= false,
         RAID_STYLE_PARTY_AND_FRAMES= false,
         PARTY_UNIT_HEALTH= "NONE",
+        PARTY_SHOW_BUFFS = true,
+        PARTY_SHOW_AURA_ICON_SIZE = 20,
         PARTY_SHOW_DEBUFFS= true,
         PARTY_ONLY_DISPELL_DEBUFFS= false,
         PARTY_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF= false,
@@ -944,6 +972,7 @@ GW.globalDefault = {
         HELPFRAME_SKIN_ENABLED= true,
         SKIN_WQT_ENABLED= true,
         SKIN_PETTRACKER_ENABLED= true,
+        SKIN_TODOLOO_ENABLED = true,
         SOCKET_SKIN_ENABLED= true,
         WORLDMAP_SKIN_ENABLED= true,
         GOSSIP_SKIN_ENABLED= true,

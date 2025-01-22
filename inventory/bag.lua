@@ -1,6 +1,5 @@
 local _, GW = ...
 local L = GW.L
-local CommaValue = GW.CommaValue
 local UpdateMoney = GW.UpdateMoney
 local EnableTooltip = GW.EnableTooltip
 local inv
@@ -147,7 +146,7 @@ local function updateMoney(self)
 
     self.bronze:SetText(copper)
     self.silver:SetText(silver)
-    self.gold:SetText(CommaValue(gold))
+    self.gold:SetText(GW.GetLocalizedNumber(gold))
 
     UpdateMoney()
 end
@@ -159,7 +158,7 @@ local function watchCurrency(self)
     for i = 1, currencyCount do
         local info = C_CurrencyInfo.GetCurrencyListInfo(i)
         if not info.isHeader and info.isShowInBackpack and watchSlot <= 4 then
-            self["currency" .. tostring(watchSlot)]:SetText(CommaValue(info.quantity))
+            self["currency" .. tostring(watchSlot)]:SetText(GW.GetLocalizedNumber(info.quantity))
             self["currency" .. tostring(watchSlot) .. "Texture"]:SetTexture(info.iconFileID)
             self["currency" .. tostring(watchSlot) .. "Frame"].CurrencyIdx = i
             watchSlot = watchSlot + 1
@@ -268,29 +267,7 @@ local function createBagBar(f)
     SetItemButtonQuality(bp, 1, nil)
 
     -- create bag slot buttons for equippable bags
-    local cb0_id = CharacterBag0Slot:GetID()
-    local getInvId = function(self)
-        local inv_id, _ = GetInventorySlotInfo(strsub(self:GetName(), 10))
-        return inv_id
-    end
     for bag_idx = 1, NUM_BAG_SLOTS do
-        -- this name MUST have a 9-letter prefix and match the style "CharacterBag0Slot"
-        -- because of hard-coded string parsing in PaperDollItemSlotButton_OnLoad
-        --local name = "GwInvntryBag" .. (bag_idx - 1) .. "Slot"
-        --local b = CreateFrame("ItemButton", name, f, "GwBackpackBagTemplate")
-        --b.commandName = ""
-
-        -- We depend on a number of behaviors from the default BagSlotButtonTemplate.
-        -- The ID set here is NOT the usual bag_id; rather it is an offset from the
-        -- id of CharacterBag0Slot, used internally by BagSlotButtonTemplate methods.
-        --b:SetID(cb0_id + bag_idx - 1)
-        --b.BagID = bag_idx
-        -- unlike BankItemButtonBagTemplate, we must provide the GetInventorySlot method
-        --b.GetInventorySlot = getInvId
-
-        -- remove default of capturing right-click also (we handle right-click separately)
-
-        --TEST
         local b = _G["CharacterBag" .. bag_idx - 1 .. "Slot"]
         b:SetParent(f)
         b:RegisterForClicks("LeftButtonUp")
@@ -299,30 +276,11 @@ local function createBagBar(f)
 
         inv.reskinBagBar(b)
 
-        -- Hide default bag bar
-        --_G["CharacterBag" .. bag_idx - 1 .. "Slot"]:GwKill()
-        --_G["CharacterBag" .. bag_idx - 1 .. "Slot"]:SetScale(0.0001)
-       -- _G["CharacterBag" .. bag_idx - 1 .. "Slot"]:SetAlpha(0)
-
         f.bags[bag_idx] = b
     end
 
     --Get Reagant Slot
     if CharacterReagentBag0Slot then
-        --local name = "GwInvntryReagentBag0Slot"
-        --local b = CreateFrame("ItemButton", name, f, "GwBackpackBagTemplate")
-        --b.commandName = ""
-
-        -- We depend on a number of behaviors from the default BagSlotButtonTemplate.
-        -- The ID set here is NOT the usual bag_id; rather it is an offset from the
-        -- id of CharacterBag0Slot, used internally by BagSlotButtonTemplate methods.
-        --b:SetID(cb0_id + 5 - 1)
-        --b.BagID = 5
-        -- unlike BankItemButtonBagTemplate, we must provide the GetInventorySlot method
-        --b.GetInventorySlot = getInvId
-
-        -- remove default of capturing right-click also (we handle right-click separately)
-        --TEST
         local b = CharacterReagentBag0Slot
         b:SetParent(f)
         b:RegisterForClicks("LeftButtonUp")
@@ -489,9 +447,6 @@ local function bag_OnHide(self)
     end
     if IsBagOpen(BACKPACK_CONTAINER) then
         CloseBackpack()
-    end
-    if self.buttonSettings.dropdown:IsShown() then
-        self.buttonSettings.dropdown:Hide()
     end
 end
 GW.AddForProfiling("bag", "bag_OnHide", bag_OnHide)
@@ -859,18 +814,6 @@ local function LoadBag(helpers)
             end
         )
 
-        dd.separateReagentBag.checkbutton:HookScript(
-            "OnClick",
-            function()
-                local newStatus = not GW.settings.BAG_SEPARATE_REAGENT_BAG
-                dd.separateReagentBag.checkbutton:SetChecked(newStatus)
-                GW.settings.BAG_SEPARATE_REAGENT_BAG = newStatus
-                layoutItems(f)
-                snapFrameSize(f)
-                dd:Hide()
-            end
-        )
-
         dd.compactBags.checkbutton:SetChecked(GW.settings.BAG_ITEM_SIZE == BAG_ITEM_COMPACT_SIZE)
         dd.newOrder.checkbutton:SetChecked(GW.settings.BAG_REVERSE_NEW_LOOT)
         dd.sortOrder.checkbutton:SetChecked(GW.settings.BAG_ITEMS_REVERSE_SORT)
@@ -883,7 +826,6 @@ local function LoadBag(helpers)
         dd.vendorGrays.checkbutton:SetChecked(GW.settings.BAG_VENDOR_GRAYS)
         dd.showItemLvl.checkbutton:SetChecked(GW.settings.BAG_SHOW_ILVL)
         dd.separateBags.checkbutton:SetChecked(GW.settings.BAG_SEPARATE_BAGS)
-        dd.separateReagentBag.checkbutton:SetChecked(GW.settings.BAG_SEPARATE_REAGENT_BAG)
 
         GW.SetupVendorJunk(dd.vendorGrays.checkbutton:GetChecked())
 
@@ -900,7 +842,6 @@ local function LoadBag(helpers)
         dd.vendorGrays.title:SetText(L["Sell junk automatically"])
         dd.showItemLvl.title:SetText(SHOW_ITEM_LEVEL)
         dd.separateBags.title:SetText(L["Separate bags"])
-        dd.separateReagentBag.title:SetText(L["Separate Reagent Bag"])
     end
 
     -- setup money frame

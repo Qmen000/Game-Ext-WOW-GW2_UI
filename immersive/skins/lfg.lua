@@ -149,10 +149,34 @@ local function SkinLookingForGroupFrames()
 		tab:SetSize(64, 40)
     end
 
-	PVEFrame.gwHeader.windowIcon:ClearAllPoints()
-	PVEFrame.gwHeader.windowIcon:SetPoint("CENTER", PVEFrame.gwHeader, "BOTTOMLEFT", -26, 35)
-	PVEFrameTitleText:ClearAllPoints()
-	PVEFrameTitleText:SetPoint("BOTTOMLEFT", PVEFrame.gwHeader, "BOTTOMLEFT", 25, 10)
+    -- copy from blizzard and modified
+    PVEFrame:HookScript("OnShow", function(self)
+        -- If timerunning enabled, hide PVP and M+, and re-anchor delves to Dungeons tab
+        if self:TimerunningEnabled() then
+            self.tab2:Hide()
+            self.tab3:Hide()
+            if self.tab4:IsShown() then
+                self.tab4:ClearAllPoints()
+                self.tab4:SetPoint("TOPRIGHT", self.LeftSidePanel, "TOPLEFT", 1, -32 + (-40 * (2 - 1))) -- 4 = index but here 2 because 2 and 3 are hidden
+            end
+        else
+        -- Otherwise, anchor Delves tab to PVP if M+ hidden, or to M+ if both are shown - to prevent a gap if the player is ineligible for M+ and we hide the tab
+            if self.tab4:IsShown() then
+                if self.tab2:IsShown() and not self.tab3:IsShown() then
+                    self.tab4:ClearAllPoints()
+                    self.tab4:SetPoint("TOPRIGHT", self.LeftSidePanel, "TOPLEFT", 1, -32 + (-40 * (3 - 1))) -- 4 = index but here 3 because 3 is hidden
+                elseif self.tab2:IsShown() and self.tab3:IsShown() then
+                    self.tab4:ClearAllPoints()
+                    self.tab4:SetPoint("TOPRIGHT", self.LeftSidePanel, "TOPLEFT", 1, -32 + (-40 * (4 - 1))) -- 4 = index
+                end
+            end
+        end
+    end)
+
+    PVEFrame.gwHeader.windowIcon:ClearAllPoints()
+    PVEFrame.gwHeader.windowIcon:SetPoint("CENTER", PVEFrame.gwHeader, "BOTTOMLEFT", -26, 35)
+    PVEFrameTitleText:ClearAllPoints()
+    PVEFrameTitleText:SetPoint("BOTTOMLEFT", PVEFrame.gwHeader, "BOTTOMLEFT", 25, 10)
 
     PVEFrameBg:Hide()
     PVEFrame.shadows:GwKill()
@@ -322,21 +346,21 @@ local function SkinLookingForGroupFrames()
         end
     end)
 
-	if ScenarioQueueFrame then
-		ScenarioQueueFrame:GwStripTextures()
-		ScenarioFinderFrameInset:GwStripTextures()
-		ScenarioQueueFrameBackground:SetAlpha(0)
-		ScenarioQueueFrameTypeDropdown:GwHandleDropDownBox()
-		GW.HandleTrimScrollBar(ScenarioQueueFrameRandomScrollFrame.ScrollBar)
-		ScenarioQueueFrameFindGroupButton:GwSkinButton(false, true)
+    if ScenarioQueueFrame then
+        ScenarioQueueFrame:GwStripTextures()
+        ScenarioFinderFrameInset:GwStripTextures()
+        ScenarioQueueFrameBackground:SetAlpha(0)
+        ScenarioQueueFrameTypeDropdown:GwHandleDropDownBox()
+        GW.HandleTrimScrollBar(ScenarioQueueFrameRandomScrollFrame.ScrollBar)
+        ScenarioQueueFrameFindGroupButton:GwSkinButton(false, true)
 
-		ScenarioQueueFrameSpecificScrollFrame:GwStripTextures()
-		--GW.HandleTrimScrollBar(ScenarioQueueFrameSpecificScrollFrame.ScrollBar)
+        ScenarioQueueFrameSpecificScrollFrame:GwStripTextures()
+        --GW.HandleTrimScrollBar(ScenarioQueueFrameSpecificScrollFrame.ScrollBar)
 
-		if ScenarioQueueFrameRandomScrollFrameScrollBar then
-			ScenarioQueueFrameRandomScrollFrameScrollBar:SetAlpha(0)
-		end
-	end
+        if ScenarioQueueFrameRandomScrollFrameScrollBar then
+            ScenarioQueueFrameRandomScrollFrameScrollBar:SetAlpha(0)
+        end
+    end
 
     -- Raid finder
     LFDQueueFrameFindGroupButton:GwSkinButton(false, true)
@@ -743,7 +767,9 @@ local function SkinLookingForGroupFrames()
 
                 for i = 1, result.numMembers do
                     local role, class = C_LFGList.GetSearchResultMemberInfo(button.resultID, i)
-                    tinsert(cache[role], {class = class, role = role})
+                    if role then
+                        tinsert(cache[role], {class = class, role = role})
+                    end
                 end
 
                 for i = 5, 1, -1 do -- The index of icon starts from right
@@ -777,7 +803,7 @@ local function ApplyPvPUISkin()
 
     PVPUIFrame:GwStripTextures()
 
-    for i = 1, 3 do
+    for i = 1, 4 do
         local bu = _G["PVPQueueFrameCategoryButton" .. i]
         bu.Ring:GwKill()
         bu.Background:GwKill()
@@ -842,6 +868,13 @@ local function ApplyPvPUISkin()
     end)
 
     PVPQueueFrame.HonorInset:GwStripTextures()
+
+    if PlunderstormFrame then
+        PlunderstormFrame.Inset:GwStripTextures()
+        PlunderstormFrame.StartQueue:GwSkinButton(false, true)
+        PlunderstormFrame.BasicsTitle:SetTextColor(GW.TextColors.LIGHT_HEADER.r,GW.TextColors.LIGHT_HEADER.g,GW.TextColors.LIGHT_HEADER.b)
+        PVPQueueFrame.HonorInset.PlunderstormPanel.PlunderstoreButton:GwSkinButton(false, true)
+    end
 
     local SeasonReward = PVPQueueFrame.HonorInset.RatedPanel.SeasonRewardFrame
     SeasonReward:GwCreateBackdrop()
@@ -1172,8 +1205,8 @@ local function ApplyDelvesDifficultyPickerSkin()
     backround.tex = tex
 
 
-	DelvesDifficultyPickerFrame.Dropdown:GwHandleDropDownBox()
-	DelvesDifficultyPickerFrame.EnterDelveButton:GwSkinButton(false, true)
+    DelvesDifficultyPickerFrame.Dropdown:GwHandleDropDownBox()
+    DelvesDifficultyPickerFrame.EnterDelveButton:GwSkinButton(false, true)
     DelvesDifficultyPickerFrame.CloseButton:GwSkinButton(true)
     DelvesDifficultyPickerFrame.CloseButton:SetSize(20, 20)
 
@@ -1182,7 +1215,7 @@ local function ApplyDelvesDifficultyPickerSkin()
 
     DelvesDifficultyPickerFrame.DelveRewardsContainerFrame.RewardText:SetTextColor(1, 1, 1)
 
-	hooksecurefunc(DelvesDifficultyPickerFrame.DelveRewardsContainerFrame, "SetRewards", function(self)
+    hooksecurefunc(DelvesDifficultyPickerFrame.DelveRewardsContainerFrame, "SetRewards", function(self)
         C_Timer.After(0, function()
             for rewardFrame in self.rewardPool:EnumerateActive() do
                 if not rewardFrame.IsSkinned then
@@ -1195,7 +1228,7 @@ local function ApplyDelvesDifficultyPickerSkin()
                 end
             end
         end)
-	end)
+    end)
 end
 
 local function LoadLFGSkin()
