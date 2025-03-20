@@ -59,18 +59,20 @@ local function SetCastTicks(frame, numTicks)
     end
 end
 
-local function GetTalentTicks(info)
-    local _, _, _, selected = GetTalentInfo(info.tier, info.column, 1)
-    return selected and info.ticks
-end
 
 local function CheckForTicks(self)
     local baseTicks = GW.ChannelTicks[self.spellID]
 
     local talentTicks = baseTicks and GW.TalentChannelTicks[self.spellID]
-    local selectedTicks = talentTicks and GetTalentTicks(talentTicks)
-    if selectedTicks then
-        baseTicks = selectedTicks
+    if talentTicks then
+        for auraId, tickCount in next, talentTicks do
+            if IsPlayerSpell(auraId) then
+                if IsSpellKnownOrOverridesKnown(auraId) or IsPlayerSpell(auraId) then
+					baseTicks = tickCount
+					break
+				end
+            end
+        end
     end
 
     local auraTicks = baseTicks and GW.AuraChannelTicks[self.spellID]
@@ -91,7 +93,7 @@ local function CheckForTicks(self)
         local match = seconds and self.chainTime and self.chainTick == self.spellID
 
         if match and (now - seconds) < self.chainTime then
-            baseTicks = chainTicks
+            baseTicks = baseTicks + chainTicks
         end
 
         self.chainTime = now

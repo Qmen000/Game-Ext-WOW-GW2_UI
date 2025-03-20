@@ -328,12 +328,12 @@ local function UpdateBuffLayout(self, event, unit, updateInfo)
 
     local buffsChanged = false
     local numBuffs = self.displayBuffs or 32
-    local buffFilter = 'HELPFUL'
+    local buffFilter = "HELPFUL"
 
     local debuffsChanged = false
-    local numDebuffs = self.displayDebuffs or 40 -- could be a setting
-    local debuffFilter = self.debuffFilter == "PLAYER" and "PLAYER" or "HARMFUL"
-    local showImportant = self.debuffFilter == "IMPORTANT"
+    local numDebuffs = self.displayDebuffs or 40
+    local debuffFilter = self.debuffFilter or "HARMFUL"
+    local showImportant = self.debuffFilterShowImportant
 
     local numTotal = auras.numTotal or numBuffs + numDebuffs
 
