@@ -682,7 +682,7 @@ local function snapFrameSize(f, cfs, size, padding, min_height)
         rows = f.finishedRow + bags_equipped + 1 + f.unfinishedRow
     else
         rows = math.ceil(slots / cols)
-        if sepR then
+        if f ~= GwBankFrame and sepR then
             rows = rows + GW.ReagantRow
         end
     end
