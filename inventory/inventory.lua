@@ -680,11 +680,12 @@ local function snapFrameSize(f, cfs, size, padding, min_height)
         f.finishedRow = f.finishedRow and f.finishedRow or 0
         f.unfinishedRow = f.unfinishedRow and f.unfinishedRow or 0
         rows = f.finishedRow + bags_equipped + 1 + f.unfinishedRow
+    elseif f ~= GwBankFrame and sepR then
+        f.finishedRow = f.finishedRow and f.finishedRow or 0
+        f.unfinishedRow = f.unfinishedRow and f.unfinishedRow or 0
+        rows = f.finishedRow + GW.ReagantRow
     else
         rows = math.ceil(slots / cols)
-        if f ~= GwBankFrame and sepR then
-            rows = rows + GW.ReagantRow
-        end
     end
     f:SetHeight(max((isize * rows) + 75, min_height))
     f:SetWidth((isize * cols) + padding + 2)
@@ -692,6 +693,10 @@ local function snapFrameSize(f, cfs, size, padding, min_height)
         if _G["GwBagFrameGwBagHeader" .. i] and sep then
             _G["GwBagFrameGwBagHeader" .. i]:SetWidth((isize * cols) + padding + 2 - 5)
             _G["GwBagFrameGwBagHeader" .. i].background:SetWidth((isize * cols) + padding + 2 - 5)
+        end
+        if _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS] and sepR then
+            _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS]:SetWidth((isize * cols) + padding + 2 - 5)
+            _G["GwBagFrameGwBagHeader" .. NUM_TOTAL_EQUIPPED_BAG_SLOTS].background:SetWidth((isize * cols) + padding + 2 - 5)
         end
     end
 end

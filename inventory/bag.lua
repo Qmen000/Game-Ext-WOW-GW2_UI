@@ -50,12 +50,23 @@ local function layoutBagItems(f)
     f:GetParent().unfinishedRow = 0
     f:GetParent().finishedRow = 0
     
+    local isReagentBagEquipped = false
+    local itemID = GetInventoryItemID("player", 35)
+    isReagentBagEquipped = itemID and true or false
+    GW.ReagantRow = 0
+
     local lcf = inv.layoutContainerFrame
     for i = iS, iE, iD do
         local bag_id = i
         local slotID, itemID
         local cf = f.Containers[bag_id]
         if sep then
+            _G["GwBagFrameGwBagHeader" .. bag_id]:Show()
+            _G["GwBagFrameGwBagHeader" .. bag_id]:ClearAllPoints()
+            _G["GwBagFrameGwBagHeader" .. bag_id]:SetPoint("TOPLEFT", f, "TOPLEFT", 0, (-row + 1) * item_off)
+            _G["GwBagFrameGwBagHeader" .. bag_id]:SetWidth(GW.settings.BAG_WIDTH - BAG_ITEM_PADDING)
+            _G["GwBagFrameGwBagHeader" .. bag_id].background:SetWidth(GW.settings.BAG_WIDTH - BAG_ITEM_PADDING)
+        elseif sepR and isReagentBagEquipped and NUM_TOTAL_EQUIPPED_BAG_SLOTS == bag_id then
             _G["GwBagFrameGwBagHeader" .. bag_id]:Show()
             _G["GwBagFrameGwBagHeader" .. bag_id]:ClearAllPoints()
             _G["GwBagFrameGwBagHeader" .. bag_id]:SetPoint("TOPLEFT", f, "TOPLEFT", 0, (-row + 1) * item_off)
@@ -70,27 +81,17 @@ local function layoutBagItems(f)
         elseif sep and not cf.shouldShow then
             cf:Hide()
         elseif not sep then
-            col, row, unfinishedRow, finishedRows = lcf(cf, max_col, row, col, false, item_off)
-            cf:Show()
-        end
-
-        local isReagentBagEquipped = false
-        local itemID = GetInventoryItemID("player", 35)
-        isReagentBagEquipped = itemID and true or false
-        GW.ReagantRow = 0
-        if sepR and isReagentBagEquipped and NUM_TOTAL_EQUIPPED_BAG_SLOTS == bag_id then
-            _G["GwBagFrameGwBagHeader" .. bag_id]:Show()
-            _G["GwBagFrameGwBagHeader" .. bag_id]:ClearAllPoints()
-            _G["GwBagFrameGwBagHeader" .. bag_id]:SetPoint("TOPLEFT", f, "TOPLEFT", 0, (-row + 1) * item_off)
-            _G["GwBagFrameGwBagHeader" .. bag_id]:SetWidth(GW.settings.BAG_WIDTH - BAG_ITEM_PADDING)
-            _G["GwBagFrameGwBagHeader" .. bag_id].background:SetWidth(GW.settings.BAG_WIDTH - BAG_ITEM_PADDING)
-            col, row, unfinishedRow, finishedRows = lcf(cf, max_col, row, 0, false, item_off)
-            if cf.shouldShow then
-                GW.ReagantRow = 1
-                cf:Show()
+            if sepR and isReagentBagEquipped and NUM_TOTAL_EQUIPPED_BAG_SLOTS == bag_id then
+                if cf.shouldShow then
+                    col, row, unfinishedRow, finishedRows = lcf(cf, max_col, row, 0, false, item_off)
+                    cf:Show()
+                    GW.ReagantRow = 1 + finishedRows + (unfinishedRow and 1 or 0) + (col == 0 and -1 or 0)
+                else 
+                    cf:Hide()
+                end
             else
-                GW.ReagantRow = -1
-                cf:Hide()
+                col, row, unfinishedRow, finishedRows = lcf(cf, max_col, row, col, false, item_off)
+                cf:Show()
             end
         end
 
@@ -106,6 +107,16 @@ local function layoutBagItems(f)
         end
 
         if (sep and (bag_id == 0 or bag_id >= 4)) or (sep and itemID) then
+            if col ~= 0 then
+                row = row + 2
+                col = 0
+            else
+                row = row + 1
+            end
+        end
+
+        itemID = GetInventoryItemID("player", 35)
+        if sepR and itemID and bag_id == NUM_TOTAL_EQUIPPED_BAG_SLOTS - 1 then
             if col ~= 0 then
                 row = row + 2
                 col = 0
