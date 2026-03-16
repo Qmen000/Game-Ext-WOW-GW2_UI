@@ -409,7 +409,7 @@ function GwQuesttrackerScenarioBlockMixin:TimerUpdate(...)
     for i = 1, select("#", ...) do
         local timerID = select(i, ...)
         local _, _, wtype = GetWorldElapsedTime(timerID)
-        if wtype == LE_WORLD_ELAPSED_TIMER_TYPE_CHALLENGE_MODE then
+        if wtype == Enum.WorldElapsedTimerTypes.ChallengeMode then
             local mapID
             if GW.Retail then
                 mapID = C_ChallengeMode.GetActiveChallengeMapID()
@@ -462,7 +462,7 @@ function GwQuesttrackerScenarioBlockMixin:TimerUpdate(...)
                 self:UpdateDeathCounter()
                 return
             end
-        elseif wtype == LE_WORLD_ELAPSED_TIMER_TYPE_PROVING_GROUND then
+        elseif wtype == Enum.WorldElapsedTimerTypes.ProvingGround then
             local _, _, _, duration = C_Scenario.GetProvingGroundsInfo()
             if duration > 0 then
                 self:SetScript("OnUpdate", function()
