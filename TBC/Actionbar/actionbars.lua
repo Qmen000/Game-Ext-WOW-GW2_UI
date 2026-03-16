@@ -133,10 +133,11 @@ local function updateActionbarBorders(btn)
         end
         btn.hasAction = true
     else
-        btn.gwBackdrop.border1:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border2:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border3:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border4:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
+        local alpha = tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA)
+        btn.gwBackdrop.border1:SetAlpha(alpha)
+        btn.gwBackdrop.border2:SetAlpha(alpha)
+        btn.gwBackdrop.border3:SetAlpha(alpha)
+        btn.gwBackdrop.border4:SetAlpha(alpha)
        if GW.settings.BUTTON_ASSIGNMENTS_USED_ONLY or not GW.settings.BUTTON_ASSIGNMENTS then
             btn.HotKey:Hide()
             if btn.hkBg then
@@ -621,11 +622,12 @@ local function setActionButtonStyle(buttonName, noBackDrop, isStanceButton, isPe
         btn.gwBackdrop:SetFrameLevel(btn:GetFrameLevel() - 1)
 
         if not isStanceButton and not isPet then
-            btn.gwBackdrop.bg:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-            btn.gwBackdrop.border1:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-            btn.gwBackdrop.border2:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-            btn.gwBackdrop.border3:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-            btn.gwBackdrop.border4:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
+            local alpha = tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA)
+            btn.gwBackdrop.bg:SetAlpha(alpha)
+            btn.gwBackdrop.border1:SetAlpha(alpha)
+            btn.gwBackdrop.border2:SetAlpha(alpha)
+            btn.gwBackdrop.border3:SetAlpha(alpha)
+            btn.gwBackdrop.border4:SetAlpha(alpha)
         end
     end
 end
@@ -1024,6 +1026,7 @@ end
 local function UpdateMultibarButtons()
     local fmActionbar = MainActionBar
     local fmMultiBar
+    local alpha = tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA)
 
     for y = 1, 7 do
         fmMultiBar = fmActionbar["gw_Bar" .. y]
@@ -1073,11 +1076,11 @@ local function UpdateMultibarButtons()
                     used_height = used_height + settings.size + GW.settings.MULTIBAR_MARGIIN
                 end
 
-                btn.gwBackdrop.bg:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-                btn.gwBackdrop.border1:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-                btn.gwBackdrop.border2:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-                btn.gwBackdrop.border3:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-                btn.gwBackdrop.border4:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
+                btn.gwBackdrop.bg:SetAlpha(alpha)
+                btn.gwBackdrop.border1:SetAlpha(alpha)
+                btn.gwBackdrop.border2:SetAlpha(alpha)
+                btn.gwBackdrop.border3:SetAlpha(alpha)
+                btn.gwBackdrop.border4:SetAlpha(alpha)
 
                 btn.showMacroName = GW.settings.SHOWACTIONBAR_MACRO_NAME_ENABLED
                 updateMacroName(btn)
@@ -1245,6 +1248,7 @@ local function UpdateMainBarHot()
     local fmActionbar = MainActionBar
     local used_height = MAIN_MENU_BAR_BUTTON_SIZE
     local btn_padding = GW.settings.MAINBAR_MARGIIN
+    local alpha = tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA)
 
     for i = 1, 12 do
         local btn = fmActionbar.gw_Buttons[i]
@@ -1257,11 +1261,11 @@ local function UpdateMainBarHot()
             btn_padding = btn_padding + 108
         end
 
-        btn.gwBackdrop.bg:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border1:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border2:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border3:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border4:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
+        btn.gwBackdrop.bg:SetAlpha(alpha)
+        btn.gwBackdrop.border1:SetAlpha(alpha)
+        btn.gwBackdrop.border2:SetAlpha(alpha)
+        btn.gwBackdrop.border3:SetAlpha(alpha)
+        btn.gwBackdrop.border4:SetAlpha(alpha)
 
         btn.showMacroName = GW.settings.SHOWACTIONBAR_MACRO_NAME_ENABLED
         btn.rangeIndicatorSetting = GW.settings.MAINBAR_RANGEINDICATOR
@@ -1273,7 +1277,7 @@ local function UpdateMainBarHot()
     fmActionbar:SetSize(btn_padding, used_height)
     fmActionbar.gw_Width = btn_padding
 
-    actionButtons_OnUpdate(MainActionBar, 0)
+    actionButtons_OnUpdate(fmActionbar, 0)
 end
 GW.UpdateMainBarHot = UpdateMainBarHot
 
@@ -1304,21 +1308,26 @@ local function LoadActionBars(lm)
    -- hook hotkey update calls so we can override styling changes
     local hotkeyEventTrackerFrame = CreateFrame("Frame")
     hotkeyEventTrackerFrame:RegisterEvent("UPDATE_BINDINGS")
-    hotkeyEventTrackerFrame:SetScript("OnEvent", function()
-        local fmMultiBar
-        for y = 0, 7 do
-            if y == 0 then
-                fmMultiBar = fmActionbar
-            else
-                fmMultiBar = fmActionbar["gw_Bar" .. y]
-            end
-            if fmMultiBar.gw_IsEnabled then
+
+    local function UpdateAllHotkeys()
+        local bars = { fmActionbar }
+        for y = 1, 7 do
+            bars[#bars + 1] = fmActionbar["gw_Bar" .. y]
+        end
+
+        for y = 1, #bars do
+            local fmMultiBar = bars[y]
+            if fmMultiBar and fmMultiBar.gw_IsEnabled then
                 for i = 1, 12 do
                     updateHotkey(fmMultiBar.gw_Buttons[i])
-                    FixHotKeyPosition(fmMultiBar.gw_Buttons[i], false, false, y == 0)
+                    FixHotKeyPosition(fmMultiBar.gw_Buttons[i], false, false, y == 1)
                 end
             end
         end
-    end)
+    end
+
+    hotkeyEventTrackerFrame:SetScript("OnEvent", UpdateAllHotkeys)
+    -- trigger the hotkeyfix after login for loading issues
+    C_Timer.After(7, UpdateAllHotkeys)
 end
 GW.LoadActionBars = LoadActionBars

@@ -109,11 +109,12 @@ function CooldownManagerFunctions:SkinIcon(container, icon)
         container.gwBackdrop = backDrop
     end
 
-    container.gwBackdrop.bg:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-    container.gwBackdrop.border1:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-    container.gwBackdrop.border2:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-    container.gwBackdrop.border3:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-    container.gwBackdrop.border4:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
+    local alpha = tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA)
+    container.gwBackdrop.bg:SetAlpha(alpha)
+    container.gwBackdrop.border1:SetAlpha(alpha)
+    container.gwBackdrop.border2:SetAlpha(alpha)
+    container.gwBackdrop.border3:SetAlpha(alpha)
+    container.gwBackdrop.border4:SetAlpha(alpha)
 
     for _, region in next, { container:GetRegions() } do
         if region:IsObjectType("Texture") then

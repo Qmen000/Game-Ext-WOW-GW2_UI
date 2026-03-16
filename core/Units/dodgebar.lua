@@ -5,6 +5,9 @@ local MixinHideDuringPetAndOverride = GW.MixinHideDuringPetAndOverride
 local FrameFlash = GW.FrameFlash
 local lerp = GW.lerp
 
+local HasVehicleActionBar = C_ActionBar and C_ActionBar.HasVehicleActionBar or HasVehicleActionBar
+local HasOverrideActionBar = C_ActionBar and C_ActionBar.HasOverrideActionBar or HasOverrideActionBar
+
 -- these strings will be parsed by SecureCmdOptionParse
 -- https://wow.gamepedia.com/Secure_command_options
 local DODGEBAR_SPELLS = {} -- spell ID used to generate the bar information/tooltip

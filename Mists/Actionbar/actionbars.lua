@@ -421,10 +421,11 @@ local function UpdateActionbarBorders(btn)
         end
         btn.hasAction = true
     else
-        btn.gwBackdrop.border1:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border2:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border3:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border4:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
+        local alpha = tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA)
+        btn.gwBackdrop.border1:SetAlpha(alpha)
+        btn.gwBackdrop.border2:SetAlpha(alpha)
+        btn.gwBackdrop.border3:SetAlpha(alpha)
+        btn.gwBackdrop.border4:SetAlpha(alpha)
         if GW.settings.BUTTON_ASSIGNMENTS_USED_ONLY or not GW.settings.BUTTON_ASSIGNMENTS then
             btn.HotKey:Hide()
             if btn.hkBg then
@@ -598,11 +599,12 @@ local function setActionButtonStyle(buttonName, noBackDrop, isStanceButton, isPe
         btn.gwBackdrop = backDrop
 
         if not isStanceButton and not isPet then
-            btn.gwBackdrop.bg:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-            btn.gwBackdrop.border1:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-            btn.gwBackdrop.border2:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-            btn.gwBackdrop.border3:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-            btn.gwBackdrop.border4:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
+            local alpha = tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA)
+            btn.gwBackdrop.bg:SetAlpha(alpha)
+            btn.gwBackdrop.border1:SetAlpha(alpha)
+            btn.gwBackdrop.border2:SetAlpha(alpha)
+            btn.gwBackdrop.border3:SetAlpha(alpha)
+            btn.gwBackdrop.border4:SetAlpha(alpha)
         end
     end
 
@@ -949,16 +951,9 @@ local function UpdateMultibarButtons()
     local margin = GW.settings.MULTIBAR_MARGIIN
     local fmActionbar = MainMenuBarArtFrame
     local fmMultiBar
-    local HIDE_ACTIONBARS_CVAR
-
-    local hideActionbuttonBackdrop = GW.settings.HIDEACTIONBAR_BACKGROUND_ENABLED
-
-    if hideActionbuttonBackdrop then
-        HIDE_ACTIONBARS_CVAR = nil
-    else
-        HIDE_ACTIONBARS_CVAR = 1
-    end
-    C_CVar.SetCVar("alwaysShowActionBars", tostring(HIDE_ACTIONBARS_CVAR))
+    local alpha = tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA)
+    local hideActionbuttonBackdrop = GW.settings.HIDEACTIONBAR_BACKGROUND_ENABLED and 0 or 1
+    C_CVar.SetCVar("alwaysShowActionBars", hideActionbuttonBackdrop)
 
     for y = 1, 4 do
         fmMultiBar = fmActionbar["gw_Bar" .. y]
@@ -1006,11 +1001,11 @@ local function UpdateMultibarButtons()
                     used_height = used_height + settings.size + margin
                 end
 
-                btn.gwBackdrop.bg:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-                btn.gwBackdrop.border1:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-                btn.gwBackdrop.border2:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-                btn.gwBackdrop.border3:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-                btn.gwBackdrop.border4:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
+                btn.gwBackdrop.bg:SetAlpha(alpha)
+                btn.gwBackdrop.border1:SetAlpha(alpha)
+                btn.gwBackdrop.border2:SetAlpha(alpha)
+                btn.gwBackdrop.border3:SetAlpha(alpha)
+                btn.gwBackdrop.border4:SetAlpha(alpha)
 
                 if hideActionbuttonBackdrop then
                     btn.gwBackdrop:Hide()
@@ -1027,7 +1022,7 @@ local function UpdateMultibarButtons()
             fmMultiBar:SetSize(used_width, used_height)
         end
     end
-    ALWAYS_SHOW_MULTIBARS = HIDE_ACTIONBARS_CVAR
+    ALWAYS_SHOW_MULTIBARS = hideActionbuttonBackdrop == 0
     MultiActionBar_UpdateGridVisibility()
     MultiActionBar_Update()
 end
@@ -1228,12 +1223,11 @@ actionBar_OnUpdate = function(self, elapsed)
     end
 end
 
-
-
 local function UpdateMainBarHot()
     local fmActionbar = MainMenuBarArtFrame
     local used_height = MAIN_MENU_BAR_BUTTON_SIZE
     local btn_padding = GW.settings.MAINBAR_MARGIIN
+    local alpha = tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA)
 
     for i = 1, 12 do
         local btn = fmActionbar.gw_Buttons[i]
@@ -1246,11 +1240,11 @@ local function UpdateMainBarHot()
             btn_padding = btn_padding + 108
         end
 
-        btn.gwBackdrop.bg:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border1:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border2:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border3:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
-        btn.gwBackdrop.border4:SetAlpha(tonumber(GW.settings.ACTIONBAR_BACKGROUND_ALPHA))
+        btn.gwBackdrop.bg:SetAlpha(alpha)
+        btn.gwBackdrop.border1:SetAlpha(alpha)
+        btn.gwBackdrop.border2:SetAlpha(alpha)
+        btn.gwBackdrop.border3:SetAlpha(alpha)
+        btn.gwBackdrop.border4:SetAlpha(alpha)
 
         btn.showMacroName = GW.settings.SHOWACTIONBAR_MACRO_NAME_ENABLED
         btn.rangeIndicatorSetting = GW.settings.MAINBAR_RANGEINDICATOR
@@ -1269,13 +1263,8 @@ end
 GW.UpdateMainBarHot = UpdateMainBarHot
 
 local function LoadActionBars(lm)
-    local HIDE_ACTIONBARS_CVAR = GW.settings.HIDEACTIONBAR_BACKGROUND_ENABLED
-    if HIDE_ACTIONBARS_CVAR then
-        HIDE_ACTIONBARS_CVAR = 0
-    else
-        HIDE_ACTIONBARS_CVAR = 1
-    end
-    SetCVar("alwaysShowActionBars", HIDE_ACTIONBARS_CVAR)
+    local alwaysShowActionBars = GW.settings.HIDEACTIONBAR_BACKGROUND_ENABLED and 0 or 1
+    C_CVar.SetCVar("alwaysShowActionBars", alwaysShowActionBars)
 
     for _, frame in pairs(
         {
@@ -1319,30 +1308,33 @@ local function LoadActionBars(lm)
     hideBlizzardsActionbars()
     GW.CreateStanceBar()
     setLeaveVehicleButton()
-
-    -- hook hotkey update calls so we can override styling changes
     local hotkeyEventTrackerFrame = CreateFrame("Frame")
     hotkeyEventTrackerFrame:RegisterEvent("UPDATE_BINDINGS")
-    hotkeyEventTrackerFrame:SetScript("OnEvent", function()
-        local fmMultiBar
-        for y = 0, 4 do
-            if y == 0 then fmMultiBar = fmActionbar end
-            if y == 1 then fmMultiBar = fmActionbar.gw_Bar1 end
-            if y == 2 then fmMultiBar = fmActionbar.gw_Bar2 end
-            if y == 3 then fmMultiBar = fmActionbar.gw_Bar3 end
-            if y == 4 then fmMultiBar = fmActionbar.gw_Bar4 end
+
+    local function UpdateAllHotkeys()
+        local bars = {
+            fmActionbar,
+            fmActionbar.gw_Bar1,
+            fmActionbar.gw_Bar2,
+            fmActionbar.gw_Bar3,
+            fmActionbar.gw_Bar4
+        }
+
+        for y = 1, #bars do
+            local fmMultiBar = bars[y]
             if fmMultiBar and fmMultiBar.gw_IsEnabled then
                 for i = 1, 12 do
                     updateHotkey(fmMultiBar.gw_Buttons[i])
-                    FixHotKeyPosition(fmMultiBar.gw_Buttons[i], false, false, y == 0)
+                    FixHotKeyPosition(fmMultiBar.gw_Buttons[i], false, false, y == 1)
                 end
             end
         end
-    end)
+    end
+
+    hotkeyEventTrackerFrame:SetScript("OnEvent", UpdateAllHotkeys)
     -- trigger the hotkeyfix after login for loading issues
-    C_Timer.After(7, function()
-        hotkeyEventTrackerFrame:GetScript("OnEvent")()
-    end)
+    C_Timer.After(7, UpdateAllHotkeys)
+
     -- frames using the alert frame subsystem have their positioning managed by UIParent
     -- the secure code for that lives mostly in Interface/FrameXML/UIParent.lua
     -- we can override the alert frame subsystem update loop in Interface/FrameXML/AlertFrames.lua
