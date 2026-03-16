@@ -203,7 +203,7 @@ local function IsSkyriding(canSkyriding, isLogin)
     end
     if canSkyriding ~= lib.isSkyridingRiding then
         lib.isSkyridingRiding = canSkyriding
-        lib.callbacks:Fire("GW2_PLAYER_SKYRIDING_STATE_CHANGE", lib.isSkyridingRiding, isLogin)
+        EventRegistry:TriggerEvent("GW2_UI.PlayerSkyrindingStateChanged", lib.isSkyridingRiding, isLogin)
     end
 end
 local function HandleEvents(_, event, ...)

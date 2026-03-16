@@ -86,7 +86,7 @@ local function HandleUnitAuraEvent(unit, ...)
     end
 
     if buffsChanged or debuffsChanged or isFullUpdate then
-        EventRegistry:TriggerEvent("GW2_UI_CLASSPOWER_PLAYER_UNIT_AURA", unit, dataTable)
+        EventRegistry:TriggerEvent("GW2_UI.ClasspowerPlayerUnitAura", unit, dataTable)
     end
 end
 
@@ -651,7 +651,7 @@ local function setEclips(f)
 
     f:RegisterUnitEvent("UNIT_AURA", "player")
     f:RegisterEvent("ECLIPSE_DIRECTION_CHANGE")
-    EventRegistry:RegisterCallback("GW2_UI_CLASSPOWER_PLAYER_UNIT_AURA", eclipsUnitAura, "GW2_UI")
+    EventRegistry:RegisterCallback("GW2_UI.ClasspowerPlayerUnitAura", eclipsUnitAura, "GW2_UI")
 end
 
 -- EVOKER
@@ -869,7 +869,7 @@ local function setWarrior(f)
         f:SetScript("OnEvent", function(_, _, unit, ...) HandleUnitAuraEvent(unit, ...) end)
         powerEnrage()
         f:RegisterUnitEvent("UNIT_AURA", "player")
-        EventRegistry:RegisterCallback("GW2_UI_CLASSPOWER_PLAYER_UNIT_AURA", powerEnrage, "GW2_UI")
+        EventRegistry:RegisterCallback("GW2_UI.ClasspowerPlayerUnitAura", powerEnrage, "GW2_UI")
     elseif GW.myspec == 3 then -- prot
         -- determine if bolster talent is selected
         setPowerTYpeBolster(f.customResourceBar)
@@ -877,7 +877,7 @@ local function setWarrior(f)
         f:SetScript("OnEvent", function(_, _, unit, ...) HandleUnitAuraEvent(unit, ...) end)
         powerSBlock()
         f:RegisterUnitEvent("UNIT_AURA", "player")
-        EventRegistry:RegisterCallback("GW2_UI_CLASSPOWER_PLAYER_UNIT_AURA", powerSBlock, "GW2_UI")
+        EventRegistry:RegisterCallback("GW2_UI.ClasspowerPlayerUnitAura", powerSBlock, "GW2_UI")
     end
 
     return true
@@ -995,7 +995,7 @@ local function setPaladin(f)
         setPowerTypePaladinShield(f.customResourceBar)
 
         f:RegisterUnitEvent("UNIT_AURA", "player")
-        EventRegistry:RegisterCallback("GW2_UI_CLASSPOWER_PLAYER_UNIT_AURA", powerSotR, "GW2_UI")
+        EventRegistry:RegisterCallback("GW2_UI.ClasspowerPlayerUnitAura", powerSotR, "GW2_UI")
     end
 
     return true
@@ -1064,12 +1064,12 @@ local function setHunter(f)
             f:SetScript("OnEvent", function(_, _, unit, ...) HandleUnitAuraEvent(unit, ...) end)
             powerFrenzy("CLASS_POWER_INIT")
             f:RegisterUnitEvent("UNIT_AURA", "pet")
-            EventRegistry:RegisterCallback("GW2_UI_CLASSPOWER_PLAYER_UNIT_AURA", powerFrenzy, "GW2_UI")
+            EventRegistry:RegisterCallback("GW2_UI.ClasspowerPlayerUnitAura", powerFrenzy, "GW2_UI")
         elseif GW.myspec == 3 then -- survival
             f:SetScript("OnEvent", function(_, _, unit, ...) HandleUnitAuraEvent(unit, ...) end)
             powerMongoose("CLASS_POWER_INIT")
             f:RegisterUnitEvent("UNIT_AURA", "player")
-            EventRegistry:RegisterCallback("GW2_UI_CLASSPOWER_PLAYER_UNIT_AURA", powerMongoose, "GW2_UI")
+            EventRegistry:RegisterCallback("GW2_UI.ClasspowerPlayerUnitAura", powerMongoose, "GW2_UI")
         end
 
         return true
@@ -1545,7 +1545,7 @@ local function setMage(f)
         f:SetScript("OnEvent", function(_, _, unit, ...) HandleUnitAuraEvent(unit, ...) end)
         powerFrost("CLASS_POWER_INIT")
         f:RegisterUnitEvent("UNIT_AURA", "player")
-        EventRegistry:RegisterCallback("GW2_UI_CLASSPOWER_PLAYER_UNIT_AURA", powerFrost, "GW2_UI")
+        EventRegistry:RegisterCallback("GW2_UI.ClasspowerPlayerUnitAura", powerFrost, "GW2_UI")
 
         return true
     end
@@ -2026,7 +2026,7 @@ end
 
 local function selectType(f)
     f:SetScript("OnEvent", nil)
-    EventRegistry:UnregisterCallback("GW2_UI_CLASSPOWER_PLAYER_UNIT_AURA", "GW2_UI")
+    EventRegistry:UnregisterCallback("GW2_UI.ClasspowerPlayerUnitAura", "GW2_UI")
     f:UnregisterAllEvents()
 
     -- hide all class power sub-pieces and reset anything needed

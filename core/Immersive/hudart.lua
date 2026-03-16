@@ -485,9 +485,9 @@ local function LoadHudArt()
     hudArtFrame:SetScript("OnEvent", hud_OnEvent)
     hud_OnEvent(hudArtFrame, "INIT")
 
-    GW.Libs.GW2Lib.RegisterCallback(hudArtFrame, "GW2_PLAYER_SKYRIDING_STATE_CHANGE", function()
+    EventRegistry:RegisterCallback("GW2_UI.PlayerSkyrindingStateChanged", function()
         selectBg(hudArtFrame)
-    end)
+    end, hudArtFrame)
 
     hudArtFrame:RegisterEvent("PLAYER_ALIVE")
     hudArtFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
