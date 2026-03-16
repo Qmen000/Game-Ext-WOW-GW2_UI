@@ -444,7 +444,7 @@ function GwDodgeBarMixin:ToggleSkyridingBar()
             self.skyridingBar.arcfill.fillFractions:SetVertexColor(0.454, 0.85, 0.983, 1.0)
         end
 
-        self.skyridingBar:SkyridingBarOnEvent("GW2_UI.PlayerSkyrindingStateChanged", GW.Libs.GW2Lib:IsPlayerSkyRiding())
+        self.skyridingBar:UpdateSkyridingBarState(GW.Libs.GW2Lib:IsPlayerSkyRiding())
     else
         self.skyridingBar:UnregisterEvent("SPELL_UPDATE_CHARGES")
         self.skyridingBar:SetScript("OnEvent", nil)
