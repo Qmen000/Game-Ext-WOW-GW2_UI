@@ -13,6 +13,9 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("10.5.1", {
+    {GW.Enum.ChangelogType.bug, [=[Buggrabber integration]=]},
+})
 
 addChange("10.5.0", {
     {GW.Enum.ChangelogType.feature, [=[Added Midnight event tracker to worldmap]=]},
