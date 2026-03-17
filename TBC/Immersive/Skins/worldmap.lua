@@ -49,6 +49,7 @@ local function LoadWorldMapSkin()
 
     WorldMapFrame.BorderFrame:GwCreateBackdrop(GW.BackdropTemplates.Default, true)
     WorldMapFrame.MiniBorderFrame:GwCreateBackdrop(GW.BackdropTemplates.Default, true)
+    MiniWorldMapTitle:SetAlpha(0)
 
     WorldMapContinentDropdown:GwHandleDropDownBox()
     WorldMapZoneDropdown:GwHandleDropDownBox()

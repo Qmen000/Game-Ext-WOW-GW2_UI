@@ -61,13 +61,21 @@ local function MinimapPostDrag(self)
     end
 end
 
+
 local function Minimap_OnMouseDown(self, btn)
     if btn == "RightButton" then
         self.gwTrackingButton:OpenMenu()
-    else
-        Minimap_OnClick(self)
     end
 end
+
+local function Minimap_OnMouseWheel(_, d)
+    if d > 0 then
+        MinimapZoomIn:Click()
+    elseif d < 0 then
+        MinimapZoomOut:Click()
+    end
+end
+
 
 local function lfgAnimPvPStop()
     MiniMapBattlefieldIcon:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\lfgmicrobutton-down.png")
@@ -187,29 +195,6 @@ local function hoverMiniMapOut()
     end
 end
 GW.hoverMiniMapOut = hoverMiniMapOut
-
-
-local function checkCursorOverMap()
-    if Minimap:IsMouseOver(100, -100, -100, 100) then
-    else
-        hoverMiniMapOut()
-        Minimap:SetScript("OnUpdate", nil)
-    end
-end
-
-
-local function time_OnEnter(self)
-    GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 5)
-    GameTooltip:ClearLines()
-    GameTooltip_SetTitle(GameTooltip, TIMEMANAGER_TOOLTIP_TITLE)
-    GameTooltip:AddLine(" ")
-    GameTooltip:AddDoubleLine(TIMEMANAGER_TOOLTIP_REALMTIME, GameTime_GetGameTime(true), nil, nil, nil, 1, 1, 1)
-    GameTooltip:AddDoubleLine(TIMEMANAGER_TOOLTIP_LOCALTIME, GameTime_GetLocalTime(true), nil, nil, nil, 1, 1, 1)
-    GameTooltip:AddLine(" ")
-    GameTooltip:AddLine(format("%s%s%s", "|cffaaaaaa", GAMETIME_TOOLTIP_TOGGLE_CLOCK, "|r"))
-    GameTooltip:Show()
-end
-
 
 local function getMinimapShape()
     return "SQUARE"
@@ -494,35 +479,29 @@ local function LoadMinimap()
 
     hideMiniMapIcons()
 
-    Minimap:SetScript(
-        "OnEnter",
-        function()
-            hoverMiniMapIn()
-            Minimap:SetScript(
-                "OnUpdate",
-                function()
-                    checkCursorOverMap()
-                end
-            )
-        end
-    )
 
     MinimapZoomIn:Hide()
     MinimapZoomOut:Hide()
     Minimap:EnableMouseWheel(true)
 
-    Minimap:SetScript(
-        "OnMouseWheel",
-        function(self, delta)
-            if delta > 0 and self:GetZoom() < 5 then
-                MinimapZoomIn:Click()
-            elseif delta < 0 and self:GetZoom() > 0 then
-                MinimapZoomOut:Click()
-            end
-        end
-    )
-    Minimap:SetScript("OnMouseDown", Minimap_OnMouseDown)
-    Minimap:SetScript("OnMouseUp", GW.NoOp)
+    local clickHandler = CreateFrame("Frame", "Gw2UI_MinimapClickHandler", Minimap)
+    clickHandler:SetPassThroughButtons("LeftButton")
+    clickHandler:SetPropagateMouseMotion(true)
+    clickHandler:SetAllPoints()
+
+    clickHandler:SetScript("OnMouseWheel", Minimap_OnMouseWheel)
+    clickHandler:SetScript("OnMouseDown", Minimap_OnMouseDown)
+
+    -- Minimap Tracking Button
+    clickHandler.gwTrackingButton = CreateFrame("DropdownButton")
+    clickHandler.gwTrackingButton:SetFrameStrata("BACKGROUND")
+    Mixin(clickHandler.gwTrackingButton, MinimapTrackingDropdownMixin)
+    clickHandler.gwTrackingButton:OnLoad()
+    clickHandler.gwTrackingButton:SetScript("OnEvent", clickHandler.gwTrackingButton.OnEvent)
+    clickHandler.gwTrackingButton:SetAllPoints(Minimap)
+
+    Minimap:HookScript("OnEnter", hoverMiniMapIn)
+    Minimap:HookScript("OnLeave", hoverMiniMapOut)
 
     Minimap:HookScript("OnShow", minimap_OnShow)
     Minimap:HookScript("OnHide", minimap_OnHide)
@@ -554,14 +533,6 @@ local function LoadMinimap()
     C_Timer.After(0.1, hoverMiniMapOut)
 
     Minimap:SetPlayerTexture("Interface/AddOns/GW2_UI/textures/icons/player_arrow.png")
-
-    -- Minimap Tracking Button
-    Minimap.gwTrackingButton = CreateFrame("DropdownButton")
-    Minimap.gwTrackingButton:SetFrameStrata("BACKGROUND")
-    Mixin(Minimap.gwTrackingButton, MinimapTrackingDropdownMixin)
-    Minimap.gwTrackingButton:OnLoad()
-    Minimap.gwTrackingButton:SetScript("OnEvent", Minimap.gwTrackingButton.OnEvent)
-    Minimap.gwTrackingButton:SetAllPoints(Minimap)
 
     GW.UpdateMinimapSize()
 end
