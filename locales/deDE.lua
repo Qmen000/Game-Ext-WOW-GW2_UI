@@ -771,3 +771,4 @@ L["Edit general unitframe aura settings."] = "Allgemeine Einheitenfenster-Auren-
 L["Important"] = "Wichtig"
 L["Dispellable"] = "Bannbar"
 L["External Defensives"] = "Externe Verteidigungseffekte"
+L["Calendar"] = "Kalender"

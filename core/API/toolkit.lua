@@ -291,6 +291,53 @@ local function GwOffsetFrameLevel(frame, offset, referenceFrame)
     end
 end
 
+local function GwSetFrameTemplate(frame, style)
+    if not frame.SetBackdrop then
+        Mixin(frame, BackdropTemplateMixin)
+
+        if frame.OnSizeChanged then
+            frame:HookScript("OnSizeChanged", frame.OnBackdropSizeChanged)
+        end
+    end
+
+    GW.ReplaceSetupTextureCoordinates(frame)
+    frame:SetBackdrop({
+        edgeFile = "Interface/AddOns/GW2_UI/textures/uistuff/white.png",
+        bgFile = "Interface/AddOns/GW2_UI/textures/uistuff/ui-tooltip-background.png",
+        edgeSize = GW.Scale(1)
+    })
+
+    if style == "Dark" then
+        frame:SetBackdropBorderColor(0, 0, 0, 1)
+    end
+
+    local backdrop = {
+        edgeFile = "Interface/AddOns/GW2_UI/textures/uistuff/white.png",
+        edgeSize = GW.Scale(1)
+    }
+
+    local level = frame:GetFrameLevel()
+    if not frame.iborder then
+        local border = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+        GW.ReplaceSetupTextureCoordinates(border)
+        border:SetBackdrop(backdrop)
+        border:SetBackdropBorderColor(0, 0, 0, 1)
+        border:SetFrameLevel(level)
+        border:GwSetInside(frame, 1, 1)
+        frame.iborder = border
+    end
+
+    if not frame.oborder then
+        local border = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+        GW.ReplaceSetupTextureCoordinates(border)
+        border:SetBackdrop(backdrop)
+        border:SetBackdropBorderColor(0, 0, 0, 1)
+        border:SetFrameLevel(level)
+        border:GwSetOutside(frame, 1, 1)
+        frame.oborder = border
+    end
+end
+
 local function GwCreateBackdrop(frame, template, isBorder, xOffset, yOffset, xShift, yShift)
     local parent = (frame.IsObjectType and frame:IsObjectType("Texture") and frame:GetParent()) or frame
     local backdrop = frame.backdrop or CreateFrame("Frame", nil, parent)
@@ -889,6 +936,8 @@ local function addapi(object)
     if not object.GwSetFontTemplate then mt.GwSetFontTemplate = GwSetFontTemplate end
     if not object.GwOffsetFrameLevel then mt.GwOffsetFrameLevel = GwOffsetFrameLevel end
     if not object.GwNudgePoint then mt.GwNudgePoint = GwNudgePoint end
+    if not object.GwSetFrameTemplate then mt.GwSetFrameTemplate = GwSetFrameTemplate end
+
 end
 
 local handled = { Frame = true }

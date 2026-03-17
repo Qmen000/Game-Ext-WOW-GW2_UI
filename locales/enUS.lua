@@ -740,3 +740,4 @@ L["Unitframes Auras"] = true
 L["Edit general unitframe aura settings."] = true
 L["Dispellable"] = true
 L["External Defensives"] = true
+L["Calendar"] = true

@@ -91,14 +91,13 @@ end
 
 function GW.IsPlayerSpell(spellID)
     if C_SpellBook and C_SpellBook.IsSpellKnown then
-        local spellBank = Enum.SpellBookSpellBank.Player
-        return C_SpellBook.IsSpellKnown(spellID, spellBank)
+        return C_SpellBook.IsSpellKnown(spellID, Enum.SpellBookSpellBank.Player)
     else
         return IsSpellKnown(spellID)
     end
 end
 
-local function CropRatio(width, height, mult)
+function GW.CropRatio(width, height, mult)
     local left, right, top, bottom = 0.05, 0.95, 0.05, 0.95
     if not mult then mult = 0.5 end
 
@@ -119,7 +118,21 @@ local function CropRatio(width, height, mult)
 
     return left, right, top, bottom
 end
-GW.CropRatio = CropRatio
+
+function GW.GetClassCoords(classFile, crop, get)
+    local t = CLASS_ICON_TCOORDS[classFile]
+    if not t then return 0, 1, 0, 1 end
+
+    if get then
+        return t
+    elseif type(crop) == "number" then
+        return t[1] + crop, t[2] - crop, t[3] + crop, t[4] - crop
+    elseif crop then
+        return t[1] + 0.022, t[2] - 0.025, t[3] + 0.022, t[4] - 0.025
+    else
+        return t[1], t[2], t[3], t[4]
+    end
+end
 
 local function SetAlphaRecursive(frame, alpha)
     if not frame or not frame.SetAlpha then return end

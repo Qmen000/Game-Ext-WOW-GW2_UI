@@ -680,7 +680,7 @@ local function HandleRotateButton(btn)
 end
 GW.HandleRotateButton = HandleRotateButton
 
-local function AddDetailsBackground(frame, detailBackgroundsXOffset, detailBackgroundsYOffset)
+function GW.AddDetailsBackground(frame, detailBackgroundsXOffset, detailBackgroundsYOffset)
     local detailBg = frame:CreateTexture(nil, "BACKGROUND", nil, 7)
     detailBg:SetPoint("TOPLEFT", frame, "TOPLEFT", detailBackgroundsXOffset or 0, detailBackgroundsYOffset or 0)
     detailBg:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
@@ -688,7 +688,6 @@ local function AddDetailsBackground(frame, detailBackgroundsXOffset, detailBackg
     detailBg:SetTexCoord(0, 0.70703125, 0, 0.580078125)
     frame.tex = detailBg
 end
-GW.AddDetailsBackground = AddDetailsBackground
 
 local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgrounds, detailBackgroundsXOffset, addLeftSidePanel, addFrameOpenAnimation)
     local header = CreateFrame("Frame", frame:GetName() .. "Header", frame, "GwFrameHeader")
@@ -730,7 +729,7 @@ local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgroun
 
     if detailBackgrounds then
         for _, v in pairs(detailBackgrounds) do
-            AddDetailsBackground(v, detailBackgroundsXOffset, 0)
+            GW.AddDetailsBackground(v, detailBackgroundsXOffset, 0)
         end
     end
 

@@ -410,6 +410,7 @@ local function evAddonLoaded(self, loadedAddonName)
         GW.LoadBattlefieldMapSkin()
         GW.LoadMajorFactionsFrameSkin()
         GW.LoadDamageMeterSkin()
+        GW.LoadCalendarSkin()
     end
 
     if not (GW.Classic or GW.TBC) then

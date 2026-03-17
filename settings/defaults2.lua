@@ -1270,6 +1270,7 @@ GW.globalDefault = {
         MajorFactionSkinEnabled = true,
         CooldownManagerSkinEnabled = true,
         DamageMeterSkinEnabled = true,
+        CalendarSkinEnabled = true,
 
         QUESTTIMERS_SKIN_ENABLED = true,
         QUEST_TIMERS_FRAME_POSITION = {
