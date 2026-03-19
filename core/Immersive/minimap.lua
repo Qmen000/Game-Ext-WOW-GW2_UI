@@ -8,7 +8,7 @@ MAP_FRAMES_HIDE[1] = MiniMapMailIcon
 MAP_FRAMES_HIDE[2] = MiniMapTrackingButton
 MAP_FRAMES_HIDE[3] = MiniMapTracking
 MAP_FRAMES_HIDE[4] = MinimapToggleButton
-MAP_FRAMES_HIDE[5] = GameTimeFrame
+MAP_FRAMES_HIDE[5] = not GW.Retail and GameTimeFrame
 
 local M = CreateFrame("Frame")
 
@@ -325,7 +325,7 @@ local function Minimap_OnMouseWheel(_, d)
     if d > 0 then
         (MinimapZoomIn or Minimap.ZoomIn):Click()
     elseif d < 0 then
-        (MinimapZoomOut or Minimap.ZooZoomOutmIn):Click()
+        (MinimapZoomOut or Minimap.ZoomOut):Click()
     end
 end
 
@@ -824,6 +824,7 @@ function GW.LoadMinimap()
 
     -- Addon Icons
     GW.CreateMinimapButtonsSack()
+    GwAddonToggle:ClearAllPoints()
     if GW.Retail then
         local expButton = ExpansionLandingPageMinimapButton or GarrisonLandingPageMinimapButton
         QueueStatusButton:ClearAllPoints()
@@ -863,7 +864,6 @@ function GW.LoadMinimap()
         MiniMapBattlefieldFrame:SetPoint("TOP", Minimap.sidePanel, "TOP", -7, 0)
     end
 
-    GwAddonToggle:ClearAllPoints()
     GwAddonToggle.container:ClearAllPoints()
     GwAddonToggle.container:SetPoint("RIGHT", GwAddonToggle, "LEFT")
 
