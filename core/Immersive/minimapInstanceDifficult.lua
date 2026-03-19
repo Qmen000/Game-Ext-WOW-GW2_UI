@@ -87,9 +87,15 @@ local function InstanceDifficultOnEvent(self, _, inGuildGroup)
         self.icon:SetText(GuildEmblem())
     end
 
-    instance:Hide()
-    challenge:Hide()
-    guild:Hide()
+    if instance then
+        instance:Hide()
+    end
+    if guild then
+        guild:Hide()
+    end
+    if challenge then
+        challenge:Hide()
+    end
 end
 
 local function HideBlizzardIcon(self)
