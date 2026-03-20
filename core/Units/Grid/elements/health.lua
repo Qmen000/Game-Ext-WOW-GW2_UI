@@ -81,6 +81,7 @@ local function Update_Healthbar(frame)
     --settings
     health.statusBarColor = health.statusBarColor or {}
     health.colorClass = frame.useClassColor
+    health.colorClassPet = frame.useClassColor
     health.colorDisconnected = true
     health.showAbsorbBar = frame.showAbsorbBar
 
