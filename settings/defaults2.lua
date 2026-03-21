@@ -123,6 +123,7 @@ GW.globalDefault = {
         CLASS_POWER = true,
         RAID_FRAMES = true,
         PARTY_FRAMES = true,
+        ARENA_FRAMES = true,
         PETBAR_ENABLED = true,
         BORDER_ENABLED = true,
 
