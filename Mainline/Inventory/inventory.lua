@@ -688,6 +688,7 @@ local function snapFrameSize(f, cfs, size, padding, min_height)
 
     local cols = f == GwBagFrame and f.gw_bag_cols or f.gw_bank_cols
     local sep = (f == GwBagFrame and GW.settings.BAG_SEPARATE_BAGS) or false
+    local sepR = (f == GwBagFrame and GW.settings.BAG_SEPARATE_REAGENT_BAGS) or false
 
     if not cfs then
         f:SetHeight(min_height)
@@ -719,6 +720,11 @@ local function snapFrameSize(f, cfs, size, padding, min_height)
         f.finishedRow = f.finishedRow or 0
         f.unfinishedRow = f.unfinishedRow or 0
         rows = f.finishedRow + bags_equipped + 1 + f.unfinishedRow
+    elseif sepR then
+        f.finishedRow = f.finishedRow and f.finishedRow or 0
+        f.unfinishedRow = f.unfinishedRow and f.unfinishedRow or 1
+        f.ReagentIsShown = f.ReagentIsShown and f.ReagentIsShown or false
+        rows = 1 + f.finishedRow + (f.ReagentIsShown and 2 or 1)
     else
         rows = math.ceil(slots / cols)
     end

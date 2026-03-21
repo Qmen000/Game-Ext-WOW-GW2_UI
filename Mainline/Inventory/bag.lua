@@ -38,10 +38,13 @@ local function layoutBagItems(f)
     local col = 0
     local rev = GW.settings.BAG_REVERSE_SORT
     local sep = GW.settings.BAG_SEPARATE_BAGS
+    local sepR = GW.settings.BAG_SEPARATE_REAGENT_BAGS and not sep
     local row = sep and 1 or 0
     local item_off = GW.settings.BAG_ITEM_SIZE + BAG_ITEM_PADDING
     local unfinishedRow = false
     local finishedRows = 0
+    local ReagentBagItemID = GetInventoryItemID("player", 35)
+    local isReagentBagEquipped = ReagentBagItemID and true or false
 
     local iS = BACKPACK_CONTAINER
     local iE = NUM_TOTAL_EQUIPPED_BAG_SLOTS
@@ -53,6 +56,7 @@ local function layoutBagItems(f)
     end
     parent.unfinishedRow = 0
     parent.finishedRow = 0
+    parent.ReagentIsShown = false
 
     local lcf = inv.layoutContainerFrame
     for i = iS, iE, iD do
@@ -65,11 +69,17 @@ local function layoutBagItems(f)
             header:ClearAllPoints()
             header:SetPoint("TOPLEFT", f, "TOPLEFT", 0, (-row + 1) * item_off)
             header:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, (-row + 1) * item_off)
+        elseif sepR and isReagentBagEquipped and NUM_TOTAL_EQUIPPED_BAG_SLOTS == bag_id then
+            header:Show()
+            header:ClearAllPoints()
+            header:SetPoint("TOPLEFT", f, "TOPLEFT", 0, (-row + 1) * item_off)
+            header:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, (-row + 1) * item_off)
+            parent.ReagentIsShown = cf.shouldShow
         else
             header:Hide()
         end
 
-        if sep then
+        if sep or sepR then
             cf:SetShown(cf.shouldShow)
         else
             cf:Show()
@@ -78,13 +88,13 @@ local function layoutBagItems(f)
         if cf:IsShown() then
             col, row, unfinishedRow, finishedRows = lcf(cf, max_col, row, col, false, item_off)
         end
-
+        
         parent.unfinishedRow = parent.unfinishedRow + (unfinishedRow and 1 or 0)
         parent.finishedRow = parent.finishedRow + finishedRows
 
         itemID = GetInventoryItemID("player", C_Container.ContainerIDToInventoryID(bag_id))
 
-        if (sep and (bag_id == 0 or bag_id >= 4)) or (sep and itemID) then
+        if (sep and (bag_id == 0 or bag_id >= 4)) or (sep and itemID) or (sepR and bag_id == NUM_TOTAL_EQUIPPED_BAG_SLOTS - 1) then
             if col ~= 0 then
                 row = row + 2
                 col = 0
@@ -97,7 +107,7 @@ local function layoutBagItems(f)
         unfinishedRow = false
     end
 
-    if GW.settings.BAG_SEPARATE_BAGS then
+    if GW.settings.BAG_SEPARATE_BAGS or GW.settings.BAG_SEPARATE_REAGENT_BAGS then
         setBagHeaders(parent)
     end
 end
@@ -707,6 +717,8 @@ local function LoadBag(helpers)
                      function() local ns = not GW.settings.BAG_VENDOR_GRAYS; GW.settings.BAG_VENDOR_GRAYS = ns; GW.SetupVendorJunk(ns) end)
             addCheck(L["Separate bags"], function() return GW.settings.BAG_SEPARATE_BAGS end,
                      function() local ns = not GW.settings.BAG_SEPARATE_BAGS; GW.settings.BAG_SEPARATE_BAGS = ns; layoutItems(f); snapFrameSize(f) end)
+            addCheck(L["Separate reagent bags"], function() return GW.settings.BAG_SEPARATE_REAGENT_BAGS end,
+                     function() local ns = not GW.settings.BAG_SEPARATE_REAGENT_BAGS; GW.settings.BAG_SEPARATE_REAGENT_BAGS = ns; layoutItems(f); snapFrameSize(f) end)
         end)
     end)
 
