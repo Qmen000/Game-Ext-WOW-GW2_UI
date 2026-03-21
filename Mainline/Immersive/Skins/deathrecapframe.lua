@@ -2,6 +2,24 @@
 local GW = select(2, ...)
 local constBackdropFrame = GW.BackdropTemplates.Default
 
+local function DeathRecapScrollUpdateChild(child)
+    local spellInfo = child.SpellInfo
+    if not spellInfo or spellInfo.IsSkinned then return end
+
+    if spellInfo.Icon then
+        spellInfo.Icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        spellInfo.IconBorder:SetAlpha(0)
+    end
+    if spellInfo.tombstone then
+        spellInfo.tombstone:SetTexture("Interface/AddOns/GW2_UI/textures/icons/icon-dead.png")
+        spellInfo.tombstone:SetSize(30, 30)
+        spellInfo.tombstone:ClearAllPoints()
+        spellInfo.tombstone:SetPoint("RIGHT", spellInfo.DamageInfo.Amount, "LEFT", 0, 0)
+    end
+
+    spellInfo.IsSkinned = true
+end
+
 local function SkinDeathRecapFrame_Loaded()
     if not GW.settings.DEATHRECAPFRAME_SKIN_ENABLED then return end
 
@@ -29,16 +47,14 @@ local function SkinDeathRecapFrame_Loaded()
     DeathRecapFrame.Divider:SetPoint("TOPLEFT", 0, -25)
     DeathRecapFrame.Divider:SetPoint("TOPRIGHT", 0, -25)
 
-    for i = 1, 5 do
-        local recap = DeathRecapFrame["Recap" .. i]
-        recap.SpellInfo.Icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-        recap.SpellInfo.IconBorder:SetAlpha(0)
-        if i == 1 then
-            DeathRecapFrame.Recap1.tombstone:SetTexture("Interface/AddOns/GW2_UI/textures/icons/icon-dead.png")
-            DeathRecapFrame.Recap1.tombstone:SetSize(30, 30)
-            DeathRecapFrame.Recap1.tombstone:ClearAllPoints()
-            DeathRecapFrame.Recap1.tombstone:SetPoint("RIGHT", DeathRecapFrame.Recap1.DamageInfo.Amount, "LEFT", 0, 0)
-        end
+    if DeathRecapFrame.ScrollBar then
+        GW.HandleTrimScrollBar(DeathRecapFrame.ScrollBar)
+    end
+
+    if DeathRecapFrame.ScrollBox then
+        hooksecurefunc(DeathRecapFrame.ScrollBox, "Update", function(frame)
+            frame:ForEachFrame(DeathRecapScrollUpdateChild)
+        end)
     end
 
     if C_AddOns.IsAddOnLoaded("Details") then
