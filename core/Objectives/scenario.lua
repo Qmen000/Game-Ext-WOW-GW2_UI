@@ -21,6 +21,7 @@ local allowedWidgetUpdateIdsForTimer = {
     [6287] = {hasTimer = false}, -- Night (1368)
     [6288] = {hasTimer = false}, -- Night (1369)
     [6731] = {hasTimer = true}, -- Abundance
+    [7042] = {hasTimer = false}, -- Stormarion Assault prep
     [7043] = {hasTimer = false}, -- Stormarion Assault wave 1
     [7241] = {hasTimer = false}, -- Stormarion Assault wave 2
     [7242] = {hasTimer = false}, -- Stormarion Assault wave 3
