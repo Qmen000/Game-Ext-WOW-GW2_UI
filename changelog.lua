@@ -21,6 +21,7 @@ addChange("10.6.0", {
     {GW.Enum.ChangelogType.change, [=[Refactored class power anchor handling to use shared helpers]=]},
     {GW.Enum.ChangelogType.change, [=[Mail skin layout now switches between compact and expanded widths based on visible right pane content]=]},
     {GW.Enum.ChangelogType.change, [=[Refactored mail compose/open handlers and cleanup helpers to reduce duplicated UI logic]=]},
+    {GW.Enum.ChangelogType.change, [=[Moved "Sell junk automatically" from bag-specific menus to General settings near Auto Repair]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed class power sub-frame alignment for multiple classes when using non-default anchors]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed Demon Hunter and Brewmaster defaultResourceBar anchor behavior]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed overlap handling for custom resource bars in CENTER mode]=]},
@@ -28,6 +29,7 @@ addChange("10.6.0", {
     {GW.Enum.ChangelogType.bug, [=[Fixed mail inbox bottom button vertical alignment]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed mail open view scroll area sizing and scrollbar spacing]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed mail separator visibility and sizing in compact/expanded modes]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed auto-sell junk initialization by running SetupVendorJunk once globally]=]},
 })
 
 addChange("10.5.1", {

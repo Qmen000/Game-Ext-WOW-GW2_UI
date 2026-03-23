@@ -9,6 +9,7 @@ CHANGES
     - Refactored class power anchor handling to use shared helpers
     - Mail skin layout now switches between compact and expanded widths based on visible right pane content
     - Refactored mail compose/open handlers and cleanup helpers to reduce duplicated UI logic
+    - Moved "Sell junk automatically" from bag-specific menus to General settings near Auto Repair
 
 FIXES
     - Fixed class power sub-frame alignment for multiple classes when using non-default anchors
@@ -18,6 +19,7 @@ FIXES
     - Fixed mail inbox bottom button vertical alignment
     - Fixed mail open view scroll area sizing and scrollbar spacing
     - Fixed mail separator visibility and sizing in compact/expanded modes
+    - Fixed auto-sell junk initialization by running SetupVendorJunk once globally
 
 10.5.1
 FIXES

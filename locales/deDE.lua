@@ -48,6 +48,7 @@ L["Aura Style"] = true
 L["Auras per row"] = "Auren pro Reihe"
 L["Auto Repair"] = "Auto-Reparatur"
 L["Automatically repair using the following method when visiting a merchant."] = "Repariert automatisch deine Ausrüstungsgegenstände, wenn du eine der folgenden Methoden auswählst."
+L["Automatically sell poor quality items when visiting a merchant."] = "Verkauft automatisch Gegenstände von minderer Qualität, wenn du einen Händler besuchst."
 L["Bandwidth"] = "Bandbreite"
 L["Bar"] = true
 L["Blizzard Class Colors"] = "Blizzard Klassenfarben"

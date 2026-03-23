@@ -38,6 +38,7 @@ L["Auras per row"] = true
 L["Aura Style"] = true
 L["Auto Repair"] = true
 L["Automatically repair using the following method when visiting a merchant."] = true
+L["Automatically sell poor quality items when visiting a merchant."] = true
 L["Reverse Bag Order"] = true
 L["Sort to Last Bag"] = true
 L["Compact Icons"] = true

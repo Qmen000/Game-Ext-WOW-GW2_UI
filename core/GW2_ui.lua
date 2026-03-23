@@ -559,6 +559,7 @@ local function evPlayerLogin(self)
 
     -- Misc
     GW.InitializeMiscFunctions()
+    GW.SetupVendorJunk(GW.settings.BAG_VENDOR_GRAYS)
     GW.LoadRaidMarkerCircle()
 
     --Create general skins
