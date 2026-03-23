@@ -7,12 +7,17 @@ NEW
 CHANGES
     - Added EN/DE localization and descriptions for the new class power settings
     - Refactored class power anchor handling to use shared helpers
+    - Mail skin layout now switches between compact and expanded widths based on visible right pane content
+    - Refactored mail compose/open handlers and cleanup helpers to reduce duplicated UI logic
 
 FIXES
     - Fixed class power sub-frame alignment for multiple classes when using non-default anchors
     - Fixed Demon Hunter and Brewmaster defaultResourceBar anchor behavior
     - Fixed overlap handling for custom resource bars in CENTER mode
     - Fixed Warlock shard/shardFragment anchor behavior with side settings
+    - Fixed mail inbox bottom button vertical alignment
+    - Fixed mail open view scroll area sizing and scrollbar spacing
+    - Fixed mail separator visibility and sizing in compact/expanded modes
 
 10.5.1
 FIXES

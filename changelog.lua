@@ -19,10 +19,15 @@ addChange("10.6.0", {
     {GW.Enum.ChangelogType.feature, [=[Added custom resource bar side option: Auto, Left, Right]=]},
     {GW.Enum.ChangelogType.change, [=[Added EN/DE localization and descriptions for the new class power settings]=]},
     {GW.Enum.ChangelogType.change, [=[Refactored class power anchor handling to use shared helpers]=]},
+    {GW.Enum.ChangelogType.change, [=[Mail skin layout now switches between compact and expanded widths based on visible right pane content]=]},
+    {GW.Enum.ChangelogType.change, [=[Refactored mail compose/open handlers and cleanup helpers to reduce duplicated UI logic]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed class power sub-frame alignment for multiple classes when using non-default anchors]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed Demon Hunter and Brewmaster defaultResourceBar anchor behavior]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed overlap handling for custom resource bars in CENTER mode]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed Warlock shard/shardFragment anchor behavior with side settings]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed mail inbox bottom button vertical alignment]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed mail open view scroll area sizing and scrollbar spacing]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed mail separator visibility and sizing in compact/expanded modes]=]},
 })
 
 addChange("10.5.1", {
