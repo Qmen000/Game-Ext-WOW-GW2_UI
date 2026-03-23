@@ -13,6 +13,18 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("10.6.0", {
+    {GW.Enum.ChangelogType.feature, [=[Added class power anchor modes: Default, Center, Left and Right]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added class power settings: anchor X offset, anchor Y offset and custom resource bar gap]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added custom resource bar side option: Auto, Left, Right]=]},
+    {GW.Enum.ChangelogType.change, [=[Added EN/DE localization and descriptions for the new class power settings]=]},
+    {GW.Enum.ChangelogType.change, [=[Refactored class power anchor handling to use shared helpers]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed class power sub-frame alignment for multiple classes when using non-default anchors]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed Demon Hunter and Brewmaster defaultResourceBar anchor behavior]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed overlap handling for custom resource bars in CENTER mode]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed Warlock shard/shardFragment anchor behavior with side settings]=]},
+})
+
 addChange("10.5.1", {
     {GW.Enum.ChangelogType.bug, [=[Buggrabber integration]=]},
 })

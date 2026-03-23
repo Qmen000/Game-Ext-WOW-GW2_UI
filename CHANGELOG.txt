@@ -1,3 +1,19 @@
+10.6.0
+NEW
+    - Added class power anchor modes: Default, Center, Left and Right
+    - Added class power settings: anchor X offset, anchor Y offset and custom resource bar gap
+    - Added custom resource bar side option: Auto, Left, Right
+
+CHANGES
+    - Added EN/DE localization and descriptions for the new class power settings
+    - Refactored class power anchor handling to use shared helpers
+
+FIXES
+    - Fixed class power sub-frame alignment for multiple classes when using non-default anchors
+    - Fixed Demon Hunter and Brewmaster defaultResourceBar anchor behavior
+    - Fixed overlap handling for custom resource bars in CENTER mode
+    - Fixed Warlock shard/shardFragment anchor behavior with side settings
+
 10.5.1
 FIXES
     - Buggrabber integration

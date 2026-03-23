@@ -443,7 +443,8 @@ end
 function GwPlayerPowerBarMixin:ToggleSettings()
     self.showBarValues = GW.settings.CLASSPOWER_SHOW_VALUE
     self:ClearAllPoints()
-    self:SetPoint(GW.settings.CLASSPOWER_ANCHOR_TO_CENTER and "CENTER" or "TOPLEFT", self.gwMover)
+    local point = GW.GetClassPowerAnchorPoint and GW.GetClassPowerAnchorPoint("TOPLEFT") or "TOPLEFT"
+    self:SetPoint(point, self.gwMover, point)
     self:UpdatePowerData()
 end
 
@@ -478,7 +479,8 @@ local function LoadPowerBar()
     GW.RegisterMovableFrame(playerPowerBar, DISPLAY_POWER_BARS, "PowerBar_pos", ALL .. ",Unitframe,Power", nil, {"default", "scaleable"}, true)
 
     playerPowerBar:ClearAllPoints()
-    playerPowerBar:SetPoint(GW.settings.CLASSPOWER_ANCHOR_TO_CENTER and "CENTER" or "TOPLEFT", playerPowerBar.gwMover)
+    local point = GW.GetClassPowerAnchorPoint and GW.GetClassPowerAnchorPoint("TOPLEFT") or "TOPLEFT"
+    playerPowerBar:SetPoint(point, playerPowerBar.gwMover, point)
 
     -- position mover
     if (not GW.settings.XPBAR_ENABLED or GW.settings.PLAYER_AS_TARGET_FRAME) and not playerPowerBar.isMoved  then
