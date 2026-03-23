@@ -84,6 +84,7 @@ local function LoadHudPanel(sWindow)
 
     --MINIMAP
     minimap:AddOption(L["Addon Compartment"], nil, {getterSetter = "MINIMAP_ADDON_COMPARTMENT_TOGGLE", callback = GW.HandleAddonCompartmentButton, dependence = {["MINIMAP_ENABLED"] = true}, incompatibleAddons = "Minimap", hidden = not GW.Retail})
+    minimap:AddOption(L["Always show AddOn flyout button"], L["Always show the minimap AddOns flyout button, even when only one AddOn button is available."], {getterSetter = "MINIMAP_ADDON_FLYOUT_ALWAYS", callback = function() GW.UpdateMinimapButtonsSack() end, dependence = {["MINIMAP_ENABLED"] = true}, incompatibleAddons = "Minimap"})
     minimap:AddOption(L["Show FPS on minimap"], L["Show FPS on minimap"], {getterSetter = "MINIMAP_FPS", callback = GW.ToogleMinimapFpsLable, dependence = {["MINIMAP_ENABLED"] = true}, incompatibleAddons = "Minimap"})
     minimap:AddOption(L["Disable FPS tooltip"], nil, {getterSetter = "MINIMAP_FPS_TOOLTIP_DISABLED", dependence = {["MINIMAP_ENABLED"] = true, ["MINIMAP_FPS"] = true}, incompatibleAddons = "Minimap"})
     minimap:AddOption(L["Show Coordinates on Minimap"], L["Show Coordinates on Minimap"], {getterSetter = "MINIMAP_COORDS_TOGGLE", callback = GW.ToogleMinimapCoordsLable, dependence = {["MINIMAP_ENABLED"] = true}, incompatibleAddons = "Minimap"})

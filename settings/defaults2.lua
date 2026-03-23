@@ -1181,6 +1181,7 @@ GW.globalDefault = {
         MINIMAP_COORDS_TOGGLE= false,
         MINIMAP_COORDS_PRECISION= 0,
         MINIMAP_ADDON_COMPARTMENT_TOGGLE= true,
+        MINIMAP_ADDON_FLYOUT_ALWAYS= false,
         Minimap = {
             HeightPercentage = 100,
             KeepSizeRatio = true

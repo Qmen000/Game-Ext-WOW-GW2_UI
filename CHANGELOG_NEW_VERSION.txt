@@ -3,23 +3,25 @@ NEW
     - Added class power anchor modes: Default, Center, Left and Right
     - Added class power settings: anchor X offset, anchor Y offset and custom resource bar gap
     - Added custom resource bar side option: Auto, Left, Right
+    - Added minimap setting to always show the AddOn flyout button
+    - Added minimap behavior to show a single AddOn button directly when flyout is not forced
 
 CHANGES
     - Added EN/DE localization and descriptions for the new class power settings
     - Refactored class power anchor handling to use shared helpers
+    - Improved class power sub-frame alignment for non-default anchors
+    - Improved Demon Hunter and Brewmaster defaultResourceBar anchoring
+    - Improved overlap handling for custom resource bars in CENTER mode
+    - Improved Warlock shard and shardFragment anchoring with side settings
     - Mail skin layout now switches between compact and expanded widths based on visible right pane content
     - Refactored mail compose/open handlers and cleanup helpers to reduce duplicated UI logic
     - Moved "Sell junk automatically" from bag-specific menus to General settings near Auto Repair
+    - Centralized auto-sell junk initialization to run SetupVendorJunk once globally
 
 FIXES
-    - Fixed class power sub-frame alignment for multiple classes when using non-default anchors
-    - Fixed Demon Hunter and Brewmaster defaultResourceBar anchor behavior
-    - Fixed overlap handling for custom resource bars in CENTER mode
-    - Fixed Warlock shard/shardFragment anchor behavior with side settings
     - Fixed mail inbox bottom button vertical alignment
     - Fixed mail open view scroll area sizing and scrollbar spacing
     - Fixed mail separator visibility and sizing in compact/expanded modes
-    - Fixed auto-sell junk initialization by running SetupVendorJunk once globally
 
 10.5.1
 FIXES
