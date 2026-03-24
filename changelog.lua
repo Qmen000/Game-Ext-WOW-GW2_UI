@@ -29,6 +29,8 @@ addChange("10.6.0", {
     {GW.Enum.ChangelogType.change, [=[Refactored mail compose/open handlers and cleanup helpers to reduce duplicated UI logic]=]},
     {GW.Enum.ChangelogType.change, [=[Moved "Sell junk automatically" from bag-specific menus to General settings near Auto Repair]=]},
     {GW.Enum.ChangelogType.change, [=[Centralized auto-sell junk initialization to run SetupVendorJunk once globally]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved Settings Overview Credits layout with section icons and two-column names]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved Settings Overview changelog scroll growth behavior with smooth post-drag animation]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed mail inbox bottom button vertical alignment]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed mail open view scroll area sizing and scrollbar spacing]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed mail separator visibility and sizing in compact/expanded modes]=]},

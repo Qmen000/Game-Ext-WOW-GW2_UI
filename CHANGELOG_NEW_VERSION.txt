@@ -17,6 +17,8 @@ CHANGES
     - Refactored mail compose/open handlers and cleanup helpers to reduce duplicated UI logic
     - Moved "Sell junk automatically" from bag-specific menus to General settings near Auto Repair
     - Centralized auto-sell junk initialization to run SetupVendorJunk once globally
+    - Improved Settings Overview Credits layout with section icons and two-column names
+    - Improved Settings Overview changelog scroll growth behavior with smooth post-drag animation
 
 FIXES
     - Fixed mail inbox bottom button vertical alignment
