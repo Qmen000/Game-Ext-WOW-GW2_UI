@@ -515,7 +515,7 @@ local function SetUnitText(self, unit, isPlayerUnit)
 
             levelLine:SetFormattedText("|cff%02x%02x%02x%s|r%s %s%s", diffColor.r * 255, diffColor.g * 255, diffColor.b * 255, level > 0 and level or "??", classification[creatureClassification] or "", creatureType or "", pvpFlag)
 
-            local classText = creatureType and classLine and classLine:GetText()
+            local classText = creatureType and classLine and GW.NotSecretValue(classLine) and classLine:GetText()
             if creatureType == classText then
                 classLine:SetText("")
                 classLine:Hide()

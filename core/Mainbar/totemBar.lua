@@ -11,7 +11,6 @@ local function UpdateButton(button, totem)
     local haveTotem, _, startTime, duration, icon, _, spellId = GetTotemInfo((GW.Classic or GW.TBC) and totem or totem.slot)
 
     if GW.Retail then
-        --local durationObject = C_DurationUtil.CreateDuration()
         local durationObject = C_Spell.GetSpellCooldownDuration(spellId)
         button:SetAlphaFromBoolean(haveTotem, 1, 0)
         button.iconTexture:SetTexture(icon)
