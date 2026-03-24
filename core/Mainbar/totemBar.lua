@@ -8,12 +8,14 @@ local classic = { [1] = 2, [2] = 1, [3] = 4, [4] = 3 }
 local function UpdateButton(button, totem)
     if not (button and totem) then return end
 
-    local haveTotem, _, startTime, duration, icon = GetTotemInfo((GW.Classic or GW.TBC) and totem or totem.slot)
+    local haveTotem, _, startTime, duration, icon, _, spellId = GetTotemInfo((GW.Classic or GW.TBC) and totem or totem.slot)
 
     if GW.Retail then
+        --local durationObject = C_DurationUtil.CreateDuration()
+        local durationObject = C_Spell.GetSpellCooldownDuration(spellId)
         button:SetAlphaFromBoolean(haveTotem, 1, 0)
         button.iconTexture:SetTexture(icon)
-        button.cooldown:SetCooldownDuration(duration)
+        button.cooldown:SetCooldownFromDurationObject(durationObject)
 
         if totem:GetParent() ~= button.holder then
             totem:SetParent(button.holder)
