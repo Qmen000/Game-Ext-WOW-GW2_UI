@@ -193,8 +193,6 @@ end
 local function MapInfoUpdateMapId()
     C_Timer.After(0.1, function()
         lib.locationData.mapID = C_Map.GetBestMapForUnit("player")
-        print(lib.locationData.mapID)
-
         if lib.locationData.mapID ~= nil then
             EventRegistry:TriggerEvent("GW2_UI.PlayerNewMapId", lib.locationData.mapID)
         end
