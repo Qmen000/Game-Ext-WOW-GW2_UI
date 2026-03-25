@@ -26,6 +26,7 @@ FIXES
     - Fixed mail open view scroll area sizing and scrollbar spacing
     - Fixed mail separator visibility and sizing in compact/expanded modes
     - Fixed tooltip taint from comparing secret class text values (classLine:GetText)
+    - Fixed scenario event timer showing in excluded zones (for example Stormarion Assault area)
 
 10.5.1
 FIXES

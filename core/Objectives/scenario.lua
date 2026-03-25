@@ -20,11 +20,11 @@ local allowedWidgetUpdateIdsForTimer = {
     [6289] = {hasTimer = false}, -- Night (1370)
     [6287] = {hasTimer = false}, -- Night (1368)
     [6288] = {hasTimer = false}, -- Night (1369)
-    [6731] = {hasTimer = true}, -- Abundance
-    [7042] = {hasTimer = false}, -- Stormarion Assault prep
-    [7043] = {hasTimer = false}, -- Stormarion Assault wave 1
-    [7241] = {hasTimer = false}, -- Stormarion Assault wave 2
-    [7242] = {hasTimer = false}, -- Stormarion Assault wave 3
+    [6731] = {hasTimer = true, excludedMapIds = {2405}}, -- Abundance (ignore on Stormarion map)
+    [7042] = {hasTimer = false, mapId = 2405}, -- Stormarion Assault prep
+    [7043] = {hasTimer = false, mapId = 2405}, -- Stormarion Assault wave 1
+    [7241] = {hasTimer = false, mapId = 2405}, -- Stormarion Assault wave 2
+    [7242] = {hasTimer = false, mapId = 2405}, -- Stormarion Assault wave 3
 }
 
 local allowedWidgetUpdateIdsForStatusBar = {
@@ -40,10 +40,33 @@ local widgetId = nil
 function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     if event == "UPDATE_UI_WIDGET" then
         local w = ...
-        if not (w and (allowedWidgetUpdateIdsForTimer[w.widgetID] or allowedWidgetUpdateIdsForStatusBar[w.widgetID])) then
+        local widgetID = w and w.widgetID
+        if not widgetID then
             return
-        elseif allowedWidgetUpdateIdsForTimer[w.widgetID] then
-            widgetId = w.widgetID
+        end
+
+        local timerData = allowedWidgetUpdateIdsForTimer[widgetID]
+        local isTimerWidget = timerData ~= nil
+        local isStatusWidget = allowedWidgetUpdateIdsForStatusBar[widgetID] ~= nil
+        if not (isTimerWidget or isStatusWidget) then
+            return
+        end
+
+        if isTimerWidget then
+            local currentMapID = GW.Libs.GW2Lib:GetPlayerLocationMapID()
+            local isExcludedMap = timerData.excludedMapId and currentMapID == timerData.excludedMapId
+            if not isExcludedMap and timerData.excludedMapIds then
+                for _, excludedMapID in ipairs(timerData.excludedMapIds) do
+                    if currentMapID == excludedMapID then
+                        isExcludedMap = true
+                        break
+                    end
+                end
+            end
+            local isAllowedMap = not timerData.mapId or currentMapID == timerData.mapId
+            if not isExcludedMap and isAllowedMap then
+                widgetId = widgetID
+            end
         end
     end
 
@@ -326,7 +349,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     local intGWQuestTrackerHeight = 0
     if timerBlock.affixeFrame:IsShown() then intGWQuestTrackerHeight = intGWQuestTrackerHeight + 40 end
     if timerBlock.timer:IsShown() then intGWQuestTrackerHeight = intGWQuestTrackerHeight + 40 end
-
+    print(showTimerAsBonus, widgetId)
     if showTimerAsBonus or timerBlock.needToShowTime then
         timerBlock.height = GwQuestTrackerTimerSavedHeight
     end

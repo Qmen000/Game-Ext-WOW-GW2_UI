@@ -36,6 +36,7 @@ addChange("10.6.0", {
     {GW.Enum.ChangelogType.bug, [=[Fixed mail open view scroll area sizing and scrollbar spacing]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed mail separator visibility and sizing in compact/expanded modes]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed tooltip taint from comparing secret class text values (classLine:GetText)]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed scenario event timer showing in excluded zones (for example Stormarion Assault area)]=]},
 })
 
 addChange("10.5.1", {
