@@ -232,7 +232,7 @@ function GwDodgeBarMixin:SetupBar()
         self:UpdateChargeText(currentCharges)
 
         local durationObject = C_Spell.GetSpellChargeDuration(self.spellId)
-        if durationObject then
+        if durationObject and spellChargeInfo and spellChargeInfo.isActive then
             self:UpdateCooldown(durationObject)
         else
             self.statusbar:SetValue(1, Enum.StatusBarInterpolation.ExponentialEaseOut)
@@ -279,7 +279,6 @@ function GwDodgeBarMixin:SetupBar()
     self:UpdateAnim(start or 0, duration or 0, spellChargeInfo.currentCharges or 0, spellChargeInfo.maxCharges or 0)
 end
 
---TODO: Does not work on retail: local spellCooldownInfo is secret in restricted situtations
 function GwDodgeBarMixin:OnEvent(event, ...)
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
         -- we don't track anything until we first see our dodge skill cast
@@ -295,7 +294,7 @@ function GwDodgeBarMixin:OnEvent(event, ...)
         -- only registered when our dodge skill is actively on cooldown
         if not GW.inWorld or not self.spellId then return end
         local spellCooldownInfo = GW.GetSpellCooldown(self.spellId)
-        if spellCooldownInfo.startTime and spellCooldownInfo.startTime ~= 0 and spellCooldownInfo.duration and spellCooldownInfo.duration ~= 0 then
+        if spellCooldownInfo and spellCooldownInfo.startTime and spellCooldownInfo.startTime ~= 0 and spellCooldownInfo.duration and spellCooldownInfo.duration ~= 0 then
             self:UpdateAnim(spellCooldownInfo.startTime, spellCooldownInfo.duration, 0, 1)
         end
     elseif event == "SPELL_UPDATE_CHARGES" then
@@ -306,7 +305,7 @@ function GwDodgeBarMixin:OnEvent(event, ...)
             local durationObject = C_Spell.GetSpellChargeDuration(self.spellId)
             local currentCharges = spellChargeInfo and spellChargeInfo.currentCharges
             self:UpdateChargeText(currentCharges)
-            if durationObject then
+            if durationObject and spellChargeInfo and spellChargeInfo.isActive then
                 self:UpdateCooldown(durationObject)
             else
                 self.statusbar:SetValue(1, Enum.StatusBarInterpolation.ExponentialEaseOut)
