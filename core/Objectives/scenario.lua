@@ -67,7 +67,6 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     local timerBlock = self.timerBlock
     local showTimerAsBonus = false
     local GwQuestTrackerTimerSavedHeight = 1
-    local isEventTimerBarByWidgetId = false
 
     block.height = 1
 
@@ -249,7 +248,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     numCriteria = GW.addJailersTowerData(block, numCriteria)
     numCriteria = GW.addEmberCourtData(self, numCriteria)
 
-    if not showTimerAsBonus and widgetId then
+    if widgetId then
         GwQuestTrackerTimerSavedHeight, showTimerAsBonus = GW.addEventTimerBarByWidgetId(timerBlock, GwQuestTrackerTimerSavedHeight, showTimerAsBonus, widgetId, allowedWidgetUpdateIdsForTimer[widgetId].hasTimer)
     end
 
@@ -265,7 +264,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
             local objectiveType = scenarioCriteriaInfo.isWeightedProgress and "progressbar" or "monster"
 
             -- timer bar
-            if scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration and not (scenarioCriteriaInfo.failed or scenarioCriteriaInfo.completed) then
+            if not showTimerAsBonus and scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration and not (scenarioCriteriaInfo.failed or scenarioCriteriaInfo.completed) then
                 timerBlock:SetScript(
                     "OnUpdate",
                     function()
@@ -328,7 +327,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     if timerBlock.affixeFrame:IsShown() then intGWQuestTrackerHeight = intGWQuestTrackerHeight + 40 end
     if timerBlock.timer:IsShown() then intGWQuestTrackerHeight = intGWQuestTrackerHeight + 40 end
 
-    if showTimerAsBonus or isEventTimerBarByWidgetId then
+    if showTimerAsBonus or timerBlock.needToShowTime then
         timerBlock.height = GwQuestTrackerTimerSavedHeight
     end
 
