@@ -20,11 +20,11 @@ local allowedWidgetUpdateIdsForTimer = {
     [6289] = {hasTimer = false}, -- Night (1370)
     [6287] = {hasTimer = false}, -- Night (1368)
     [6288] = {hasTimer = false}, -- Night (1369)
-    [6731] = {hasTimer = true, excludedMapIds = {2405}}, -- Abundance (ignore on Stormarion map)
-    [7042] = {hasTimer = false, mapId = 2405}, -- Stormarion Assault prep
-    [7043] = {hasTimer = false, mapId = 2405}, -- Stormarion Assault wave 1
-    [7241] = {hasTimer = false, mapId = 2405}, -- Stormarion Assault wave 2
-    [7242] = {hasTimer = false, mapId = 2405}, -- Stormarion Assault wave 3
+    [6731] = {hasTimer = true, excludedMapIds = {2405}, includeMapIds = {2522, 2579, 2580, 2581, 2582}}, -- Abundance (ignore on Stormarion map)
+    [7042] = {hasTimer = false, mapId = 2405, excludedMapIds = {2582, 2581}}, -- Stormarion Assault prep
+    [7043] = {hasTimer = false, mapId = 2405, excludedMapIds = {2582, 2581}}, -- Stormarion Assault wave 1
+    [7241] = {hasTimer = false, mapId = 2405, excludedMapIds = {2582, 2581}}, -- Stormarion Assault wave 2
+    [7242] = {hasTimer = false, mapId = 2405, excludedMapIds = {2582, 2581}}, -- Stormarion Assault wave 3
 }
 
 local allowedWidgetUpdateIdsForStatusBar = {
@@ -37,6 +37,45 @@ GwObjectivesScenarioContainerMixin = {}
 GwQuesttrackerScenarioBlockMixin = {}
 
 local widgetId = nil
+
+local function IsMapInList(mapList, mapID)
+    if not mapList then
+        return false
+    end
+
+    for _, id in ipairs(mapList) do
+        if id == mapID then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function IsTimerDataAllowedOnMap(timerData, mapID)
+    if timerData.excludedMapId and timerData.excludedMapId == mapID then
+        return false
+    end
+
+    if IsMapInList(timerData.excludedMapIds, mapID) then
+        return false
+    end
+
+    if timerData.mapId and timerData.mapId ~= mapID then
+        return false
+    end
+
+    return true
+end
+
+local function FindIncludedTimerWidgetForMap(mapID)
+    for id, data in pairs(allowedWidgetUpdateIdsForTimer) do
+        if data.includeMapIds and IsMapInList(data.includeMapIds, mapID) and IsTimerDataAllowedOnMap(data, mapID) then
+            return id
+        end
+    end
+end
+
 function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     if event == "UPDATE_UI_WIDGET" then
         local w = ...
@@ -54,22 +93,16 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
 
         if isTimerWidget then
             local currentMapID = GW.Libs.GW2Lib:GetPlayerLocationMapID()
-            local isExcludedMap = timerData.excludedMapId and currentMapID == timerData.excludedMapId
-            if not isExcludedMap and timerData.excludedMapIds then
-                for _, excludedMapID in ipairs(timerData.excludedMapIds) do
-                    if currentMapID == excludedMapID then
-                        isExcludedMap = true
-                        break
-                    end
-                end
-            end
-            local isAllowedMap = not timerData.mapId or currentMapID == timerData.mapId
-            if not isExcludedMap and isAllowedMap then
+            if IsTimerDataAllowedOnMap(timerData, currentMapID) then
                 widgetId = widgetID
+            else
+                local includedWidgetID = FindIncludedTimerWidgetForMap(currentMapID)
+                if includedWidgetID then
+                    widgetId = includedWidgetID
+                end
             end
         end
     end
-
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Scenario)
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Torghast)
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Delve)
@@ -129,9 +162,11 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
         block:SetHeight(block.height)
         self.oldHeight = GW.RoundInt(self:GetHeight())
         self:SetHeight(block.height)
-        timerBlock.timer:Hide()
-        timerBlock.height = 1
-        timerBlock:SetHeight(timerBlock.height)
+        if not timerBlock.needToShowTimer then
+            timerBlock.timer:Hide()
+            timerBlock.height = 1
+            timerBlock:SetHeight(timerBlock.height)
+        end
         GW.TerminateScenarioWidgetTimer(timerBlock)
         widgetId = nil
 
@@ -350,7 +385,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     if timerBlock.affixeFrame:IsShown() then intGWQuestTrackerHeight = intGWQuestTrackerHeight + 40 end
     if timerBlock.timer:IsShown() then intGWQuestTrackerHeight = intGWQuestTrackerHeight + 40 end
 
-    if showTimerAsBonus or timerBlock.needToShowTime then
+    if showTimerAsBonus then
         timerBlock.height = GwQuestTrackerTimerSavedHeight
     end
 
@@ -414,6 +449,84 @@ function GwQuesttrackerScenarioBlockMixin:TimerStop()
     self.deathcounter:Hide()
 end
 
+local function GetChallengeModeMapID()
+    if GW.Retail then
+        return C_ChallengeMode.GetActiveChallengeMapID()
+    elseif GW.Mists then
+        local _, _, _, _, _, _, _, mapID = GetInstanceInfo()
+        return mapID
+    end
+end
+
+local function GetChallengeModeTimeData(mapID)
+    if not mapID then
+        return
+    end
+
+    if GW.Retail then
+        local _, _, timeLimit = C_ChallengeMode.GetMapUIInfo(mapID)
+        if not timeLimit or timeLimit <= 0 then
+            return
+        end
+        return timeLimit, timeLimit * TIME_FOR_2, timeLimit * TIME_FOR_3
+    end
+
+    local times = C_ChallengeMode.GetChallengeModeMapTimes(mapID)
+    if not times or not times[1] or times[1] <= 0 then
+        return
+    end
+    return times[1], times[2], times[3]
+end
+
+local function SetupChallengeModeTimer(self, timerID, timeLimit, time2, time3)
+    self.chestoverlay:Show()
+    self:SetScript("OnUpdate", function()
+        local _, elapsedTime = GetWorldElapsedTime(timerID)
+        self.timer:SetValue(1 - (elapsedTime / timeLimit))
+        self.chestoverlay.chest2:SetShown(elapsedTime < time2)
+        self.chestoverlay.chest3:SetShown(elapsedTime < time3)
+
+        if elapsedTime < timeLimit then
+            self.timerString:SetText(SecondsToClock(timeLimit - elapsedTime))
+            self.timerString:SetTextColor(1, 1, 1)
+        else
+            self.timerString:SetText(SecondsToClock(0))
+            self.timerString:SetTextColor(255, 0, 0)
+        end
+
+        if elapsedTime < time3 then
+            self.chestoverlay.timerStringChest3:SetText(SecondsToClock(time3 - elapsedTime))
+            self.chestoverlay.timerStringChest2:SetText(SecondsToClock(time2 - elapsedTime))
+            self.chestoverlay.timerStringChest3:Show()
+            self.chestoverlay.timerStringChest2:Show()
+        elseif elapsedTime < time2 then
+            self.chestoverlay.timerStringChest2:SetText(SecondsToClock(time2 - elapsedTime))
+            self.chestoverlay.timerStringChest2:Show()
+            self.chestoverlay.timerStringChest3:Hide()
+        else
+            self.chestoverlay.timerStringChest2:Hide()
+            self.chestoverlay.timerStringChest3:Hide()
+        end
+    end)
+
+    self.timer:Show()
+    self.needToShowTimer = true
+    self.height = self.height + 50
+    self:UpdateAffixes()
+    self:UpdateDeathCounter()
+end
+
+local function SetupProvingGroundTimer(self, timerID, duration)
+    self:SetScript("OnUpdate", function()
+        local _, elapsedTime = GetWorldElapsedTime(timerID)
+        self.timer:SetValue(1 - (elapsedTime / duration))
+        self.timerString:SetText(SecondsToClock(duration - elapsedTime))
+    end)
+    self.timer:Show()
+    self.needToShowTimer = true
+    self.height = self.height + 40
+end
+
 function GwQuesttrackerScenarioBlockMixin:TimerUpdate(...)
     self.height = 1
     local fake = false
@@ -436,69 +549,16 @@ function GwQuesttrackerScenarioBlockMixin:TimerUpdate(...)
         local timerID = select(i, ...)
         local _, _, wtype = GetWorldElapsedTime(timerID)
         if wtype == Enum.WorldElapsedTimerTypes.ChallengeMode then
-            local mapID
-            if GW.Retail then
-                mapID = C_ChallengeMode.GetActiveChallengeMapID()
-            elseif GW.Mists then
-                _, _, _, _, _, _, _, mapID = GetInstanceInfo()
-            end
-            if mapID then
-                local timeLimit, time2, time3
-                if GW.Retail then
-                    _, _, timeLimit = C_ChallengeMode.GetMapUIInfo(mapID)
-                    time2 = timeLimit * TIME_FOR_2
-                    time3 = timeLimit * TIME_FOR_3
-                else
-                    local times = C_ChallengeMode.GetChallengeModeMapTimes(mapID)
-                    timeLimit = times[1]
-                    time2 = times[2]
-                    time3 = times[3]
-                end
-                self.chestoverlay:Show()
-                self:SetScript("OnUpdate", function()
-                    local _, elapsedTime = GetWorldElapsedTime(timerID)
-                    self.timer:SetValue(1 - (elapsedTime / timeLimit))
-                    self.chestoverlay.chest2:SetShown(elapsedTime < time2)
-                    self.chestoverlay.chest3:SetShown(elapsedTime < time3)
-                    if elapsedTime < timeLimit then
-                        self.timerString:SetText(SecondsToClock(timeLimit - elapsedTime))
-                        self.timerString:SetTextColor(1, 1, 1)
-                    else
-                        self.timerString:SetText(SecondsToClock(0))
-                        self.timerString:SetTextColor(255, 0, 0)
-                    end
-                    if elapsedTime < time3 then
-                        self.chestoverlay.timerStringChest3:SetText(SecondsToClock(time3 - elapsedTime))
-                        self.chestoverlay.timerStringChest2:SetText(SecondsToClock(time2 - elapsedTime))
-                        self.chestoverlay.timerStringChest3:Show()
-                        self.chestoverlay.timerStringChest2:Show()
-                    elseif elapsedTime < time2 then
-                        self.chestoverlay.timerStringChest2:SetText(SecondsToClock(time2 - elapsedTime))
-                        self.chestoverlay.timerStringChest2:Show()
-                        self.chestoverlay.timerStringChest3:Hide()
-                    else
-                        self.chestoverlay.timerStringChest2:Hide()
-                        self.chestoverlay.timerStringChest3:Hide()
-                    end
-                end)
-                self.timer:Show()
-                self.needToShowTimer = true
-                self.height = self.height + 50
-                self:UpdateAffixes()
-                self:UpdateDeathCounter()
+            local mapID = GetChallengeModeMapID()
+            local timeLimit, time2, time3 = GetChallengeModeTimeData(mapID)
+            if timeLimit and time2 and time3 then
+                SetupChallengeModeTimer(self, timerID, timeLimit, time2, time3)
                 return
             end
         elseif wtype == Enum.WorldElapsedTimerTypes.ProvingGround then
             local _, _, _, duration = C_Scenario.GetProvingGroundsInfo()
-            if duration > 0 then
-                self:SetScript("OnUpdate", function()
-                    local _, elapsedTime, _ = GetWorldElapsedTime(timerID)
-                    self.timer:SetValue(1 - (elapsedTime / duration))
-                    self.timerString:SetText(SecondsToClock(duration - elapsedTime))
-                end)
-                self.timer:Show()
-                self.needToShowTimer = true
-                self.height = self.height + 40
+            if duration and duration > 0 then
+                SetupProvingGroundTimer(self, timerID, duration)
                 return
             end
         end
@@ -597,6 +657,17 @@ function GwObjectivesScenarioContainerMixin:InitModule()
     self:RegisterEvent("SCENARIO_SPELL_UPDATE")
     self:RegisterEvent("JAILERS_TOWER_LEVEL_UPDATE")
     self:SetScript("OnEvent", self.UpdateLayout)
+
+    EventRegistry:RegisterCallback("GW2_UI.PlayerNewMapId", function(_, mapID)
+        local includedWidgetID = FindIncludedTimerWidgetForMap(mapID)
+        if includedWidgetID then
+            widgetId = includedWidgetID
+        elseif widgetId and allowedWidgetUpdateIdsForTimer[widgetId] and not IsTimerDataAllowedOnMap(allowedWidgetUpdateIdsForTimer[widgetId], mapID) then
+            widgetId = nil
+        end
+
+        self:UpdateLayout()
+    end, self)
 
     self.jailersTowerType = nil
 

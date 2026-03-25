@@ -1,6 +1,7 @@
 10.6.1
 FIXES
     - Removed debug text output from scenario event timer updates
+    - Fixed scenario timer visibility so event widget timers no longer hide active challenge/proving timers
 
 10.6.0
 NEW
@@ -35,4 +36,3 @@ FIXES
 10.5.1
 FIXES
     - Buggrabber integration
-

@@ -40,8 +40,10 @@ local function addEventTimerBarByWidgetId(timerBlock, gwQuestTrackerTimerSavedHe
             showTimerAsBonus = true
         else
             gwQuestTrackerTimerSavedHeight = 1
-            timerBlock.height = 1
-            timerBlock.timer:Hide()
+            timerBlock.timer:SetShown(timerBlock.needToShowTimer)
+            if not timerBlock.needToShowTimer then
+                timerBlock.height = 1
+            end
             showTimerAsBonus = false
             TerminateTimer(timerBlock)
         end
