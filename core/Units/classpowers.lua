@@ -135,6 +135,138 @@ local function UpdateVisibility(self, inCombat)
     end
 end
 
+local VALID_CLASSPOWER_ANCHOR_MODES = {
+    DEFAULT = true,
+    CENTER = true,
+    LEFT = true,
+    RIGHT = true
+}
+
+local VALID_CLASSPOWER_CUSTOM_RESOURCEBAR_SIDES = {
+    AUTO = true,
+    LEFT = true,
+    RIGHT = true
+}
+
+function GW.GetClassPowerAnchorMode()
+    local mode = GW.settings.CLASSPOWER_ANCHOR_MODE
+    if mode and VALID_CLASSPOWER_ANCHOR_MODES[mode] then
+        return mode
+    end
+
+    return "DEFAULT"
+end
+
+function GW.GetClassPowerAnchorPoint(defaultPoint)
+    local mode = GW.GetClassPowerAnchorMode()
+    if mode == "DEFAULT" then
+        return defaultPoint or "TOPLEFT"
+    end
+
+    return mode
+end
+
+function GW.GetClassPowerCustomResourceBarSide()
+    local side = GW.settings.CLASSPOWER_CUSTOMRESOURCEBAR_SIDE
+    if not (side and VALID_CLASSPOWER_CUSTOM_RESOURCEBAR_SIDES[side]) then
+        side = "AUTO"
+    end
+
+    if side ~= "AUTO" then
+        return side
+    end
+
+    local anchorMode = GW.GetClassPowerAnchorMode()
+    if anchorMode == "RIGHT" then
+        return "LEFT"
+    elseif anchorMode == "LEFT" then
+        return "RIGHT"
+    end
+
+    return "RIGHT"
+end
+
+local function GetClassPowerCustomResourceBarGap(fallback)
+    local gap = GW.settings.CLASSPOWER_CUSTOMRESOURCEBAR_GAP
+    if type(gap) ~= "number" then
+        gap = fallback or 4
+    end
+
+    return gap
+end
+
+local function SetClassPowerAnchor(frame, mover, defaultPoint, xOfs, yOfs, relativePoint)
+    if not frame or not mover then
+        return
+    end
+
+    local point = GW.GetClassPowerAnchorPoint(defaultPoint)
+    local finalX = xOfs or 0
+    local finalY = yOfs or 0
+
+    if CPWR_FRAME and mover == CPWR_FRAME.gwMover then
+        finalX = finalX + (GW.settings.CLASSPOWER_ANCHOR_OFFSET_X or 0)
+        finalY = finalY + (GW.settings.CLASSPOWER_ANCHOR_OFFSET_Y or 0)
+    end
+
+    frame:ClearAllPoints()
+    frame:SetPoint(point, mover, relativePoint or point, finalX, finalY)
+end
+
+local function SetClassPowerCustomResourceBarAnchor(bar, mover, ownerFrame, yOfs, leftXOfs, rightXOfs, edgeGap)
+    if not bar or not mover then
+        return
+    end
+
+    local side = GW.GetClassPowerCustomResourceBarSide()
+    local anchorMode = GW.GetClassPowerAnchorMode()
+    local configuredWidth = bar:GetWidth()
+    bar:ClearAllPoints()
+
+    -- In CENTER mode keep the bar inside mover bounds and shrink it to available side space.
+    local gap = GetClassPowerCustomResourceBarGap(edgeGap or 4)
+    if anchorMode == "CENTER" and ownerFrame and ownerFrame:IsShown() then
+        local moverWidth = mover.GetWidth and mover:GetWidth() or 312
+        local ownerWidth = ownerFrame.GetWidth and ownerFrame:GetWidth() or 0
+        local availableWidth = math.max(1, math.floor(((moverWidth - ownerWidth) * 0.5) - gap))
+        bar:SetWidth(math.min(configuredWidth, availableWidth))
+
+        if side == "LEFT" then
+            bar:SetPoint("LEFT", mover, "LEFT", leftXOfs or 0, yOfs or 0)
+        else
+            bar:SetPoint("RIGHT", mover, "RIGHT", rightXOfs or 2, yOfs or 0)
+        end
+        return
+    end
+
+    bar:SetWidth(configuredWidth)
+    if side == "LEFT" then
+        bar:SetPoint("LEFT", mover, "LEFT", leftXOfs or 0, yOfs or 0)
+    else
+        bar:SetPoint("RIGHT", mover, "RIGHT", rightXOfs or 2, yOfs or 0)
+    end
+end
+
+local function SetWarlockResourceAnchors(owner)
+    if not owner or not owner.warlock then
+        return
+    end
+
+    -- Main shard block follows the classpower anchor mode, not the custom resource side.
+    SetClassPowerAnchor(owner.warlock, owner, "LEFT")
+
+    if GW.myspec == 3 and owner.warlock.shardFragment then
+        local side = GW.GetClassPowerCustomResourceBarSide()
+        local gap = GetClassPowerCustomResourceBarGap(4)
+        owner.warlock.shardFragment:ClearAllPoints()
+        if side == "LEFT" then
+            owner.warlock.shardFragment:SetPoint("RIGHT", owner.warlock, "LEFT", -gap, 0)
+        else
+            owner.warlock.shardFragment:SetPoint("LEFT", owner.warlock, "RIGHT", gap, 0)
+        end
+    end
+end
+
 local function updateVisibilitySetting(self, updateVis)
     self.onlyShowInCombat = GW.settings.CLASSPOWER_ONLY_SHOW_IN_COMBAT
     if self.onlyShowInCombat then
@@ -216,56 +348,6 @@ local function setPowerTypeStagger(self)
     self.onUpdateAnimation = AnimationStagger
 end
 
-local function setPowerTypeEnrage(self)
-    self:SetStatusBarTexture("Interface/Addons/GW2_UI/textures/bartextures/rage.png")
-    self.scrollTexture:SetTexture("Interface/Addons/GW2_UI/textures/bartextures/enrage-intensity.png", "REPEAT", "REPEAT")
-    self.scrollTexture2:SetTexture("Interface/Addons/GW2_UI/textures/bartextures/enrage-intensity2.png", "REPEAT", "REPEAT")
-    self.spark:SetTexture("Interface/Addons/GW2_UI/textures/bartextures/furyspark.png")
-    self.animator:SetScript("OnUpdate", function(_, delta) self:ScrollTextureVerticalParalaxOnUpdate(delta) end)
-    self.scrollTexture:SetAlpha(0.5)
-    self.scrollTexture2:SetAlpha(0.5)
-    self.scrollTexture:SetBlendMode("ADD")
-    self.scrollTexture2:SetBlendMode("ADD")
-    -- self.scrollTexture2:SetAlpha(1)
-    self.spark:SetAlpha(0.5)
-    self.scrollSpeedMultiplier = 5
-end
-local function setPowerTYpeBolster(self)
-    self:SetStatusBarTexture("Interface/Addons/GW2_UI/textures/bartextures/bloster.png")
-    self.spark:SetTexture("Interface/Addons/GW2_UI/textures/bartextures/spark.png")
-    self.runeoverlay:SetTexture("Interface/Addons/GW2_UI/textures/bartextures/bloster-intensity.png")
-    self.runeoverlay:SetAlpha(1)
-    self.spark:SetBlendMode("ADD")
-    self.spark:SetAlpha(0.3)
-    self.customMaskSize = 30
-end
-local function setPowerTYpeFrenzy(self)
-    self:SetStatusBarTexture("Interface/Addons/GW2_UI/textures/bartextures/frenzy.png")
-    self.spark:SetTexture("Interface/Addons/GW2_UI/textures/bartextures/frenzyspark.png")
-    self.scrollTexture:SetTexture("Interface/Addons/GW2_UI/textures/bartextures/stagger-scroll.png", "REPEAT")
-    self.scrollTexture2:SetTexture("Interface/Addons/GW2_UI/textures/bartextures/stagger-scroll2.png", "REPEAT")
-    self.animator:SetScript("OnUpdate", function(_, delta) self:ScrollTextureParalaxOnUpdate(delta) end)
-    self.scrollSpeedMultiplier = -3
-    self.scrollTexture:SetAlpha(1)
-    self.scrollTexture2:SetAlpha(1)
-    self.spark:SetAlpha(0.3)
-    self:SetWidth(262)
-    self.customMaskSize = 128
-end
-local function setPowerTypeRend(self)
-    self:SetStatusBarTexture("Interface/Addons/GW2_UI/textures/bartextures/frenzy.png")
-    self.spark:SetTexture("Interface/Addons/GW2_UI/textures/bartextures/frenzyspark.png")
-    self.scrollTexture:SetTexture("Interface/Addons/GW2_UI/textures/bartextures/stagger-scroll.png", "REPEAT")
-    self.scrollTexture2:SetTexture("Interface/Addons/GW2_UI/textures/bartextures/stagger-scroll2.png", "REPEAT")
-    self.animator:SetScript("OnUpdate", function(_, delta) self:ScrollTextureParalaxOnUpdate(delta) end)
-    self.scrollSpeedMultiplier = -3
-    self.scrollTexture:SetAlpha(1)
-    self.scrollTexture2:SetAlpha(1)
-    self.spark:SetAlpha(0.3)
-
-    self.customMaskSize = 128
-end
-
 local function updateTextureBasedOnCondition(self)
     if GW.myClassID == 9 then           -- Warlock
         -- Hook green fire
@@ -336,14 +418,6 @@ local function animFlare(f, scale, offset, duration, rotate)
         end
     )
 end
-
-
-local function decayCounterFlash_OnAnim(p)
-    local f = CPWR_FRAME
-    local fdc = f.decayCounter
-    fdc.flash:SetAlpha(math.min(1, math.max(0, p)))
-end
-
 
 local function GetAuraData(unit, unitSource, filter, ...)
     local searchIDs = {}
@@ -435,16 +509,11 @@ local function setManaBar(f)
     end
     f:SetHeight(14)
 
-    f:ClearAllPoints()
-    if GW.settings.CLASSPOWER_ANCHOR_TO_CENTER then
-        f:SetPoint("CENTER", f.gwMover)
-    else
-        if GW.settings.XPBAR_ENABLED or f.isMoved then
-            f:SetPoint("TOPLEFT", f.gwMover, 0, -13)
-        else
-            f:SetPoint("TOPLEFT", f.gwMover, 0, -3)
-        end
+    local yOfs = 0
+    if GW.GetClassPowerAnchorMode() == "DEFAULT" then
+        yOfs = (GW.settings.XPBAR_ENABLED or f.isMoved) and -13 or -3
     end
+    SetClassPowerAnchor(f, f.gwMover, "TOPLEFT", 0, yOfs)
 
     f:SetScript("OnEvent", powerMana)
     C_Timer.After(0.5, function() powerMana(f, "CLASS_POWER_INIT") end)
@@ -503,6 +572,14 @@ local function powerCombo(self, event, ...)
         self.showExtraPoint = pwrMax
     end
 
+    local slotsToAnchor = self.showExtraPoint or pwrMax
+    if slotsToAnchor and slotsToAnchor > 0 then
+        local comboWidth = slotsToAnchor * 32
+        self.combopoints:SetWidth(comboWidth)
+        self:SetWidth(comboWidth)
+        SetClassPowerAnchor(self.combopoints, self, "LEFT")
+    end
+
     -- hide all not needed ones
     for i = pwrMax + 1, 9 do
         self.combopoints["runeTex" .. i]:Hide()
@@ -555,12 +632,14 @@ local function powerCombo(self, event, ...)
 end
 
 local function setComboBar(f)
-    f:ClearAllPoints()
-    f:SetPoint(GW.settings.CLASSPOWER_ANCHOR_TO_CENTER and "CENTER" or "TOPLEFT", f.gwMover)
+    SetClassPowerAnchor(f, f.gwMover, "TOPLEFT")
     f.barType = "combo"
     f.background:SetTexture(nil)
     f.fill:SetTexture(nil)
+    f.combopoints:SetWidth(9 * 32)
+    f:SetWidth(f.combopoints:GetWidth())
     f:SetHeight(32)
+    SetClassPowerAnchor(f.combopoints, f, "LEFT")
     f.combopoints:Show()
 
     f:SetScript("OnEvent", powerCombo)
@@ -709,6 +788,14 @@ local function powerEssence(self, event, ...)
     local pwr = UnitPower("player", Enum.PowerType.Essence)
     self.gwPower = pwr
 
+    local essenceSlots = min(max(pwrMax, 0), 6)
+    if essenceSlots > 0 then
+        local essenceWidth = essenceSlots * 32
+        self.evoker:SetWidth(essenceWidth)
+        self:SetWidth(essenceWidth)
+        SetClassPowerAnchor(self.evoker, self, "LEFT")
+    end
+
     for i = 1, 6 do
         if i <= pwrMax then
             self.evoker["essence" .. i]:Show()
@@ -735,7 +822,6 @@ local function powerEssence(self, event, ...)
         AnimIn(self.evoker["essence" .. pwr + 1], animationSpeedMultiplier)
     end
 end
-
 
 -- this needs also the essence bar
 
@@ -775,12 +861,14 @@ local function evokerEvent(self, event, ...)
 end
 
 local function setEvoker(f)
-    f:ClearAllPoints()
-    f:SetPoint(GW.settings.CLASSPOWER_ANCHOR_TO_CENTER and "CENTER" or "TOPLEFT", f.gwMover)
+    SetClassPowerAnchor(f, f.gwMover, "TOPLEFT")
     f.barType = "essence"
     f.background:SetTexture(nil)
     f.fill:SetTexture(nil)
+    f.evoker:SetWidth(6 * 32)
+    f:SetWidth(f.evoker:GetWidth())
     f:SetHeight(32)
+    SetClassPowerAnchor(f.evoker, f, "LEFT")
     f.evoker:Show()
 
     f:SetScript("OnEvent", evokerEvent)
@@ -791,8 +879,7 @@ local function setEvoker(f)
 
     if GW.myspec == 3 then
         f.customResourceBar:SetWidth(115)
-        f.customResourceBar:ClearAllPoints()
-        f.customResourceBar:SetPoint("RIGHT", GwPlayerClassPower.gwMover, 2, 0)
+        SetClassPowerCustomResourceBarAnchor(f.customResourceBar, f.gwMover, f, 0, 0, 2, 4)
         f.customResourceBar:Show()
 
         setPowerTypeEbonMight(f.customResourceBar)
@@ -800,89 +887,6 @@ local function setEvoker(f)
     end
     return true
 end
-
--- WARRIOR
-local function powerRend()
-    local auraData = GetAuraData("target", "player", "HARMFUL", 388539)
-    if auraData and auraData.duration ~= nil then
-        CPWR_FRAME.customResourceBar:Show()
-        local remainingPrecantage = (auraData.expirationTime - GetTime()) / auraData.duration
-        local remainingTime = auraData.duration * remainingPrecantage
-        CPWR_FRAME.customResourceBar:SetCustomAnimation(remainingPrecantage, 0, remainingTime)
-    else
-        CPWR_FRAME.customResourceBar:Hide()
-    end
-end
-local function powerEnrage()
-    local auraData = GetAuraData("player", nil, "HELPFUL", 184362)
-    if auraData and auraData.duration ~= nil then
-        CPWR_FRAME.customResourceBar:Show()
-        local remainingPrecantage = (auraData.expirationTime - GetTime()) / auraData.duration
-        local remainingTime = auraData.duration * remainingPrecantage
-        CPWR_FRAME.customResourceBar:SetCustomAnimation(remainingPrecantage, 0, remainingTime)
-    else
-        CPWR_FRAME.customResourceBar:Hide()
-    end
-end
-
-
-local function powerSBlock()
-    local results
-    if CPWR_FRAME.gw_BolsterSelected then
-        results = GetAuraData("player", nil, "HELPFUL", 132404, 871, 12975)
-    else
-        results = GetAuraData("player", nil, "HELPFUL", 132404, 871)
-    end
-    if results == nil then
-        CPWR_FRAME.customResourceBar:Hide()
-        return
-    end
-    CPWR_FRAME.customResourceBar:Show()
-    local duration = -1
-    local expires = -1
-    for i = 1, #results do
-        if results[i].expirationTime > expires then
-            expires = results[i].expirationTime
-            duration = results[i].duration
-        end
-    end
-    if expires > 0 then
-        local remainingPrecantage = (expires - GetTime()) / duration
-        local remainingTime = duration * remainingPrecantage
-        CPWR_FRAME.customResourceBar:SetCustomAnimation(remainingPrecantage, 0, remainingTime)
-    end
-end
-
-
-local function setWarrior(f)
-    f.background:SetTexture(nil)
-    f.fill:SetTexture(nil)
-
-    if GW.myspec == 1 then --arms rend
-        setPowerTypeRend(f.customResourceBar)
-        f:SetScript("OnEvent", powerRend)
-        powerRend()
-        f:RegisterUnitEvent("UNIT_AURA", "target")
-        f:RegisterEvent("PLAYER_TARGET_CHANGED")
-    elseif GW.myspec == 2 then -- fury
-        setPowerTypeEnrage(f.customResourceBar)
-        f:SetScript("OnEvent", function(_, _, unit, ...) HandleUnitAuraEvent(unit, ...) end)
-        powerEnrage()
-        f:RegisterUnitEvent("UNIT_AURA", "player")
-        EventRegistry:RegisterCallback("GW2_UI.ClasspowerPlayerUnitAura", powerEnrage, "GW2_UI")
-    elseif GW.myspec == 3 then -- prot
-        -- determine if bolster talent is selected
-        setPowerTYpeBolster(f.customResourceBar)
-        f.gw_BolsterSelected = GW.IsSpellTalented(12975)
-        f:SetScript("OnEvent", function(_, _, unit, ...) HandleUnitAuraEvent(unit, ...) end)
-        powerSBlock()
-        f:RegisterUnitEvent("UNIT_AURA", "player")
-        EventRegistry:RegisterCallback("GW2_UI.ClasspowerPlayerUnitAura", powerSBlock, "GW2_UI")
-    end
-
-    return true
-end
-
 
 -- PALADIN
 local function powerSotR()
@@ -955,17 +959,9 @@ local function setPaladin(f)
     f.background:SetHeight(41)
     f.background:SetWidth(181)
     f.background:SetTexCoord(0, 0.70703125, 0, 0.640625)
-    f.paladin:ClearAllPoints()
-
-
-    if GW.settings.CLASSPOWER_ANCHOR_TO_CENTER then
-        f.paladin:SetPoint("CENTER", f.gwMover, 0, 0)
-        f.background:SetPoint("CENTER", f.gwMover)
-    else
-        f.paladin:SetPoint("TOPLEFT", f.gwMover, 0, 0)
-        f.paladin:SetPoint("BOTTOMLEFT", f.gwMover, 0, 0)
-        f.background:SetPoint("LEFT", f.gwMover, "LEFT", 0, 2)
-    end
+    f.paladin:SetWidth(f.background:GetWidth())
+    SetClassPowerAnchor(f.paladin, f.gwMover, "TOPLEFT")
+    SetClassPowerAnchor(f.background, f.gwMover, "LEFT", 0, GW.GetClassPowerAnchorMode() == "DEFAULT" and 2 or 0)
 
     f.background:SetTexture("Interface/AddOns/GW2_UI/textures/altpower/holypower/background.png")
 
@@ -988,8 +984,7 @@ local function setPaladin(f)
 
     if GW.myspec == 2 and not GW.Retail then
         f.customResourceBar:SetWidth(164)
-        f.customResourceBar:ClearAllPoints()
-        f.customResourceBar:SetPoint("RIGHT", f.gwMover, 2, 0)
+        SetClassPowerCustomResourceBarAnchor(f.customResourceBar, f.gwMover, f, 0, 0, 2, 4)
         f.customResourceBar:Show()
 
         setPowerTypePaladinShield(f.customResourceBar)
@@ -999,83 +994,6 @@ local function setPaladin(f)
     end
 
     return true
-end
-
--- HUNTER
-local function powerFrenzy(event)
-    local fdc = CPWR_FRAME.decayCounter
-    local auraData = GetAuraData("pet", nil, "HELPFUL", 272790)
-
-    if auraData and auraData.duration == nil or not auraData then
-        fdc.count:SetText(0)
-        CPWR_FRAME.gwPower = -1
-        return
-    end
-
-    fdc.count:SetText(auraData.applications)
-    local old_expires = CPWR_FRAME.gwPower
-    old_expires = old_expires or -1
-    CPWR_FRAME.gwPower = auraData.expirationTime
-    if event == "CLASS_POWER_INIT" or auraData.expirationTime > old_expires then
-        local remainingPrecantage = (auraData.expirationTime - GetTime()) / auraData.duration
-        local remainingTime = auraData.duration * remainingPrecantage
-        CPWR_FRAME.customResourceBar:SetCustomAnimation(remainingPrecantage, 0, remainingTime)
-        if event ~= "CLASS_POWER_INIT" then
-            GW.AddToAnimation("DECAYCOUNTER_TEXT", 1, 0, GetTime(), 0.5, decayCounterFlash_OnAnim)
-        end
-    end
-end
-
-
-local function powerMongoose(event)
-    local fdc = CPWR_FRAME.decayCounter
-    local auraData = GetAuraData("player", nil, "HELPFUL", 259388)
-
-    if auraData and auraData.duration == nil or not auraData then
-        fdc.count:SetText(0)
-        CPWR_FRAME.gwPower = -1
-        return
-    end
-
-    fdc.count:SetText(auraData.applications)
-    local old_expires = CPWR_FRAME.gwPower
-    old_expires = old_expires or -1
-    CPWR_FRAME.gwPower = auraData.expirationTime
-    if event == "CLASS_POWER_INIT" or auraData.expirationTime > old_expires then
-        local remainingPrecantage = (auraData.expirationTime - GetTime()) / auraData.duration
-        local remainingTime = auraData.duration * remainingPrecantage
-        CPWR_FRAME.customResourceBar:SetCustomAnimation(remainingPrecantage, 0, remainingTime)
-        if event ~= "CLASS_POWER_INIT" then
-            GW.AddToAnimation("DECAYCOUNTER_TEXT", 1, 0, GetTime(), 0.5, decayCounterFlash_OnAnim)
-        end
-    end
-end
-
-
-local function setHunter(f)
-    if GW.myspec == 1 or (GW.myspec == 3 and GW.IsSpellTalented(259387)) then -- 259387 = mangoose id
-        setPowerTYpeFrenzy(f.customResourceBar)
-        f.background:SetTexture(nil)
-        f.fill:SetTexture(nil)
-        f.customResourceBar:Show()
-        f.decayCounter:Show()
-
-        if GW.myspec == 1 then -- beast mastery
-            f:SetScript("OnEvent", function(_, _, unit, ...) HandleUnitAuraEvent(unit, ...) end)
-            powerFrenzy("CLASS_POWER_INIT")
-            f:RegisterUnitEvent("UNIT_AURA", "pet")
-            EventRegistry:RegisterCallback("GW2_UI.ClasspowerPlayerUnitAura", powerFrenzy, "GW2_UI")
-        elseif GW.myspec == 3 then -- survival
-            f:SetScript("OnEvent", function(_, _, unit, ...) HandleUnitAuraEvent(unit, ...) end)
-            powerMongoose("CLASS_POWER_INIT")
-            f:RegisterUnitEvent("UNIT_AURA", "player")
-            EventRegistry:RegisterCallback("GW2_UI.ClasspowerPlayerUnitAura", powerMongoose, "GW2_UI")
-        end
-
-        return true
-    end
-
-    return false
 end
 
 -- ROGUE
@@ -1129,15 +1047,9 @@ local function setPriest(f)
             f.background:SetHeight(41)
             f.background:SetWidth(181)
             f.background:SetTexCoord(0, 0.70703125, 0, 0.640625)
-            f.priest:ClearAllPoints()
-            if GW.settings.CLASSPOWER_ANCHOR_TO_CENTER then
-                f.priest:SetPoint("CENTER", f.gwMover, 0, 0)
-                f.background:SetPoint("CENTER", f.gwMover)
-            else
-                f.priest:SetPoint("TOPLEFT", f.gwMover, 0, 0)
-                f.priest:SetPoint("BOTTOMLEFT", f.gwMover, 0, 0)
-                f.background:SetPoint("LEFT", f.gwMover, "LEFT", 0, 2)
-            end
+            f.priest:SetWidth(f.background:GetWidth())
+            SetClassPowerAnchor(f.priest, f.gwMover, "TOPLEFT")
+            SetClassPowerAnchor(f.background, f.gwMover, "LEFT", 0, GW.GetClassPowerAnchorMode() == "DEFAULT" and 2 or 0)
 
             f.background:SetTexture("Interface/AddOns/GW2_UI/textures/altpower/shadoworbs/background.png")
 
@@ -1311,12 +1223,7 @@ end
 
 local function setDeathKnight(f)
     local fr = f.runeBar
-    f:ClearAllPoints()
-    if GW.settings.CLASSPOWER_ANCHOR_TO_CENTER then
-        f:SetPoint("CENTER", f.gwMover)
-    else
-        f:SetPoint("TOPLEFT", f.gwMover, "TOPLEFT", 0, -10)
-    end
+    SetClassPowerAnchor(f, f.gwMover, "TOPLEFT", 0, GW.GetClassPowerAnchorMode() == "DEFAULT" and -10 or 0)
 
     f.background:SetTexture(nil)
     f.fill:SetTexture(nil)
@@ -1411,12 +1318,7 @@ local function setShaman(f)
             setManaBar(f)
             return true
         elseif GW.myspec == 2 then -- enh -- DONE
-            f:ClearAllPoints()
-            if GW.settings.CLASSPOWER_ANCHOR_TO_CENTER then
-                f:SetPoint("CENTER", f.gwMover)
-            else
-                f:SetPoint("TOPLEFT", f.gwMover, "TOPLEFT", 0, -10)
-            end
+            SetClassPowerAnchor(f, f.gwMover, "TOPLEFT", 0, GW.GetClassPowerAnchorMode() == "DEFAULT" and -10 or 0)
             f.background:SetTexture(nil)
             f.fill:SetTexture(nil)
             local fms = f.maelstrom
@@ -1499,12 +1401,7 @@ end
 
 local function setMage(f)
     if GW.myspec == 1 then -- arcane
-        f:ClearAllPoints()
-        if GW.settings.CLASSPOWER_ANCHOR_TO_CENTER then
-            f:SetPoint("CENTER", f.gwMover)
-        else
-            f:SetPoint("TOPLEFT", f.gwMover, "TOPLEFT", 0, 15)
-        end
+        SetClassPowerAnchor(f, f.gwMover, "TOPLEFT", 0, GW.GetClassPowerAnchorMode() == "DEFAULT" and 15 or 0)
         f:SetHeight(64)
         f:SetWidth(512)
         f.background:SetHeight(64)
@@ -1526,8 +1423,7 @@ local function setMage(f)
 
         return true
     elseif GW.myspec == 3 and not GW.Retail then --frost
-        f:ClearAllPoints()
-        f:SetPoint(GW.settings.CLASSPOWER_ANCHOR_TO_CENTER and "CENTER" or "TOPLEFT", f.gwMover)
+        SetClassPowerAnchor(f, f.gwMover, "TOPLEFT")
         f:SetHeight(32)
         f:SetWidth(256)
         f.background:SetHeight(32)
@@ -1570,7 +1466,16 @@ local function powerSoulshard(self, event, ...)
     local old_power = self.gwPower
     self.gwPower = pwr
 
-    for i = 1, pwrMax do
+    local shardSlots = min(max(pwrMax, 0), 5)
+    if shardSlots > 0 then
+        local minWidth = (GW.myspec == 3) and 132 or 0
+        local shardWidth = max(shardSlots * 32, minWidth)
+        self.warlock:SetWidth(shardWidth)
+        self:SetWidth(max(self.gwMover:GetWidth(), shardWidth))
+        SetWarlockResourceAnchors(self)
+    end
+
+    for i = 1, shardSlots do
         self.warlock["shardBg" .. i]:Show()
         if pwr >= i then
             self.warlock["shard" .. i]:Show()
@@ -1597,6 +1502,10 @@ local function powerSoulshard(self, event, ...)
         else
             self.warlock["shard" .. i]:Hide()
         end
+    end
+    for i = shardSlots + 1, 5 do
+        self.warlock["shardBg" .. i]:Hide()
+        self.warlock["shard" .. i]:Hide()
     end
 
     if GW.myspec == 3 then -- Destruction
@@ -1651,7 +1560,10 @@ end
 local function setWarlock(f)
     f.background:SetTexture(nil)
     f.fill:SetTexture(nil)
+    f.warlock:SetWidth(5 * 32)
+    f:SetWidth(max(f.gwMover:GetWidth(), f.warlock:GetWidth()))
     f:SetHeight(32)
+    SetWarlockResourceAnchors(f)
     f.warlock:Show()
     if GW.myspec == 3 then -- Destruction
         f.warlock.shardFragment.amount = -1
@@ -1693,8 +1605,7 @@ local function setWarlock(f)
             setPowerTypeMeta(f.customResourceBar)
             f.customResourceBar:Show()
             f.customResourceBar:SetWidth(312)
-            f.customResourceBar:ClearAllPoints()
-            f.customResourceBar:SetPoint("LEFT", f.gwMover, 0, -5)
+            SetClassPowerCustomResourceBarAnchor(f.customResourceBar, f.gwMover, f, -5, 0, 2, 4)
 
             f:SetScript("OnEvent", powerDemonicFury)
             powerDemonicFury(f, "CLASS_POWER_INIT")
@@ -1822,14 +1733,16 @@ end
 local function setMonk(f)
     if GW.Retail then
         if GW.myspec == 1 then -- brewmaster
+            SetClassPowerAnchor(f, f.gwMover, "TOPLEFT")
             f.background:SetTexture(nil)
             f.fill:SetTexture(nil)
             setPowerTypeStagger(f.defaultResourceBar)
             f.brewmaster:Show()
             f.defaultResourceBar:Show()
             f.defaultResourceBar:SetWidth(312)
+            f:SetWidth(f.defaultResourceBar:GetWidth())
             f.defaultResourceBar:ClearAllPoints()
-            f.defaultResourceBar:SetPoint("LEFT", f.gwMover, 0, -5)
+            f.defaultResourceBar:SetPoint("LEFT", f, "LEFT", 0, GW.GetClassPowerAnchorMode() == "DEFAULT" and -5 or 0)
 
             f:SetScript("OnEvent", powerStagger)
             powerStagger(f, "CLASS_POWER_INIT")
@@ -1840,8 +1753,7 @@ local function setMonk(f)
 
             return true
         elseif GW.myspec == 3 then -- ww
-            f:ClearAllPoints()
-            f:SetPoint(GW.settings.CLASSPOWER_ANCHOR_TO_CENTER and "CENTER" or "TOPLEFT", f.gwMover)
+            SetClassPowerAnchor(f, f.gwMover, "TOPLEFT")
             f:SetHeight(32)
             f:SetWidth(256)
             f.background:SetHeight(32)
@@ -1861,8 +1773,7 @@ local function setMonk(f)
             return true
         end
     elseif GW.Mists then
-        f:ClearAllPoints()
-        f:SetPoint(GW.settings.CLASSPOWER_ANCHOR_TO_CENTER and "CENTER" or "TOPLEFT", f.gwMover)
+        SetClassPowerAnchor(f, f.gwMover, "TOPLEFT")
         f:SetHeight(32)
         f:SetWidth(256)
         f.background:SetHeight(32)
@@ -2005,10 +1916,15 @@ local function counterVoidMetamorphosis(self)
     VoidMetamorphosisGetCurrentMinMaxPower(self)
     voidMetamorphosisUpdatePower(self)
 end
--- Error because blizzard forgott to whitelist the sopells
+
 local function setDeamonHunter(f)
     if GW.myspec == 3 then
+        SetClassPowerAnchor(f, f.gwMover, "TOPLEFT")
         setPowerTypeMeta(f.defaultResourceBar, true)
+        f.defaultResourceBar:SetWidth(313)
+        f:SetWidth(f.defaultResourceBar:GetWidth())
+        f.defaultResourceBar:ClearAllPoints()
+        f.defaultResourceBar:SetPoint("LEFT", f, "LEFT", 0, GW.GetClassPowerAnchorMode() == "DEFAULT" and -11 or 0)
         f.defaultResourceBar:Show()
         f.background:SetTexture(nil)
         f.fill:SetTexture(nil)
@@ -2063,12 +1979,8 @@ local function selectType(f)
 
     if f.unit == "vehicle" then
         showBar = false
-    elseif GW.myClassID == 1 and GW.Retail then   -- Was only Retail and here we cant track auras any more. No whitelistetd auras used here
-    --    showBar = setWarrior(f)
     elseif GW.myClassID == 2 and not (GW.Classic or GW.TBC) then
         showBar = setPaladin(f)
-    --elseif GW.myClassID == 3 and GW.Retail then   -- Was only Retail and here we cant track auras any more. No whitelistetd auras used here
-        --showBar = setHunter(f)
     elseif GW.myClassID == 4 then
         showBar = setRogue(f)
     elseif GW.myClassID == 5 and not (GW.Classic or GW.TBC) then
@@ -2232,7 +2144,7 @@ local function LoadClassPowers()
             framePoint.yOfs - yOff)
     end
     cpf:ClearAllPoints()
-    cpf:SetPoint(GW.settings.CLASSPOWER_ANCHOR_TO_CENTER and "CENTER" or "TOPLEFT", cpf.gwMover)
+    SetClassPowerAnchor(cpf, cpf.gwMover, "TOPLEFT")
 
     -- need to pull it out of core because of not existing atlas files on non retail clients
     if GW.Retail then

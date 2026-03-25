@@ -66,7 +66,7 @@ local function Construct_HealthBar(frame)
             edgeSize = GW.Scale(1)
         })
     frame.highlightBorder = frame.backdrop
-    frame.backdrop:GwOffsetFrameLevel(health:GetFrameLevel() + 1, frame)
+    frame.backdrop:GwOffsetFrameLevel(health:GetFrameLevel() + 11, frame) -- one over power bar
     frame.backdrop:ClearAllPoints()
     frame.backdrop:SetPoint("TOPLEFT", -1, 1)
     frame.backdrop:SetPoint("BOTTOMRIGHT", 1, -1)
@@ -81,6 +81,7 @@ local function Update_Healthbar(frame)
     --settings
     health.statusBarColor = health.statusBarColor or {}
     health.colorClass = frame.useClassColor
+    health.colorClassPet = frame.useClassColor
     health.colorDisconnected = true
     health.showAbsorbBar = frame.showAbsorbBar
 

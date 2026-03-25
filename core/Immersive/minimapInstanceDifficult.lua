@@ -2,9 +2,9 @@
 local GW = select(2, ...)
 
 local difficulty = MinimapCluster.InstanceDifficulty
-local instance = difficulty.Default
-local guild = difficulty.Guild
-local challenge = difficulty.ChallengeMode
+local instance = difficulty and difficulty.Default
+local guild = difficulty and difficulty.Guild
+local challenge = difficulty and difficulty.ChallengeMode
 
 local difficulties = {
     [1] = "normal",   -- 5ppl normal
@@ -87,16 +87,22 @@ local function InstanceDifficultOnEvent(self, _, inGuildGroup)
         self.icon:SetText(GuildEmblem())
     end
 
-    instance:Hide()
-    challenge:Hide()
-    guild:Hide()
+    if instance then
+        instance:Hide()
+    end
+    if guild then
+        guild:Hide()
+    end
+    if challenge then
+        challenge:Hide()
+    end
 end
 
 local function HideBlizzardIcon(self)
     self:Hide()
 end
 
-local function SkinMinimapInstanceDifficult()
+function GW.SkinMinimapInstanceDifficult()
     local d = CreateFrame("Frame", "GW_MinimapInstanceDifficultFrame", Minimap)
 
     d:SetFrameStrata("MEDIUM")
@@ -115,14 +121,20 @@ local function SkinMinimapInstanceDifficult()
     d:RegisterEvent("GUILD_PARTY_STATE_UPDATED")
     d:SetScript("OnEvent", InstanceDifficultOnEvent)
 
-    instance:HookScript("OnShow", HideBlizzardIcon)
-    guild:HookScript("OnShow", HideBlizzardIcon)
-    challenge:HookScript("OnShow", HideBlizzardIcon)
+    if instance then
+        instance:HookScript("OnShow", HideBlizzardIcon)
+        instance:Hide()
+    end
+    if guild then
+        guild:HookScript("OnShow", HideBlizzardIcon)
+        guild:Hide()
+    end
+    if challenge then
+        challenge:HookScript("OnShow", HideBlizzardIcon)
+        challenge:Hide()
+    end
 
-    instance:Hide()
-    guild:Hide()
-    challenge:Hide()
-
-    hooksecurefunc(MinimapCluster.InstanceDifficulty, "Update", function() InstanceDifficultOnEvent(d) end)
+    if MinimapCluster.InstanceDifficulty then
+        hooksecurefunc(MinimapCluster.InstanceDifficulty, "Update", function() InstanceDifficultOnEvent(d) end)
+    end
 end
-GW.SkinMinimapInstanceDifficult = SkinMinimapInstanceDifficult

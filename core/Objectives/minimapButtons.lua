@@ -94,6 +94,14 @@ local buttonFunctions = {
 
 local buttons = {}
 
+local function SetFlyoutButtonVisible(self, visible)
+    local alpha = visible and 1 or 0
+    self:GetNormalTexture():SetAlpha(alpha)
+    self:GetHighlightTexture():SetAlpha(alpha)
+    self:GetPushedTexture():SetAlpha(alpha)
+    self:EnableMouse(visible)
+end
+
 local function SkinMinimapButton(button)
     if not button or button.isSkinned then return end
 
@@ -185,32 +193,66 @@ local function UpdateButtons(self)
         return
     end
 
-    local frameIndex = 0
-
+    local shownButtons = {}
     for _, button in ipairs(buttons) do
         if button:IsShown() then
-            UnlockButton(button)
-
-            button:SetParent(self.container)
-            button:ClearAllPoints()
-            local xOffset = -5 - (frameIndex * 27)
-            button:SetPoint("RIGHT", self.container, "RIGHT", xOffset, 0)
-            frameIndex = frameIndex + 1
-
-            button:SetScale(1)
-            button:SetFrameStrata("MEDIUM")
-            button:SetFrameLevel(self.container:GetFrameLevel() + 1)
-
-            if button:HasScript("OnDragStart") then button:SetScript("OnDragStart", nil) end
-            if button:HasScript("OnDragStop") then button:SetScript("OnDragStop", nil) end
-
-            LockButton(button)
+            shownButtons[#shownButtons + 1] = button
         end
+    end
+
+    if #shownButtons == 1 and not GW.settings.MINIMAP_ADDON_FLYOUT_ALWAYS then
+        local button = shownButtons[1]
+        UnlockButton(button)
+
+        button:SetParent(self)
+        button:ClearAllPoints()
+        button:SetPoint("CENTER", self, "CENTER", 0, 0)
+        button:SetScale(1)
+        button:SetFrameStrata("MEDIUM")
+        button:SetFrameLevel(self:GetFrameLevel() + 1)
+
+        if button:HasScript("OnDragStart") then button:SetScript("OnDragStart", nil) end
+        if button:HasScript("OnDragStop") then button:SetScript("OnDragStop", nil) end
+
+        LockButton(button)
+
+        self.container:Hide()
+        self.container:SetWidth(10)
+        self:Show()
+        self.gw_Showing = true
+        self.gw_singleButton = button
+        SetFlyoutButtonVisible(self, false)
+        return
+    end
+
+    self.gw_singleButton = nil
+    SetFlyoutButtonVisible(self, true)
+
+    local frameIndex = 0
+    for _, button in ipairs(shownButtons) do
+        UnlockButton(button)
+
+        button:SetParent(self.container)
+        button:ClearAllPoints()
+        local xOffset = -5 - (frameIndex * 27)
+        button:SetPoint("RIGHT", self.container, "RIGHT", xOffset, 0)
+        frameIndex = frameIndex + 1
+
+        button:SetScale(1)
+        button:SetFrameStrata("MEDIUM")
+        button:SetFrameLevel(self.container:GetFrameLevel() + 1)
+
+        if button:HasScript("OnDragStart") then button:SetScript("OnDragStart", nil) end
+        if button:HasScript("OnDragStop") then button:SetScript("OnDragStop", nil) end
+
+        LockButton(button)
     end
 
     self.container:SetWidth(frameIndex * 25 + (frameIndex - 1) * 2 + 10)
     if frameIndex == 0 then
         self:Hide()
+    else
+        self:Show()
     end
 
     self.gw_Showing = (frameIndex > 0)
@@ -255,3 +297,10 @@ local function CreateMinimapButtonsSack()
     minimapButton.gw_Showing = false
 end
 GW.CreateMinimapButtonsSack = CreateMinimapButtonsSack
+
+local function UpdateMinimapButtonsSack()
+    if GwAddonToggle then
+        SkinMinimapButtons(GwAddonToggle)
+    end
+end
+GW.UpdateMinimapButtonsSack = UpdateMinimapButtonsSack

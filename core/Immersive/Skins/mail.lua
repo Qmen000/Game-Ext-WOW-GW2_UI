@@ -7,8 +7,29 @@ local InboxFrame = _G.InboxFrame
 local SendMailFrame = _G.SendMailFrame
 local OpenMailFrame = _G.OpenMailFrame
 
+local function ClearSendMailAttachments()
+    for i = 1, ATTACHMENTS_MAX_SEND do
+        ClickSendMailItemButton(i, true)
+    end
+end
+
+local function SwitchToComposeView(tabButton)
+    OpenMailFrame:Hide()
+    MailFrameTab_OnClick(tabButton or MailFrameTab2, 2)
+    InboxFrame:Show()
+    SendMailFrame:Show()
+    SendMailFrame_Update()
+    SetSendMailShowing(true)
+end
+
+local function ResetComposeView()
+    SendMailFrame_Reset()
+    ClearSendMailAttachments()
+end
+
 local function FixMailSkin()
-    MailFrameTab2:SetWidth(310)
+    -- MailFrameTab2.SetWidth is overridden with GW.NoOp later, so force width via SetSize.
+    MailFrameTab2:SetSize(310, MailFrameTab2:GetHeight())
     MailFrameTab2:ClearAllPoints()
     MailFrameTab2:SetPoint("BOTTOMLEFT", MailItem1, "TOPLEFT", 0, 10)
     MailFrameTab2:SetPoint("BOTTOMRIGHT", MailItem1, "TOPRIGHT", 0, 10)
@@ -18,9 +39,12 @@ end
 
 local function AddFrameSeperator()
     MailFrame.mailFrameSepTexture = MailFrame:CreateTexture(nil, "ARTWORK")
-    MailFrame.mailFrameSepTexture:SetSize(600, 2)
-    MailFrame.mailFrameSepTexture:SetPoint("BOTTOMRIGHT", MailFrame, "BOTTOMRIGHT", 110, 50)
+    MailFrame.mailFrameSepTexture:SetHeight(2)
+    -- Keep the original vertical position, but size to the right pane width.
+    MailFrame.mailFrameSepTexture:SetPoint("BOTTOMRIGHT", MailFrame, "BOTTOMRIGHT", 0, 50)
+    MailFrame.mailFrameSepTexture:SetWidth(OpenMailFrame:GetWidth())
     MailFrame.mailFrameSepTexture:SetTexture("Interface/AddOns/GW2_UI/textures/hud/levelreward-sep.png")
+    MailFrame.mailFrameSepTexture:Hide()
 end
 
 local function AddOnClickHandlers()
@@ -112,15 +136,9 @@ local function SkinOpenMailFrame()
     OpenMailReportSpamButton:GwSkinButton(false, true)
     OpenMailReplyButton:GwSkinButton(false, true)
     OpenMailReplyButton:SetPoint("RIGHT", OpenMailDeleteButton, "LEFT", -5, 0)
-    OpenMailReplyButton:SetScript("OnClick", function()
+    OpenMailReplyButton:SetScript("OnClick", function(self)
         OpenMail_Reply()
-        OpenMailFrame:Hide()
-        MailFrameTab_OnClick(self, 2)
-
-        InboxFrame:Show()
-        SendMailFrame:Show()
-        SendMailFrame_Update()
-        SetSendMailShowing(true)
+        SwitchToComposeView(self)
     end)
 
     OpenMailDeleteButton:GwSkinButton(false, true)
@@ -141,7 +159,7 @@ local function SkinOpenMailFrame()
     end
 
     OpenMailScrollFrame:SetPoint("TOPLEFT",OpenMailFrame,"TOPLEFT",8,-84)
-    OpenMailScrollFrame:SetWidth(352)
+    OpenMailScrollFrame:SetPoint("TOPRIGHT", OpenMailFrame, "TOPRIGHT", -26, -84)
     for i = 1, _G.ATTACHMENTS_MAX_RECEIVE do
         local b = _G["OpenMailAttachmentButton" .. i]
         local t = _G["OpenMailAttachmentButton" .. i .. "IconTexture"]
@@ -234,7 +252,7 @@ local function SkinSendMailFrame()
 
     if GW.Retail then
         SendMailScrollFrame:GwStripTextures(true)
-        GW.HandleTrimScrollBar(SendMailScrollFrame.ScrollBar, true)
+        GW.HandleTrimScrollBar(SendMailScrollFrame.ScrollBar)
         GW.HandleScrollControls(SendMailScrollFrame)
     end
 
@@ -255,11 +273,7 @@ local function SkinSendMailFrame()
     SendMailCancelButton:SetPoint("RIGHT", SendMailMailButton, "LEFT", -5, 0)
     SendMailCancelButton:SetText(RESET)
     SendMailCancelButton:SetScript("OnClick", function()
-        SendMailFrame_Reset()
-        --clear attachments
-        for i = 1, ATTACHMENTS_MAX_SEND do
-            ClickSendMailItemButton(i, true);
-        end
+        ResetComposeView()
     end)
 
     local cancelButton = CreateFrame("Button", "SendMailQuit", SendMailFrame, "UIPanelButtonNoTooltipTemplate")
@@ -269,11 +283,7 @@ local function SkinSendMailFrame()
     cancelButton:SetSize(SendMailCancelButton:GetSize())
     cancelButton:GwSkinButton(false, true)
     cancelButton:SetScript("OnClick", function(self)
-        SendMailFrame_Reset()
-        --clear attachments
-        for i = 1, ATTACHMENTS_MAX_SEND do
-            ClickSendMailItemButton(i, true);
-        end
+        ResetComposeView()
 
         SendMailFrame:Hide()
         SetSendMailShowing(false)
@@ -289,13 +299,7 @@ local function SkinComposeButton()
     MailFrameTab2:SetText(SENDMAIL)
     MailFrameTab2:GwSkinButton(false, true)
     MailFrameTab2:SetScript("OnClick", function(self)
-        OpenMailFrame:Hide()
-        MailFrameTab_OnClick(self, 2)
-
-        InboxFrame:Show()
-        SendMailFrame:Show()
-        SendMailFrame_Update()
-        SetSendMailShowing(true)
+        SwitchToComposeView(self)
     end)
 end
 
@@ -384,25 +388,29 @@ local function LoadMailSkin()
     -- Strip and hide default textures
     ClearMailTextures()
 
-    -- Setup double sized frame to mimic approx. size for GW2 mail layout
-    local newWidth, newHeight = MailFrame:GetSize()
-    newWidth = (newWidth * 2.0) + 50
-    newHeight = newHeight + 30
-    MailFrame:SetSize(newWidth, newHeight)
+    -- Setup adaptive frame size:
+    -- compact mode keeps only the inbox area visible;
+    -- expanded mode adds a right pane with similar width.
+    local baseWidth, baseHeight = MailFrame:GetSize()
+    local leftPaneWidth = 331
+    local sidePadding = 20
+    local compactWidth = baseWidth
+    local expandedWidth = (leftPaneWidth * 2) + sidePadding
+    local frameHeight = baseHeight + 30
 
     -- override max tabsize for the "compose" button (as it's just the send mail tab)
     MailFrame.maxTabWidth = 320
 
     -- Configure Mail Frame Background
     MailFrame.mailFrameBgTexture = MailFrame:CreateTexture(nil, "BACKGROUND", nil, -7)
-    MailFrame.mailFrameBgTexture:SetSize(newWidth, newHeight)
+    MailFrame.mailFrameBgTexture:SetSize(expandedWidth, frameHeight)
     MailFrame.mailFrameBgTexture:SetPoint("TOPLEFT", MailFrame, "TOPLEFT", 0, 5)
     MailFrame.mailFrameBgTexture:SetTexture("Interface/AddOns/GW2_UI/textures/hud/mailboxwindow-background.png")
     MailFrame.mailFrameBgTexture:SetTexCoord(0, 0.7099, 0, 0.955);
 
     -- Configure Mail Heading
     MailFrame.heading = MailFrame:CreateTexture(nil, "BACKGROUND")
-    MailFrame.heading:SetSize(newWidth, 64)
+    MailFrame.heading:SetSize(expandedWidth, 64)
     MailFrame.heading:SetPoint("BOTTOMLEFT", MailFrame, "TOPLEFT", 0, 0)
     MailFrame.heading:SetTexture("Interface/AddOns/GW2_UI/textures/bag/bagheader.png")
 
@@ -418,7 +426,7 @@ local function LoadMailSkin()
     MailFrame.icon:SetTexture("Interface/AddOns/GW2_UI/textures/icons/mail-window-icon.png")
 
     MailFrame.headingRight = MailFrame:CreateTexture(nil, "BACKGROUND")
-    MailFrame.headingRight:SetSize(newWidth, 64)
+    MailFrame.headingRight:SetSize(expandedWidth, 64)
     MailFrame.headingRight:SetPoint("BOTTOMRIGHT", MailFrame, "TOPRIGHT", 0, 0)
     MailFrame.headingRight:SetTexture("Interface/AddOns/GW2_UI/textures/bag/bagheader-right.png")
 
@@ -430,12 +438,12 @@ local function LoadMailSkin()
 
     -- Configure footer
     MailFrame.footer = MailFrame:CreateTexture(nil, "BACKGROUND")
-    MailFrame.footer:SetSize(newWidth, 70)
+    MailFrame.footer:SetSize(expandedWidth, 70)
     MailFrame.footer:SetPoint("TOPLEFT", MailFrame, "BOTTOMLEFT", 0, 5)
     MailFrame.footer:SetPoint("TOPRIGHT", MailFrame, "BOTTOMRIGHT", 0, 5)
     MailFrame.footer:SetTexture("Interface/AddOns/GW2_UI/textures/bag/bagfooter.png")
 
-    InboxFrame:SetWidth(331)
+    InboxFrame:SetWidth(leftPaneWidth)
 
     _G.AutoCompleteBox:GwStripTextures()
     _G.AutoCompleteBox:GwCreateBackdrop(GW.BackdropTemplates.Default)
@@ -445,7 +453,7 @@ local function LoadMailSkin()
     MailFrame.mover = CreateFrame("Frame", nil, MailFrame)
     MailFrame.mover:EnableMouse(true)
     MailFrame:SetMovable(true)
-    MailFrame.mover:SetSize(newWidth, 30)
+    MailFrame.mover:SetSize(expandedWidth, 30)
     MailFrame.mover:SetPoint("BOTTOMLEFT", MailFrame, "TOPLEFT", 0, 0)
     MailFrame.mover:SetPoint("BOTTOMRIGHT", MailFrame, "TOPRIGHT", 0, 0)
     MailFrame.mover:RegisterForDrag("LeftButton")
@@ -485,6 +493,48 @@ local function LoadMailSkin()
         MailFrame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.xOfs, pos.yOfs)
         MailFrame.SetPoint = GW.NoOp -- prevent blizz from overriding our position
     end)
+
+    local function UpdateInboxBottomButtons()
+        local yOffset = 88
+
+        OpenAllMail:ClearAllPoints()
+        OpenAllMail:SetPoint("CENTER", InboxFrame, "BOTTOM", 0, yOffset)
+
+        local prevBottomOffset = yOffset - (InboxPrevPageButton:GetHeight() * 0.5)
+        InboxPrevPageButton:ClearAllPoints()
+        InboxPrevPageButton:SetPoint("BOTTOMLEFT", InboxFrame, "BOTTOMLEFT", 6, prevBottomOffset)
+
+        local nextBottomOffset = yOffset - (InboxNextPageButton:GetHeight() * 0.5)
+        InboxNextPageButton:ClearAllPoints()
+        InboxNextPageButton:SetPoint("BOTTOMRIGHT", InboxFrame, "BOTTOMRIGHT", -6, nextBottomOffset)
+    end
+
+    local function ApplyMailFrameSize(width)
+        MailFrame:SetSize(width, frameHeight)
+        MailFrame.mailFrameBgTexture:SetSize(width, frameHeight)
+        MailFrame.heading:SetSize(width, 64)
+        MailFrame.headingRight:SetSize(width, 64)
+        MailFrame.footer:SetSize(width, 70)
+        MailFrame.mover:SetWidth(width)
+    end
+
+    local function UpdateMailFrameSize()
+        local shouldExpand = OpenMailFrame:IsShown() or SendMailFrame:IsShown()
+        ApplyMailFrameSize(shouldExpand and expandedWidth or compactWidth)
+        if MailFrame.mailFrameSepTexture then
+            MailFrame.mailFrameSepTexture:SetWidth(OpenMailFrame:GetWidth())
+            MailFrame.mailFrameSepTexture:SetShown(shouldExpand)
+        end
+        UpdateInboxBottomButtons()
+    end
+
+    MailFrame:HookScript("OnShow", UpdateMailFrameSize)
+    OpenMailFrame:HookScript("OnShow", UpdateMailFrameSize)
+    OpenMailFrame:HookScript("OnHide", UpdateMailFrameSize)
+    SendMailFrame:HookScript("OnShow", UpdateMailFrameSize)
+    SendMailFrame:HookScript("OnHide", UpdateMailFrameSize)
+    hooksecurefunc("MailFrameTab_OnClick", UpdateMailFrameSize)
+    UpdateMailFrameSize()
 
     -- Reskin OpenMailFrame Buttons
     SkinPager()

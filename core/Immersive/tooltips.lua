@@ -23,8 +23,8 @@ local genderTable = {
 local LEVEL1 = strlower(TOOLTIP_UNIT_LEVEL:gsub("%s?%%s%s?%-?",""))
 local LEVEL2 = strlower((TOOLTIP_UNIT_LEVEL_RACE or TOOLTIP_UNIT_LEVEL_CLASS):gsub("^%%2$s%s?(.-)%s?%%1$s","%1"):gsub("^%-?г?о?%s?",""):gsub("%s?%%s%s?%-?",""))
 local IDLine = "|cffffedba%s|r %d"
-local AFK_LABEL = " |cffFFFFFF[|r|cffFF9900" .. L["AFK"] .. "|r|cffFFFFFF]|r"
-local DND_LABEL = " |cffFFFFFF[|r|cffFF3333" .. L["DND"] .. "|r|cffFFFFFF]|r"
+local AFK_LABEL = " |cffFFFFFF[|r|cffFF9900" .. AFK .. "|r|cffFFFFFF]|r"
+local DND_LABEL = " |cffFFFFFF[|r|cffFF3333" .. DND .. "|r|cffFFFFFF]|r"
 
 local TT = CreateFrame("Frame")
 
@@ -411,7 +411,7 @@ local function SetUnitText(self, unit, isPlayerUnit)
 
         local guildName, guildRankName, _, guildRealm = GetGuildInfo(unit)
         local pvpName, gender = UnitPVPName(unit), UnitSex(unit)
-        local level, realLevel = (GW.Retail and UnitEffectiveLevel or UnitLevel)(unit), UnitLevel(unit)
+        local level, realLevel = GW.UnitEffectiveLevel(unit), UnitLevel(unit)
         local relationship = UnitRealmRelationship(unit)
         local isShiftKeyDown = IsShiftKeyDown()
 
@@ -480,14 +480,14 @@ local function SetUnitText(self, unit, isPlayerUnit)
 
         return nameColor
     else
-        local isPetCompanion = GW.Retail and UnitIsBattlePetCompanion(unit)
+        local isPetCompanion = not GW.Classic and UnitIsBattlePetCompanion(unit)
         local levelLine, classLine = GetLevelLine(self, 1)
         if levelLine then
-            local pvpFlag, diffColor, level = "", "", ""
+            local pvpFlag, diffColor, level = ""
             local creatureClassification = UnitClassification(unit)
             local creatureType = UnitCreatureType(unit)
 
-            if isPetCompanion or (GW.Retail and UnitIsWildBattlePet(unit)) then
+            if isPetCompanion or (not GW.Classic and UnitIsWildBattlePet(unit)) then
                 level = UnitBattlePetLevel(unit)
 
                 local petType = UnitBattlePetType(unit)
@@ -505,7 +505,7 @@ local function SetUnitText(self, unit, isPlayerUnit)
                     diffColor = GetCreatureDifficultyColor(level)
                 end
             else
-                level = (GW.Retail and UnitEffectiveLevel or UnitLevel)(unit)
+                level = GW.UnitEffectiveLevel(unit)
                 diffColor = GetCreatureDifficultyColor(level)
             end
 
@@ -515,10 +515,12 @@ local function SetUnitText(self, unit, isPlayerUnit)
 
             levelLine:SetFormattedText("|cff%02x%02x%02x%s|r%s %s%s", diffColor.r * 255, diffColor.g * 255, diffColor.b * 255, level > 0 and level or "??", classification[creatureClassification] or "", creatureType or "", pvpFlag)
 
-            local classText = creatureType and classLine and classLine:GetText()
-            if creatureType == classText then
-                classLine:SetText("")
-                classLine:Hide()
+            if classLine then
+                local classText = classLine:GetText()
+                if GW.NotSecretValue(classText) and (classText == creatureType) then
+                    classLine:SetText("")
+                    classLine:Hide()
+                end
             end
         end
 
@@ -1048,45 +1050,7 @@ local function SetStyle(self, _, isEmbedded)
     if self.NineSlice then self.NineSlice:SetAlpha(0) end
 
     if GW.NotSecretValue(self:GetWidth()) then
-        if not self.SetBackdrop then
-            _G.Mixin(self, _G.BackdropTemplateMixin)
-        if self.OnSizeChanged then
-                self:HookScript("OnSizeChanged", self.OnBackdropSizeChanged)
-            end
-        end
-
-        GW.ReplaceSetupTextureCoordinates(self)
-        self:SetBackdrop({
-            edgeFile = "Interface/AddOns/GW2_UI/textures/uistuff/white.png",
-            bgFile = "Interface/AddOns/GW2_UI/textures/uistuff/ui-tooltip-background.png",
-            edgeSize = GW.Scale(1)
-        })
-
-        local backdrop = {
-            edgeFile = "Interface/AddOns/GW2_UI/textures/uistuff/white.png",
-            edgeSize = GW.Scale(1)
-        }
-
-        local level = self:GetFrameLevel()
-        if not self.iborder then
-            local border = CreateFrame("Frame", nil, self, "BackdropTemplate")
-            GW.ReplaceSetupTextureCoordinates(border)
-            border:SetBackdrop(backdrop)
-            border:SetBackdropBorderColor(0, 0, 0, 1)
-            border:SetFrameLevel(level)
-            border:GwSetInside(self, 1, 1)
-            self.iborder = border
-        end
-
-        if not self.oborder then
-            local border = CreateFrame("Frame", nil, self, "BackdropTemplate")
-            GW.ReplaceSetupTextureCoordinates(border)
-            border:SetBackdrop(backdrop)
-            border:SetBackdropBorderColor(0, 0, 0, 1)
-            border:SetFrameLevel(level)
-            border:GwSetOutside(self, 1, 1)
-            self.oborder = border
-        end
+        self:GwSetFrameTemplate()
 
         self:SetBackdropBorderColor(0.05, 0.05, 0.05, 1)
         if PawnRegisterThirdPartyTooltip and not pawnTooltipBorderRegistered then

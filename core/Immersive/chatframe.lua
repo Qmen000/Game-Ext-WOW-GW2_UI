@@ -17,6 +17,8 @@ local ShouldColorChatByClass = (ChatFrameUtil and ChatFrameUtil.ShouldColorChatB
 local IsChannelRegionalForChannelID = C_ChatInfo.IsChannelRegionalForChannelID
 local GetChannelShortcutForChannelID = C_ChatInfo.GetChannelShortcutForChannelID
 local C_GuildInfo_GetMOTD = C_GuildInfo and C_GuildInfo.GetMOTD or GetGuildRosterMOTD
+local GetGroupMembers = C_SocialQueue and C_SocialQueue.GetGroupMembers
+local GetGroupQueues = C_SocialQueue and C_SocialQueue.GetGroupQueues
 
 local FindURL_Events = {
     "CHAT_MSG_WHISPER",
@@ -1546,22 +1548,25 @@ local function ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg
             if frame.privateMessageList and not frame.privateMessageList[nameLower] then
                 return true
             elseif frame.excludePrivateMessageList and frame.excludePrivateMessageList[nameLower] then
-				if GetCVar("whisperMode") ~= "popout_and_inline" then
-					return true
-				end
+                if GetCVar("whisperMode") ~= "popout_and_inline" then
+                    return true
+                end
             end
         end
 
         if frame.privateMessageList then
             if chatGroup == "SYSTEM" then -- HACK to put certain system messages into dedicated whisper windows
-				local found, msg = false, strlower(arg1)
-                for playerName in pairs(frame.privateMessageList) do
-                    local playerNotFoundMsg = strlower(format(ERR_CHAT_PLAYER_NOT_FOUND_S, playerName))
-                    local charOnlineMsg = strlower(format(ERR_FRIEND_ONLINE_SS, playerName, playerName))
-                    local charOfflineMsg = strlower(format(ERR_FRIEND_OFFLINE_S, playerName))
-                    if msg == playerNotFoundMsg or msg == charOnlineMsg or msg == charOfflineMsg then
-                        found = true
-                        break
+                local msg = GW.NotSecretValue(arg1) and strlower(arg1)
+                local found = false
+                if msg then
+                    for playerName in pairs(frame.privateMessageList) do
+                        local playerNotFoundMsg = strlower(format(ERR_CHAT_PLAYER_NOT_FOUND_S, playerName))
+                        local charOnlineMsg = strlower(format(ERR_FRIEND_ONLINE_SS, playerName, playerName))
+                        local charOfflineMsg = strlower(format(ERR_FRIEND_OFFLINE_S, playerName))
+                        if msg == playerNotFoundMsg or msg == charOnlineMsg or msg == charOfflineMsg then
+                            found = true
+                            break
+                        end
                     end
                 end
 
@@ -1569,10 +1574,10 @@ local function ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg
                     return true
                 end
             elseif not isProtected and (chatGroup == "BN_INLINE_TOAST_ALERT" or chatGroup == "BN_WHISPER_PLAYER_OFFLINE") then
-				local nameLower = strlower(arg2)
-				if not frame.privateMessageList[nameLower] then
-					return true -- Dedicated BN whisper windows need online/offline messages for only that player
-				end
+                local nameLower = strlower(arg2)
+                if not frame.privateMessageList[nameLower] then
+                    return true -- Dedicated BN whisper windows need online/offline messages for only that player
+                end
             end
         end
 
@@ -2522,76 +2527,71 @@ end
 
 local function RecentSocialQueue(currentTime, msg)
     local previousMessage = false
-    if next(socialQueueCache) then
-        for guid, tbl in pairs(socialQueueCache) do
-            if currentTime and (difftime(currentTime, tbl[1]) >= 180) then
-                socialQueueCache[guid] = nil
-            elseif GW.NotSecretValue(msg) and (msg == tbl[2]) then
-                previousMessage = true
-            end
+    for guid, tbl in next, socialQueueCache do
+        if currentTime and (difftime(currentTime, tbl[1]) >= 180) then
+            socialQueueCache[guid] = nil
+        elseif (msg == tbl[2]) then
+            previousMessage = true
         end
     end
     return previousMessage
 end
 
 local function SocialQueueMessage(guid, message)
-    if not (guid and message) then return end
+    if GW.IsSecretValue(message) or not (guid and message) then return end
 
     local currentTime = time()
     if RecentSocialQueue(currentTime, message) then return end
-    if GW.NotSecretValue(message) and GW.NotSecretValue(guid) then
-        socialQueueCache[guid] = {currentTime, message}
-    end
+    socialQueueCache[guid] = {currentTime, message}
 
     PlaySound(SOUNDKIT.UI_71_SOCIAL_QUEUEING_TOAST)
 
     GW.Notice(format("|Hsqu:%s|h%s|h", guid, message))
 end
 
-local function SocialQueueEvent(...)
-    if not GW.settings.CHAT_SOCIAL_LINK then return end
-    local guid = select(1, ...)
-    local numAddedItems = select(2, ...)
-    if numAddedItems == 0 or not guid then return end
+local function SocialQueueEvent(guid, numAddedItems)
+    if not GW.settings.CHAT_SOCIAL_LINK or (not guid or numAddedItems == 0) then return end
 
-    local players = GW.Retail and C_SocialQueue.GetGroupMembers(guid) or nil
+    local players = GetGroupMembers(guid) or nil
     if not players then return end
 
     local firstMember, numMembers, extraCount, coloredName = players[1], #players, "", ""
-    local playerName, nameColor = SocialQueueUtil_GetRelationshipInfo(firstMember.guid, nil, firstMember.clubId)
     if numMembers > 1 then
         extraCount = format(" +%s", numMembers - 1)
     end
+
+    local playerName, nameColor = SocialQueueUtil_GetRelationshipInfo(firstMember.guid, nil, firstMember.clubId)
     if playerName and playerName ~= "" then
         coloredName = format("%s%s|r%s", nameColor, playerName, extraCount)
     else
         coloredName = format("{%s%s}", UNKNOWN, extraCount)
     end
 
-    local queues = GW.Retail and C_SocialQueue.GetGroupQueues(guid) or nil
+    local queues = GetGroupQueues(guid) or nil
     local firstQueue = queues and queues[1]
-    local isLFGList = firstQueue and firstQueue.queueData and firstQueue.queueData.queueType == "lfglist"
+    if not firstQueue then return end
 
-    if isLFGList and firstQueue and firstQueue.eligible then
+    local firstData = firstQueue.queueData
+    if firstQueue.eligible and (firstData and firstData.queueType == 'lfglist') then
         local activityID, name, leaderName, activityInfo, isLeader
 
-        if firstQueue.queueData.lfgListID then
-            local searchResultInfo = C_LFGList.GetSearchResultInfo(firstQueue.queueData.lfgListID)
-            if searchResultInfo then
-                activityID = GW.NotSecretTable(searchResultInfo.activityIDs) and searchResultInfo.activityIDs[1]
-                name, leaderName = searchResultInfo.name, searchResultInfo.leaderName
+        if firstData.lfgListID then
+            local searchInfo = C_LFGList.GetSearchResultInfo(firstData.lfgListID)
+            if searchInfo then
+                activityID = GW.NotSecretTable(searchInfo.activityIDs) and searchInfo.activityIDs[1]
+                name, leaderName = searchInfo.name, searchInfo.leaderName
                 isLeader = SocialQueueIsLeader(playerName, leaderName)
             end
         end
 
-        if activityID or firstQueue.queueData.activityID then
-            activityInfo = C_LFGList.GetActivityInfoTable(activityID or firstQueue.queueData.activityID)
+        if activityID or firstData.activityID then
+            activityInfo = C_LFGList.GetActivityInfoTable(activityID or firstData.activityID)
         end
 
         SocialQueueMessage(guid, format(name and "%s %s: |cffFFFF00[%s:%s]|r" or "%s %s: |cffFFFF00[%s]|r", coloredName, (isLeader and L["is looking for members"]) or L["joined a group"], activityInfo and activityInfo.fullName or UNKNOWN, name))
-    elseif firstQueue then
-            local output, outputCount, queueCount = "", "", 0
-        for _, queue in pairs(queues) do
+    else
+        local output, outputCount, queueCount = "", "", 0
+        for _, queue in next, queues do
             if type(queue) == "table" and queue.eligible then
                 local queueName = (queue.queueData and SocialQueueUtil_GetQueueName(queue.queueData)) or ""
                 if queueName ~= "" then

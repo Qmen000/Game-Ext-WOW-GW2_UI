@@ -680,6 +680,15 @@ local function HandleRotateButton(btn)
 end
 GW.HandleRotateButton = HandleRotateButton
 
+function GW.AddDetailsBackground(frame, detailBackgroundsXOffset, detailBackgroundsYOffset)
+    local detailBg = frame:CreateTexture(nil, "BACKGROUND", nil, 7)
+    detailBg:SetPoint("TOPLEFT", frame, "TOPLEFT", detailBackgroundsXOffset or 0, detailBackgroundsYOffset or 0)
+    detailBg:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+    detailBg:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-questlog-background.png")
+    detailBg:SetTexCoord(0, 0.70703125, 0, 0.580078125)
+    frame.tex = detailBg
+end
+
 local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgrounds, detailBackgroundsXOffset, addLeftSidePanel, addFrameOpenAnimation)
     local header = CreateFrame("Frame", frame:GetName() .. "Header", frame, "GwFrameHeader")
     header.windowIcon:SetTexture(icon)
@@ -720,15 +729,9 @@ local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgroun
 
     if detailBackgrounds then
         for _, v in pairs(detailBackgrounds) do
-            local detailBg = v:CreateTexture(nil, "BACKGROUND", nil, 0)
-            detailBg:SetPoint("TOPLEFT", v, "TOPLEFT", detailBackgroundsXOffset or 0, 0)
-            detailBg:SetPoint("BOTTOMRIGHT", v, "BOTTOMRIGHT", 0, 0)
-            detailBg:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-questlog-background.png")
-            detailBg:SetTexCoord(0, 0.70703125, 0, 0.580078125)
-            v.tex = detailBg
+            GW.AddDetailsBackground(v, detailBackgroundsXOffset, 0)
         end
     end
-
 
     if addLeftSidePanel then
         frame.LeftSidePanel = CreateFrame("Frame", frame:GetName() .. "LeftPanel", frame, "GwWindowLeftPanel")
@@ -764,16 +767,6 @@ local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgroun
     end
 end
 GW.CreateFrameHeaderWithBody = CreateFrameHeaderWithBody
-
-local function AddDetailsBackground(frame, detailBackgroundsXOffset, detailBackgroundsYOffset)
-    local detailBg = frame:CreateTexture(nil, "BACKGROUND", nil, 7)
-    detailBg:SetPoint("TOPLEFT", frame, "TOPLEFT", detailBackgroundsXOffset or 0, detailBackgroundsYOffset or 0)
-    detailBg:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
-    detailBg:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-questlog-background.png")
-    detailBg:SetTexCoord(0, 0.70703125, 0, 0.580078125)
-    frame.tex = detailBg
-end
-GW.AddDetailsBackground = AddDetailsBackground
 
 local function HandleListIcon(frame)
     if not frame.tableBuilder then return end

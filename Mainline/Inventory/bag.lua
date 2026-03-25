@@ -713,16 +713,12 @@ local function LoadBag(helpers)
                      function() GW.settings.BAG_PROFESSION_BAG_COLOR = not GW.settings.BAG_PROFESSION_BAG_COLOR; ContainerFrame_UpdateAll() end)
             addCheck(SHOW_ITEM_LEVEL:gsub("-\n", ""):gsub("\n", " "), function() return GW.settings.BAG_SHOW_ILVL end,
                      function() GW.settings.BAG_SHOW_ILVL = not GW.settings.BAG_SHOW_ILVL; ContainerFrame_UpdateAll() end)
-            addCheck(L["Sell junk automatically"], function() return GW.settings.BAG_VENDOR_GRAYS end,
-                     function() local ns = not GW.settings.BAG_VENDOR_GRAYS; GW.settings.BAG_VENDOR_GRAYS = ns; GW.SetupVendorJunk(ns) end)
             addCheck(L["Separate bags"], function() return GW.settings.BAG_SEPARATE_BAGS end,
                      function() local ns = not GW.settings.BAG_SEPARATE_BAGS; GW.settings.BAG_SEPARATE_BAGS = ns; layoutItems(f); snapFrameSize(f) end)
             addCheck(L["Separate reagent bags"], function() return GW.settings.BAG_SEPARATE_REAGENT_BAGS end,
                      function() local ns = not GW.settings.BAG_SEPARATE_REAGENT_BAGS; GW.settings.BAG_SEPARATE_REAGENT_BAGS = ns; layoutItems(f); snapFrameSize(f) end)
         end)
     end)
-
-    GW.SetupVendorJunk(GW.settings.BAG_VENDOR_GRAYS)
 
     -- setup money frame
     for _, frameName in ipairs({"bronze", "silver", "gold"}) do

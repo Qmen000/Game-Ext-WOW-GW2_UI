@@ -16,7 +16,7 @@ local function GridPartyPetStyleRegister(self)
     )
 
     self.RaisedElementParent = GW.CreateRaisedElement(self)
-	self.Health = GW.Construct_HealthBar(self, true)
+	self.Health = GW.Construct_HealthBar(self)
     self.Name = GW.Construct_NameText(self)
     self.HealthValueText = GW.Construct_HealtValueText(self)
     self.Power = GW.Construct_PowerBar(self)
@@ -46,7 +46,7 @@ local function UpdateGridPartyPetFrame(frame)
     frame.showTargetmarker = GW.settings.PARTY_UNIT_MARKERS_PET
     frame.unitWidth = tonumber(GW.settings.PARTY_WIDTH_PET)
     frame.unitHeight = tonumber(GW.settings.PARTY_HEIGHT_PET)
-    frame.PARTYShowImportantInstanceDebuffs = GW.settings.PARTY_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF_PET
+    frame.raidShowImportantInstanceDebuffs = GW.settings.PARTY_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF_PET
     frame.showDebuffs = GW.settings.PARTY_SHOW_DEBUFFS_PET
     frame.showOnlyDispelDebuffs = GW.settings.PARTY_ONLY_DISPELL_DEBUFFS_PET
     frame.showBuffs = GW.settings.PARTY_PET_SHOW_BUFFS

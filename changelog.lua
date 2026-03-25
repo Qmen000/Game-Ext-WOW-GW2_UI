@@ -13,6 +13,32 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("10.6.0", {
+    {GW.Enum.ChangelogType.feature, [=[Added class power anchor modes: Default, Center, Left and Right]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added class power settings: anchor X offset, anchor Y offset and custom resource bar gap]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added custom resource bar side option: Auto, Left, Right]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added minimap setting to always show the AddOn flyout button]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added minimap behavior to show a single AddOn button directly when flyout is not forced]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added setting to animate micro menu notification icons]=]},
+    {GW.Enum.ChangelogType.change, [=[Added EN/DE localization and descriptions for the new class power settings]=]},
+    {GW.Enum.ChangelogType.change, [=[Refactored class power anchor handling to use shared helpers]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved class power sub-frame alignment for non-default anchors]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved Demon Hunter and Brewmaster defaultResourceBar anchoring]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved overlap handling for custom resource bars in CENTER mode]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved Warlock shard and shardFragment anchoring with side settings]=]},
+    {GW.Enum.ChangelogType.change, [=[Mail skin layout now switches between compact and expanded widths based on visible right pane content]=]},
+    {GW.Enum.ChangelogType.change, [=[Refactored mail compose/open handlers and cleanup helpers to reduce duplicated UI logic]=]},
+    {GW.Enum.ChangelogType.change, [=[Moved "Sell junk automatically" from bag-specific menus to General settings near Auto Repair]=]},
+    {GW.Enum.ChangelogType.change, [=[Centralized auto-sell junk initialization to run SetupVendorJunk once globally]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved Settings Overview Credits layout with section icons and two-column names]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved Settings Overview changelog scroll growth behavior with smooth post-drag animation]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed mail inbox bottom button vertical alignment]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed mail open view scroll area sizing and scrollbar spacing]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed mail separator visibility and sizing in compact/expanded modes]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed tooltip taint from comparing secret class text values (classLine:GetText)]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed scenario event timer showing in excluded zones (for example Stormarion Assault area)]=]},
+})
+
 addChange("10.5.1", {
     {GW.Enum.ChangelogType.bug, [=[Buggrabber integration]=]},
 })

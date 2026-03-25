@@ -223,7 +223,6 @@ local function HandleEvents(_, event, ...)
         MapInfoUpdateMapId()
         lib.locationData.instanceMapID = select(8, GetInstanceInfo())
         lib.locationData.zoneText = GetRealZoneText() or UNKNOWN
-
         CoordsUpdate()
     end
 end

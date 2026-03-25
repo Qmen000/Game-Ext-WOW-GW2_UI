@@ -1,6 +1,4 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
     <Include file ="Skins\Load.xml"/>
     <Script file ="eventTracker.lua"/>
-    <Script file ="minimapInstanceDifficult.lua"/>
-    <Script file ="minimap.lua"/>
 </Ui>

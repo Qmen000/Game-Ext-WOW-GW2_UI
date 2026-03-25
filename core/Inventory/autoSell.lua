@@ -8,7 +8,9 @@ local SellJunkTicker
 -- automaticly vendor junk
 local function StopSelling()
     if SellJunkTicker then SellJunkTicker._cancelled = true end
-    GwBagFrame.smsj:Hide()
+    if GwBagFrame and GwBagFrame.smsj then
+        GwBagFrame.smsj:Hide()
+    end
     SellJunkFrame:UnregisterEvent("ITEM_LOCKED")
     SellJunkFrame:UnregisterEvent("UI_ERROR_MESSAGE")
 end
@@ -96,7 +98,9 @@ local function SellJunkFrame_OnEvent(self, event, arg1)
             self:RegisterEvent("ITEM_LOCKED")
         end
     elseif event == "ITEM_LOCKED" then
-        GwBagFrame.smsj:Show()
+        if GwBagFrame and GwBagFrame.smsj then
+            GwBagFrame.smsj:Show()
+        end
         self:UnregisterEvent("ITEM_LOCKED")
     elseif event == "MERCHANT_CLOSED" then
         -- If merchant frame is closed, stop selling
@@ -108,7 +112,7 @@ local function SellJunkFrame_OnEvent(self, event, arg1)
     end
 end
 
-local function SetupVendorJunk(active)
+function GW.SetupVendorJunk(active)
     if active then
         SellJunkFrame:RegisterEvent("MERCHANT_SHOW")
         if not GW.Retail then
@@ -123,4 +127,3 @@ local function SetupVendorJunk(active)
         SellJunkFrame:SetScript("OnEvent", nil)
     end
 end
-GW.SetupVendorJunk = SetupVendorJunk

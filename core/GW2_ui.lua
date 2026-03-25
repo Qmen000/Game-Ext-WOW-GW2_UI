@@ -410,6 +410,7 @@ local function evAddonLoaded(self, loadedAddonName)
         GW.LoadBattlefieldMapSkin()
         GW.LoadMajorFactionsFrameSkin()
         GW.LoadDamageMeterSkin()
+        GW.LoadCalendarSkin()
     end
 
     if not (GW.Classic or GW.TBC) then
@@ -558,6 +559,7 @@ local function evPlayerLogin(self)
 
     -- Misc
     GW.InitializeMiscFunctions()
+    GW.SetupVendorJunk(GW.settings.BAG_VENDOR_GRAYS)
     GW.LoadRaidMarkerCircle()
 
     --Create general skins

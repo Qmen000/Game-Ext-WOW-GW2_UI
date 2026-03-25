@@ -51,6 +51,7 @@ local function LoadGeneralPanel(sWindow)
     general:AddOptionDropdown(L["Number format"], L["Will be used for the most numbers"] .. (GW.Retail and L[" For Retail: Not used for secret numbers."] or ""), { getterSetter = "NumberFormat", optionsList = {"POINT", "COMMA"}, optionNames = {"1,000,000.00", "1.000.000,00"}})
     general:AddOption(L["AFK Mode"], L["When you go AFK, display the AFK screen."], {getterSetter = "AFK_MODE", callback = GW.ToggelAfkMode})
     general:AddOptionDropdown(L["Auto Repair"], L["Automatically repair using the following method when visiting a merchant."], { getterSetter = "AUTO_REPAIR", optionsList = {"NONE", "PLAYER", "GUILD"}, optionNames = {NONE_KEY, PLAYER, GUILD}})
+    general:AddOption(L["Sell junk automatically"], L["Automatically sell poor quality items when visiting a merchant."], {getterSetter = "BAG_VENDOR_GRAYS", callback = GW.SetupVendorJunk})
     general:AddOptionSlider(L["Extended Vendor"], L["The number of pages shown in the merchant frame. Set 1 to disable."], { getterSetter = "EXTENDED_VENDOR_NUM_PAGES", callback = function() GW.ShowRlPopup = true end, min = 1, max = 6, decimalNumbers = 0, step = 1})
 
     classcolors:AddOption(L["Blizzard Class Colors"], nil, {getterSetter = "BLIZZARDCLASSCOLOR_ENABLED", callback = function(value)

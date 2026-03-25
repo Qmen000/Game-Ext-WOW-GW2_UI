@@ -313,7 +313,7 @@ do
     GW.SetupZoomReset = SetupZoomReset
 end
 
-local function LoadMinimap()
+function GW.LoadMinimap()
     -- https://wowwiki.wikia.com/wiki/USERAPI_GetMinimapShape
     GetMinimapShape = getMinimapShape
 
@@ -565,4 +565,3 @@ local function LoadMinimap()
 
     GW.UpdateMinimapSize()
 end
-GW.LoadMinimap = LoadMinimap

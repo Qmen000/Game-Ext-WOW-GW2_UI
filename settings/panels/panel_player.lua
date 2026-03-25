@@ -171,7 +171,75 @@ local function LoadPlayerPanel(sWindow)
 
     -- Classpower
     classpower:AddOption(GW.NewSign .. L["Show value on bar"], nil, {getterSetter = "CLASSPOWER_SHOW_VALUE", callback = function() GW.UpdateClasspowerSetting(GwPlayerClassPower); GwPlayerPowerBar:ToggleSettings(); if GwPlayerUnitFrame then GwPlayerUnitFrame:ToggleSettings() end end, dependence = {["CLASS_POWER"] = true}, hidden = GW.Classic or GW.TBC})
-    classpower:AddOption(GW.NewSign .. L["Anchor classpower bar to center"], nil, {getterSetter = "CLASSPOWER_ANCHOR_TO_CENTER", callback = function() GW.UpdateClasspowerSetting(GwPlayerClassPower) end, dependence = {["CLASS_POWER"] = true}, hidden = GW.Classic or GW.TBC})
+    classpower:AddOptionDropdown(GW.NewSign .. L["Class power anchor"], L["Controls how the class power bar is anchored to its mover."], {
+        getterSetter = "CLASSPOWER_ANCHOR_MODE",
+        callback = function()
+            if GwPlayerClassPower then
+                GW.UpdateClasspowerSetting(GwPlayerClassPower)
+            end
+            if GwPlayerPowerBar then
+                GwPlayerPowerBar:ToggleSettings()
+            end
+        end,
+        optionsList = {"DEFAULT", "CENTER", "LEFT", "RIGHT"},
+        optionNames = {DEFAULT, L["Center"], L["Left"], L["Right"]},
+        dependence = {["CLASS_POWER"] = true},
+        hidden = GW.Classic or GW.TBC
+    })
+    classpower:AddOptionDropdown(GW.NewSign .. L["Custom resource bar side"], L["Choose which side optional custom resource bars are placed on. Auto flips by class power anchor mode."], {
+        getterSetter = "CLASSPOWER_CUSTOMRESOURCEBAR_SIDE",
+        callback = function()
+            if GwPlayerClassPower then
+                GW.UpdateClasspowerSetting(GwPlayerClassPower)
+            end
+        end,
+        optionsList = {"AUTO", "LEFT", "RIGHT"},
+        optionNames = {L["Auto"], L["Left"], L["Right"]},
+        dependence = {["CLASS_POWER"] = true},
+        hidden = GW.Classic or GW.TBC
+    })
+    classpower:AddOptionSlider(GW.NewSign .. L["Class power anchor X offset"], L["Fine-tunes the horizontal position of the class power anchor."], {
+        getterSetter = "CLASSPOWER_ANCHOR_OFFSET_X",
+        callback = function()
+            if GwPlayerClassPower then
+                GW.UpdateClasspowerSetting(GwPlayerClassPower)
+            end
+        end,
+        min = -200,
+        max = 200,
+        decimalNumbers = 0,
+        step = 1,
+        dependence = {["CLASS_POWER"] = true},
+        hidden = GW.Classic or GW.TBC
+    })
+    classpower:AddOptionSlider(GW.NewSign .. L["Class power anchor Y offset"], L["Fine-tunes the vertical position of the class power anchor."], {
+        getterSetter = "CLASSPOWER_ANCHOR_OFFSET_Y",
+        callback = function()
+            if GwPlayerClassPower then
+                GW.UpdateClasspowerSetting(GwPlayerClassPower)
+            end
+        end,
+        min = -200,
+        max = 200,
+        decimalNumbers = 0,
+        step = 1,
+        dependence = {["CLASS_POWER"] = true},
+        hidden = GW.Classic or GW.TBC
+    })
+    classpower:AddOptionSlider(GW.NewSign .. L["Custom resource bar gap"], L["Controls spacing between class power and optional custom resource bars."], {
+        getterSetter = "CLASSPOWER_CUSTOMRESOURCEBAR_GAP",
+        callback = function()
+            if GwPlayerClassPower then
+                GW.UpdateClasspowerSetting(GwPlayerClassPower)
+            end
+        end,
+        min = 0,
+        max = 100,
+        decimalNumbers = 0,
+        step = 1,
+        dependence = {["CLASS_POWER"] = true},
+        hidden = GW.Classic or GW.TBC
+    })
     classpower:AddOption(L["Show classpower bar only in combat"], nil, {getterSetter = "CLASSPOWER_ONLY_SHOW_IN_COMBAT", callback = function() GW.UpdateClassPowerVisibilitySetting(GwPlayerClassPower, true) end, dependence = {["CLASS_POWER"] = true}, hidden = GW.Classic or GW.TBC})
     classpower:AddOption(L["Energy/Mana Ticker"], nil, {getterSetter = "PLAYER_ENERGY_MANA_TICK", callback = GW.Update5SrHot,  dependence = {["POWERBAR_ENABLED"] = true}, hidden = GW.Retail or GW.Mists})
     classpower:AddOption(L["5 second rule: display remaining time"], nil, {getterSetter = "PLAYER_5SR_TIMER", callback = GW.Update5SrHot,  dependence = {["POWERBAR_ENABLED"] = true, ["PLAYER_ENERGY_MANA_TICK"] = true}, hidden = GW.Retail or GW.Mists})
