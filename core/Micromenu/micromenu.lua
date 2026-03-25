@@ -2,8 +2,78 @@
 local GW = select(2, ...)
 local L = GW.L
 local updateIcon
+local microMenuNotificationAnimatedIcons = {}
 
 local PERFORMANCE_BAR_UPDATE_INTERVAL = 1
+local MAIL_ICON_ANIMATION_CONFIG = {
+    texture = "Interface/AddOns/GW2_UI/textures/icons/microicons/MailMicroButton-up.png",
+    size = 30,
+    point = {"CENTER", "CENTER", 0, 0},
+    blendMode = "ADD",
+    vertexColor = {1, 0.84, 0.5, 1},
+    fadeInDuration = 0.28,
+    fadeOutDuration = 0.20,
+    fromAlpha = 0,
+    toAlpha = 0.62,
+    scaleFrom = 0.94,
+    scaleTo = 1.08,
+}
+local WORKORDER_ICON_ANIMATION_CONFIG = {
+    size = 30,
+    point = {"CENTER", "CENTER", 0, 0},
+    blendMode = "ADD",
+    vertexColor = {1, 0.84, 0.5, 1},
+    fadeInDuration = 0.28,
+    fadeOutDuration = 0.20,
+    fromAlpha = 0,
+    toAlpha = 0.55,
+    scaleFrom = 0.94,
+    scaleTo = 1.08,
+}
+
+local function IsMicroMenuNotificationAnimationEnabled()
+    return GW.settings.MICROMENU_NOTIFICATION_ICON_ANIMATION
+end
+
+local function PlayMicroMenuNotificationFlash(frame)
+    if not frame then
+        return
+    end
+
+    if IsMicroMenuNotificationAnimationEnabled() then
+        GW.FrameFlash(frame, 1, 0.3, 1, true)
+    else
+        GW.StopFlash(frame)
+    end
+end
+
+local function RegisterMicroMenuNotificationIcon(frame, refreshFn)
+    if not frame then
+        return
+    end
+
+    for i = 1, #microMenuNotificationAnimatedIcons do
+        if microMenuNotificationAnimatedIcons[i].frame == frame then
+            if refreshFn then
+                microMenuNotificationAnimatedIcons[i].refresh = refreshFn
+            end
+            return
+        end
+    end
+
+    tinsert(microMenuNotificationAnimatedIcons, {frame = frame, refresh = refreshFn})
+end
+
+local function ForEachMicroMenuNotificationIcon(callback)
+    for i = #microMenuNotificationAnimatedIcons, 1, -1 do
+        local entry = microMenuNotificationAnimatedIcons[i]
+        if not entry or not entry.frame then
+            tremove(microMenuNotificationAnimatedIcons, i)
+        else
+            callback(entry.frame, entry.refresh)
+        end
+    end
+end
 
 local MICRO_BUTTONS_LOCAL = {
     "CharacterMicroButton",
@@ -67,7 +137,7 @@ do
                 end
 
                 if isUpdate and not printChatMessage then
-                    GW.FrameFlash(updateIcon, 1, 0.3, 1, true)
+                    PlayMicroMenuNotificationFlash(updateIcon)
                     GW.Notice(updateIcon.tooltipText)
                     updateIcon:Show()
                     printChatMessage = true
@@ -469,18 +539,48 @@ local function mailIconTooltip()
 	GameTooltip:Show()
 end
 
-local function mailIconOnEvent(self, event)
-    if event == "UPDATE_PENDING_MAIL" then
-        if HasNewMail() then
-            self:Show()
-            self.GwNotify:Show()
-            if GameTooltip:IsOwned(self) then
-                mailIconTooltip()
-            end
-        else
-            self:Hide()
-            self.GwNotify:Hide()
+local function stopMailIconNotificationAnimation(self)
+    GW.StopIconNotificationAnimation(self)
+    if self.GwNotify then
+        self.GwNotify:Hide()
+    end
+
+    GW.StopFlash(self)
+end
+
+local function updateMailIconNotificationAnimation(self, playEntrancePop)
+    if not self or not self.GwNotify then
+        return
+    end
+
+    if not IsMicroMenuNotificationAnimationEnabled() then
+        stopMailIconNotificationAnimation(self)
+        self.GwNotify:Show()
+        return
+    end
+
+    if playEntrancePop then
+        self.GwNotify:Hide()
+        GW.PlayIconNotificationAnimation(self, MAIL_ICON_ANIMATION_CONFIG)
+        PlayMicroMenuNotificationFlash(self)
+    else
+        GW.StopIconNotificationAnimation(self)
+    end
+end
+
+local function mailIconOnEvent(self)
+    if HasNewMail() then
+        self:Show()
+        updateMailIconNotificationAnimation(self, true)
+        self.gwHasNewMail = true
+        if GameTooltip:IsOwned(self) then
+            mailIconTooltip()
         end
+    else
+        self.gwHasNewMail = false
+        stopMailIconNotificationAnimation(self)
+        self:Hide()
+        self.GwNotify:Hide()
     end
 end
 
@@ -491,14 +591,40 @@ local function mailIconOnEnter(self)
     end
 end
 
+function GW.ToggleMicroMenuNotificationIconAnimation()
+    local animationsEnabled = IsMicroMenuNotificationAnimationEnabled()
+
+    ForEachMicroMenuNotificationIcon(function(frame, refreshFn)
+        if refreshFn then
+            refreshFn(frame)
+        end
+
+        if not animationsEnabled then
+            GW.StopFlash(frame)
+            GW.StopIconNotificationAnimation(frame)
+        end
+    end)
+end
+
 --workoOrderIcon
 local function workOrderIconOnEvent(self, event)
     if event == "CRAFTINGORDERS_UPDATE_PERSONAL_ORDER_COUNTS" or event == "PLAYER_ENTERING_WORLD" then
         self.countInfos = C_CraftingOrders.GetPersonalOrdersInfo()
         if #self.countInfos > 0 then
+            local shouldPlayEntrance = not self:IsShown()
             self:Show()
-            self.GwNotify:Show()
+            if IsMicroMenuNotificationAnimationEnabled() then
+                self.GwNotify:Hide()
+                if shouldPlayEntrance then
+                    GW.PlayIconNotificationAnimation(self, WORKORDER_ICON_ANIMATION_CONFIG)
+                    PlayMicroMenuNotificationFlash(self)
+                end
+            else
+                GW.StopIconNotificationAnimation(self)
+                self.GwNotify:Show()
+            end
         else
+            GW.StopIconNotificationAnimation(self)
             self:Hide()
             self.GwNotify:Hide()
         end
@@ -752,9 +878,11 @@ local function setupMicroButtons(mbf)
         -- CollectionsMicroButton
         CollectionsMicroButton:ClearAllPoints()
         CollectionsMicroButton:SetPoint("BOTTOMLEFT", EJMicroButton, "BOTTOMRIGHT", 4, 0)
+        RegisterMicroMenuNotificationIcon(EJMicroButton)
+        RegisterMicroMenuNotificationIcon(CollectionsMicroButton)
         hooksecurefunc("MicroButtonPulse", function(self)
             if self == CollectionsMicroButton or self == EJMicroButton then
-                GW.FrameFlash(self, 1, 0.3, 1, true)
+                PlayMicroMenuNotificationFlash(self)
             end
         end)
 
@@ -854,6 +982,7 @@ local function setupMicroButtons(mbf)
         greatVaultIcon.tooltipText = RATED_PVP_WEEKLY_VAULT
         greatVaultIcon.textureName = "GreatVaultMicroButton"
         reskinMicroButton(greatVaultIcon, "GreatVaultMicroButton", mbf)
+        RegisterMicroMenuNotificationIcon(greatVaultIcon)
         greatVaultIcon:ClearAllPoints()
         greatVaultIcon:SetPoint("BOTTOMLEFT", C_AddOns.IsAddOnLoaded("Dominos") and HelpMicroButton or StoreMicroButton, "BOTTOMRIGHT", 4, 0)
         greatVaultIcon:SetScript("OnMouseUp", function(self, button, upInside)
@@ -876,13 +1005,13 @@ local function setupMicroButtons(mbf)
                 local level = ...
                 if level >= GetMaxLevelForPlayerExpansion() then
                     self:SetEnabled(true)
-                    GW.FrameFlash(self, 1, 0.3, 1, true)
+                    PlayMicroMenuNotificationFlash(self)
                 end
             elseif event == "WEEKLY_REWARDS_UPDATE" or event == "PLAYER_ENTERING_WORLD" then
                 C_Timer.After(0.5, function()
                     if C_WeeklyRewards.HasAvailableRewards() then
                         greatVaultIcon.tooltipText = RATED_PVP_WEEKLY_VAULT .. "\n" .. GW.RGBToHex(GREEN_FONT_COLOR:GetRGB()) .. MYTHIC_PLUS_COLLECT_GREAT_VAULT .. "|r"
-                        GW.FrameFlash(greatVaultIcon, 1, 0.3, 1, true)
+                        PlayMicroMenuNotificationFlash(greatVaultIcon)
                     else
                         greatVaultIcon.tooltipText = RATED_PVP_WEEKLY_VAULT
                         GW.StopFlash(greatVaultIcon)
@@ -917,6 +1046,7 @@ local function SetupNotificationArea(mbf)
     updateIcon:Hide()
     updateIcon:HookScript("OnEnter", update_OnEnter)
     updateIcon:SetFrameLevel(mbf.cf:GetFrameLevel() + 10)
+    RegisterMicroMenuNotificationIcon(updateIcon)
 
     -- Mail icon
     local mailIcon = CreateFrame("Button", nil, mbf, "MainMenuBarMicroButton")
@@ -932,6 +1062,9 @@ local function SetupNotificationArea(mbf)
     mailIcon:HookScript("OnLeave", GameTooltip_Hide)
     mailIcon:SetScript("OnEvent", mailIconOnEvent)
     mailIcon:SetFrameLevel(mbf.cf:GetFrameLevel() + 10)
+    RegisterMicroMenuNotificationIcon(mailIcon, function(frame)
+        mailIconOnEvent(frame)
+    end)
 
     if GW.Retail then
         -- workorder icon
@@ -949,6 +1082,9 @@ local function SetupNotificationArea(mbf)
         workOrderIcon:HookScript("OnLeave", GameTooltip_Hide)
         workOrderIcon:SetScript("OnEvent", workOrderIconOnEvent)
         workOrderIcon:SetFrameLevel(mbf.cf:GetFrameLevel() + 10)
+        RegisterMicroMenuNotificationIcon(workOrderIcon, function(frame)
+            workOrderIconOnEvent(frame, "PLAYER_ENTERING_WORLD")
+        end)
     end
 
     -- blizzard ticket icon

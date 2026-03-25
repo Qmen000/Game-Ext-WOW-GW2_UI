@@ -281,6 +281,14 @@ function GW.UnitExists(unit)
     return unit and (UnitExists(unit) or UnitIsVisible(unit))
 end
 
+function GW.UnitEffectiveLevel(unit)
+    if GW.Retail or GW.Mists or GW.Wrath or GW.TBC then
+        return UnitEffectiveLevel(unit)
+    else
+        return UnitLevel(unit)
+    end
+end
+
 function GW.UnitIsAFK(unit)
     local afk = UnitIsAFK(unit)
 

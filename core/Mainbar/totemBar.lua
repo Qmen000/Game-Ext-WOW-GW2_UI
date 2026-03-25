@@ -3,39 +3,36 @@ local GW = select(2, ...)
 local TOTEM_BAR_BUTTON_SIZE = 48
 local TOTEM_BAR_BUTTON_MARGIN = 3
 
-local classic = { [1] = 2, [2] = 1, [3] = 4, [4] = 3 }
+local classic = { 2, 1, 3, 4 }
 
 local function UpdateButton(button, totem)
     if not (button and totem) then return end
 
-    local haveTotem, _, startTime, duration, icon, _, spellId = GetTotemInfo((GW.Classic or GW.TBC) and totem or totem.slot)
+    local slot = (GW.Classic or GW.TBC) and totem or totem.slot
+    local _, _, startTime, duration, icon = GetTotemInfo(slot)
 
-    if GW.Retail then
-        local durationObject = C_Spell.GetSpellCooldownDuration(spellId)
-        button:SetAlphaFromBoolean(haveTotem, 1, 0)
+    if startTime then
         button.iconTexture:SetTexture(icon)
-        button.cooldown:SetCooldownFromDurationObject(durationObject)
-
-        if totem:GetParent() ~= button.holder then
-            totem:SetParent(button.holder)
-        end
-
-        totem:SetAllPoints(button.holder)
-    else
-        button:SetShown(startTime and duration > 0)
-        if startTime then
-            button.iconTexture:SetTexture(icon)
+        if GW.IsSecretValue(duration) then
+            button.cooldown:SetCooldownFromDurationObject(GetTotemDuration(slot))
+        elseif duration and duration > 0 then
             button.cooldown:SetCooldown(startTime, duration)
-
-            if GW.Mists then
-                if totem:GetParent() ~= button.holder then
-                    totem:SetParent(button.holder)
-                end
-
-                totem:SetAllPoints(button.holder)
-            end
+        else
+            button.cooldown:Clear()
         end
+
+        if GW.Mists or GW.Retail then
+            if totem:GetParent() ~= button.holder then
+                totem:SetParent(button.holder)
+            end
+
+            totem:SetAllPoints(button.holder)
+        end
+    else
+        button.cooldown:Clear()
     end
+
+    button:SetShown(button.cooldown:IsShown())
 end
 
 local function OnEvent(self)
@@ -43,7 +40,9 @@ local function OnEvent(self)
 
     if GW.Retail then
         for _, button in ipairs(self) do
-            button:SetAlpha(0)
+            if button:IsShown() then
+                button:SetShown(false)
+            end
         end
 
         for totem in TotemFrame.totemPool:EnumerateActive() do
@@ -56,7 +55,7 @@ local function OnEvent(self)
     end
 end
 
-local function PositionAndSize(self)
+function GW.UpdateTotembar(self)
     local growDirection = GW.settings.TotemBar_GrowDirection
     local sortDirection = GW.settings.TotemBar_SortDirection
 
@@ -107,9 +106,8 @@ local function PositionAndSize(self)
 
     OnEvent(self)
 end
-GW.UpdateTotembar = PositionAndSize
 
-local function CreateTotemBar()
+function GW.CreateTotemBar()
     local totemBar = CreateFrame("Frame", "GW_TotemBar", UIParent)
 
     for i = 1, MAX_TOTEMS do
@@ -118,19 +116,13 @@ local function CreateTotemBar()
         button:SetID(i)
         button:SetPushedTexture("Interface/AddOns/GW2_UI/textures/uistuff/actionbutton-pressed.png")
         button:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/uistuff/ui-quickslot-depress.png")
+        button:Hide()
 
         local backDrop = CreateFrame("Frame", nil, button, "GwActionButtonBackdropTmpl")
         local backDropSize = 1
 
         backDrop:SetPoint("TOPLEFT", button, "TOPLEFT", -backDropSize, backDropSize)
         backDrop:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", backDropSize, -backDropSize)
-
-        if GW.Retail then
-            button:SetAlpha(0)
-            button:EnableMouse(false)
-        else
-            button:Hide()
-        end
 
         button.holder = CreateFrame("Frame", nil, button)
         button.holder:SetAlpha(0)
@@ -155,7 +147,7 @@ local function CreateTotemBar()
         totemBar[i] = button
     end
 
-    PositionAndSize(totemBar)
+    GW.UpdateTotembar(totemBar)
 
     totemBar:RegisterEvent("PLAYER_TOTEM_UPDATE")
     totemBar:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -170,4 +162,3 @@ local function CreateTotemBar()
     totemBar:ClearAllPoints()
     totemBar:SetPoint("TOPLEFT", totemBar.gwMover)
 end
-GW.CreateTotemBar = CreateTotemBar

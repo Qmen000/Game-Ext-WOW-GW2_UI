@@ -411,7 +411,7 @@ local function SetUnitText(self, unit, isPlayerUnit)
 
         local guildName, guildRankName, _, guildRealm = GetGuildInfo(unit)
         local pvpName, gender = UnitPVPName(unit), UnitSex(unit)
-        local level, realLevel = (GW.Retail and UnitEffectiveLevel or UnitLevel)(unit), UnitLevel(unit)
+        local level, realLevel = GW.UnitEffectiveLevel(unit), UnitLevel(unit)
         local relationship = UnitRealmRelationship(unit)
         local isShiftKeyDown = IsShiftKeyDown()
 
@@ -480,14 +480,14 @@ local function SetUnitText(self, unit, isPlayerUnit)
 
         return nameColor
     else
-        local isPetCompanion = GW.Retail and UnitIsBattlePetCompanion(unit)
+        local isPetCompanion = not GW.Classic and UnitIsBattlePetCompanion(unit)
         local levelLine, classLine = GetLevelLine(self, 1)
         if levelLine then
-            local pvpFlag, diffColor, level = "", "", ""
+            local pvpFlag, diffColor, level = ""
             local creatureClassification = UnitClassification(unit)
             local creatureType = UnitCreatureType(unit)
 
-            if isPetCompanion or (GW.Retail and UnitIsWildBattlePet(unit)) then
+            if isPetCompanion or (not GW.Classic and UnitIsWildBattlePet(unit)) then
                 level = UnitBattlePetLevel(unit)
 
                 local petType = UnitBattlePetType(unit)
@@ -505,7 +505,7 @@ local function SetUnitText(self, unit, isPlayerUnit)
                     diffColor = GetCreatureDifficultyColor(level)
                 end
             else
-                level = (GW.Retail and UnitEffectiveLevel or UnitLevel)(unit)
+                level = GW.UnitEffectiveLevel(unit)
                 diffColor = GetCreatureDifficultyColor(level)
             end
 
@@ -515,10 +515,12 @@ local function SetUnitText(self, unit, isPlayerUnit)
 
             levelLine:SetFormattedText("|cff%02x%02x%02x%s|r%s %s%s", diffColor.r * 255, diffColor.g * 255, diffColor.b * 255, level > 0 and level or "??", classification[creatureClassification] or "", creatureType or "", pvpFlag)
 
-            local classText = creatureType and classLine and GW.NotSecretValue(classLine) and classLine:GetText()
-            if creatureType == classText then
-                classLine:SetText("")
-                classLine:Hide()
+            if classLine then
+                local classText = classLine:GetText()
+                if GW.NotSecretValue(classText) and (classText == creatureType) then
+                    classLine:SetText("")
+                    classLine:Hide()
+                end
             end
         end
 

@@ -544,7 +544,7 @@ local function UpdateData(self)
         nextLevel = nextLevel .. " |TInterface/AddOns/GW2_UI/textures/icons/levelreward-icon.png:20:20:0:0|t"
     end
 
-    local effectiveLevel = UnitEffectiveLevel("player")
+    local effectiveLevel = GW.UnitEffectiveLevel("player")
     if GW.mylevel ~= effectiveLevel then
         level = level .. " |cFF00FF00(" .. effectiveLevel .. ")|r"
     end

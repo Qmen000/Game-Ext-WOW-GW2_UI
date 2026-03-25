@@ -5,6 +5,7 @@ NEW
     - Added custom resource bar side option: Auto, Left, Right
     - Added minimap setting to always show the AddOn flyout button
     - Added minimap behavior to show a single AddOn button directly when flyout is not forced
+    - Added setting to animate micro menu notification icons
 
 CHANGES
     - Added EN/DE localization and descriptions for the new class power settings
@@ -24,6 +25,7 @@ FIXES
     - Fixed mail inbox bottom button vertical alignment
     - Fixed mail open view scroll area sizing and scrollbar spacing
     - Fixed mail separator visibility and sizing in compact/expanded modes
+    - Fixed tooltip taint from comparing secret class text values (classLine:GetText)
 
 10.5.1
 FIXES

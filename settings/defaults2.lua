@@ -353,6 +353,7 @@ GW.globalDefault = {
         CHATFRAME_EDITBOX_HIDE= true,
         FADE_MICROMENU= false,
         MICROMENU_EVENT_TIMER_ICON= false,
+        MICROMENU_NOTIFICATION_ICON_ANIMATION= true,
         AFK_MODE= true,
         CHAT_MAX_COPY_CHAT_LINES= 100,
         CHAT_USE_GW2_STYLE= true,
