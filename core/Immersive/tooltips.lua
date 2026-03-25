@@ -23,8 +23,8 @@ local genderTable = {
 local LEVEL1 = strlower(TOOLTIP_UNIT_LEVEL:gsub("%s?%%s%s?%-?",""))
 local LEVEL2 = strlower((TOOLTIP_UNIT_LEVEL_RACE or TOOLTIP_UNIT_LEVEL_CLASS):gsub("^%%2$s%s?(.-)%s?%%1$s","%1"):gsub("^%-?г?о?%s?",""):gsub("%s?%%s%s?%-?",""))
 local IDLine = "|cffffedba%s|r %d"
-local AFK_LABEL = " |cffFFFFFF[|r|cffFF9900" .. L["AFK"] .. "|r|cffFFFFFF]|r"
-local DND_LABEL = " |cffFFFFFF[|r|cffFF3333" .. L["DND"] .. "|r|cffFFFFFF]|r"
+local AFK_LABEL = " |cffFFFFFF[|r|cffFF9900" .. AFK .. "|r|cffFFFFFF]|r"
+local DND_LABEL = " |cffFFFFFF[|r|cffFF3333" .. DND .. "|r|cffFFFFFF]|r"
 
 local TT = CreateFrame("Frame")
 
