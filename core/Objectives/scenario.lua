@@ -349,7 +349,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     local intGWQuestTrackerHeight = 0
     if timerBlock.affixeFrame:IsShown() then intGWQuestTrackerHeight = intGWQuestTrackerHeight + 40 end
     if timerBlock.timer:IsShown() then intGWQuestTrackerHeight = intGWQuestTrackerHeight + 40 end
-    print(showTimerAsBonus, widgetId)
+
     if showTimerAsBonus or timerBlock.needToShowTime then
         timerBlock.height = GwQuestTrackerTimerSavedHeight
     end

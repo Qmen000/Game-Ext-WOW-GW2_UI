@@ -1,3 +1,7 @@
+10.6.1
+FIXES
+    - Removed debug text output from scenario event timer updates
+
 10.6.0
 NEW
     - Added class power anchor modes: Default, Center, Left and Right

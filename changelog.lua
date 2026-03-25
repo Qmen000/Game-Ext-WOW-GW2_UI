@@ -13,6 +13,10 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("10.6.1", {
+    {GW.Enum.ChangelogType.bug, [=[Removed debug text output from scenario event timer updates]=]},
+})
+
 addChange("10.6.0", {
     {GW.Enum.ChangelogType.feature, [=[Added class power anchor modes: Default, Center, Left and Right]=]},
     {GW.Enum.ChangelogType.feature, [=[Added class power settings: anchor X offset, anchor Y offset and custom resource bar gap]=]},
