@@ -169,6 +169,7 @@ local function CreateRaidControlFrame()
 
     local fnGGRC_OnClick = function()
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+        if GW.Retail and InCombatLockdown() then return end
         DoReadyCheck()
     end
     GwGroupManage.inGroup.readyCheck:SetScript("OnClick", fnGGRC_OnClick)
@@ -183,6 +184,7 @@ local function CreateRaidControlFrame()
         if IsControlKeyDown() and button == "LeftButton" and C_AddOns.IsAddOnLoaded("DBM-Core") then
             SlashCmdList.DEADLYBOSSMODSPULL(GW.settings.pulltimerSeconds)
         else
+            if GW.Retail and InCombatLockdown() then return end
             C_PartyInfo.DoCountdown(GW.settings.pulltimerSeconds)
         end
     end
@@ -217,6 +219,7 @@ local function CreateRaidControlFrame()
 
     local fnGGMC_OnClick = function()
         if GW.Retail then
+            if InCombatLockdown() then return end
             if IsInRaid() then
                 C_PartyInfo.ConvertToParty()
             else
