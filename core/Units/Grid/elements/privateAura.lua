@@ -9,7 +9,7 @@ end
 function GW.UpdatePrivateAurasSettings(frame)
     if not GW.Retail then return end
 
-    frame.PrivateAuras:SetFrameLevel(frame.RaisedElementParent.PrivateAurasLevel)
+    frame.PrivateAuras:SetFrameLevel(frame.RaisedElementParent:GetFrameLevel() + 105)
     frame.PrivateAuras:ClearAllPoints()
     frame.PrivateAuras:SetPoint("CENTER", frame)
     frame.PrivateAuras:SetSize(frame:GetSize())
