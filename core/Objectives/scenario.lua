@@ -4,105 +4,255 @@ local GW = select(2, ...)
 local TIME_FOR_3 = 0.6
 local TIME_FOR_2 = 0.8
 
-local allowedWidgetUpdateIdsForTimer = {
-    [2904] = {hasTimer = false}, -- Ember Court
-    [2906] = {hasTimer = false}, -- Ember Court
-    [3302] = {hasTimer = false}, -- DF cooking event
-    [5527] = {hasTimer = false}, -- DF archeolgy event
-    [6183] = {hasTimer = false}, -- TWW delve
-    [5483] = {hasTimer = false}, -- TWW theather event
-    --[5986] = true, -- 20th still needed?
-    --[5990] = true, -- 20th still needed?
-    --[5991] = true, -- 20th still needed?
-    [5865] = {hasTimer = true}, -- TWW echos
-    [6268] = {hasTimer = false}, -- Night (1361)
-    [6286] = {hasTimer = false}, -- Night (1367)
-    [6289] = {hasTimer = false}, -- Night (1370)
-    [6287] = {hasTimer = false}, -- Night (1368)
-    [6288] = {hasTimer = false}, -- Night (1369)
-    [6731] = {hasTimer = true, excludedMapIds = {2405}, includeMapIds = {2522, 2579, 2580, 2581, 2582}}, -- Abundance (ignore on Stormarion map)
-    [7042] = {hasTimer = false, mapId = 2405, excludedMapIds = {2582, 2581}}, -- Stormarion Assault prep
-    [7043] = {hasTimer = false, mapId = 2405, excludedMapIds = {2582, 2581}}, -- Stormarion Assault wave 1
-    [7241] = {hasTimer = false, mapId = 2405, excludedMapIds = {2582, 2581}}, -- Stormarion Assault wave 2
-    [7242] = {hasTimer = false, mapId = 2405, excludedMapIds = {2582, 2581}}, -- Stormarion Assault wave 3
-}
-
-local allowedWidgetUpdateIdsForStatusBar = {
-    [6758] = {additon = true}, -- 11.1.0
-    [6280] = {additon = true}, -- 11.1.5
-    [6849] = {additon = true}, -- 12.0.1
-}
-
+GwObjectivesScenarioContainerWidgetMixin = {}
 GwObjectivesScenarioContainerMixin = {}
 GwQuesttrackerScenarioBlockMixin = {}
 
-local widgetId = nil
+function GwObjectivesScenarioContainerWidgetMixin:RemoveAllWidgets()
+	self.widgetFrames = {}
+	self.timerWidgets = {}
+	self.numTimers = 0
 
-local function IsMapInList(mapList, mapID)
-    if not mapList then
-        return false
-    end
+	if self.timerBlock.ticker then
+		self.timerBlock.ticker:Cancel()
+		self.timerBlock.ticker = nil
+	end
 
-    for _, id in ipairs(mapList) do
-        if id == mapID then
-            return true
-        end
-    end
-
-    return false
+    self.widgetPools:ReleaseAll()
 end
 
-local function IsTimerDataAllowedOnMap(timerData, mapID)
-    if timerData.excludedMapId and timerData.excludedMapId == mapID then
-        return false
-    end
+function GwObjectivesScenarioContainerWidgetMixin:RegisterTimerWidget(widgetID, widgetFrame)
+	if not self.timerWidgets[widgetID] then
+		-- New timer added
+		self.timerWidgets[widgetID] = widgetFrame
+		if not self.timerBlock.ticker then
+			self.timerBlock.ticker = C_Timer.NewTicker(1,
+				function()
+					for id, widget in pairs(self.timerWidgets) do
+						self:ProcessWidget(id, widget.widgetType)
+					end
+				end)
+		end
 
-    if IsMapInList(timerData.excludedMapIds, mapID) then
-        return false
-    end
-
-    if timerData.mapId and timerData.mapId ~= mapID then
-        return false
-    end
-
-    return true
+		self.numTimers = self.numTimers + 1
+	end
 end
 
-local function FindIncludedTimerWidgetForMap(mapID)
-    for id, data in pairs(allowedWidgetUpdateIdsForTimer) do
-        if data.includeMapIds and IsMapInList(data.includeMapIds, mapID) and IsTimerDataAllowedOnMap(data, mapID) then
-            return id
+function GwObjectivesScenarioContainerWidgetMixin:UnregisterTimerWidget(widgetID)
+	if self.timerWidgets[widgetID] then
+		-- Existing timer removed
+		self.timerWidgets[widgetID] = nil
+
+		self.numTimers = self.numTimers - 1
+
+		if self.numTimers == 0 and self.timerBlock.ticker then
+			self.timerBlock.ticker:Cancel()
+			self.timerBlock.ticker = nil
+		end
+	end
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:RemoveWidget(widgetID)
+	local widgetFrame = self.widgetFrames[widgetID]
+	if not widgetFrame then
+		-- This widget was never created. Nothing to do
+		return
+	end
+
+	-- If this is a widget with a timer, remove it from the timer list
+	self:UnregisterTimerWidget(widgetID)
+
+    self.widgetPools:Release(widgetFrame)
+	self.widgetFrames[widgetID] = nil
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:OnEvent(event, ...)
+    if event == "UPDATE_ALL_UI_WIDGETS" then
+        print("ProcessAllWidgets")
+		self:ProcessAllWidgets()
+	elseif event == "UPDATE_UI_WIDGET" then
+		local widgetInfo = ...
+		if self:IsRegisteredForWidgetSet(widgetInfo.widgetSetID) then
+            print("EVENT", "ProcessWidget", widgetInfo.widgetID, widgetInfo.widgetType)
+			self:ProcessWidget(widgetInfo.widgetID, widgetInfo.widgetType)
+		end
+	end
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:IsRegisteredForWidgetSet(widgetSetID)
+	if widgetSetID then
+		return self.widgetSetID == widgetSetID
+	else
+		return self.widgetSetID ~= nil
+	end
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:GetWidgetFromPools(templateInfo)
+	if templateInfo then
+		return self.widgetPools:Acquire()
+	end
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:CreateWidget(widgetID, widgetType, widgetTypeInfo, widgetInfo)
+	local widgetFrame = self:GetWidgetFromPools(widgetTypeInfo.templateInfo)
+
+	widgetFrame.widgetID = widgetID
+	widgetFrame.widgetSetID = self.widgetSetID
+	widgetFrame.widgetType = widgetType
+	widgetFrame.hasTimer = widgetInfo.hasTimer
+
+
+	-- If this is a widget with a timer, add it from the timer list
+	 if widgetInfo and (widgetInfo.hasTimer or (widgetInfo.timerMax > 0 and widgetInfo.timerValue <= widgetInfo.timerMax and widgetInfo.timerValue > 0)) then
+		self:RegisterTimerWidget(widgetID, widgetFrame)
+	end
+
+	self.widgetFrames[widgetID] = widgetFrame
+
+	return widgetFrame
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:HandleTimer(timerBlock, widgetInfo)
+    if widgetInfo.shownState ~= Enum.WidgetShownState.Hidden then
+        local timerValue = Clamp(widgetInfo.timerValue, widgetInfo.timerMin, widgetInfo.timerMax)
+        local timeRemaining = timerValue - widgetInfo.timerMin
+        local timerText = SecondsToClock(timeRemaining)
+
+        timerBlock.timer:SetMinMaxValues(widgetInfo.timerMin, widgetInfo.timerMax)
+        timerBlock.timer:SetValue(timerValue)
+        timerBlock.timerString:SetText(timerText)
+
+        timerBlock.timer:Show()
+    else
+        timerBlock.timer:SetShown(timerBlock.needToShowTimer)
+        if not timerBlock.needToShowTimer then
+            timerBlock.height = 1
         end
+    end
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:IsTimerRunning()
+    return (self.numTimers or 0) > 0
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:ProcessWidget(widgetID, widgetType)
+    local widgetTypeInfo = UIWidgetManager:GetWidgetTypeInfo(widgetType)
+	if not widgetTypeInfo then
+		-- This WidgetType is not supported (nothing called RegisterWidgetVisTypeTemplate for it)
+		return
+	end
+
+    local widgetInfo = widgetTypeInfo.visInfoDataFunction(widgetID)
+    local widgetFrame = self.widgetFrames[widgetID]
+	local widgetAlreadyExisted = (widgetFrame ~= nil)
+
+	if widgetAlreadyExisted and widgetFrame.widgetType ~= widgetType then
+		-- This widget existed already but the type has changed, so release the old widget frame and treat it as a brand new widget
+        self:RemoveWidget(widgetID)
+		widgetAlreadyExisted = false
+	end
+    local isNewWidget = false
+    if widgetAlreadyExisted then
+		if not widgetInfo then
+			self:RemoveWidget(widgetID)
+			return
+		end
+
+	else
+		-- Widget did not already exist
+		if widgetInfo then
+			-- And it should be shown...create it
+			widgetFrame = self:CreateWidget(widgetID, widgetType, widgetTypeInfo, widgetInfo)
+			isNewWidget = true
+		else
+			-- Widget should not be shown. It didn't already exist so there is nothing to do
+			return
+		end
+	end
+    if widgetInfo and (widgetInfo.hasTimer or (widgetInfo.timerMax > 0 and widgetInfo.timerValue <= widgetInfo.timerMax and widgetInfo.timerValue > 0)) then
+        print("handle TImer")
+        self:HandleTimer(self.timerBlock, widgetInfo)
+    elseif widgetInfo then
+        print("handle none timer")
+        wipe(self.widgetInfoForStatusBar)
+        tinsert(self.widgetInfoForStatusBar, widgetInfo)
+        self.layoutFunc(self.container)
+    end
+
+    if isNewWidget then
+        self.layoutFunc(self.container)
+    end
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:ProcessAllWidgets()
+    local setWidgets = C_UIWidgetManager.GetAllWidgetsBySetID(self.widgetSetID)
+	for _, widgetInfo in ipairs(setWidgets) do
+		self:ProcessWidget(widgetInfo.widgetID, widgetInfo.widgetType)
+	end
+
+    self.layoutFunc(self.container)
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:UnregisterForWidgetSet()
+    if not self.widgetSetID then
+		-- We are not registered to a WidgetSet...nothing to do
+		return
+	end
+
+    self:RemoveAllWidgets()
+
+    self.widgetSetID = nil
+    self.widgetID = nil
+    self.layoutFunc = nil
+    wipe(self.widgetInfoForStatusBar)
+
+    self:UnregisterEvent("UPDATE_ALL_UI_WIDGETS")
+	self:UnregisterEvent("UPDATE_UI_WIDGET")
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:RegisterForWidgetSet(widgetSetID)
+    if self.widgetSetID then
+		-- We are already registered to a WidgetSet
+		if self.widgetSetID == widgetSetID then
+			-- And it's the same WidgetSet we are trying to register again...nothing to do
+			return
+		else
+			-- We are already registered for a different WidgetSet...unregister it
+			self:UnregisterForWidgetSet()
+		end
+	end
+
+    if not widgetSetID then
+		return
+	end
+
+    self.widgetSetID = widgetSetID
+    self.layoutFunc = self.container.UpdateLayout
+    self.widgetFrames = {}
+	self.timerWidgets = {}
+    self.widgetInfoForStatusBar = {}
+	self.numTimers = 0
+
+    self:ProcessAllWidgets()
+
+    self:RegisterEvent("UPDATE_ALL_UI_WIDGETS")
+	self:RegisterEvent("UPDATE_UI_WIDGET")
+end
+
+function GwObjectivesScenarioContainerMixin:ClearWidgetSet()
+    self:UpdateWidgetRegistration()
+end
+
+function GwObjectivesScenarioContainerMixin:UpdateWidgetRegistration(widgetSetID)
+	self.timerWidgetManager:RegisterForWidgetSet(widgetSetID)
+    if widgetSetID ~= nil then
+        self.statusBarWidgetManager:RegisterForWidgetSet(514)
+    else
+        self.statusBarWidgetManager:RegisterForWidgetSet()
     end
 end
 
 function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
-    if event == "UPDATE_UI_WIDGET" then
-        local w = ...
-        local widgetID = w and w.widgetID
-        if not widgetID then
-            return
-        end
-
-        local timerData = allowedWidgetUpdateIdsForTimer[widgetID]
-        local isTimerWidget = timerData ~= nil
-        local isStatusWidget = allowedWidgetUpdateIdsForStatusBar[widgetID] ~= nil
-        if not (isTimerWidget or isStatusWidget) then
-            return
-        end
-
-        if isTimerWidget then
-            local currentMapID = GW.Libs.GW2Lib:GetPlayerLocationMapID()
-            if IsTimerDataAllowedOnMap(timerData, currentMapID) then
-                widgetId = widgetID
-            else
-                local includedWidgetID = FindIncludedTimerWidgetForMap(currentMapID)
-                if includedWidgetID then
-                    widgetId = includedWidgetID
-                end
-            end
-        end
-    end
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Scenario)
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Torghast)
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Delve)
@@ -121,8 +271,6 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
 
     local block = self.block
     local timerBlock = self.timerBlock
-    local showTimerAsBonus = false
-    local GwQuestTrackerTimerSavedHeight = 1
 
     block.height = 1
 
@@ -167,13 +315,13 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
             timerBlock.height = 1
             timerBlock:SetHeight(timerBlock.height)
         end
-        GW.TerminateScenarioWidgetTimer(timerBlock)
-        widgetId = nil
+        self:ClearWidgetSet()
 
         return
     end
 
-    local stageName, stageDescription, numCriteria, _, _, _, _, _, allSpellInfo, _, questID = C_Scenario.GetStepInfo()
+    local stageName, stageDescription, numCriteria, _, _, _, _, _, allSpellInfo, _, questID, widgetSetID = C_Scenario.GetStepInfo()
+    self:UpdateWidgetRegistration(widgetSetID)
     local _, _, difficultyID, difficultyName = GetInstanceInfo()
     local isMythicKeystone = difficultyID == 8
     stageDescription = stageDescription or ""
@@ -298,6 +446,9 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
                 mythicKeystoneCurrentValue = tonumber(string.match(scenarioCriteriaInfo.quantityString, "%d+")) or 1
             end
             block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description, isMythicKeystone, mythicKeystoneCurrentValue, scenarioCriteriaInfo.isWeightedProgress), criteriaIndex, { finished = false, objectiveType = objectiveType, qty = scenarioCriteriaInfo.quantity, isMythicKeystone = isMythicKeystone, firstObjectivesYValue = -5 })
+            if scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration then
+                block:AddObjective(TIME_REMAINING, numCriteria + 1, {isQuest = false, qty = nil, totalqty = nil, timerShown = true, duration = scenarioCriteriaInfo.duration, startTime = GetTime() - scenarioCriteriaInfo.elapsed})
+			end
         end
     end
     -- add special widgets here
@@ -305,10 +456,6 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     numCriteria = GW.addHeroicVisionsData(block, numCriteria)
     numCriteria = GW.addJailersTowerData(block, numCriteria)
     numCriteria = GW.addEmberCourtData(self, numCriteria)
-
-    if widgetId then
-        GwQuestTrackerTimerSavedHeight, showTimerAsBonus = GW.addEventTimerBarByWidgetId(timerBlock, GwQuestTrackerTimerSavedHeight, showTimerAsBonus, widgetId, allowedWidgetUpdateIdsForTimer[widgetId].hasTimer)
-    end
 
     local bonusSteps = C_Scenario.GetBonusSteps() or {}
     local numCriteriaPrev = numCriteria
@@ -322,25 +469,9 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
             local objectiveType = scenarioCriteriaInfo.isWeightedProgress and "progressbar" or "monster"
 
             -- timer bar
-            if not showTimerAsBonus and scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration and not (scenarioCriteriaInfo.failed or scenarioCriteriaInfo.completed) then
-                timerBlock:SetScript(
-                    "OnUpdate",
-                    function()
-                        local info = C_ScenarioInfo.GetCriteriaInfoByStep(bonusStepIndex, criteriaIndex)
-                        if info.elapsed and info.elapsed > 0 then
-                            timerBlock.timer:SetValue(1 - (info.elapsed / scenarioCriteriaInfo.duration))
-                            timerBlock.timerString:SetText(SecondsToClock(scenarioCriteriaInfo.duration - info.elapsed))
-                        else
-                            timerBlock:SetScript("OnUpdate", nil)
-                        end
-                    end
-                )
-                timerBlock.timer:Show()
-                timerBlock.needToShowTimer = true
-                GwQuestTrackerTimerSavedHeight = GwQuestTrackerTimerSavedHeight + 40
-                showTimerAsBonus = true
-            elseif not showTimerAsBonus then
-                GwQuestTrackerTimerSavedHeight = 1
+            if not self.timerWidgetManager:IsTimerRunning() and scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration and not (scenarioCriteriaInfo.failed or scenarioCriteriaInfo.completed) then
+                block:AddObjective(TIME_REMAINING, numCriteriaPrev + 1, {isQuest = false, qty = nil, totalqty = nil, timerShown = true, duration = scenarioCriteriaInfo.duration, startTime = GetTime() - scenarioCriteriaInfo.elapsed})
+            elseif not self.timerWidgetManager:IsTimerRunning() then
                 timerBlock:SetScript("OnUpdate", nil)
                 timerBlock.timer:Hide()
                 block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description), numCriteriaPrev + 1, { finished = false, objectiveType = objectiveType, qty = scenarioCriteriaInfo.quantity, firstObjectivesYValue = -5 })
@@ -350,8 +481,10 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     end
 
     --check for additonal statusbar
-    for id in pairs(allowedWidgetUpdateIdsForStatusBar) do
-        local widgetInfo = C_UIWidgetManager.GetStatusBarWidgetVisualizationInfo(id)
+    --for id in pairs(allowedWidgetUpdateIdsForStatusBar) do
+    for _, widgetInfo in ipairs( self.statusBarWidgetManager.widgetInfoForStatusBar or {} ) do
+        DevTools_Dump(widgetInfo)
+        --local widgetInfo = C_UIWidgetManager.GetStatusBarWidgetVisualizationInfo(id)
         if widgetInfo and widgetInfo.shownState ~= Enum.WidgetShownState.Hidden then
             local objectiveType = "object"
             local quantity = widgetInfo.barValue
@@ -365,8 +498,8 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
             end
             block:AddObjective(text, numCriteriaPrev + 1, { finished = false, objectiveType = objectiveType, qty = quantity, firstObjectivesYValue = -5 })
             numCriteriaPrev = numCriteriaPrev + 1
-            if not showTimerAsBonus then
-                GW.TerminateScenarioWidgetTimer(timerBlock)
+            if not self.timerWidgetManager:IsTimerRunning() then
+                self:ClearWidgetSet()
             end
         end
     end
@@ -385,8 +518,8 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     if timerBlock.affixeFrame:IsShown() then intGWQuestTrackerHeight = intGWQuestTrackerHeight + 40 end
     if timerBlock.timer:IsShown() then intGWQuestTrackerHeight = intGWQuestTrackerHeight + 40 end
 
-    if showTimerAsBonus then
-        timerBlock.height = GwQuestTrackerTimerSavedHeight
+    if self.timerWidgetManager:IsTimerRunning() then
+        timerBlock.height = 40
     end
 
     timerBlock:SetHeight(timerBlock.height)
@@ -482,7 +615,8 @@ local function SetupChallengeModeTimer(self, timerID, timeLimit, time2, time3)
     self.chestoverlay:Show()
     self:SetScript("OnUpdate", function()
         local _, elapsedTime = GetWorldElapsedTime(timerID)
-        self.timer:SetValue(1 - (elapsedTime / timeLimit))
+        self.timer:SetMinMaxValues(0, timeLimit)
+        self.timer:SetValue(math.max(0, timeLimit - elapsedTime))
         self.chestoverlay.chest2:SetShown(elapsedTime < time2)
         self.chestoverlay.chest3:SetShown(elapsedTime < time3)
 
@@ -519,6 +653,8 @@ end
 local function SetupProvingGroundTimer(self, timerID, duration)
     self:SetScript("OnUpdate", function()
         local _, elapsedTime = GetWorldElapsedTime(timerID)
+        self.timer:SetMinMaxValues(0, duration)
+        self.timer:SetValue(math.max(0, duration - elapsedTime))
         self.timer:SetValue(1 - (elapsedTime / duration))
         self.timerString:SetText(SecondsToClock(duration - elapsedTime))
     end)
@@ -649,7 +785,6 @@ function GwObjectivesScenarioContainerMixin:InitModule()
     self:RegisterEvent("SCENARIO_CRITERIA_UPDATE")
     self:RegisterEvent("LOOT_CLOSED")
     self:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
-    self:RegisterEvent("UPDATE_UI_WIDGET")
     self:RegisterEvent("ZONE_CHANGED_INDOORS")
     self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
     self:RegisterEvent("ZONE_CHANGED")
@@ -658,16 +793,6 @@ function GwObjectivesScenarioContainerMixin:InitModule()
     self:RegisterEvent("JAILERS_TOWER_LEVEL_UPDATE")
     self:SetScript("OnEvent", self.UpdateLayout)
 
-    EventRegistry:RegisterCallback("GW2_UI.PlayerNewMapId", function(_, mapID)
-        local includedWidgetID = FindIncludedTimerWidgetForMap(mapID)
-        if includedWidgetID then
-            widgetId = includedWidgetID
-        elseif widgetId and allowedWidgetUpdateIdsForTimer[widgetId] and not IsTimerDataAllowedOnMap(allowedWidgetUpdateIdsForTimer[widgetId], mapID) then
-            widgetId = nil
-        end
-
-        self:UpdateLayout()
-    end, self)
 
     self.jailersTowerType = nil
 
@@ -786,6 +911,22 @@ function GwObjectivesScenarioContainerMixin:InitModule()
     self.block.delvesFrame.deathCounter:SetScript("OnEnter", UIWidgetTemplateTooltipFrameOnEnter)
     self.block.delvesFrame.deathCounter:SetScript("OnLeave", function() UIWidgetTemplateTooltipFrameMixin:OnLeave() end)
     self.block.delvesFrame.deathCounter.counter:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
+
+    local timerWidgetManager = CreateFrame("Frame")
+    Mixin(timerWidgetManager, GwObjectivesScenarioContainerWidgetMixin)
+    timerWidgetManager.widgetPools = CreateFramePool("Frame")
+    timerWidgetManager:SetScript("OnEvent", timerWidgetManager.OnEvent)
+    timerWidgetManager.timerBlock = self.timerBlock
+    timerWidgetManager.container = self
+    self.timerWidgetManager = timerWidgetManager
+
+    local statusBarWidgetManager = CreateFrame("Frame")
+    Mixin(statusBarWidgetManager, GwObjectivesScenarioContainerWidgetMixin)
+    statusBarWidgetManager.widgetPools = CreateFramePool("Frame")
+    statusBarWidgetManager:SetScript("OnEvent", statusBarWidgetManager.OnEvent)
+    statusBarWidgetManager.timerBlock = self.timerBlock
+    statusBarWidgetManager.container = self
+    self.statusBarWidgetManager = statusBarWidgetManager
 
     C_Timer.After(0.8, function() self:UpdateLayout() end)
 
