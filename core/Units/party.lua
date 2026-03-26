@@ -658,7 +658,7 @@ local function CreatePartyFrame(i, isPlayer)
     -- create private auras for retail
     if GW.Retail then
         frame.privateAuraFrames = {}
-        for k = 1, 2 do
+        for k = 1, 6 do
             local privateAura = CreateFrame("Frame", nil, frame.auras, "GwPrivateAuraTmpl")
             privateAura:SetPoint("BOTTOMRIGHT", frame.auras, (28 * (k - 1)), 28 * 2)
             privateAura.auraIndex = k
