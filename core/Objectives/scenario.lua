@@ -68,12 +68,10 @@ end
 
 function GwObjectivesScenarioContainerWidgetMixin:OnEvent(event, ...)
     if event == "UPDATE_ALL_UI_WIDGETS" then
-        print("ProcessAllWidgets")
 		self:ProcessAllWidgets()
 	elseif event == "UPDATE_UI_WIDGET" then
 		local widgetInfo = ...
 		if self:IsRegisteredForWidgetSet(widgetInfo.widgetSetID) then
-            print("EVENT", "ProcessWidget", widgetInfo.widgetID, widgetInfo.widgetType)
 			self:ProcessWidget(widgetInfo.widgetID, widgetInfo.widgetType)
 		end
 	end
@@ -170,10 +168,8 @@ function GwObjectivesScenarioContainerWidgetMixin:ProcessWidget(widgetID, widget
 		end
 	end
     if widgetInfo and (widgetInfo.hasTimer or (widgetInfo.timerMax > 0 and widgetInfo.timerValue <= widgetInfo.timerMax and widgetInfo.timerValue > 0)) then
-        print("handle TImer")
         self:HandleTimer(self.timerBlock, widgetInfo)
     elseif widgetInfo then
-        print("handle none timer")
         wipe(self.widgetInfoForStatusBar)
         tinsert(self.widgetInfoForStatusBar, widgetInfo)
         self.layoutFunc(self.container)
