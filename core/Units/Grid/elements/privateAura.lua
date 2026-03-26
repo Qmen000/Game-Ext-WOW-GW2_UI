@@ -6,7 +6,7 @@ function GW.Construct_PrivateAura(frame)
     return CreateFrame('Frame', '$parentPrivateAuras', frame.RaisedElementParent)
 end
 
-function GW.AddProfileUpdatePrivateAurasSettings(frame)
+function GW.UpdatePrivateAurasSettings(frame)
     if not GW.Retail then return end
 
     frame.PrivateAuras:SetFrameLevel(frame.RaisedElementParent.PrivateAurasLevel)
