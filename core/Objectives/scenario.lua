@@ -67,6 +67,10 @@ function GwObjectivesScenarioContainerWidgetMixin:UnregisterTimerWidget(widgetID
             self.timerBlock.ticker:Cancel()
             self.timerBlock.ticker = nil
         end
+
+        if self.numTimers == 0 and self.layoutFunc and self.container then
+            self.layoutFunc(self.container)
+        end
     end
 end
 
@@ -81,6 +85,10 @@ function GwObjectivesScenarioContainerWidgetMixin:UnregisterFakeTimerWidget(widg
     if self.timerWidgets[widgetID] then
         self.timerWidgets[widgetID] = nil
         self.numTimers = self.numTimers - 1
+
+        if self.numTimers == 0 and self.layoutFunc and self.container then
+            self.layoutFunc(self.container)
+        end
     end
 end
 
