@@ -294,7 +294,7 @@ function GwObjectivesScenarioContainerWidgetMixin:RegisterForWidgetSet(widgetSet
     end
 
     self.widgetSetID = widgetSetID
-    self.layoutFunc = self.container.UpdateLayout
+    self.layoutFunc = self.container.QueueUpdateLayout
     self.widgetFrames = {}
     self.timerWidgets = {}
     self.widgetInfoForStatusBar = {}
@@ -319,7 +319,29 @@ function GwObjectivesScenarioContainerMixin:UpdateWidgetRegistration(widgetSetID
     end
 end
 
-function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
+local function ScenarioContainerLayoutRunnerOnUpdate(frame)
+    frame:SetScript("OnUpdate", nil)
+
+    local container = frame.container
+    container.layoutQueued = false
+    container:UpdateLayout()
+end
+
+function GwObjectivesScenarioContainerMixin:QueueUpdateLayout(event, ...)
+    if event == "JAILERS_TOWER_LEVEL_UPDATE" then
+        local level, type, textureKit = ...
+        self.jailersTowerLevelUpdateInfo = {level = level, type = type, textureKit = textureKit}
+    end
+
+    if self.layoutQueued then
+        return
+    end
+
+    self.layoutQueued = true
+    self.layoutUpdateFrame:SetScript("OnUpdate", ScenarioContainerLayoutRunnerOnUpdate)
+end
+
+function GwObjectivesScenarioContainerMixin:UpdateLayout()
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Scenario)
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Torghast)
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Delve)
@@ -405,10 +427,6 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
 
     if GW.Retail and IsInJailersTower() then
         local floor = ""
-        if event == "JAILERS_TOWER_LEVEL_UPDATE" then
-            local level, type, textureKit = ...
-            self.jailersTowerLevelUpdateInfo = {level = level, type = type, textureKit = textureKit}
-        end
         local widgetInfo = C_UIWidgetManager.GetScenarioHeaderCurrenciesAndBackgroundWidgetVisualizationInfo(3302)
         if widgetInfo then floor = widgetInfo.headerText or "" end
 
@@ -797,7 +815,11 @@ function GwQuesttrackerScenarioBlockMixin:TimerBlockOnEvent(event, ...)
     end
     self:SetHeight(self.height)
 
-    self.container:UpdateLayout()
+    self.container:QueueUpdateLayout()
+end
+
+local function ScenarioContainerOnEvent(self, event, ...)
+    self:QueueUpdateLayout(event, ...)
 end
 
 local function UIWidgetTemplateTooltipFrameOnEnter(self)
@@ -853,17 +875,20 @@ function GwObjectivesScenarioContainerMixin:InitModule()
     self:RegisterEvent("SCENARIO_COMPLETED")
     self:RegisterEvent("SCENARIO_SPELL_UPDATE")
     self:RegisterEvent("JAILERS_TOWER_LEVEL_UPDATE")
-    self:SetScript("OnEvent", self.UpdateLayout)
+    self:SetScript("OnEvent", ScenarioContainerOnEvent)
 
 
     self.jailersTowerType = nil
+    self.layoutQueued = false
+    self.layoutUpdateFrame = CreateFrame("Frame", nil, self)
+    self.layoutUpdateFrame.container = self
 
     -- JailersTower hook
     -- do it only here so we are sure we do not hook more than one time
     if GW.Retail then
         hooksecurefunc(ScenarioObjectiveTracker, "SlideInContents", function(container)
             if container:ShouldShowCriteria() and IsInJailersTower() then
-                self:UpdateLayout()
+                self:QueueUpdateLayout()
             end
         end)
     end
@@ -990,7 +1015,7 @@ function GwObjectivesScenarioContainerMixin:InitModule()
     statusBarWidgetManager.container = self
     self.statusBarWidgetManager = statusBarWidgetManager
 
-    C_Timer.After(0.8, function() self:UpdateLayout() end)
+    C_Timer.After(0.8, function() self:QueueUpdateLayout() end)
 
     self.timerBlock:TimerBlockOnEvent()
 end

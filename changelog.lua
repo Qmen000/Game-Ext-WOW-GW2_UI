@@ -13,6 +13,10 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("10.6.3", {
+    {GW.Enum.ChangelogType.change, [=[Improved Scenario tracker update handling: multiple rapid event triggers are now merged into a single layout refresh per frame to prevent duplicate updates and reduce UI jitter]=]},
+})
+
 addChange("10.6.2", {
     {GW.Enum.ChangelogType.bug, [=[Temporarily disabled Grid aura timers]=]},
 })
