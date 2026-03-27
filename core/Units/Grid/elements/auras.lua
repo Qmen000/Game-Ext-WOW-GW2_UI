@@ -365,7 +365,7 @@ local function Construct_Auras(frame)
     auras.growthX = "LEFT"
     auras.spacingX = 2
     auras.spacingY = 2
-    auras.disableCooldown = false
+    auras.disableCooldown = true
     auras.reanchorIfVisibleChanged = true
 
     auras.PostCreateButton = Construct_AuraIcon
