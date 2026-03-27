@@ -430,9 +430,16 @@ GW.CreateRaisedText = CreateRaisedText
 local function CreateRaisedElement(frame)
 	local raised = CreateFrame("Frame", nil, frame)
 	local level = frame:GetFrameLevel() + 100
+    raised:SetAllPoints()
 	raised:SetFrameLevel(level)
+
 	raised.__owner = frame
 	raised.TextureParent = CreateFrame("Frame", nil, raised)
+
+    raised.AuraLevel = level
+    raised.PrivateAurasLevel = level + 5
+    raised.AuraBarLevel = level + 10
+    raised.MissingAuraIndicator = level + 15
 
 	return raised
 end

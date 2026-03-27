@@ -358,14 +358,14 @@ end
 local function Construct_Auras(frame)
     local auras = CreateFrame('Frame', '$parentAuras', frame)
     auras:SetSize(frame:GetSize())
-    auras:SetFrameLevel(20)
+    auras:SetFrameLevel(frame.RaisedElementParent.AuraLevel)
 
     -- init settings
     auras.initialAnchor = "BOTTOMRIGHT"
     auras.growthX = "LEFT"
     auras.spacingX = 2
     auras.spacingY = 2
-    auras.disableCooldown = true
+    auras.disableCooldown = false
     auras.reanchorIfVisibleChanged = true
 
     auras.PostCreateButton = Construct_AuraIcon
