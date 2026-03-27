@@ -236,12 +236,16 @@ function GwObjectivesScenarioContainerWidgetMixin:ProcessWidget(widgetID, widget
     elseif widgetInfo then
         wipe(self.widgetInfoForStatusBar)
         tinsert(self.widgetInfoForStatusBar, widgetInfo)
-        self.layoutFunc(self.container)
+        if self.layoutFunc then
+            self.layoutFunc(self.container)
+        end
         return
     end
 
     if isNewWidget or widgetFrame.isFakeTimer then
-        self.layoutFunc(self.container)
+        if self.layoutFunc then
+            self.layoutFunc(self.container)
+        end
     end
 end
 
@@ -251,7 +255,9 @@ function GwObjectivesScenarioContainerWidgetMixin:ProcessAllWidgets()
         self:ProcessWidget(widgetInfo.widgetID, widgetInfo.widgetType)
     end
 
-    self.layoutFunc(self.container)
+    if self.layoutFunc then
+        self.layoutFunc(self.container)
+    end
 end
 
 function GwObjectivesScenarioContainerWidgetMixin:UnregisterForWidgetSet()
@@ -540,10 +546,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     end
 
     --check for additonal statusbar
-    --for id in pairs(allowedWidgetUpdateIdsForStatusBar) do
     for _, widgetInfo in ipairs( self.statusBarWidgetManager.widgetInfoForStatusBar or {} ) do
-        DevTools_Dump(widgetInfo)
-        --local widgetInfo = C_UIWidgetManager.GetStatusBarWidgetVisualizationInfo(id)
         if widgetInfo and widgetInfo.shownState ~= Enum.WidgetShownState.Hidden then
             local objectiveType = "object"
             local quantity = widgetInfo.barValue
