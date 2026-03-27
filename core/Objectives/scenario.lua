@@ -237,9 +237,10 @@ function GwObjectivesScenarioContainerWidgetMixin:ProcessWidget(widgetID, widget
         wipe(self.widgetInfoForStatusBar)
         tinsert(self.widgetInfoForStatusBar, widgetInfo)
         self.layoutFunc(self.container)
+        return
     end
 
-    if isNewWidget then
+    if isNewWidget or widgetFrame.isFakeTimer then
         self.layoutFunc(self.container)
     end
 end
@@ -334,7 +335,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
 
     block.height = 1
 
-    if timerBlock:IsShown() then
+    if timerBlock.timer:IsShown() then
         block.height = timerBlock.height
     end
 
@@ -529,11 +530,9 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
             local objectiveType = scenarioCriteriaInfo.isWeightedProgress and "progressbar" or "monster"
 
             -- timer bar
-            if not self.timerWidgetManager:IsTimerRunning() and scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration and not (scenarioCriteriaInfo.failed or scenarioCriteriaInfo.completed) then
+            if scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration and not (scenarioCriteriaInfo.failed or scenarioCriteriaInfo.completed) then
                 block:AddObjective(TIME_REMAINING, numCriteriaPrev + 1, {isQuest = false, qty = nil, totalqty = nil, timerShown = true, duration = scenarioCriteriaInfo.duration, startTime = GetTime() - scenarioCriteriaInfo.elapsed})
-            elseif not self.timerWidgetManager:IsTimerRunning() then
-                timerBlock:SetScript("OnUpdate", nil)
-                timerBlock.timer:Hide()
+            else
                 block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description), numCriteriaPrev + 1, { finished = false, objectiveType = objectiveType, qty = scenarioCriteriaInfo.quantity, firstObjectivesYValue = -5 })
                 numCriteriaPrev = numCriteriaPrev + 1
             end
