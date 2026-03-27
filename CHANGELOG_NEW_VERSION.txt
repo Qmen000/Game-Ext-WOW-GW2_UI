@@ -1,7 +1,10 @@
 10.6.1
 FIXES
-    - Removed debug text output from scenario event timer updates
-    - Fixed scenario timer visibility so event widget timers no longer hide active challenge/proving timers
+    - Removed scenario debug print output
+    - Fixed Unit Frame Lua error for non-player classes
+
+CHANGES
+    - Updated scenario handling to use the current API flow
 
 10.6.0
 NEW

@@ -8,106 +8,161 @@ GwObjectivesScenarioContainerWidgetMixin = {}
 GwObjectivesScenarioContainerMixin = {}
 GwQuesttrackerScenarioBlockMixin = {}
 
-function GwObjectivesScenarioContainerWidgetMixin:RemoveAllWidgets()
-	self.widgetFrames = {}
-	self.timerWidgets = {}
-	self.numTimers = 0
+local function HasValidTimerData(widgetInfo)
+    return type(widgetInfo) == "table"
+        and type(widgetInfo.timerMin) == "number"
+        and type(widgetInfo.timerMax) == "number"
+        and type(widgetInfo.timerValue) == "number"
+        and widgetInfo.timerMax > widgetInfo.timerMin
+        and widgetInfo.timerValue > widgetInfo.timerMin
+        and widgetInfo.timerValue <= widgetInfo.timerMax
+end
 
-	if self.timerBlock.ticker then
-		self.timerBlock.ticker:Cancel()
-		self.timerBlock.ticker = nil
-	end
+local function IsRealTimerWidget(widgetInfo)
+    return widgetInfo and widgetInfo.hasTimer and HasValidTimerData(widgetInfo)
+end
+
+local function IsFakeTimerWidget(widgetInfo)
+    return widgetInfo and not widgetInfo.hasTimer and HasValidTimerData(widgetInfo)
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:RemoveAllWidgets()
+    self.widgetFrames = {}
+    self.timerWidgets = {}
+    self.numTimers = 0
+
+    if self.timerBlock.ticker then
+        self.timerBlock.ticker:Cancel()
+        self.timerBlock.ticker = nil
+    end
 
     self.widgetPools:ReleaseAll()
 end
 
 function GwObjectivesScenarioContainerWidgetMixin:RegisterTimerWidget(widgetID, widgetFrame)
-	if not self.timerWidgets[widgetID] then
-		-- New timer added
-		self.timerWidgets[widgetID] = widgetFrame
-		if not self.timerBlock.ticker then
-			self.timerBlock.ticker = C_Timer.NewTicker(1,
-				function()
-					for id, widget in pairs(self.timerWidgets) do
-						self:ProcessWidget(id, widget.widgetType)
-					end
-				end)
-		end
+    if not self.timerWidgets[widgetID] then
+        -- New timer added
+        self.timerWidgets[widgetID] = widgetFrame
+        if not self.timerBlock.ticker then
+            self.timerBlock.ticker = C_Timer.NewTicker(1,
+                function()
+                    for id, widget in pairs(self.timerWidgets) do
+                        self:ProcessWidget(id, widget.widgetType)
+                    end
+                end)
+        end
 
-		self.numTimers = self.numTimers + 1
-	end
+        self.numTimers = self.numTimers + 1
+    end
 end
 
 function GwObjectivesScenarioContainerWidgetMixin:UnregisterTimerWidget(widgetID)
-	if self.timerWidgets[widgetID] then
-		-- Existing timer removed
-		self.timerWidgets[widgetID] = nil
+    if self.timerWidgets[widgetID] then
+        -- Existing timer removed
+        self.timerWidgets[widgetID] = nil
 
-		self.numTimers = self.numTimers - 1
+        self.numTimers = self.numTimers - 1
 
-		if self.numTimers == 0 and self.timerBlock.ticker then
-			self.timerBlock.ticker:Cancel()
-			self.timerBlock.ticker = nil
-		end
-	end
+        if self.numTimers == 0 and self.timerBlock.ticker then
+            self.timerBlock.ticker:Cancel()
+            self.timerBlock.ticker = nil
+        end
+    end
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:RegisterFakeTimerWidget(widgetID, widgetFrame)
+    if not self.timerWidgets[widgetID] then
+        self.timerWidgets[widgetID] = widgetFrame
+        self.numTimers = self.numTimers + 1
+    end
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:UnregisterFakeTimerWidget(widgetID)
+    if self.timerWidgets[widgetID] then
+        self.timerWidgets[widgetID] = nil
+        self.numTimers = self.numTimers - 1
+    end
+end
+
+function GwObjectivesScenarioContainerWidgetMixin:SyncWidgetTimerRegistration(widgetID, widgetFrame, widgetInfo)
+    local oldIsRealTimer = widgetFrame.isRealTimer
+    local oldIsFakeTimer = widgetFrame.isFakeTimer
+    local newIsRealTimer = IsRealTimerWidget(widgetInfo)
+    local newIsFakeTimer = IsFakeTimerWidget(widgetInfo)
+
+    if oldIsRealTimer and not newIsRealTimer then
+        self:UnregisterTimerWidget(widgetID)
+    elseif oldIsFakeTimer and not newIsFakeTimer then
+        self:UnregisterFakeTimerWidget(widgetID)
+    end
+
+    if not oldIsRealTimer and newIsRealTimer then
+        self:RegisterTimerWidget(widgetID, widgetFrame)
+    elseif not oldIsFakeTimer and newIsFakeTimer then
+        self:RegisterFakeTimerWidget(widgetID, widgetFrame)
+    end
+
+    widgetFrame.hasTimer = widgetInfo.hasTimer
+    widgetFrame.isRealTimer = newIsRealTimer
+    widgetFrame.isFakeTimer = newIsFakeTimer
 end
 
 function GwObjectivesScenarioContainerWidgetMixin:RemoveWidget(widgetID)
-	local widgetFrame = self.widgetFrames[widgetID]
-	if not widgetFrame then
-		-- This widget was never created. Nothing to do
-		return
-	end
+    local widgetFrame = self.widgetFrames[widgetID]
+    if not widgetFrame then
+        -- This widget was never created. Nothing to do
+        return
+    end
 
-	-- If this is a widget with a timer, remove it from the timer list
-	self:UnregisterTimerWidget(widgetID)
+    -- If this is a widget with a timer, remove it from the timer list
+    if widgetFrame.isRealTimer then
+        self:UnregisterTimerWidget(widgetID)
+    elseif widgetFrame.isFakeTimer then
+        self:UnregisterFakeTimerWidget(widgetID)
+    end
 
     self.widgetPools:Release(widgetFrame)
-	self.widgetFrames[widgetID] = nil
+    self.widgetFrames[widgetID] = nil
 end
 
 function GwObjectivesScenarioContainerWidgetMixin:OnEvent(event, ...)
     if event == "UPDATE_ALL_UI_WIDGETS" then
-		self:ProcessAllWidgets()
-	elseif event == "UPDATE_UI_WIDGET" then
-		local widgetInfo = ...
-		if self:IsRegisteredForWidgetSet(widgetInfo.widgetSetID) then
-			self:ProcessWidget(widgetInfo.widgetID, widgetInfo.widgetType)
-		end
-	end
+        self:ProcessAllWidgets()
+    elseif event == "UPDATE_UI_WIDGET" then
+        local widgetInfo = ...
+        if self:IsRegisteredForWidgetSet(widgetInfo.widgetSetID) then
+            self:ProcessWidget(widgetInfo.widgetID, widgetInfo.widgetType)
+        end
+    end
 end
 
 function GwObjectivesScenarioContainerWidgetMixin:IsRegisteredForWidgetSet(widgetSetID)
-	if widgetSetID then
-		return self.widgetSetID == widgetSetID
-	else
-		return self.widgetSetID ~= nil
-	end
+    if widgetSetID then
+        return self.widgetSetID == widgetSetID
+    else
+        return self.widgetSetID ~= nil
+    end
 end
 
 function GwObjectivesScenarioContainerWidgetMixin:GetWidgetFromPools(templateInfo)
-	if templateInfo then
-		return self.widgetPools:Acquire()
-	end
+    if templateInfo then
+        return self.widgetPools:Acquire()
+    end
 end
 
 function GwObjectivesScenarioContainerWidgetMixin:CreateWidget(widgetID, widgetType, widgetTypeInfo, widgetInfo)
-	local widgetFrame = self:GetWidgetFromPools(widgetTypeInfo.templateInfo)
+    local widgetFrame = self:GetWidgetFromPools(widgetTypeInfo.templateInfo)
 
-	widgetFrame.widgetID = widgetID
-	widgetFrame.widgetSetID = self.widgetSetID
-	widgetFrame.widgetType = widgetType
-	widgetFrame.hasTimer = widgetInfo.hasTimer
+    widgetFrame.widgetID = widgetID
+    widgetFrame.widgetSetID = self.widgetSetID
+    widgetFrame.widgetType = widgetType
+    widgetFrame.isRealTimer = false
+    widgetFrame.isFakeTimer = false
+    self:SyncWidgetTimerRegistration(widgetID, widgetFrame, widgetInfo)
 
+    self.widgetFrames[widgetID] = widgetFrame
 
-	-- If this is a widget with a timer, add it from the timer list
-	 if widgetInfo and (widgetInfo.hasTimer or (widgetInfo.timerMax > 0 and widgetInfo.timerValue <= widgetInfo.timerMax and widgetInfo.timerValue > 0)) then
-		self:RegisterTimerWidget(widgetID, widgetFrame)
-	end
-
-	self.widgetFrames[widgetID] = widgetFrame
-
-	return widgetFrame
+    return widgetFrame
 end
 
 function GwObjectivesScenarioContainerWidgetMixin:HandleTimer(timerBlock, widgetInfo)
@@ -135,39 +190,40 @@ end
 
 function GwObjectivesScenarioContainerWidgetMixin:ProcessWidget(widgetID, widgetType)
     local widgetTypeInfo = UIWidgetManager:GetWidgetTypeInfo(widgetType)
-	if not widgetTypeInfo then
-		-- This WidgetType is not supported (nothing called RegisterWidgetVisTypeTemplate for it)
-		return
-	end
+    if not widgetTypeInfo then
+        -- This WidgetType is not supported (nothing called RegisterWidgetVisTypeTemplate for it)
+        return
+    end
 
     local widgetInfo = widgetTypeInfo.visInfoDataFunction(widgetID)
     local widgetFrame = self.widgetFrames[widgetID]
-	local widgetAlreadyExisted = (widgetFrame ~= nil)
+    local widgetAlreadyExisted = (widgetFrame ~= nil)
 
-	if widgetAlreadyExisted and widgetFrame.widgetType ~= widgetType then
-		-- This widget existed already but the type has changed, so release the old widget frame and treat it as a brand new widget
+    if widgetAlreadyExisted and widgetFrame.widgetType ~= widgetType then
+        -- This widget existed already but the type has changed, so release the old widget frame and treat it as a brand new widget
         self:RemoveWidget(widgetID)
-		widgetAlreadyExisted = false
-	end
+        widgetAlreadyExisted = false
+    end
     local isNewWidget = false
     if widgetAlreadyExisted then
-		if not widgetInfo then
-			self:RemoveWidget(widgetID)
-			return
-		end
+        if not widgetInfo then
+            self:RemoveWidget(widgetID)
+            return
+        end
 
-	else
-		-- Widget did not already exist
-		if widgetInfo then
-			-- And it should be shown...create it
-			widgetFrame = self:CreateWidget(widgetID, widgetType, widgetTypeInfo, widgetInfo)
-			isNewWidget = true
-		else
-			-- Widget should not be shown. It didn't already exist so there is nothing to do
-			return
-		end
-	end
-    if widgetInfo and (widgetInfo.hasTimer or (widgetInfo.timerMax > 0 and widgetInfo.timerValue <= widgetInfo.timerMax and widgetInfo.timerValue > 0)) then
+        self:SyncWidgetTimerRegistration(widgetID, widgetFrame, widgetInfo)
+    else
+        -- Widget did not already exist
+        if widgetInfo then
+            -- And it should be shown...create it
+            widgetFrame = self:CreateWidget(widgetID, widgetType, widgetTypeInfo, widgetInfo)
+            isNewWidget = true
+        else
+            -- Widget should not be shown. It didn't already exist so there is nothing to do
+            return
+        end
+    end
+    if widgetFrame.isRealTimer or widgetFrame.isFakeTimer then
         self:HandleTimer(self.timerBlock, widgetInfo)
     elseif widgetInfo then
         wipe(self.widgetInfoForStatusBar)
@@ -182,18 +238,18 @@ end
 
 function GwObjectivesScenarioContainerWidgetMixin:ProcessAllWidgets()
     local setWidgets = C_UIWidgetManager.GetAllWidgetsBySetID(self.widgetSetID)
-	for _, widgetInfo in ipairs(setWidgets) do
-		self:ProcessWidget(widgetInfo.widgetID, widgetInfo.widgetType)
-	end
+    for _, widgetInfo in ipairs(setWidgets) do
+        self:ProcessWidget(widgetInfo.widgetID, widgetInfo.widgetType)
+    end
 
     self.layoutFunc(self.container)
 end
 
 function GwObjectivesScenarioContainerWidgetMixin:UnregisterForWidgetSet()
     if not self.widgetSetID then
-		-- We are not registered to a WidgetSet...nothing to do
-		return
-	end
+        -- We are not registered to a WidgetSet...nothing to do
+        return
+    end
 
     self:RemoveAllWidgets()
 
@@ -203,36 +259,36 @@ function GwObjectivesScenarioContainerWidgetMixin:UnregisterForWidgetSet()
     wipe(self.widgetInfoForStatusBar)
 
     self:UnregisterEvent("UPDATE_ALL_UI_WIDGETS")
-	self:UnregisterEvent("UPDATE_UI_WIDGET")
+    self:UnregisterEvent("UPDATE_UI_WIDGET")
 end
 
 function GwObjectivesScenarioContainerWidgetMixin:RegisterForWidgetSet(widgetSetID)
     if self.widgetSetID then
-		-- We are already registered to a WidgetSet
-		if self.widgetSetID == widgetSetID then
-			-- And it's the same WidgetSet we are trying to register again...nothing to do
-			return
-		else
-			-- We are already registered for a different WidgetSet...unregister it
-			self:UnregisterForWidgetSet()
-		end
-	end
+        -- We are already registered to a WidgetSet
+        if self.widgetSetID == widgetSetID then
+            -- And it's the same WidgetSet we are trying to register again...nothing to do
+            return
+        else
+            -- We are already registered for a different WidgetSet...unregister it
+            self:UnregisterForWidgetSet()
+        end
+    end
 
     if not widgetSetID then
-		return
-	end
+        return
+    end
 
     self.widgetSetID = widgetSetID
     self.layoutFunc = self.container.UpdateLayout
     self.widgetFrames = {}
-	self.timerWidgets = {}
+    self.timerWidgets = {}
     self.widgetInfoForStatusBar = {}
-	self.numTimers = 0
+    self.numTimers = 0
 
     self:ProcessAllWidgets()
 
     self:RegisterEvent("UPDATE_ALL_UI_WIDGETS")
-	self:RegisterEvent("UPDATE_UI_WIDGET")
+    self:RegisterEvent("UPDATE_UI_WIDGET")
 end
 
 function GwObjectivesScenarioContainerMixin:ClearWidgetSet()
@@ -240,7 +296,7 @@ function GwObjectivesScenarioContainerMixin:ClearWidgetSet()
 end
 
 function GwObjectivesScenarioContainerMixin:UpdateWidgetRegistration(widgetSetID)
-	self.timerWidgetManager:RegisterForWidgetSet(widgetSetID)
+    self.timerWidgetManager:RegisterForWidgetSet(widgetSetID)
     if widgetSetID ~= nil then
         self.statusBarWidgetManager:RegisterForWidgetSet(514)
     else
@@ -444,7 +500,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
             block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description, isMythicKeystone, mythicKeystoneCurrentValue, scenarioCriteriaInfo.isWeightedProgress), criteriaIndex, { finished = false, objectiveType = objectiveType, qty = scenarioCriteriaInfo.quantity, isMythicKeystone = isMythicKeystone, firstObjectivesYValue = -5 })
             if scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration then
                 block:AddObjective(TIME_REMAINING, numCriteria + 1, {isQuest = false, qty = nil, totalqty = nil, timerShown = true, duration = scenarioCriteriaInfo.duration, startTime = GetTime() - scenarioCriteriaInfo.elapsed})
-			end
+            end
         end
     end
     -- add special widgets here

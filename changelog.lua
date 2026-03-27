@@ -14,8 +14,9 @@ AddChange(string addonVersion, table changeList)
 ]]
 
 addChange("10.6.1", {
-    {GW.Enum.ChangelogType.bug, [=[Removed debug text output from scenario event timer updates]=]},
-    {GW.Enum.ChangelogType.bug, [=[Fixed scenario timer visibility so event widget timers no longer hide active challenge/proving timers]=]},
+    {GW.Enum.ChangelogType.bug, [=[Removed scenario debug print output]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed Unit Frame Lua error for non-player classes]=]},
+    {GW.Enum.ChangelogType.change, [=[Updated scenario handling to use the current API flow]=]},
 })
 
 addChange("10.6.0", {
