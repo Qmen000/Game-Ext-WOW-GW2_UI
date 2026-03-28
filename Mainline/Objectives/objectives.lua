@@ -138,18 +138,18 @@ function GwQuestLogMixin:OnEvent(event, ...)
     local numWatchedQuests = C_QuestLog.GetNumQuestWatches()
 
     if event == "QUEST_LOG_UPDATE" then
-        self:UpdateLayout()
+        self:QueueUpdateLayout()
     elseif event == "QUEST_ACCEPTED" then
         local questID = ...
         if not C_QuestLog.IsQuestBounty(questID) then
             if C_QuestLog.IsQuestTask(questID) then
                 if not C_QuestLog.IsWorldQuest(questID) then
-                    self:PartialUpdate(questID)
+                    self:QueuePartialUpdate(questID)
                 end
             else
                 if GetCVarBool("autoQuestWatch") and numWatchedQuests < Constants.QuestWatchConsts.MAX_QUEST_WATCHES then
                     C_QuestLog.AddQuestWatch(questID)
-                    self:PartialUpdate(questID)
+                    self:QueuePartialUpdate(questID)
                 end
             end
         end
@@ -157,33 +157,96 @@ function GwQuestLogMixin:OnEvent(event, ...)
         local questID, added = ...
         if added then
             if not C_QuestLog.IsQuestBounty(questID) or C_QuestLog.IsComplete(questID) then
-                self:PartialUpdate(questID, added)
+                self:QueuePartialUpdate(questID, added)
             end
         else
-            self:UpdateLayout()
+            self:QueueUpdateLayout()
         end
     elseif event == "QUEST_AUTOCOMPLETE" then
         local questID = ...
-        self:PartialUpdate(questID)
+        self:QueuePartialUpdate(questID)
     elseif event == "PLAYER_MONEY" and self.watchMoneyReasons > numWatchedQuests then
-        self:UpdateLayout()
+        self:QueueUpdateLayout()
     elseif event == "PLAYER_ENTERING_WORLD" then
         self:RegisterEvent("QUEST_DATA_LOAD_RESULT")
     elseif event == "QUEST_DATA_LOAD_RESULT" then
         local questID, success = ...
         local idx = C_QuestLog.GetLogIndexForQuestID(questID)
         if success and questID and idx and idx > 0 then
-            C_Timer.After(1, function() self:PartialUpdate(questID) end)
+            C_Timer.After(1, function() self:QueuePartialUpdate(questID) end)
         end
     else
-        self:UpdateLayout()
+        self:QueueUpdateLayout()
     end
 
     if self.watchMoneyReasons > numWatchedQuests then
         self.watchMoneyReasons = self.watchMoneyReasons - numWatchedQuests
     end
-    self:CheckForAutoQuests()
-    GwQuestTracker:LayoutChanged()
+end
+
+local function QuestLogFlushQueuedUpdatesOnUpdate(frame)
+    frame:SetScript("OnUpdate", nil)
+
+    local container = frame.container
+    container.updateFlushQueued = false
+
+    local didUpdate = false
+    if container.fullUpdateQueued then
+        container.fullUpdateQueued = false
+        wipe(container.partialUpdatesByQuestID)
+        wipe(container.partialUpdateOrder)
+        container:UpdateLayout()
+        didUpdate = true
+    else
+        for _, questID in ipairs(container.partialUpdateOrder) do
+            local updateData = container.partialUpdatesByQuestID[questID]
+            if updateData then
+                container:PartialUpdate(questID, updateData.added)
+                didUpdate = true
+            end
+        end
+        wipe(container.partialUpdatesByQuestID)
+        wipe(container.partialUpdateOrder)
+    end
+
+    container:CheckForAutoQuests()
+    if didUpdate then
+        GwQuestTracker:LayoutChanged()
+    end
+end
+
+function GwQuestLogMixin:QueueUpdateLayout()
+    self.fullUpdateQueued = true
+    wipe(self.partialUpdatesByQuestID)
+    wipe(self.partialUpdateOrder)
+
+    if self.updateFlushQueued then
+        return
+    end
+
+    self.updateFlushQueued = true
+    self.updateQueueFrame:SetScript("OnUpdate", QuestLogFlushQueuedUpdatesOnUpdate)
+end
+
+function GwQuestLogMixin:QueuePartialUpdate(questID, added)
+    if not questID or self.fullUpdateQueued then
+        return
+    end
+
+    local updateData = self.partialUpdatesByQuestID[questID]
+    if updateData then
+        updateData.added = updateData.added or added
+    else
+        self.partialUpdatesByQuestID[questID] = {added = added}
+        tinsert(self.partialUpdateOrder, questID)
+    end
+
+    if self.updateFlushQueued then
+        return
+    end
+
+    self.updateFlushQueued = true
+    self.updateQueueFrame:SetScript("OnUpdate", QuestLogFlushQueuedUpdatesOnUpdate)
 end
 
 function GwQuestLogMixin:GetBlockByQuestId(questID)
@@ -306,7 +369,6 @@ function GwQuestLogMixin:UpdateLayout()
     local headerCounterText = " (" .. counterQuest .. ")"
     self.header.title:SetText(self.isCampaignContainer and TRACKER_HEADER_CAMPAIGN_QUESTS .. headerCounterText or TRACKER_HEADER_QUESTS .. headerCounterText)
 
-    GwQuestTracker:LayoutChanged()
     self.isUpdating = false
 end
 
@@ -372,7 +434,6 @@ function GwQuestLogMixin:PartialUpdate(questID, added)
         GW.CombatQueue_Queue("update_tracker_quest_itembutton_position" .. block.index, block.UpdateObjectiveActionButtonPosition, {block})
     end
 
-    GwQuestTracker:LayoutChanged()
     self.isUpdating = false
 end
 
@@ -465,6 +526,12 @@ function GwObjectivesQuestContainerMixin:InitModule()
     self:RegisterEvent("QUEST_POI_UPDATE")
     self.watchMoneyReasons = 0
     self.isCampaignContainer = self:GetName() == "GwQuesttrackerContainerCampaign"
+    self.updateQueueFrame = CreateFrame("Frame", nil, self)
+    self.updateQueueFrame.container = self
+    self.updateFlushQueued = false
+    self.fullUpdateQueued = false
+    self.partialUpdatesByQuestID = {}
+    self.partialUpdateOrder = {}
 
     self.header = CreateFrame("Button", nil, self, "GwQuestTrackerHeader")
     self.header.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header)
