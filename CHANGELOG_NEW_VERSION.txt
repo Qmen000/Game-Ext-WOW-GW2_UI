@@ -2,6 +2,7 @@
 CHANGES
     - Improved Scenario tracker update handling: multiple rapid event triggers are now merged into a single layout refresh per frame to prevent duplicate updates and reduce UI jitter
     - Improved Quest tracker update handling: UpdateLayout and PartialUpdate are now queued and merged per frame to avoid duplicate refreshes and reduce UI jitter
+    - Improved objective notification text formatting: progress values like 2/12 are now kept visible for world and bonus objectives
 
 10.6.2
 FIXES
@@ -48,3 +49,4 @@ FIXES
 10.5.1
 FIXES
     - Buggrabber integration
+    - Improved objective notification text formatting: progress values like 2/12 are now kept visible for world and bonus objectives

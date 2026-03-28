@@ -16,6 +16,7 @@ AddChange(string addonVersion, table changeList)
 addChange("10.6.3", {
     {GW.Enum.ChangelogType.change, [=[Improved Scenario tracker update handling: multiple rapid event triggers are now merged into a single layout refresh per frame to prevent duplicate updates and reduce UI jitter]=]},
     {GW.Enum.ChangelogType.change, [=[Improved Quest tracker update handling: UpdateLayout and PartialUpdate are now queued and merged per frame to avoid duplicate refreshes and reduce UI jitter]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved objective notification text formatting: progress values like 2/12 are now kept visible for world and bonus objectives]=]},
 })
 
 addChange("10.6.2", {
