@@ -406,6 +406,171 @@ end
 
 
 GwObjectivesTrackerNotificationMixin = {}
+
+local function PlayHeaderRefreshAnimation(self, color)
+    if not color then
+        return
+    end
+
+    GW.AddToAnimation(
+        self.headerAnimationName,
+        0,
+        1,
+        GetTime(),
+        0.28,
+        function(step)
+            local pulse = math.sin(step * math.pi) -- 0 -> 1 -> 0
+            local textAlpha = 0.55 + (step * 0.45)
+            local descAlpha = 0.4 + (step * 0.6)
+            local bgAlpha = 0.3 + (pulse * 0.28)
+            local colorBoost = pulse * 0.22
+            local titleR = math.min(1, color.r + ((1 - color.r) * colorBoost))
+            local titleG = math.min(1, color.g + ((1 - color.g) * colorBoost))
+            local titleB = math.min(1, color.b + ((1 - color.b) * colorBoost))
+
+            self.iconFrame:SetScale(1 + (pulse * 0.08))
+            self.title:SetTextColor(titleR, titleG, titleB)
+            self.title:SetAlpha(textAlpha)
+            self.desc:SetAlpha(descAlpha)
+            self.compassBG:SetVertexColor(color.r, color.g, color.b, bgAlpha)
+        end,
+        nil,
+        function()
+            self.iconFrame:SetScale(1)
+            self.title:SetTextColor(color.r, color.g, color.b)
+            self.title:SetAlpha(1)
+            self.desc:SetAlpha(1)
+            self.compassBG:SetVertexColor(color.r, color.g, color.b, 0.3)
+        end,
+        true
+    )
+end
+
+local function PlayNotificationHover(self, hoverIn)
+    local color = self.currentNotificationColor or GW.Colors.FallbackWhite
+    local fromAlpha = self:GetAlpha() or 1
+    local toAlpha = hoverIn and 1 or 0.95
+    local fromBgAlpha = self.currentBgAlpha or 0.3
+    local toBgAlpha = hoverIn and 0.5 or 0.3
+
+    GW.AddToAnimation(
+        self.hoverAnimationName,
+        0,
+        1,
+        GetTime(),
+        0.16,
+        function(step)
+            self:SetAlpha(GW.lerp(fromAlpha, toAlpha, step))
+            local bgAlpha = GW.lerp(fromBgAlpha, toBgAlpha, step)
+            self.currentBgAlpha = bgAlpha
+            self.compassBG:SetVertexColor(color.r, color.g, color.b, bgAlpha)
+        end,
+        nil,
+        nil,
+        true
+    )
+end
+
+local function ApplyIndicatorState(self, useProgress, data, animate)
+    if useProgress then
+        self.bonusbar.progress = data.PROGRESS
+        self.bonusbar.bar:SetValue(data.PROGRESS)
+    end
+
+    if not animate then
+        if useProgress then
+            self.bonusbar:Show()
+            self.bonusbar:SetAlpha(1)
+            self.bonusbar:SetScale(1)
+            self.iconFrame:SetAlpha(1)
+            self.iconFrame:SetScale(1)
+            self.iconFrame.icon:SetTexture(nil)
+        else
+            self.bonusbar:Hide()
+            self.bonusbar:SetAlpha(1)
+            self.bonusbar:SetScale(1)
+            self.iconFrame:SetAlpha(1)
+            self.iconFrame:SetScale(1)
+        end
+        self.usingProgressIndicator = useProgress
+        return
+    end
+
+    if useProgress then
+        self.bonusbar:Show()
+        self.bonusbar:SetAlpha(0)
+    end
+
+    GW.AddToAnimation(
+        self.indicatorAnimationName,
+        0,
+        1,
+        GetTime(),
+        0.2,
+        function(step)
+            local pulse = math.sin(step * math.pi)
+            self.iconFrame:SetAlpha(useProgress and (1 - step) or step)
+            self.iconFrame:SetScale(0.94 + (0.06 * step) + (pulse * 0.02))
+            self.bonusbar:SetAlpha(useProgress and step or (1 - step))
+            self.bonusbar:SetScale(0.94 + (0.06 * step) + (pulse * 0.02))
+        end,
+        nil,
+        function()
+            self.iconFrame:SetAlpha(1)
+            self.iconFrame:SetScale(1)
+            self.bonusbar:SetScale(1)
+            self.bonusbar:SetAlpha(1)
+            if useProgress then
+                self.iconFrame.icon:SetTexture(nil)
+                self.bonusbar:Show()
+            else
+                self.bonusbar:Hide()
+            end
+        end,
+        true
+    )
+
+    self.usingProgressIndicator = useProgress
+end
+
+local function PlayBonusbarShowAnimation(self)
+    if not self.bonusbar:IsShown() then
+        return
+    end
+
+    if self.bonusbar.flare then
+        self.bonusbar.flare:Show()
+        self.bonusbar.flare:SetAlpha(0.9)
+        self.bonusbar.flare:SetRotation(0)
+    end
+
+    GW.AddToAnimation(
+        self.bonusbarShowAnimationName,
+        0,
+        1,
+        GetTime(),
+        0.24,
+        function(step)
+            local pulse = math.sin(step * math.pi)
+            self.bonusbar:SetScale(0.9 + (0.1 * step) + (pulse * 0.02))
+            self.bonusbar:SetAlpha(0.7 + (0.3 * step))
+            if self.bonusbar.flare then
+                self.bonusbar.flare:SetAlpha(1 - step)
+                self.bonusbar.flare:SetRotation(1.8 * step)
+            end
+        end,
+        nil,
+        function()
+            self.bonusbar:SetScale(1)
+            self.bonusbar:SetAlpha(1)
+            if self.bonusbar.flare then
+                self.bonusbar.flare:Hide()
+            end
+        end,
+        true
+    )
+end
+
 function GwObjectivesTrackerNotificationMixin:AddNotification(data, forceUpdate)
     if data == nil or data.ID == nil then
         return
@@ -453,6 +618,9 @@ function GwObjectivesTrackerNotificationMixin:NotificationStateChanged(show)
         function()
             self:SetShown(show)
             self.animating = false
+            if show and self.usingProgressIndicator then
+                PlayBonusbarShowAnimation(self)
+            end
             GwQuestTracker:LayoutChanged()
         end,
         true
@@ -519,15 +687,16 @@ function GwObjectivesTrackerNotificationMixin:SetObjectiveNotification()
             end)
         end
 
-        if data.PROGRESS and iconInfo then
-            self.bonusbar:Show()
-            self.bonusbar.progress = data.PROGRESS
-            self.bonusbar.bar:SetValue(data.PROGRESS)
-            self.iconFrame.icon:SetTexture(nil)
-        else
-            self.bonusbar:Hide()
-        end
+        local useProgressIndicator = (data.PROGRESS ~= nil) and (iconInfo ~= nil)
+        local shouldAnimateIndicator = self.usingProgressIndicator ~= nil and self.usingProgressIndicator ~= useProgressIndicator
+        ApplyIndicatorState(self, useProgressIndicator, data, shouldAnimateIndicator)
     else
+        self.bonusbar:Hide()
+        self.bonusbar:SetAlpha(1)
+        self.bonusbar:SetScale(1)
+        self.iconFrame:SetAlpha(1)
+        self.iconFrame:SetScale(1)
+        self.usingProgressIndicator = false
         self.iconFrame.icon:SetTexture(nil)
     end
 
@@ -561,16 +730,30 @@ function GwObjectivesTrackerNotificationMixin:SetObjectiveNotification()
         end
     end
 
-    self.title:SetText(data.TITLE)
+    local titleText = data.TITLE or ""
+    local descText = data.DESC or ""
+    local headerStateChanged = self.lastNotificationID ~= data.ID or self.lastTitleText ~= titleText or self.lastDescText ~= descText
+
+    self.title:SetText(titleText)
     self.title:SetTextColor(data.COLOR.r, data.COLOR.g, data.COLOR.b)
     self.compassBG:SetVertexColor(data.COLOR.r, data.COLOR.g, data.COLOR.b, 0.3)
-    self.desc:SetText(data.DESC or "")
+    self.currentNotificationColor = data.COLOR
+    self.currentBgAlpha = 0.3
+    self.desc:SetText(descText)
 
     if not data.DESC or data.DESC == "" then
         self.title:SetPoint("TOP", self, "TOP", 0, -30)
     else
         self.title:SetPoint("TOP", self, "TOP", 0, -15)
     end
+
+    if headerStateChanged then
+        PlayHeaderRefreshAnimation(self, data.COLOR)
+    end
+
+    self.lastNotificationID = data.ID
+    self.lastTitleText = titleText
+    self.lastDescText = descText
 
     self.shouldDisplay = true
 end
@@ -631,6 +814,19 @@ function GwObjectivesTrackerNotificationMixin:InitModule()
     self.compass:SetScript("OnShow", self.compass.NewQuestAnimation)
     self.compass:SetScript("OnMouseDown", function() if GW.Retail then C_SuperTrack.ClearAllSuperTracked() end end)
     self.shouldDisplay = false
+    self.headerAnimationName = self:GetDebugName() .. "_Header"
+    self.indicatorAnimationName = self:GetDebugName() .. "_Indicator"
+    self.bonusbarShowAnimationName = self:GetDebugName() .. "_BonusShow"
+    self.hoverAnimationName = self:GetDebugName() .. "_Hover"
+    self.lastNotificationID = nil
+    self.lastTitleText = nil
+    self.lastDescText = nil
+    self.usingProgressIndicator = nil
+    self.currentBgAlpha = 0.3
+    self.currentNotificationColor = CreateColor(1, 1, 1, 1)
+    self:SetScript("OnEnter", function() PlayNotificationHover(self, true) end)
+    self:SetScript("OnLeave", function() PlayNotificationHover(self, false) end)
+    GW.AddMouseMotionPropagationToChildFrames(self)
 
     -- only update the tracker on Events or if player moves
     self:RegisterEvent("PLAYER_STARTED_MOVING")
