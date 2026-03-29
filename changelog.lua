@@ -19,6 +19,7 @@ addChange("10.6.3", {
     {GW.Enum.ChangelogType.change, [=[Improved objective notification text formatting: progress values like 2/12 are now kept visible for world and bonus objectives]=]},
     {GW.Enum.ChangelogType.change, [=[Improved objective notification visuals: smoother icon/progress transitions plus hover blend feedback for clearer focus]=]},
     {GW.Enum.ChangelogType.change, [=[Added a Retail-only "Private Auras" toggle for grid debuffs in raid layouts (including maintank and party grid)]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed a chat formatting error that could trigger "invalid option in `format`" when messages contained percent signs (%)]=]},
 })
 
 addChange("10.6.2", {

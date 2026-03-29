@@ -6,6 +6,9 @@ CHANGES
     - Improved objective notification visuals: smoother icon/progress transitions plus hover blend feedback for clearer focus
     - Added a Retail-only "Private Auras" toggle for grid debuffs in raid layouts (including maintank and party grid)
 
+FIXES
+    - Fixed a chat formatting error that could trigger "invalid option in `format`" when messages contained percent signs (%)
+
 10.6.2
 FIXES
     - Temporarily disabled Grid aura timers

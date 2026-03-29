@@ -20,8 +20,8 @@ function GW.UpdatePrivateAurasSettings(frame)
     frame.PrivateAuras.size = 15
 
     if frame.showPrivateAuras then
-        frame.PrivateAuras:Enable()
+        frame:EnableElement("PrivateAuras")
     else
-        frame.PrivateAuras:Disable()
+        frame:DisableElement("PrivateAuras")
     end
 end

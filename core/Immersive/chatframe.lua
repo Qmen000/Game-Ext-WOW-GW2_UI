@@ -1412,7 +1412,7 @@ local function MessageFormatter(frame, info, chatType, chatGroup, chatTarget, ch
     elseif chatType == "TEXT_EMOTE" then
         body = (GW.NotSecretValue(arg2) and arg2 ~= senderLink) and gsub(message, arg2, senderLink, 1) or message
     else
-        body = format(_G["CHAT_"..chatType.."_GET"]..message, pflag..senderLink)
+        body = format(_G["CHAT_" .. chatType .. "_GET"], pflag .. senderLink) .. message
     end
 
     -- Add Channel
@@ -1608,7 +1608,7 @@ local function ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg
             frame:AddMessage(CHAT_RESTRICTED_TRIAL, info.r, info.g, info.b, info.id, nil, nil, nil, nil, nil, isHistory, historyTime)
         elseif chatType == "CHANNEL_LIST" then
             if channelLength > 0 then
-                frame:AddMessage(format(_G["CHAT_"..chatType.."_GET"]..arg1, tonumber(arg8), arg4), info.r, info.g, info.b, info.id, nil, nil, nil, nil, nil, isHistory, historyTime)
+                frame:AddMessage(format(_G["CHAT_" .. chatType .. "_GET"], tonumber(arg8), arg4) .. arg1, info.r, info.g, info.b, info.id, nil, nil, nil, nil, nil, isHistory, historyTime)
             else
                 frame:AddMessage(arg1, info.r, info.g, info.b, info.id, nil, nil, nil, nil, nil, isHistory, historyTime)
             end

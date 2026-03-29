@@ -91,9 +91,9 @@ local function Update_Powerbar(frame)
     end
 
     if frame.showResscoureBar == "NONE" then
-        power:Disable()
+        frame:DisableElement("Power")
     else
-        power:Enable()
+        frame:EnableElement("Power")
     end
 end
 GW.Update_Powerbar = Update_Powerbar
