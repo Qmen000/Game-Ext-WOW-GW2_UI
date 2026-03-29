@@ -363,8 +363,8 @@ local function Construct_Auras(frame)
     -- init settings
     auras.initialAnchor = "BOTTOMRIGHT"
     auras.growthX = "LEFT"
-    auras.spacingX = 2
-    auras.spacingY = 2
+    auras.spacingX = 1
+    auras.spacingY = 1
     auras.disableCooldown = true
     auras.reanchorIfVisibleChanged = true
 

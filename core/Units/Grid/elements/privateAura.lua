@@ -14,7 +14,7 @@ function GW.UpdatePrivateAurasSettings(frame)
     frame.PrivateAuras:SetPoint("CENTER", frame)
     frame.PrivateAuras:SetSize(frame:GetSize())
     frame.PrivateAuras.disableCooldown = false
-    frame.PrivateAuras.disableCooldownText = false
+    frame.PrivateAuras.disableCooldownText = true
     frame.PrivateAuras.initialAnchor = "CENTER"
     frame.PrivateAuras.borderScale = 1
     frame.PrivateAuras.size = 15
