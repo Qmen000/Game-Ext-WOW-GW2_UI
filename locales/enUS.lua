@@ -201,6 +201,7 @@ L["Enter the spell ID which should be tracked by the dodge bar.\nIf no ID is ent
 L["Player frame in group"] = true
 L["Show your player frame as part of the group"] = true
 L["Display the power bars on the raid units."] = true
+L["Private Auras"] = true
 L["Show Profession Bag Coloring"] = true
 L["PROFILES"] = true
 L["Profiles"] = true

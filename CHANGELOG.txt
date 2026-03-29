@@ -4,6 +4,7 @@ CHANGES
     - Improved Quest tracker update handling: UpdateLayout and PartialUpdate are now queued and merged per frame to avoid duplicate refreshes and reduce UI jitter
     - Improved objective notification text formatting: progress values like 2/12 are now kept visible for world and bonus objectives
     - Improved objective notification visuals: smoother icon/progress transitions plus hover blend feedback for clearer focus
+    - Added a Retail-only "Private Auras" toggle for grid debuffs in raid layouts (including maintank and party grid)
 
 10.6.2
 FIXES

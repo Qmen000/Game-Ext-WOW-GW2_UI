@@ -18,4 +18,10 @@ function GW.UpdatePrivateAurasSettings(frame)
     frame.PrivateAuras.initialAnchor = "CENTER"
     frame.PrivateAuras.borderScale = 1
     frame.PrivateAuras.size = 15
+
+    if frame.showPrivateAuras then
+        frame.PrivateAuras:Enable()
+    else
+        frame.PrivateAuras:Disable()
+    end
 end

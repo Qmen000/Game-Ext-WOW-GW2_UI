@@ -132,6 +132,7 @@ L["Display the class color as the health bar."] = "Aktiviert die Klassenfarbe al
 L["Display the focus target frame."] = "Zeige das Ziel des Fokusziels an."
 L["Display the hyperlink tooltip while hovering over a hyperlink."] = "Zeige den Hyperlink-Tooltip an, während du über einen Hyperlink schweben."
 L["Display the power bars on the raid units."] = "Zeige die Ressourcenbalken in den Schlachtzugseinheiten."
+L["Private Auras"] = "Private Auren"
 L["Display the target's buffs."] = "Zeige die Stärkungszauber des Ziels."
 L["Display the target's debuffs that you have inflicted."] = "Zeige die Schwächungszauber des Ziel, welche du zugefügt hast."
 L["Display the unit role in the tooltip."] = "Zeigt die Rolle des Spielers im Tooltip an."

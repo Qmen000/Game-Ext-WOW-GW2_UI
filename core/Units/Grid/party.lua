@@ -28,6 +28,7 @@ local function GridPartyStyleRegister(self)
     GW.Construct_PredictionBar(self) -- creates only the function regestration
     self.Auras = GW.Construct_Auras(self)
     self.MissingBuffFrame = GW.Construct_MissingAuraIndicator(self)
+    self.PrivateAuras = GW.Construct_PrivateAura(self)
     self.Fader = GW.Construct_Faderframe(self)
 
 
@@ -50,6 +51,7 @@ local function UpdateGridPartyFrame(frame)
     frame.showDebuffs = GW.settings.RAID_SHOW_DEBUFFS_PARTY
     frame.showOnlyDispelDebuffs = GW.settings.RAID_ONLY_DISPELL_DEBUFFS_PARTY
     frame.showBuffs = GW.settings.RAID_PARTY_SHOW_BUFFS
+    frame.showPrivateAuras = GW.settings.RAID_PARTY_SHOW_PRIVATE_AURAS
     frame.showAuraTooltipInCombat = GW.settings.RAID_AURA_TOOLTIP_INCOMBAT_PARTY
     frame.ignoredAuras = GW.FillTable({}, true, strsplit(",", (GW.settings.AURAS_IGNORED:trim():gsub("%s*,%s*", ","))))
     frame.missingAuras = GW.FillTable({}, true, strsplit(",", (GW.settings.AURAS_MISSING:trim():gsub("%s*,%s*", ","))))
@@ -96,6 +98,7 @@ local function UpdateGridPartyFrame(frame)
     GW.Update_PredictionBars(frame)
     GW.UpdateAurasSettings(frame)
     GW.Update_MissingAuraIndicator(frame)
+    GW.UpdatePrivateAurasSettings(frame)
     GW.Update_Faderframe(frame, "gridParty")
 
     frame:UpdateAllElements("Gw2_UpdateAllElements")

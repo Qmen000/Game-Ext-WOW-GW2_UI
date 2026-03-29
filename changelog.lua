@@ -18,6 +18,7 @@ addChange("10.6.3", {
     {GW.Enum.ChangelogType.change, [=[Improved Quest tracker update handling: UpdateLayout and PartialUpdate are now queued and merged per frame to avoid duplicate refreshes and reduce UI jitter]=]},
     {GW.Enum.ChangelogType.change, [=[Improved objective notification text formatting: progress values like 2/12 are now kept visible for world and bonus objectives]=]},
     {GW.Enum.ChangelogType.change, [=[Improved objective notification visuals: smoother icon/progress transitions plus hover blend feedback for clearer focus]=]},
+    {GW.Enum.ChangelogType.change, [=[Added a Retail-only "Private Auras" toggle for grid debuffs in raid layouts (including maintank and party grid)]=]},
 })
 
 addChange("10.6.2", {

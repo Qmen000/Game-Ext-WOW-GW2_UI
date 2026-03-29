@@ -47,6 +47,7 @@ local function UpdateGridRaid10Frame(frame)
     frame.unitHeight = tonumber(GW.settings.RAID_HEIGHT_RAID10)
     frame.raidShowImportantInstanceDebuffs = GW.settings.RAID_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF_RAID10
     frame.showDebuffs = GW.settings.RAID_SHOW_DEBUFFS_RAID10
+    frame.showPrivateAuras = GW.settings.RAID_10_SHOW_PRIVATE_AURAS
     frame.showOnlyDispelDebuffs = GW.settings.RAID_ONLY_DISPELL_DEBUFFS_RAID10
     frame.showBuffs = GW.settings.RAID_10_SHOW_BUFFS
     frame.showAuraTooltipInCombat = GW.settings.RAID_AURA_TOOLTIP_INCOMBAT_RAID10
