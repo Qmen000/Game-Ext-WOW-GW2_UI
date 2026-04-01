@@ -892,7 +892,6 @@ end
 local function powerSotR()
     local results = GetAuraData("player", nil, "HELPFUL", 132403, 31850, 212641)
 
-    C_Secrets.ShouldSpellAuraBeSecret(212641)
     if results == nil then
         return
     end
@@ -914,10 +913,24 @@ local function powerSotR()
     end
 end
 
+local function UpdateHolyPowerPoints(self)
+    local maxPoints = UnitPowerMax("player", Enum.PowerType.HolyPower)
+    for _, v in pairs(self.paladin.power) do
+        local id = tonumber(v:GetParentKey())
+        if id > maxPoints then
+            v:Hide()
+        else
+            v:Show()
+        end
+    end
+end
 
 local function powerHoly(self, event, ...)
     if event == "UNIT_AURA" then
         HandleUnitAuraEvent(...)
+        return
+    elseif event == "UNIT_MAXPOWER" then
+        UpdateHolyPowerPoints(self)
         return
     end
 
@@ -927,7 +940,7 @@ local function powerHoly(self, event, ...)
     end
 
     local old_power = self.gwPower
-    local pwr = UnitPower("player", 9)
+    local pwr = UnitPower("player", Enum.PowerType.HolyPower)
     local pwrThreshold = (GW.Retail and 3 or 1)
     if pwr < pwrThreshold then
         self.background:SetAlpha(0.2)
@@ -967,15 +980,7 @@ local function setPaladin(f)
 
     f.fill:Hide()
 
-    local maxPoints = UnitPowerMax("player", 9)
-    for _, v in pairs(f.paladin.power) do
-        local id = tonumber(v:GetParentKey())
-        if id > maxPoints then
-            v:Hide()
-        else
-            v:Show()
-        end
-    end
+    UpdateHolyPowerPoints(f)
 
     f:SetScript("OnEvent", powerHoly)
     powerHoly(f, "CLASS_POWER_INIT")
@@ -1632,8 +1637,8 @@ local function powerChi(self, event, ...)
     local old_power = self.gwPower
     old_power = old_power or -1
 
-    local pwrMax = UnitPowerMax("player", 12)
-    local pwr = UnitPower("player", 12)
+    local pwrMax = UnitPowerMax("player", Enum.PowerType.Chi)
+    local pwr = UnitPower("player", Enum.PowerType.Chi)
     local p = pwr - 1
 
     self.gwPower = pwr
