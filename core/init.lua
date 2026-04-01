@@ -112,9 +112,6 @@ GW.ObjectiveTrackerContainer = {}
 GW.earnedMoney = 0
 GW.spentMoney = 0
 
--- Init error handler
-GW.CreateErrorHandler()
-
 GW.AlertContainerFrame = nil
 
 if not GW.Retail then
@@ -158,6 +155,9 @@ end
 
 -- Locale doesn't exist yet, make it exist
 GW.L = GW.Libs.AceLocale:GetLocale("GW2_UI")
+
+-- Init error handler
+GW.CreateErrorHandler()
 
 function GW.CopyTable(src, preserveMeta, seen)
     if type(src) ~= "table" then return src end
