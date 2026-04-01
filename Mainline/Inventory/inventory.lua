@@ -5,6 +5,12 @@ local GW = select(2, ...)
 local MAX_CONTAINER_ITEMS = 36
 local BORDER_TEXTURE = "Interface/AddOns/GW2_UI/textures/bag/bagitemborder.png"
 local BACKDROP_TEXTURE = "Interface/AddOns/GW2_UI/textures/bag/bagitembackdrop.png"
+local BAG_ITEM_SIZE_CONFIG = {
+    defaultValue = GW.globalDefault.profile.BAG_ITEM_SIZE,
+    minValue = 26,
+    maxValue = 48,
+    step = 1
+}
 
 -- reskins an ItemButton to use GW2_UI styling
 local function ReskinItemButton(b, overrideIconSize)
@@ -302,10 +308,13 @@ GW.SetBagItemButtonQualitySkin = SetItemButtonData
 
 local bag_resize
 local bank_resize
+local function NormalizeBagItemSize(value)
+    local size = math.floor((tonumber(value) or BAG_ITEM_SIZE_CONFIG.defaultValue) + 0.5)
+    return math.max(BAG_ITEM_SIZE_CONFIG.minValue, math.min(BAG_ITEM_SIZE_CONFIG.maxValue, size))
+end
+
 local function resizeInventory()
-    if GW.settings.BAG_ITEM_SIZE > 40 then
-        GW.settings.BAG_ITEM_SIZE = 40
-    end
+    GW.settings.BAG_ITEM_SIZE = NormalizeBagItemSize(GW.settings.BAG_ITEM_SIZE)
     reskinItemButtons()
     if bag_resize then
         bag_resize()
@@ -862,6 +871,8 @@ local function LoadInventory()
     helpers.onSizerMouseUp = onSizerMouseUp
     helpers.onMoverDragStart = onMoverDragStart
     helpers.onMoverDragStop = onMoverDragStop
+    helpers.bagItemSizeConfig = BAG_ITEM_SIZE_CONFIG
+    helpers.normalizeBagItemSize = NormalizeBagItemSize
 
     bag_resize = GW.LoadBag(helpers)
     bank_resize = GW.LoadBank(helpers)

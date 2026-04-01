@@ -6,8 +6,6 @@ local UpdateMoney = GW.UpdateMoney
 local EnableTooltip = GW.EnableTooltip
 local inv
 
-local BAG_ITEM_LARGE_SIZE = 40
-local BAG_ITEM_COMPACT_SIZE = 32
 local BAG_ITEM_PADDING = 5
 
 local function setBagHeaders(frame)
@@ -381,17 +379,25 @@ local function onBagFrameChangeSize(self, _, _, skip)
 end
 
 
--- toggles the setting for compact/large icons
-local function compactToggle()
-    if GW.settings.BAG_ITEM_SIZE == BAG_ITEM_LARGE_SIZE then
-        GW.settings.BAG_ITEM_SIZE = BAG_ITEM_COMPACT_SIZE
+local function setBagItemSize(value)
+    local size = inv.normalizeBagItemSize(value)
+    if GW.settings.BAG_ITEM_SIZE ~= size then
+        GW.settings.BAG_ITEM_SIZE = size
         inv.resizeInventory()
-        return true
     end
+    return size
+end
 
-    GW.settings.BAG_ITEM_SIZE = BAG_ITEM_LARGE_SIZE
-    inv.resizeInventory()
-    return false
+local function addBagItemSizeControl(rootDescription)
+    local config = inv.bagItemSizeConfig
+    GW.AddMenuSliderDescription(rootDescription, {
+        title = L["Icon Size"] or "Icon Size",
+        minValue = config.minValue,
+        maxValue = config.maxValue,
+        step = config.step,
+        getValue = function() return GW.settings.BAG_ITEM_SIZE end,
+        setValue = setBagItemSize
+    })
 end
 
 
@@ -624,9 +630,7 @@ end
 local function LoadBag(helpers)
     inv = helpers 
 
-    if GW.settings.BAG_ITEM_SIZE == nil or GW.settings.BAG_ITEM_SIZE > 40 then
-        GW.settings.BAG_ITEM_SIZE = 40
-    end
+    GW.settings.BAG_ITEM_SIZE = inv.normalizeBagItemSize(GW.settings.BAG_ITEM_SIZE)
 
     -- create bag frame, restore its saved size, and init its many pieces
     local f = CreateFrame("Frame", "GwBagFrame", UIParent, "GwBagFrameTemplate")
@@ -769,7 +773,7 @@ local function LoadBag(helpers)
                 end)
             end
 
-            addCheck(L["Compact Icons"], function() return GW.settings.BAG_ITEM_SIZE == BAG_ITEM_COMPACT_SIZE end, compactToggle)
+            addBagItemSizeControl(rootDescription)
             addCheck(L["Loot to leftmost Bag"], function() return GW.settings.BAG_REVERSE_NEW_LOOT end,
                      function() local ns = not GW.settings.BAG_REVERSE_NEW_LOOT; C_Container.SetInsertItemsLeftToRight(ns); GW.settings.BAG_REVERSE_NEW_LOOT = ns end)
             addCheck(L["Sort to Last Bag"], function() return GW.settings.BAG_ITEMS_REVERSE_SORT end,

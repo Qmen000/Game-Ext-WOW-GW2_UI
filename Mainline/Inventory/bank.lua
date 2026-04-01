@@ -4,8 +4,6 @@ local L = GW.L
 local EnableTooltip = GW.EnableTooltip
 local inv
 
-local BANK_ITEM_LARGE_SIZE = 40
-local BANK_ITEM_COMPACT_SIZE = 32
 local BANK_ITEM_PADDING = 5
 local PURCHASE_TAB_ID = -1
 
@@ -171,17 +169,27 @@ local function onBankFrameChangeSize(self)
     end
 end
 
--- toggles the setting for compact/large icons
-local function compactToggle()
-    if GW.settings.BAG_ITEM_SIZE == BANK_ITEM_LARGE_SIZE then
-        GW.settings.BAG_ITEM_SIZE = BANK_ITEM_COMPACT_SIZE
+local function setBankItemSize(value)
+    local size = inv.normalizeBagItemSize(value)
+
+    if GW.settings.BAG_ITEM_SIZE ~= size then
+        GW.settings.BAG_ITEM_SIZE = size
         inv.resizeInventory()
-        return true
     end
 
-    GW.settings.BAG_ITEM_SIZE = BANK_ITEM_LARGE_SIZE
-    inv.resizeInventory()
-    return false
+    return size
+end
+
+local function addBankItemSizeControl(rootDescription)
+    local config = inv.bagItemSizeConfig
+    GW.AddMenuSliderDescription(rootDescription, {
+        title = L["Icon Size"],
+        minValue = config.minValue,
+        maxValue = config.maxValue,
+        step = config.step,
+        getValue = function() return GW.settings.BAG_ITEM_SIZE end,
+        setValue = setBankItemSize
+    })
 end
 
 
@@ -271,9 +279,7 @@ end
 local function LoadBank(helpers)
     inv = helpers
 
-    if GW.settings.BAG_ITEM_SIZE > 40 then
-        GW.settings.BAG_ITEM_SIZE = 40
-    end
+    GW.settings.BAG_ITEM_SIZE = inv.normalizeBagItemSize(GW.settings.BAG_ITEM_SIZE)
 
     -- create bank frame, restore its saved size, and init its many pieces
     local f = CreateFrame("Frame", "GwBankFrame", UIParent, "GwBankFrameTemplate")
@@ -427,10 +433,9 @@ local function LoadBank(helpers)
     f.buttonSettings:SetScript("OnClick", function(self)
         MenuUtil.CreateContextMenu(self, function(ownerRegion, rootDescription)
             rootDescription:SetMinimumWidth(1)
-            local check = rootDescription:CreateCheckbox(L["Compact Icons"], function() return GW.settings.BAG_ITEM_SIZE == BANK_ITEM_COMPACT_SIZE end, compactToggle)
-            check:AddInitializer(GW.BlizzardDropdownCheckButtonInitializer)
+            addBankItemSizeControl(rootDescription)
 
-            check = rootDescription:CreateCheckbox(L["Show Quality Color"], function() return GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW end, function() GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW = not GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW; f.BankPanel:Reset() end)
+            local check = rootDescription:CreateCheckbox(L["Show Quality Color"], function() return GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW end, function() GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW = not GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW; f.BankPanel:Reset() end)
             check:AddInitializer(GW.BlizzardDropdownCheckButtonInitializer)
         end)
     end)

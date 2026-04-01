@@ -7,12 +7,17 @@ BAG_FILTER_LABELS = {
     [LE_BAG_FILTER_FLAG_TRADE_GOODS] = BAG_FILTER_TRADE_GOODS,
     [LE_BAG_FILTER_FLAG_JUNK] = BAG_FILTER_JUNK,
 };
+local BAG_ITEM_SIZE_CONFIG = {
+    defaultValue = GW.globalDefault.profile.BAG_ITEM_SIZE,
+    minValue = 26,
+    maxValue = 48,
+    step = 1
+}
 
 -- reskins an ItemButton to use GW2_UI styling
-local item_size
 local function reskinItemButton(b, overrideIconSize)
     if not b then return end
-    local iconSize = overrideIconSize or item_size
+    local iconSize = overrideIconSize or GW.settings.BAG_ITEM_SIZE
     b:SetSize(iconSize, iconSize)
 
     b.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
@@ -299,12 +304,13 @@ GW.SetBagItemButtonQualitySkin = SetItemButtonData
 
 local bag_resize
 local bank_resize
+local function NormalizeBagItemSize(value)
+    local size = math.floor((tonumber(value) or BAG_ITEM_SIZE_CONFIG.defaultValue) + 0.5)
+    return math.max(BAG_ITEM_SIZE_CONFIG.minValue, math.min(BAG_ITEM_SIZE_CONFIG.maxValue, size))
+end
+
 local function resizeInventory()
-    item_size = GW.settings.BAG_ITEM_SIZE
-    if item_size > 40 then
-        item_size = 40
-        GW.settings.BAG_ITEM_SIZE = 40
-    end
+    GW.settings.BAG_ITEM_SIZE = NormalizeBagItemSize(GW.settings.BAG_ITEM_SIZE)
     reskinItemButtons()
     if bag_resize then
         bag_resize()
@@ -703,8 +709,6 @@ local function LoadInventory()
     _G["BINDING_NAME_BAG_SORT"] = BAG_CLEANUP_BAGS
     _G["BINDING_NAME_BANK_SORT"] = BAG_CLEANUP_BANK
 
-    item_size = GW.settings.BAG_ITEM_SIZE
-
     -- anytime a ContainerFrame has its anchors set, we re-hide it
     hooksecurefunc("UpdateContainerFrameAnchors", hookUpdateAnchors)
 
@@ -741,6 +745,8 @@ local function LoadInventory()
     helpers.onSizerMouseUp = onSizerMouseUp
     helpers.onMoverDragStart = onMoverDragStart
     helpers.onMoverDragStop = onMoverDragStop
+    helpers.bagItemSizeConfig = BAG_ITEM_SIZE_CONFIG
+    helpers.normalizeBagItemSize = NormalizeBagItemSize
 
     bag_resize = GW.LoadBag(helpers)
     bank_resize = GW.LoadBank(helpers)

@@ -4,8 +4,6 @@ local L = GW.L
 local EnableTooltip = GW.EnableTooltip
 local inv
 
-local BANK_ITEM_LARGE_SIZE = 40
-local BANK_ITEM_COMPACT_SIZE = 32
 local BANK_ITEM_PADDING = 5
 
 -- adjusts the ItemButton layout flow when the bank window size changes (or on open)
@@ -253,17 +251,25 @@ local function onBankFrameChangeSize(self, _, _, skip)
 end
 
 
--- toggles the setting for compact/large icons
-local function compactToggle()
-    if GW.settings.BAG_ITEM_SIZE == BANK_ITEM_LARGE_SIZE then
-        GW.settings.BAG_ITEM_SIZE = BANK_ITEM_COMPACT_SIZE
+local function setBankItemSize(value)
+    local size = inv.normalizeBagItemSize(value)
+    if GW.settings.BAG_ITEM_SIZE ~= size then
+        GW.settings.BAG_ITEM_SIZE = size
         inv.resizeInventory()
-        return true
     end
+    return size
+end
 
-    GW.settings.BAG_ITEM_SIZE = BANK_ITEM_LARGE_SIZE
-    inv.resizeInventory()
-    return false
+local function addBankItemSizeControl(rootDescription)
+    local config = inv.bagItemSizeConfig
+    GW.AddMenuSliderDescription(rootDescription, {
+        title = L["Icon Size"] or "Icon Size",
+        minValue = config.minValue,
+        maxValue = config.maxValue,
+        step = config.step,
+        getValue = function() return GW.settings.BAG_ITEM_SIZE end,
+        setValue = setBankItemSize
+    })
 end
 
 
@@ -362,9 +368,7 @@ end
 local function LoadBank(helpers)
     inv = helpers
 
-    if GW.settings.BAG_ITEM_SIZE > 40 then
-        GW.settings.BAG_ITEM_SIZE = 40
-    end
+    GW.settings.BAG_ITEM_SIZE = inv.normalizeBagItemSize(GW.settings.BAG_ITEM_SIZE)
 
     -- create bank frame, restore its saved size, and init its many pieces
     local f = CreateFrame("Frame", "GwBankFrame", UIParent, "GwBankFrameTemplate")
@@ -493,7 +497,7 @@ local function LoadBank(helpers)
                 end)
             end
 
-            addCheck(L["Compact Icons"], function() return GW.settings.BAG_ITEM_SIZE == BANK_ITEM_COMPACT_SIZE end, compactToggle)
+            addBankItemSizeControl(rootDescription)
             addCheck(L["Reverse Bag Order"], function() return GW.settings.BANK_REVERSE_SORT end, function() GW.settings.BANK_REVERSE_SORT = not GW.settings.BANK_REVERSE_SORT; ContainerFrame_UpdateAll() end)
             addCheck(L["Show Quality Color"], function() return GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW end, function() GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW = not GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW; ContainerFrame_UpdateAll() end)
         end)
