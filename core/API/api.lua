@@ -326,7 +326,7 @@ function GW.GetWowheadLinkForLanguage()
         xpac = "mop-classic/"
     elseif GW.Cata then
         xpac = "cata/"
-    elseif GW.WOTLK then
+    elseif GW.Wrath then
         xpac = "wotlk/"
     elseif GW.TBC then
         xpac = "tbc/"
