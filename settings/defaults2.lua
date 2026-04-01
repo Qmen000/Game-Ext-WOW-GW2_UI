@@ -214,6 +214,8 @@ GW.globalDefault = {
         HUD_SPELL_SWAP= true,
 
         BAG_ITEM_SIZE= 40,
+        BAG_ITEM_SPACING_X= 5,
+        BAG_ITEM_SPACING_Y= 5,
 
         PLAYER_UNIT_HEALTH= "VALUE",
         PLAYER_UNIT_ABSORB= "VALUE",

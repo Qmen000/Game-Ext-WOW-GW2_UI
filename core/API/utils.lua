@@ -1410,24 +1410,29 @@ local function AddMenuSliderDescription(rootDescription, config)
 
         local slider = frame.slider
         local step = config.step or 1
+        -- Frames are pooled by Blizzard's menu system; clear any stale callback before
+        -- changing limits/value to avoid writing unrelated settings during init.
+        slider:SetScript("OnValueChanged", nil)
         slider:SetMinMaxValues(config.minValue or 0, config.maxValue or 1)
         slider:SetValueStep(step)
-        if slider.SetObeyStepOnDrag then
-            slider:SetObeyStepOnDrag(true)
-        end
+        slider:SetObeyStepOnDrag(true)
         slider:EnableMouseWheel(true)
         slider:SetScript("OnMouseWheel", function(self, delta)
             self:SetValue(self:GetValue() + (delta > 0 and step or -step))
         end)
 
-        slider:SetScript("OnValueChanged", function(_, value)
-            local currentValue = config.setValue(value)
-            frame.valueText:SetText(currentValue)
-        end)
-
-        local currentValue = config.setValue(config.getValue())
+        local currentValue = config.getValue()
         slider:SetValue(currentValue)
-        frame.valueText:SetText(currentValue)
+        frame.valueText:SetText(slider:GetValue())
+
+        slider:SetScript("OnValueChanged", function(self, value)
+            local normalizedValue = config.setValue(value)
+            if normalizedValue ~= value then
+                self:SetValue(normalizedValue)
+                return
+            end
+            frame.valueText:SetText(normalizedValue)
+        end)
     end)
 end
 GW.AddMenuSliderDescription = AddMenuSliderDescription

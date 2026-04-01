@@ -5,8 +5,6 @@ local UpdateMoney = GW.UpdateMoney
 local EnableTooltip = GW.EnableTooltip
 local inv
 
-local BAG_ITEM_PADDING = 5
-
 local function setBagHeaders(frame)
     for i = 1, 5 do
         local slotID = GetInventorySlotInfo(i == 5 and ("ReagentBag0Slot") or ("Bag" .. i - 1 .. "Slot"))
@@ -37,7 +35,8 @@ local function layoutBagItems(f)
     local rev = GW.settings.BAG_REVERSE_SORT
     local sep = GW.settings.BAG_SEPARATE_BAGS
     local row = sep and 1 or 0
-    local item_off = GW.settings.BAG_ITEM_SIZE + BAG_ITEM_PADDING
+    local item_off_x = GW.settings.BAG_ITEM_SIZE + GW.settings.BAG_ITEM_SPACING_X
+    local item_off_y = GW.settings.BAG_ITEM_SIZE + GW.settings.BAG_ITEM_SPACING_Y
     local unfinishedRow = false
     local finishedRows = 0
 
@@ -61,8 +60,8 @@ local function layoutBagItems(f)
         if sep then
             header:Show()
             header:ClearAllPoints()
-            header:SetPoint("TOPLEFT", f, "TOPLEFT", 0, (-row + 1) * item_off)
-            header:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, (-row + 1) * item_off)
+            header:SetPoint("TOPLEFT", f, "TOPLEFT", 0, (-row + 1) * item_off_y)
+            header:SetPoint("TOPRIGHT", f, "TOPRIGHT", 0, (-row + 1) * item_off_y)
         else
             header:Hide()
         end
@@ -74,7 +73,7 @@ local function layoutBagItems(f)
         end
 
         if cf:IsShown() then
-            col, row, unfinishedRow, finishedRows = lcf(cf, max_col, row, col, false, item_off)
+            col, row, unfinishedRow, finishedRows = lcf(cf, max_col, row, col, false, item_off_x, item_off_y)
         end
 
         parent.unfinishedRow = parent.unfinishedRow + (unfinishedRow and 1 or 0)
@@ -115,7 +114,7 @@ local function snapFrameSize(f)
     if f.ItemFrame:IsShown() then
         cfs = f.ItemFrame.Containers
     end
-    inv.snapFrameSize(f, cfs, GW.settings.BAG_ITEM_SIZE, BAG_ITEM_PADDING, 350)
+    inv.snapFrameSize(f, cfs, GW.settings.BAG_ITEM_SIZE, GW.settings.BAG_ITEM_SPACING_X, GW.settings.BAG_ITEM_SPACING_Y, 350)
 end
 
 
@@ -318,7 +317,7 @@ end
 
 
 local function onBagFrameChangeSize(self, _, _, skip)
-    local cols = inv.colCount(GW.settings.BAG_ITEM_SIZE, BAG_ITEM_PADDING, self:GetWidth())
+    local cols = inv.colCount(GW.settings.BAG_ITEM_SIZE, GW.settings.BAG_ITEM_SPACING_X, self:GetWidth())
 
     if not self.gw_bag_cols or self.gw_bag_cols ~= cols then
         self.gw_bag_cols = cols
@@ -340,15 +339,23 @@ local function setBagItemSize(value)
     return size
 end
 
-local function addBagItemSizeControl(rootDescription)
-    local config = inv.bagItemSizeConfig
+local function setBagItemSpacing(settingKey, normalizeFunc, value)
+    local spacing = normalizeFunc(value)
+    if GW.settings[settingKey] ~= spacing then
+        GW.settings[settingKey] = spacing
+        inv.resizeInventory()
+    end
+    return spacing
+end
+
+local function addBagSliderControl(rootDescription, title, config, getValueFunc, setValueFunc)
     GW.AddMenuSliderDescription(rootDescription, {
-        title = L["Icon Size"],
+        title = title,
         minValue = config.minValue,
         maxValue = config.maxValue,
         step = config.step,
-        getValue = function() return GW.settings.BAG_ITEM_SIZE end,
-        setValue = setBagItemSize
+        getValue = getValueFunc,
+        setValue = setValueFunc
     })
 end
 
@@ -564,6 +571,8 @@ local function LoadBag(helpers)
     inv = helpers
 
     GW.settings.BAG_ITEM_SIZE = inv.normalizeBagItemSize(GW.settings.BAG_ITEM_SIZE)
+    GW.settings.BAG_ITEM_SPACING_X = inv.normalizeBagItemSpacingX(GW.settings.BAG_ITEM_SPACING_X)
+    GW.settings.BAG_ITEM_SPACING_Y = inv.normalizeBagItemSpacingY(GW.settings.BAG_ITEM_SPACING_Y)
 
     -- create bag frame, restore its saved size, and init its many pieces
     local f = CreateFrame("Frame", "GwBagFrame", UIParent, "GwBagFrameTemplate")
@@ -690,7 +699,9 @@ local function LoadBag(helpers)
                 check:AddInitializer(GW.BlizzardDropdownCheckButtonInitializer)
             end
 
-            addBagItemSizeControl(rootDescription)
+            addBagSliderControl(rootDescription, L["Icon Size"], inv.bagItemSizeConfig, function() return GW.settings.BAG_ITEM_SIZE end, setBagItemSize)
+            addBagSliderControl(rootDescription, L["Slot Spacing X"], inv.bagItemSpacingXConfig, function() return GW.settings.BAG_ITEM_SPACING_X end, function(value) return setBagItemSpacing("BAG_ITEM_SPACING_X", inv.normalizeBagItemSpacingX, value) end)
+            addBagSliderControl(rootDescription, L["Slot Spacing Y"], inv.bagItemSpacingYConfig, function() return GW.settings.BAG_ITEM_SPACING_Y end, function(value) return setBagItemSpacing("BAG_ITEM_SPACING_Y", inv.normalizeBagItemSpacingY, value) end)
             addCheck(L["Loot to leftmost Bag"], function() return GW.settings.BAG_REVERSE_NEW_LOOT end,
                      function() local ns = not GW.settings.BAG_REVERSE_NEW_LOOT; C_Container.SetInsertItemsLeftToRight(ns); GW.settings.BAG_REVERSE_NEW_LOOT = ns end)
             addCheck(L["Sort to Last Bag"], function() return GW.settings.BAG_ITEMS_REVERSE_SORT end,

@@ -13,6 +13,20 @@ local BAG_ITEM_SIZE_CONFIG = {
     maxValue = 48,
     step = 1
 }
+local BAG_ITEM_SPACING_X_CONFIG = {
+    defaultValue = GW.globalDefault.profile.BAG_ITEM_SPACING_X,
+    minValue = 0,
+    maxValue = 20,
+    step = 1
+}
+local BAG_ITEM_SPACING_Y_CONFIG = {
+    defaultValue = GW.globalDefault.profile.BAG_ITEM_SPACING_Y,
+    minValue = 0,
+    maxValue = 20,
+    step = 1
+}
+local CONTAINER_FRAME_SIDE_PADDING = 5
+local CONTAINER_FRAME_RIGHT_PADDING = 5
 
 -- reskins an ItemButton to use GW2_UI styling
 local function reskinItemButton(b, overrideIconSize)
@@ -276,13 +290,27 @@ GW.SetBagItemButtonQualitySkin = hookItemQuality
 
 local bag_resize
 local bank_resize
+local function NormalizeByConfig(value, config)
+    local normalized = math.floor((tonumber(value) or config.defaultValue) + 0.5)
+    return math.max(config.minValue, math.min(config.maxValue, normalized))
+end
+
 local function NormalizeBagItemSize(value)
-    local size = math.floor((tonumber(value) or BAG_ITEM_SIZE_CONFIG.defaultValue) + 0.5)
-    return math.max(BAG_ITEM_SIZE_CONFIG.minValue, math.min(BAG_ITEM_SIZE_CONFIG.maxValue, size))
+    return NormalizeByConfig(value, BAG_ITEM_SIZE_CONFIG)
+end
+
+local function NormalizeBagItemSpacingX(value)
+    return NormalizeByConfig(value, BAG_ITEM_SPACING_X_CONFIG)
+end
+
+local function NormalizeBagItemSpacingY(value)
+    return NormalizeByConfig(value, BAG_ITEM_SPACING_Y_CONFIG)
 end
 
 local function resizeInventory()
     GW.settings.BAG_ITEM_SIZE = NormalizeBagItemSize(GW.settings.BAG_ITEM_SIZE)
+    GW.settings.BAG_ITEM_SPACING_X = NormalizeBagItemSpacingX(GW.settings.BAG_ITEM_SPACING_X)
+    GW.settings.BAG_ITEM_SPACING_Y = NormalizeBagItemSpacingY(GW.settings.BAG_ITEM_SPACING_Y)
     reskinItemButtons()
     if bag_resize then
         bag_resize()
@@ -459,7 +487,7 @@ end
 
 
 -- positions ItemButtons fluidly for this container
-local function layoutContainerFrame(cf, max_col, row, col, rev, item_off)
+local function layoutContainerFrame(cf, max_col, row, col, rev, item_off_x, item_off_y)
     if not cf or not cf.gw_num_slots or cf.gw_num_slots <= 0 then
         return col, row, false, 0
     end
@@ -480,7 +508,7 @@ local function layoutContainerFrame(cf, max_col, row, col, rev, item_off)
         local item = cf.gw_items[n]
         if item then
             item:ClearAllPoints()
-            item:SetPoint("TOPLEFT", cf, "TOPLEFT", col * item_off, -row * item_off)
+            item:SetPoint("TOPLEFT", cf, "TOPLEFT", col * item_off_x, -row * item_off_y)
             col = col + 1
             if col >= max_col then
                 col = 0
@@ -528,7 +556,7 @@ local function updateFreeSlots(sp_str, start_idx, end_idx, opt_container)
 end
 
 
-local function snapFrameSize(f, cfs, size, padding, min_height)
+local function snapFrameSize(f, cfs, size, paddingX, paddingY, min_height)
     if not f then
         return
     end
@@ -549,7 +577,8 @@ local function snapFrameSize(f, cfs, size, padding, min_height)
     end
 
     local rows = 0
-    local isize = size + padding
+    local isizeX = size + paddingX
+    local isizeY = size + paddingY
     if sep then
         local bags_equipped = 0
         for i = 1, 4 do
@@ -566,12 +595,14 @@ local function snapFrameSize(f, cfs, size, padding, min_height)
     else
         rows = math.ceil(slots / cols)
     end
-    f:SetHeight(max((isize * rows) + 75, min_height))
-    f:SetWidth((isize * cols) + padding + 2)
+    f:SetHeight(max((isizeY * rows) + 75, min_height))
+    local contentWidth = (isizeX * cols) - paddingX
+    local frameWidth = contentWidth + CONTAINER_FRAME_SIDE_PADDING + CONTAINER_FRAME_RIGHT_PADDING + 2
+    f:SetWidth(frameWidth)
     for i = 0, 4 do
         if _G["GwBagFrameGwBagHeader" .. i] and sep then
-            _G["GwBagFrameGwBagHeader" .. i]:SetWidth((isize * cols) + padding + 2 - 5)
-            _G["GwBagFrameGwBagHeader" .. i].background:SetWidth((isize * cols) + padding + 2 - 5)
+            _G["GwBagFrameGwBagHeader" .. i]:SetWidth(frameWidth - 5)
+            _G["GwBagFrameGwBagHeader" .. i].background:SetWidth(frameWidth - 5)
         end
     end
 end
@@ -615,9 +646,9 @@ local function onMoved(self, setting, snap_size)
 end
 
 
-local function colCount(size, padding, width)
-    local isize = size + padding
-    return math.floor((width - padding - 1) / isize)
+local function colCount(size, paddingX, width)
+    local isize = size + paddingX
+    return math.floor((width - CONTAINER_FRAME_SIDE_PADDING - CONTAINER_FRAME_RIGHT_PADDING + paddingX - 1) / isize)
 end
 
 
@@ -695,7 +726,11 @@ local function LoadInventory()
     helpers.onMoverDragStart = onMoverDragStart
     helpers.onMoverDragStop = onMoverDragStop
     helpers.bagItemSizeConfig = BAG_ITEM_SIZE_CONFIG
+    helpers.bagItemSpacingXConfig = BAG_ITEM_SPACING_X_CONFIG
+    helpers.bagItemSpacingYConfig = BAG_ITEM_SPACING_Y_CONFIG
     helpers.normalizeBagItemSize = NormalizeBagItemSize
+    helpers.normalizeBagItemSpacingX = NormalizeBagItemSpacingX
+    helpers.normalizeBagItemSpacingY = NormalizeBagItemSpacingY
 
     bag_resize = GW.LoadBag(helpers)
     bank_resize = GW.LoadBank(helpers)
