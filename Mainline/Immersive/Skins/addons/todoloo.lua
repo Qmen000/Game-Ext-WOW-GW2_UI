@@ -1,5 +1,6 @@
 ---@class GW2
 local GW = select(2, ...)
+local L = GW.L
 
 GwTodolooContainerMixin =  {}
 GwTodolooBlockMixin = {}
@@ -45,7 +46,7 @@ function GwTodolooBlockMixin:GetObjectiveBlock(index, id)
                 elseif task.reset == TODOLOO_RESET_INTERVALS.Manually then
                     interval = "Manually"
                 end
-                GameTooltip:AddLine("Reset interval: " .. interval, 1, 1, 1)
+                GameTooltip:AddLine(L["Reset interval: "] .. interval, 1, 1, 1)
             end
             GameTooltip:Show()
         end

@@ -1,5 +1,6 @@
 ---@class GW2
 local GW = select(2, ...)
+local L = GW.L
 
 local function setGlyphButtonState(self, active)
     if active then
@@ -86,7 +87,7 @@ local function takeOverBlizzardsGlypheFrame()
     end)
 
     glyphesFrame.notice:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
-    glyphesFrame.notice:SetText("Notice: You might encounter an error message when attempting to apply a glyph. This is because Blizzard has not re-implemented some of their glyph API functions. You can simply ignore this message and try again.")
+    glyphesFrame.notice:SetText(L["Notice: You might encounter an error message when attempting to apply a glyph. This is because Blizzard has not re-implemented some of their glyph API functions. You can simply ignore this message and try again."])
 
     GlyphFrame_OnEvent(GlyphFrame, "ADDON_LOADED", "Blizzard_GlyphUI")
     GlyphFrame:Show()

@@ -1,6 +1,7 @@
 ---@class GW2
 local GW = select(2, ...)
 local addonName = ...
+local L = GW.L
 
 -- Thanks at Shrugal for the ErrorHandler
 
@@ -28,7 +29,7 @@ local function CreateErrorLogWindow()
     frame.header:SetFont(DAMAGE_TEXT_FONT, 28, "OUTLINE")
     frame.header:SetTextColor(1, 0.95, 0.8, 1)
     frame.header:SetPoint("TOP", frame, "TOP", 0, -20)
-    frame.header:SetText("GW2 Error Log")
+    frame.header:SetText(L["GW2 Error Log"])
 
     frame.result = frame:CreateFontString(nil, "OVERLAY")
     frame.result:SetFont(UNIT_NAME_FONT, 14, "")
