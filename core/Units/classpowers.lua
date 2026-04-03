@@ -225,9 +225,9 @@ local function SetClassPowerCustomResourceBarAnchor(bar, mover, ownerFrame, yOfs
 
     -- In CENTER mode keep the bar inside mover bounds and shrink it to available side space.
     local gap = GetClassPowerCustomResourceBarGap(edgeGap or 4)
-    if anchorMode == "CENTER" and ownerFrame and ownerFrame:IsShown() then
-        local moverWidth = mover.GetWidth and mover:GetWidth() or 312
-        local ownerWidth = ownerFrame.GetWidth and ownerFrame:GetWidth() or 0
+    if anchorMode == "CENTER" and ownerFrame:IsShown() then
+        local moverWidth = mover:GetWidth()
+        local ownerWidth = ownerFrame:GetWidth()
         local availableWidth = math.max(1, math.floor(((moverWidth - ownerWidth) * 0.5) - gap))
         bar:SetWidth(math.min(configuredWidth, availableWidth))
 
@@ -248,14 +248,14 @@ local function SetClassPowerCustomResourceBarAnchor(bar, mover, ownerFrame, yOfs
 end
 
 local function SetWarlockResourceAnchors(owner)
-    if not owner or not owner.warlock then
+    if not owner then
         return
     end
 
     -- Main shard block follows the classpower anchor mode, not the custom resource side.
     SetClassPowerAnchor(owner.warlock, owner, "LEFT")
 
-    if GW.myspec == 3 and owner.warlock.shardFragment then
+    if GW.myspec == 3 then
         local side = GW.GetClassPowerCustomResourceBarSide()
         local gap = GetClassPowerCustomResourceBarGap(4)
         owner.warlock.shardFragment:ClearAllPoints()
