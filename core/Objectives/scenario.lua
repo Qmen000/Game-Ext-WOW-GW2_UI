@@ -26,6 +26,22 @@ local function IsFakeTimerWidget(widgetInfo)
     return widgetInfo and not widgetInfo.hasTimer and HasValidTimerData(widgetInfo)
 end
 
+local function IsScenarioCriteriaComplete(criteriaInfo)
+    if not criteriaInfo then
+        return false
+    end
+
+    if criteriaInfo.completed ~= nil then
+        return criteriaInfo.completed
+    end
+
+    if criteriaInfo.quantity and criteriaInfo.totalQuantity and criteriaInfo.totalQuantity > 0 then
+        return criteriaInfo.quantity >= criteriaInfo.totalQuantity
+    end
+
+    return false
+end
+
 function GwObjectivesScenarioContainerWidgetMixin:RemoveAllWidgets()
     self.widgetFrames = {}
     self.timerWidgets = {}
@@ -346,17 +362,17 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Torghast)
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Delve)
 
-    local compassData = {
-        TYPE = GW.Enum.ObjectivesNotificationType.Scenario,
-        TITLE = "Unknown Scenario",
-        ID = "unknown",
-        QUESTID = "unknown",
-        COMPASS = false,
-        MAPID = nil,
-        X = nil,
-        Y = nil,
-        COLOR = GW.Colors.ObjectivesTypeColors[GW.Enum.ObjectivesNotificationType.Scenario],
-    }
+    local compassData = self.compassData or {}
+    self.compassData = compassData
+    compassData.TYPE = GW.Enum.ObjectivesNotificationType.Scenario
+    compassData.TITLE = "Unknown Scenario"
+    compassData.ID = "unknown"
+    compassData.QUESTID = "unknown"
+    compassData.COMPASS = false
+    compassData.MAPID = nil
+    compassData.X = nil
+    compassData.Y = nil
+    compassData.COLOR = GW.Colors.ObjectivesTypeColors[GW.Enum.ObjectivesNotificationType.Scenario]
 
     local block = self.block
     local timerBlock = self.timerBlock
@@ -374,8 +390,8 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
     block:Show()
 
     local _, _, numStages, _, _, _, _, _, _, _, _, _, scenarioID = C_Scenario.GetInfo()
+    local name, instanceType, difficultyID, difficultyName = GetInstanceInfo()
     if numStages == 0 or (GW.Retail and IsOnGroundFloorInJailersTower()) then
-        local name, instanceType, _, difficultyName, _ = GetInstanceInfo()
         if instanceType == "raid" then
             compassData.TITLE = name
             compassData.DESC = difficultyName
@@ -411,7 +427,6 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
 
     local stageName, stageDescription, numCriteria, _, _, _, _, _, allSpellInfo, _, questID, widgetSetID = C_Scenario.GetStepInfo()
     self:UpdateWidgetRegistration(widgetSetID)
-    local _, _, difficultyID, difficultyName = GetInstanceInfo()
     local isMythicKeystone = difficultyID == 8
     stageDescription = stageDescription or ""
     stageName = stageName or ""
@@ -517,6 +532,16 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
         GW.CombatQueue_Queue(nil, block.UpdateScenarioSpell, {block, allSpellInfo})
     end
 
+    local objectiveOptions = {
+        finished = false,
+        useCompletedLine = true,
+        scenarioObjective = true,
+        objectiveType = "monster",
+        qty = 0,
+        isMythicKeystone = false,
+        firstObjectivesYValue = -5,
+    }
+
     for criteriaIndex = 1, numCriteria do
         local scenarioCriteriaInfo = C_ScenarioInfo.GetCriteriaInfo(criteriaIndex)
         if scenarioCriteriaInfo then
@@ -530,7 +555,11 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
             if isMythicKeystone then
                 mythicKeystoneCurrentValue = tonumber(string.match(scenarioCriteriaInfo.quantityString, "%d+")) or 1
             end
-            block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description, isMythicKeystone, mythicKeystoneCurrentValue, scenarioCriteriaInfo.isWeightedProgress), criteriaIndex, { finished = false, objectiveType = objectiveType, qty = scenarioCriteriaInfo.quantity, isMythicKeystone = isMythicKeystone, firstObjectivesYValue = -5 })
+            objectiveOptions.finished = IsScenarioCriteriaComplete(scenarioCriteriaInfo)
+            objectiveOptions.objectiveType = objectiveType
+            objectiveOptions.qty = scenarioCriteriaInfo.quantity
+            objectiveOptions.isMythicKeystone = isMythicKeystone
+            block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description, isMythicKeystone, mythicKeystoneCurrentValue, scenarioCriteriaInfo.isWeightedProgress), criteriaIndex, objectiveOptions)
             if scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration then
                 block:AddObjective(TIME_REMAINING, numCriteria + 1, {isQuest = false, qty = nil, totalqty = nil, timerShown = true, duration = scenarioCriteriaInfo.duration, startTime = GetTime() - scenarioCriteriaInfo.elapsed})
             end
@@ -545,7 +574,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
     local bonusSteps = C_Scenario.GetBonusSteps() or {}
     local numCriteriaPrev = numCriteria
 
-    for _, v in pairs(bonusSteps) do
+    for _, v in ipairs(bonusSteps) do
         local bonusStepIndex = v
         local _, _, numCriteriaForStep = C_Scenario.GetStepInfo(bonusStepIndex)
 
@@ -557,15 +586,21 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
             if scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration and not (scenarioCriteriaInfo.failed or scenarioCriteriaInfo.completed) then
                 block:AddObjective(TIME_REMAINING, numCriteriaPrev + 1, {isQuest = false, qty = nil, totalqty = nil, timerShown = true, duration = scenarioCriteriaInfo.duration, startTime = GetTime() - scenarioCriteriaInfo.elapsed})
             else
-                block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description), numCriteriaPrev + 1, { finished = false, objectiveType = objectiveType, qty = scenarioCriteriaInfo.quantity, firstObjectivesYValue = -5 })
+                objectiveOptions.finished = IsScenarioCriteriaComplete(scenarioCriteriaInfo)
+                objectiveOptions.objectiveType = objectiveType
+                objectiveOptions.qty = scenarioCriteriaInfo.quantity
+                objectiveOptions.isMythicKeystone = false
+                block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description), numCriteriaPrev + 1, objectiveOptions)
                 numCriteriaPrev = numCriteriaPrev + 1
             end
         end
     end
 
     --check for additonal statusbar
+    local hasVisibleStatusBarWidget = false
     for _, widgetInfo in ipairs( self.statusBarWidgetManager.widgetInfoForStatusBar or {} ) do
         if widgetInfo and widgetInfo.shownState ~= Enum.WidgetShownState.Hidden then
+            hasVisibleStatusBarWidget = true
             local objectiveType = "object"
             local quantity = widgetInfo.barValue
             local text = GW.ParseCriteria(widgetInfo.barValue, widgetInfo.barMax, widgetInfo.text)
@@ -578,10 +613,10 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
             end
             block:AddObjective(text, numCriteriaPrev + 1, { finished = false, objectiveType = objectiveType, qty = quantity, firstObjectivesYValue = -5 })
             numCriteriaPrev = numCriteriaPrev + 1
-            if not self.timerWidgetManager:IsTimerRunning() then
-                self:ClearWidgetSet()
-            end
         end
+    end
+    if hasVisibleStatusBarWidget and not self.timerWidgetManager:IsTimerRunning() then
+        self:ClearWidgetSet()
     end
 
     for i = (block.numObjectives or 0) + 1, #block.objectiveBlocks do
@@ -611,9 +646,9 @@ end
 function GwQuesttrackerScenarioBlockMixin:UpdateAffixes(fakeIds)
     if not GW.Retail then return end
     local _, affixes = C_ChallengeMode.GetActiveKeystoneInfo()
-    affixes = fakeIds and #fakeIds > 0 and fakeIds or affixes
+    affixes = fakeIds and #fakeIds > 0 and fakeIds or affixes or {}
 
-    for idx, v in pairs(affixes) do
+    for idx, v in ipairs(affixes) do
         local affix = self.affixeFrame.affixes[idx]
         local _, _, filedataid = C_ChallengeMode.GetAffixInfo(v)
         if idx == 1 then self.height = self.height + 40 end

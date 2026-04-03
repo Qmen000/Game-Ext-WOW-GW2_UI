@@ -732,7 +732,7 @@ function GwObjectivesTrackerNotificationMixin:SetObjectiveNotification()
 
     local titleText = data.TITLE or ""
     local descText = data.DESC or ""
-    local headerStateChanged = self.lastNotificationID ~= data.ID or self.lastTitleText ~= titleText or self.lastDescText ~= descText
+    local headerStateChanged = self.lastNotificationID ~= data.ID or self.lastTitleText ~= titleText
 
     self.title:SetText(titleText)
     self.title:SetTextColor(data.COLOR.r, data.COLOR.g, data.COLOR.b)

@@ -95,5 +95,29 @@ function GwQuestTrackerObjectiveMixin:OnLoad()
     self.ObjectiveText:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
     self.StatusBar.progress:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
     self.TimerBar.Label:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
+    self.CompletedStrike = self:CreateTexture(nil, "OVERLAY")
+    self.CompletedStrike:SetColorTexture(0.78, 0.78, 0.78, 0.7)
+    self.CompletedStrike:SetHeight(1)
+    self.CompletedStrike:Hide()
     hooksecurefunc(self.StatusBar, "SetValue", statusBarSetValue)
+end
+
+function GwQuestTrackerObjectiveMixin:SetCompletedLineState(showLine)
+    if not self.CompletedStrike then
+        return
+    end
+
+    if showLine then
+        local textWidth = self.ObjectiveText:GetStringWidth() or 0
+        local maxWidth = self.ObjectiveText:GetWidth() or 0
+        if maxWidth > 0 then
+            textWidth = math.min(textWidth, maxWidth)
+        end
+
+        self.CompletedStrike:SetWidth(math.max(1, textWidth))
+    end
+
+    self.CompletedStrike:ClearAllPoints()
+    self.CompletedStrike:SetPoint("TOPLEFT", self.ObjectiveText, "TOPLEFT", 0, -8)
+    self.CompletedStrike:SetShown(showLine)
 end

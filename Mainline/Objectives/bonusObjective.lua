@@ -210,7 +210,7 @@ function GwBonusObjectivesTrackerContainerMixin:UpdateBlocks(questIDs)
                         simpleDesc = simpleDesc .. ", " .. parsedObjective
                     end
 
-                    local progressValue = block:AddObjective(txt, objectiveIndex, { isBonusObjective = true, finished = finished, objectiveType = objectiveType })
+                    local progressValue = block:AddObjective(txt, objectiveIndex, { isBonusObjective = true, finished = finished, useCompletedLine = true, objectiveType = objectiveType })
                     if finished then
                         objectiveProgress = objectiveProgress + (1 / numObjectives)
                     else
