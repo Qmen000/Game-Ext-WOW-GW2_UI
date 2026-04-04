@@ -1,3 +1,15 @@
+10.6.2
+FIXES
+    - Temporarily disabled Grid aura timers
+
+10.6.1
+FIXES
+    - Removed scenario debug print output
+    - Fixed Unit Frame Lua error for non-player classes
+
+CHANGES
+    - Updated scenario handling to use the current API flow
+
 10.6.0
 NEW
     - Added class power anchor modes: Default, Center, Left and Right
@@ -31,14 +43,3 @@ FIXES
 10.5.1
 FIXES
     - Buggrabber integration
-
-10.5.0
-NEW
-    - Added Midnight event tracker to worldmap
-    - Added option to show spell icons to the floating combat text (classic)
-
-CHANGES
-    - Hide druid mana in none related forms and specs (Retail)
-
-FIXES
-    - Fix GMOTD taint

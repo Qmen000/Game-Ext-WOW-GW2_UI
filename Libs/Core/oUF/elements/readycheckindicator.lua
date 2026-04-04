@@ -155,7 +155,7 @@ local function Enable(self, unit)
 		element.waitingTexture = element.waitingTexture or READY_CHECK_WAITING_TEXTURE
 
 		local AnimationGroup = element:CreateAnimationGroup()
-		AnimationGroup:HookScript('OnFinished', OnFinished)
+		AnimationGroup:SetScript('OnFinished', OnFinished)
 		element.Animation = AnimationGroup
 
 		local Animation = AnimationGroup:CreateAnimation('Alpha')

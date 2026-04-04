@@ -651,7 +651,7 @@ local function loadAuras(lm)
         privateAurasheader:ClearAllPoints()
         privateAurasheader:SetPoint("TOPLEFT", privateAurasheader.gwMover)
 
-        for i = 1, 2 do
+        for i = 1, 6 do
             local aura = privateAurasheader["privateAuraAnchor" .. i]
             aura = CreateFrame("Frame", nil, privateAurasheader, "GwPrivateAuraTmpl")
             aura.auraIndex = i

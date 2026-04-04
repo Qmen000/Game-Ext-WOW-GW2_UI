@@ -13,6 +13,16 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("10.6.2", {
+    {GW.Enum.ChangelogType.bug, [=[Temporarily disabled Grid aura timers]=]},
+})
+
+addChange("10.6.1", {
+    {GW.Enum.ChangelogType.bug, [=[Removed scenario debug print output]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed Unit Frame Lua error for non-player classes]=]},
+    {GW.Enum.ChangelogType.change, [=[Updated scenario handling to use the current API flow]=]},
+})
+
 addChange("10.6.0", {
     {GW.Enum.ChangelogType.feature, [=[Added class power anchor modes: Default, Center, Left and Right]=]},
     {GW.Enum.ChangelogType.feature, [=[Added class power settings: anchor X offset, anchor Y offset and custom resource bar gap]=]},

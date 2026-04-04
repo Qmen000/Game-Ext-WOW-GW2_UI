@@ -191,10 +191,13 @@ local function CoordsWatcherStop(event)
 end
 
 local function MapInfoUpdateMapId()
-    lib.locationData.mapID = C_Map.GetBestMapForUnit("player")
-    if not lib.locationData.mapID then
-        C_Timer.After(0.1, MapInfoUpdateMapId)
-    end
+    C_Timer.After(0.1, function()
+        lib.locationData.mapID = C_Map.GetBestMapForUnit("player")
+        if lib.locationData.mapID ~= nil then
+            EventRegistry:TriggerEvent("GW2_UI.PlayerNewMapId", lib.locationData.mapID)
+        end
+    end)
+
 end
 
 local function IsSkyriding(canSkyriding, isLogin)
@@ -232,6 +235,7 @@ local events = {
     "ZONE_CHANGED_NEW_AREA",
     "ZONE_CHANGED",
     "ZONE_CHANGED_INDOORS",
+    "MINIMAP_UPDATE_ZOOM",
     "PLAYER_ENTERING_WORLD",
     "CRITERIA_UPDATE",
     "PLAYER_STARTED_MOVING",

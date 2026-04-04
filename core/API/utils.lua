@@ -250,16 +250,16 @@ GW.GetDefaultClassColor = GetDefaultClassColor
 
 do
     function GW.GWGetClassColor(class, useClassColor, forNameString, alwaysUseBlizzardColors)
-        if not class or not useClassColor then
-            return RAID_CLASS_COLORS.PRIEST
+        local fallbackColor = RAID_CLASS_COLORS.PRIEST
+        local useBlizzardClassColor = alwaysUseBlizzardColors or GW.settings.BLIZZARDCLASSCOLOR_ENABLED
+        local color = fallbackColor
+
+        if class and useClassColor then
+            color = useBlizzardClassColor and RAID_CLASS_COLORS[class] or GW.Colors.ClassColors[class]
         end
 
-        local useBlizzardClassColor = alwaysUseBlizzardColors or GW.settings.BLIZZARDCLASSCOLOR_ENABLED
-        local color = useBlizzardClassColor and RAID_CLASS_COLORS[class] or GW.Colors.ClassColors[class]
-
-
         if type(color) ~= "table" or not color.r or not color.g or not color.b then
-            return RAID_CLASS_COLORS.PRIEST
+            color = fallbackColor
         end
 
         if not color.colorStr then

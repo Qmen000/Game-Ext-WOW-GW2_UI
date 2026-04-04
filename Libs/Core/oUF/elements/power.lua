@@ -289,15 +289,6 @@ Used to toggle coloring if the unit is offline.
 local function SetColorDisconnected(element, state, isForced)
 	if(element.colorDisconnected ~= state or isForced) then
 		element.colorDisconnected = state
-		if(state) then
-			element.__owner:RegisterEvent('UNIT_CONNECTION', ColorPath)
-			element.__owner:RegisterEvent('PARTY_MEMBER_ENABLE', ColorPath)
-			element.__owner:RegisterEvent('PARTY_MEMBER_DISABLE', ColorPath)
-		else
-			element.__owner:UnregisterEvent('UNIT_CONNECTION', ColorPath)
-			element.__owner:UnregisterEvent('PARTY_MEMBER_ENABLE', ColorPath)
-			element.__owner:UnregisterEvent('PARTY_MEMBER_DISABLE', ColorPath)
-		end
 	end
 end
 
@@ -392,7 +383,7 @@ local function SetFrequentUpdates(element, state, isForced)
 	end
 end
 
-local function Enable(self)
+local function Enable(self, unit)
 	local element = self.Power
 	if(element) then
 		element.__owner = self
@@ -403,10 +394,6 @@ local function Enable(self)
 		element.SetColorReaction = SetColorReaction
 		element.SetColorThreat = SetColorThreat
 		element.SetFrequentUpdates = SetFrequentUpdates
-
-		if(element.colorDisconnected) then
-			self:RegisterEvent('UNIT_CONNECTION', ColorPath)
-		end
 
 		if(element.colorSelection) then
 			self:RegisterEvent('UNIT_FLAGS', ColorPath)
@@ -430,6 +417,12 @@ local function Enable(self)
 		self:RegisterEvent('UNIT_MAXPOWER', Path)
 		self:RegisterEvent('UNIT_POWER_BAR_HIDE', Path)
 		self:RegisterEvent('UNIT_POWER_BAR_SHOW', Path)
+		self:RegisterEvent('UNIT_CONNECTION', Path)
+
+		if(unit == 'party' or unit == 'raid') then
+			self:RegisterEvent('PARTY_MEMBER_ENABLE', Path)
+			self:RegisterEvent('PARTY_MEMBER_DISABLE', Path)
+		end
 
 		if(element:IsObjectType('StatusBar') and not element:GetStatusBarTexture()) then
 			element:SetStatusBarTexture([[Interface\TargetingFrame\UI-StatusBar]])
