@@ -90,6 +90,46 @@
         </Anchors>
     </Frame>
 
+    <Frame name="GwDelveSpellIconTemplate" virtual="true" hidden="true">
+        <Size x="30" y="30"></Size>
+        <Layers>
+            <Layer level="ARTWORK">
+                <Texture parentKey="icon" file="Interface/AddOns/GW2_UI/textures/icons/icon-boss.png">
+                    <Size x="30" y="30"></Size>
+                    <Anchors>
+                        <Anchor point="CENTER" relativePoint="CENTER" x="0" y="0"></Anchor>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Frames>
+            <Frame parentKey="notification" hidden="true">
+                <Size x="18" y="18"></Size>
+                <Anchors>
+                    <Anchor point="CENTER" relativePoint="BOTTOM" x="6" y="3"></Anchor>
+                </Anchors>
+                <Layers>
+                    <Layer level="OVERLAY">
+                        <Texture parentKey="circle" file="Interface/AddOns/GW2_UI/textures/hud/notification-backdrop.png">
+                            <Size x="15" y="15"></Size>
+                            <Color r="0" g="0" b="0" a="0.7"></Color>
+                            <Anchors>
+                                <Anchor point="CENTER" relativePoint="CENTER"></Anchor>
+                            </Anchors>
+                        </Texture>
+                        <FontString parentKey="Text" inherits="NumberFontNormal" justifyH="CENTER" justifyV="MIDDLE" text="">
+                            <Size x="20" y="20"></Size>
+                            <Color r="1" g="1" b="1" a="1"></Color>
+                            <Anchors>
+                                <Anchor point="CENTER" relativePoint="CENTER" x="0" y="0"></Anchor>
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+            </Frame>
+        </Frames>
+    </Frame>
+
     <Button name="GwObjectivesBlockTemplate" registerForClicks="LeftButtonUp,RightButtonUp" enableMouse="true" parent="GwQuestTracker" virtual="true" mixin="GwObjectivesBlockTemplateMixin,GwObjectivesAnimationMixin">
         <Size x="300" y="1"></Size>
         <Anchors>
@@ -145,85 +185,30 @@
             <Frame parentKey="delvesFrame" hidden="true">
                 <Size x="280" y="30"></Size>
                 <Frames>
-                    <Frame parentArray="spell" hidden="true">
-                        <Size x="30" y="30"></Size>
+                    <Frame parentArray="spell" inherits="GwDelveSpellIconTemplate">
                         <Anchors>
                             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="0" y="0"></Anchor>
                         </Anchors>
-                        <Layers>
-                            <layer>
-                                <Texture parentKey="icon" file="Interface/AddOns/GW2_UI/textures/icons/icon-boss.png">
-                                    <Size x="30" y="30"></Size>
-                                    <Anchors>
-                                        <Anchor point="CENTER" relativePoint="CENTER" x="0" y="0"></Anchor>
-                                    </Anchors>
-                                </Texture>
-                            </layer>
-                        </Layers>
                     </Frame>
-                    <Frame parentArray="spell" hidden="true">
-                        <Size x="30" y="30"></Size>
+                    <Frame parentArray="spell" inherits="GwDelveSpellIconTemplate">
                         <Anchors>
                             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="40" y="0"></Anchor>
                         </Anchors>
-                        <Layers>
-                            <layer>
-                                <Texture parentKey="icon" file="Interface/AddOns/GW2_UI/textures/icons/icon-boss.png">
-                                    <Size x="30" y="30"></Size>
-                                    <Anchors>
-                                        <Anchor point="CENTER" relativePoint="CENTER" x="0" y="0"></Anchor>
-                                    </Anchors>
-                                </Texture>
-                            </layer>
-                        </Layers>
                     </Frame>
-                    <Frame parentArray="spell" hidden="true">
-                        <Size x="30" y="30"></Size>
+                    <Frame parentArray="spell" inherits="GwDelveSpellIconTemplate">
                         <Anchors>
                             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="80" y="0"></Anchor>
                         </Anchors>
-                        <Layers>
-                            <layer>
-                                <Texture parentKey="icon" file="Interface/AddOns/GW2_UI/textures/icons/icon-boss.png">
-                                    <Size x="30" y="30"></Size>
-                                    <Anchors>
-                                        <Anchor point="CENTER" relativePoint="CENTER" x="0" y="0"></Anchor>
-                                    </Anchors>
-                                </Texture>
-                            </layer>
-                        </Layers>
                     </Frame>
-                    <Frame parentArray="spell" hidden="true">
-                        <Size x="30" y="30"></Size>
+                    <Frame parentArray="spell" inherits="GwDelveSpellIconTemplate">
                         <Anchors>
                             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="120" y="0"></Anchor>
                         </Anchors>
-                        <Layers>
-                            <layer>
-                                <Texture parentKey="icon" file="Interface/AddOns/GW2_UI/textures/icons/icon-boss.png">
-                                    <Size x="30" y="30"></Size>
-                                    <Anchors>
-                                        <Anchor point="CENTER" relativePoint="CENTER" x="0" y="0"></Anchor>
-                                    </Anchors>
-                                </Texture>
-                            </layer>
-                        </Layers>
                     </Frame>
-                    <Frame parentArray="spell" hidden="true">
-                        <Size x="30" y="30"></Size>
+                    <Frame parentArray="spell" inherits="GwDelveSpellIconTemplate">
                         <Anchors>
                             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="160" y="0"></Anchor>
                         </Anchors>
-                        <Layers>
-                            <layer>
-                                <Texture parentKey="icon" file="Interface/AddOns/GW2_UI/textures/icons/icon-boss.png">
-                                    <Size x="30" y="30"></Size>
-                                    <Anchors>
-                                        <Anchor point="CENTER" relativePoint="CENTER" x="0" y="0"></Anchor>
-                                    </Anchors>
-                                </Texture>
-                            </layer>
-                        </Layers>
                     </Frame>
                     <Frame parentKey="deathCounter" hidden="true">
                         <Size x="30" y="30"></Size>

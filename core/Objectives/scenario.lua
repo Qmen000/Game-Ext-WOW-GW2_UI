@@ -8,6 +8,11 @@ GwObjectivesScenarioContainerWidgetMixin = {}
 GwObjectivesScenarioContainerMixin = {}
 GwQuesttrackerScenarioBlockMixin = {}
 
+local rewardTextureKits = {
+	[Enum.UIWidgetRewardShownState.ShownEarned] = "%s-treasure-available",
+	[Enum.UIWidgetRewardShownState.ShownUnearned] = "%s-treasure-unavailable",
+};
+
 local function HasValidTimerData(widgetInfo)
     return type(widgetInfo) == "table"
         and type(widgetInfo.timerMin) == "number"
@@ -376,6 +381,9 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
 
     local block = self.block
     local timerBlock = self.timerBlock
+    local _, _, numStages, _, _, _, _, _, _, _, _, _, scenarioID = C_Scenario.GetInfo()
+    local name, instanceType, difficultyID, difficultyName = GetInstanceInfo()
+    local isDelveScenario = GW.Retail and difficultyID == 208
 
     block.height = 1
 
@@ -387,10 +395,10 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
     block.questLogIndex = 0
     block.groupButton:Hide()
     block.delvesFrame:Hide()
+    if not isDelveScenario then
+        GW.StopNemesisCounter()
+    end
     block:Show()
-
-    local _, _, numStages, _, _, _, _, _, _, _, _, _, scenarioID = C_Scenario.GetInfo()
-    local name, instanceType, difficultyID, difficultyName = GetInstanceInfo()
     if numStages == 0 or (GW.Retail and IsOnGroundFloorInJailersTower()) then
         if instanceType == "raid" then
             compassData.TITLE = name
@@ -461,7 +469,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
     end
 
     -- check for active delves
-    local delvesWidgetInfo = GW.Retail and (difficultyID and difficultyID == 208) and C_UIWidgetManager.GetScenarioHeaderDelvesWidgetVisualizationInfo(6183)
+    local delvesWidgetInfo = isDelveScenario and C_UIWidgetManager.GetScenarioHeaderDelvesWidgetVisualizationInfo(6183)
     if delvesWidgetInfo and delvesWidgetInfo.frameTextureKit == "delves-scenario" then
         local tierLevel = delvesWidgetInfo.tierText or ""
         GwObjectivesNotification.iconFrame.tooltipSpellID = delvesWidgetInfo.tierTooltipSpellID
@@ -473,7 +481,16 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
             if spellInfo.shownState ~= Enum.WidgetShownState.Hidden then
                 local spellData = C_Spell.GetSpellInfo(spellInfo.spellID)
                 local spellBlock = block.delvesFrame.spell[id]
-                spellBlock.icon:SetTexture(spellData.iconID)
+
+                if spellInfo.spellID == 1270179 then -- Chest icon
+                    spellBlock.icon:SetTexture("Interface/AddOns/GW2_UI/textures/icons/chest.png")
+                    GW.RequestNemesisCounterUpdate(spellBlock)
+                else
+                    spellBlock.icon:SetTexture(spellData.iconID)
+                    spellBlock.notification.Text:SetText("")
+                    spellBlock.notification:Hide()
+                end
+
                 if not spellBlock.mask then
                     spellBlock.mask = spellBlock:CreateMaskTexture()
                     spellBlock.mask:SetAllPoints(spellBlock.icon)
@@ -489,6 +506,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
 
         for i = id, 5 do
             block.delvesFrame.spell[i].spellID = nil
+            block.delvesFrame.spell[i].notification:Hide()
             block.delvesFrame.spell[i]:Hide()
         end
 
