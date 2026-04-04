@@ -5,20 +5,6 @@ local eventFrame = CreateFrame("Frame")
 local CURRENCY_AFFIX_ACTIVE = 3103
 local CURRENCY_AFFIX_MAXIMUM = 3104
 
-local function EnsureTickTexture(notification)
-    if notification.Tick then
-        return
-    end
-
-    notification.Tick = notification:CreateTexture(nil, "OVERLAY")
-    notification.Tick:SetSize(12, 12)
-    notification.Tick:SetPoint("CENTER", notification, "CENTER", 0, 0)
-    notification.Tick:SetTexture("Interface/AddOns/GW2_UI/textures/party/readycheck.png")
-    notification.Tick:SetTexCoord(0, 1, 0.50, 0.75)
-    notification.Tick:SetVertexColor(0.2, 1, 0.2, 1)
-    notification.Tick:Hide()
-end
-
 local function OnEvent(self, event, ...)
     local currencyID = ...
     if event == "CURRENCY_DISPLAY_UPDATE" and currencyID and (currencyID == CURRENCY_AFFIX_ACTIVE or currencyID == CURRENCY_AFFIX_MAXIMUM) then
@@ -46,8 +32,6 @@ local function UpdateCounter(spellFrame)
     end
 
     if current and max and max > 0 then
-        EnsureTickTexture(spellFrame.notification)
-
         if current <= 0 then
             spellFrame.notification.Text:SetText("")
             spellFrame.notification.Tick:Show()

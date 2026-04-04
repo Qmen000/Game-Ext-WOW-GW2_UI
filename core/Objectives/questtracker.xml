@@ -124,6 +124,14 @@
                                 <Anchor point="CENTER" relativePoint="CENTER" x="0" y="0"></Anchor>
                             </Anchors>
                         </FontString>
+                        <Texture parentKey="Tick" file="Interface/AddOns/GW2_UI/textures/party/readycheck.png" hidden="true">
+                            <Size x="12" y="12"></Size>
+                            <TexCoords left="0" right="1" top="0.50" bottom="0.75"/>
+                            <Color r="0.2" g="1" b="0.2" a="1"/>
+                            <Anchors>
+                                <Anchor point="CENTER" relativePoint="CENTER" x="0" y="0"></Anchor>
+                            </Anchors>
+                        </Texture>
                     </Layer>
                 </Layers>
             </Frame>
