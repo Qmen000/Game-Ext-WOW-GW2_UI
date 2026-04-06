@@ -301,6 +301,12 @@ function GW.UnitIsDND(unit)
     return GW.NotSecretValue(dnd) and dnd or nil
 end
 
+--C_Secrets.CanCompareUnitTokens() with 12.0.5
+function GW.UnitIsUnit(unit1, unit2)
+    local ok, isUnit = pcall(UnitIsUnit, unit1, unit2)
+	return ok and isUnit
+end
+
 function GW.CheckRestrictionState(which)
     local enum = Enum.AddOnRestrictionType or {}
     local ok, state = pcall(GetAddOnRestrictionState, enum[which] or which)

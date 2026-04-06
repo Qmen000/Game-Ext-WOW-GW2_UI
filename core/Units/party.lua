@@ -52,10 +52,10 @@ local function FilterAura(element, unit, data)
                 if GW.settings.PARTY_SHOW_DEBUFFS then
                     if GW.settings.PARTY_ONLY_DISPELL_DEBUFFS then
                         if data.dispelName and GW.Libs.Dispel:IsDispellableByMe(data.dispelName) then
-                            shouldDisplay = data.name and not (data.spellId == 6788 and data.sourceUnit and not UnitIsUnit(data.sourceUnit, "player")) -- Don't show "Weakened Soul" from other players
+                            shouldDisplay = data.name and not (data.spellId == 6788 and data.sourceUnit and not GW.UnitIsUnit(data.sourceUnit, "player")) -- Don't show "Weakened Soul" from other players
                         end
                     else
-                        shouldDisplay = data.name and not (data.spellId == 6788 and data.sourceUnit and not UnitIsUnit(data.sourceUnit, "player")) -- Don't show "Weakened Soul" from other players
+                        shouldDisplay = data.name and not (data.spellId == 6788 and data.sourceUnit and not GW.UnitIsUnit(data.sourceUnit, "player")) -- Don't show "Weakened Soul" from other players
                     end
                 end
 

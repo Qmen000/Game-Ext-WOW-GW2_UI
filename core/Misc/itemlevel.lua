@@ -277,7 +277,7 @@ GW.GetPlayerItemLevel = GetPlayerItemLevel
 do
     local iLevelDB, tryAgain, slotInfo = {}, {}, nil
     local function GetUnitItemLevel(unit)
-        if UnitIsUnit(unit, "player") then
+        if GW.UnitIsUnit(unit, "player") then
             local _, equipped = GW.GetPlayerItemLevel()
             return equipped
         end

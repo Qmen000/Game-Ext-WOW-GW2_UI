@@ -2482,7 +2482,7 @@ local function CollectLfgRolesForChatIcons()
 
     local unit = (IsInRaid() and "raid" or "party")
     for i = 1, GetNumGroupMembers() do
-        if UnitExists(unit .. i) and not UnitIsUnit(unit .. i, "player") then
+        if GW.UnitExists(unit .. i) and not GW.UnitIsUnit(unit .. i, "player") then
             local role = UnitGroupRolesAssigned(unit .. i)
             local name, realm = UnitName(unit .. i)
 
