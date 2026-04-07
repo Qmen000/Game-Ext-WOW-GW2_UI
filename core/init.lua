@@ -181,6 +181,7 @@ end
 
 do
     local ShouldUnitIdentityBeSecret = C_Secrets and C_Secrets.ShouldUnitIdentityBeSecret
+    local CanCompareUnitTokens = C_Secrets and C_Secrets.CanCompareUnitTokens
     function GW.IsSecretValue(value)
         return issecretvalue and issecretvalue(value)
     end
@@ -202,6 +203,21 @@ do
 
     function GW.NotSecretUnit(unit)
         return not GW.IsSecretUnit(unit)
+    end
+
+    function GW.UnitIsUnit(unit1, unit2)
+        if CanCompareUnitTokens and not CanCompareUnitTokens(unit1, unit2) then
+            return
+        end
+
+        local isUnit = UnitIsUnit(unit1, unit2)
+        if GW.NotSecretValue(isUnit) then
+            return isUnit
+        end
+    end
+
+    function GW.UnitNotUnit(unit1, unit2) -- nil means blocked
+        return GW.UnitIsUnit(unit1, unit2) == false
     end
 end
 

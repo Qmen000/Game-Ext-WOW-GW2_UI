@@ -560,7 +560,7 @@ local function AddTargetInfo(self, unit)
     local isInRaid = IsInRaid()
     for i = 1, GetNumGroupMembers() do
         local groupUnit = (isInRaid and "raid" or "party") .. i
-        local unitFound = not GW.UnitIsUnit(groupUnit, "player") and GW.UnitIsUnit(groupUnit .. "target", unit)
+        local unitFound = GW.UnitNotUnit(groupUnit, "player") and GW.UnitIsUnit(groupUnit .. "target", unit)
 
         if GW.NotSecretValue(unitFound) and unitFound then
             local _, class = UnitClass(groupUnit)
