@@ -8,11 +8,6 @@ GwObjectivesScenarioContainerWidgetMixin = {}
 GwObjectivesScenarioContainerMixin = {}
 GwQuesttrackerScenarioBlockMixin = {}
 
-local rewardTextureKits = {
-	[Enum.UIWidgetRewardShownState.ShownEarned] = "%s-treasure-available",
-	[Enum.UIWidgetRewardShownState.ShownUnearned] = "%s-treasure-unavailable",
-};
-
 local function HasValidTimerData(widgetInfo)
     return type(widgetInfo) == "table"
         and type(widgetInfo.timerMin) == "number"
