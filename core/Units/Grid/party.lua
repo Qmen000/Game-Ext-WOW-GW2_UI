@@ -52,6 +52,7 @@ local function UpdateGridPartyFrame(frame)
     frame.showOnlyDispelDebuffs = GW.settings.RAID_ONLY_DISPELL_DEBUFFS_PARTY
     frame.showBuffs = GW.settings.RAID_PARTY_SHOW_BUFFS
     frame.showPrivateAuras = GW.settings.RAID_PARTY_SHOW_PRIVATE_AURAS
+    frame.privateAuraSize = GW.settings.RAID_PARTY_PRIVATE_AURA_SIZE
     frame.showAuraTooltipInCombat = GW.settings.RAID_AURA_TOOLTIP_INCOMBAT_PARTY
     frame.ignoredAuras = GW.FillTable({}, true, strsplit(",", (GW.settings.AURAS_IGNORED:trim():gsub("%s*,%s*", ","))))
     frame.missingAuras = GW.FillTable({}, true, strsplit(",", (GW.settings.AURAS_MISSING:trim():gsub("%s*,%s*", ","))))

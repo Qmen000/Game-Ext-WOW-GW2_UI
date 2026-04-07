@@ -17,7 +17,7 @@ function GW.UpdatePrivateAurasSettings(frame)
     frame.PrivateAuras.disableCooldownText = true
     frame.PrivateAuras.initialAnchor = "LEFT"
     frame.PrivateAuras.borderScale = 1
-    frame.PrivateAuras.size = 14
+    frame.PrivateAuras.size = frame.privateAuraSize
 
     if frame.showPrivateAuras then
         frame:EnableElement("PrivateAuras")

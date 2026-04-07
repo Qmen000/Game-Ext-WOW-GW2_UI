@@ -1,6 +1,6 @@
 10.7.1
 CHANGES
-    - Slightly increased the size of Grid Private Auras for better visibility
+    - Added per-grid Private Auras size settings for Raid, Raid 10, Raid 25, Maintank and Party grids
 
 FIXES
     - Fixed an Objectives notification taint error caused by protected (secret) text comparisons

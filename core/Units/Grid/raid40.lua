@@ -68,6 +68,7 @@ local function UpdateGridRaid40Frame(frame)
 
     frame.showDebuffs = GW.settings.RAID_SHOW_DEBUFFS
     frame.showPrivateAuras = GW.settings.RAID_SHOW_PRIVATE_AURAS
+    frame.privateAuraSize = GW.settings.RAID_PRIVATE_AURA_SIZE
     frame.showOnlyDispelDebuffs = GW.settings.RAID_ONLY_DISPELL_DEBUFFS
 
     frame.showBuffs = GW.settings.RAID_SHOW_BUFFS

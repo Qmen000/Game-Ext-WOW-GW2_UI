@@ -50,6 +50,7 @@ local function UpdateGridMaintankFrame(frame)
     frame.showOnlyDispelDebuffs = GW.settings.RAID_ONLY_DISPELL_DEBUFFS_TANK
     frame.showBuffs = GW.settings.RAID_SHOW_BUFFS_TANK
     frame.showPrivateAuras = GW.settings.RAID_MAINTANK_SHOW_PRIVATE_AURAS
+    frame.privateAuraSize = GW.settings.RAID_MAINTANK_PRIVATE_AURA_SIZE
     frame.showAuraTooltipInCombat = GW.settings.RAID_AURA_TOOLTIP_INCOMBAT_TANK
     frame.ignoredAuras = GW.FillTable({}, true, strsplit(",", (GW.settings.AURAS_IGNORED:trim():gsub("%s*,%s*", ","))))
     --frame.missingAuras = GW.FillTable({}, true, strsplit(",", (GW.settings.AURAS_MISSING:trim():gsub("%s*,%s*", ","))))
