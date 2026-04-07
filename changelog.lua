@@ -13,6 +13,11 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("10.7.1", {
+    {GW.Enum.ChangelogType.change, [=[Slightly increased the size of Grid Private Auras for better visibility]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed an Objectives notification taint error caused by protected (secret) text comparisons]=]},
+})
+
 addChange("10.7.0", {
     {GW.Enum.ChangelogType.feature, [=[Added bag and bank slot spacing controls (X/Y) with shared icon size + spacing settings across Mainline, Classic, TBC and Mists]=]},
     {GW.Enum.ChangelogType.feature, [=[Delve Scenario header now displays the remaining Nemesis enemies.]=]},

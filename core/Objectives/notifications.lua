@@ -93,7 +93,6 @@ local function prioritys(a, b)
     return notification_priority[a] > notification_priority[b]
 end
 
-
 local function getQuestPOIText(questLogIndex)
     local finalText, numFinished = "", 0
     local numItemDrops = GetNumQuestItemDrops(questLogIndex)
@@ -712,7 +711,7 @@ function GwObjectivesTrackerNotificationMixin:SetObjectiveNotification()
             self.compass.icon:SetTexture(nil)
         end
 
-        if (not currentCompassData or currentCompassData ~= self.compass.dataIndex) or not self.compass.Timer then
+        if (not currentCompassData or GW.SafeValuesDiffer(currentCompassData, self.compass.dataIndex)) or not self.compass.Timer then
             currentCompassData = self.compass.dataIndex
             if self.compass.Timer then
                 self.compass.Timer:Cancel()
@@ -732,7 +731,7 @@ function GwObjectivesTrackerNotificationMixin:SetObjectiveNotification()
 
     local titleText = data.TITLE or ""
     local descText = data.DESC or ""
-    local headerStateChanged = self.lastNotificationID ~= data.ID or self.lastTitleText ~= titleText
+    local headerStateChanged = GW.SafeValuesDiffer(self.lastNotificationID, data.ID) or GW.SafeValuesDiffer(self.lastTitleText, titleText)
 
     self.title:SetText(titleText)
     self.title:SetTextColor(data.COLOR.r, data.COLOR.g, data.COLOR.b)
@@ -741,7 +740,7 @@ function GwObjectivesTrackerNotificationMixin:SetObjectiveNotification()
     self.currentBgAlpha = 0.3
     self.desc:SetText(descText)
 
-    if not data.DESC or data.DESC == "" then
+    if GW.IsNilOrEmptyNonSecretString(data.DESC) then
         self.title:SetPoint("TOP", self, "TOP", 0, -30)
     else
         self.title:SetPoint("TOP", self, "TOP", 0, -15)
@@ -761,7 +760,7 @@ end
 function GwObjectivesTrackerNotificationMixin:BonusbarOnEnter()
     GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT", 0, 0)
     GameTooltip:ClearLines()
-    GameTooltip:SetText(GW.RoundDec(self.progress * 100, 0) .. "%")
+    GameTooltip:SetText(GW.RoundDec(self.progress * 100, 0) .. "%", 1, 1, 1)
     GameTooltip:Show()
 end
 

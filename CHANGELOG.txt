@@ -1,3 +1,10 @@
+10.7.1
+CHANGES
+    - Slightly increased the size of Grid Private Auras for better visibility
+
+FIXES
+    - Fixed an Objectives notification taint error caused by protected (secret) text comparisons
+
 10.7.0
 NEW
     - Added bag and bank slot spacing controls (X/Y) with shared icon size + spacing settings across Mainline, Classic, TBC and Mists

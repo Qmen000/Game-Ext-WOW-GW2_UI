@@ -281,6 +281,27 @@ function GW.UnitExists(unit)
     return unit and (UnitExists(unit) or UnitIsVisible(unit))
 end
 
+function GW.SafeValuesDiffer(a, b)
+    if GW.IsSecretValue(a) or GW.IsSecretValue(b) then
+        -- Avoid direct comparison on secret values; force a safe "changed" state.
+        return true
+    end
+
+    return a ~= b
+end
+
+function GW.IsNilOrEmptyNonSecretString(value)
+    if value == nil then
+        return true
+    end
+
+    if GW.IsSecretValue(value) then
+        return false
+    end
+
+    return value == ""
+end
+
 function GW.UnitEffectiveLevel(unit)
     if GW.Retail or GW.Mists or GW.Wrath or GW.TBC then
         return UnitEffectiveLevel(unit)
