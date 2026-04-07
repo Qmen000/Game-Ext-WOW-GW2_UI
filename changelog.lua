@@ -15,6 +15,7 @@ AddChange(string addonVersion, table changeList)
 
 addChange("10.7.1", {
     {GW.Enum.ChangelogType.change, [=[Added per-grid Private Auras size settings for Raid, Raid 10, Raid 25, Maintank and Party grids]=]},
+    {GW.Enum.ChangelogType.change, [=[Added Narcissus Achievement Frame support for achievements opened from the Objectives Tracker]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed an Objectives notification taint error caused by protected (secret) text comparisons]=]},
 })
 

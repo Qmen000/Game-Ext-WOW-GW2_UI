@@ -75,8 +75,38 @@ function GwAchievementTrackerBlockMixin:UpdateBlock(parent)
     self:SetHeight(self.height)
 end
 
+
+local function AttemptToOpenAchievement(achievementID, clickAgainToClose)
+    if Narci_AchievementFrame then
+        Narci_AchievementFrame:LocateAchievement(achievementID, clickAgainToClose);
+    else
+        Narci.LoadAchievementPanel(achievementID, clickAgainToClose);
+    end
+end
+
+local function CloseDefaultWindow()
+    local f = AchievementFrame;
+    if f and f:IsShown() then
+        if InCombatLockdown() then
+            --f:Hide();
+            --"Hide" doesn't seem to cause Interface Failure, but UIPanel still considers it opened
+            --which affects frame anchors and cause Esc unable to clear targets or open Game Menu
+        else
+            HideUIPanel(f);
+        end
+    end
+end
+
 GwAchievementTrackerContainerMixin = {}
 function GwAchievementTrackerContainerMixin:BlockOnClick(mouseButton)
+    local isNarcissusAchievementFrameDefault = NarciAchievementOptions and NarciAchievementOptions.UseAsDefault
+    if isNarcissusAchievementFrameDefault then
+        C_AddOns.EnableAddOn("Narcissus_Achievements")
+        C_AddOns.LoadAddOn("Narcissus_Achievements")
+        if Narci_AchievementFrame and Narci_AchievementFrame.Init then
+            Narci_AchievementFrame:Init()
+        end
+    end
     if (IsModifiedClick("CHATLINK") and ChatEdit_GetActiveWindow()) then
         local achievementLink = GetAchievementLink(self.id)
         if (achievementLink) then
@@ -96,13 +126,23 @@ function GwAchievementTrackerContainerMixin:BlockOnClick(mouseButton)
                 AchievementFrameAchievements_ForceUpdate();
             end
         elseif (not AchievementFrame:IsShown()) then
-            AchievementFrame_ToggleAchievementFrame()
-            AchievementFrame_SelectAchievement(self.id)
-        else
-            if (AchievementFrameAchievements.selection ~= self.id) then
-                AchievementFrame_SelectAchievement(self.id)
+            if C_AddOns.IsAddOnLoaded("Narcissus_Achievements") and isNarcissusAchievementFrameDefault then
+                AttemptToOpenAchievement(self.id, true)
+                CloseDefaultWindow()
             else
                 AchievementFrame_ToggleAchievementFrame()
+                AchievementFrame_SelectAchievement(self.id)
+            end
+        else
+            if C_AddOns.IsAddOnLoaded("Narcissus_Achievements") and isNarcissusAchievementFrameDefault then
+                AttemptToOpenAchievement(self.id, true)
+                CloseDefaultWindow()
+            else
+                if (AchievementFrameAchievements.selection ~= self.id) then
+                    AchievementFrame_SelectAchievement(self.id)
+                else
+                    AchievementFrame_ToggleAchievementFrame()
+                end
             end
         end
     else
@@ -110,7 +150,14 @@ function GwAchievementTrackerContainerMixin:BlockOnClick(mouseButton)
             rootDescription:SetMinimumWidth(1)
             local _, achievementName = GetAchievementInfo(self.id);
             rootDescription:CreateTitle(achievementName)
-            rootDescription:CreateButton(OBJECTIVES_VIEW_ACHIEVEMENT, function() OpenAchievementFrameToAchievement(self.id) end)
+            rootDescription:CreateButton(OBJECTIVES_VIEW_ACHIEVEMENT, function()
+                if C_AddOns.IsAddOnLoaded("Narcissus_Achievements") and isNarcissusAchievementFrameDefault then
+                    AttemptToOpenAchievement(self.id, true)
+                    CloseDefaultWindow()
+                else
+                    OpenAchievementFrameToAchievement(self.id)
+                end
+            end)
             rootDescription:CreateButton(OBJECTIVES_STOP_TRACKING, function()
                 if GW.Retail then
                     C_ContentTracking.StopTracking(Enum.ContentTrackingType.Achievement, self.id, Enum.ContentTrackingStopType.Manual)
