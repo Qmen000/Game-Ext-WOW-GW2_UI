@@ -2,6 +2,10 @@
 local GW = select(2, ...)
 
 GwObjectivesBlockTemplateMixin = {}
+local FALLBACK_WHITE = GW.Colors.FallbackWhite
+local DIM_RED = DIM_RED_FONT_COLOR
+local WHITE_R, WHITE_G, WHITE_B, WHITE_A = FALLBACK_WHITE:GetRGBA()
+local DIM_RED_R, DIM_RED_G, DIM_RED_B, DIM_RED_A = DIM_RED:GetRGBA()
 
 function GwObjectivesBlockTemplateMixin:UpdateBlockObjectives()
     -- override per module
@@ -28,25 +32,25 @@ end
 
 function GwObjectivesBlockTemplateMixin:OnEnter()
     if not self.hover then
-        self.oldColor = {}
-        self.oldColor.r, self.oldColor.g, self.oldColor.b = self:GetParent().Header:GetTextColor()
-        self:GetParent().Header:SetTextColor(self.oldColor.r * 2, self.oldColor.g * 2, self.oldColor.b * 2)
-
-        self = self:GetParent()
+        local parent = self:GetParent()
+        local r, g, b = parent.Header:GetTextColor()
+        parent._oldHeaderR, parent._oldHeaderG, parent._oldHeaderB = r, g, b
+        parent.Header:SetTextColor(r * 2, g * 2, b * 2)
+        self = parent
     end
 
     self.hover:Show()
 
     if self.objectiveBlocks then
-        for _, v in pairs(self.objectiveBlocks) do
-            if not v.StatusBar.notHide then
+        for _, v in ipairs(self.objectiveBlocks) do
+            if not v.StatusBar.notHide and not v.StatusBar.progress:IsShown() then
                 v.StatusBar.progress:Show()
             end
         end
     else
         -- here we have a frame pool
         for frame in self.objectivesPool:EnumerateActive() do
-            if not frame.StatusBar.notHide then
+            if not frame.StatusBar.notHide and not frame.StatusBar.progress:IsShown() then
                 frame.StatusBar.progress:Show()
             end
         end
@@ -78,26 +82,26 @@ end
 
 function GwObjectivesBlockTemplateMixin:OnLeave()
     if not self.hover then
-        if self.oldColor ~= nil then
-            self:GetParent().Header:SetTextColor(self.oldColor.r, self.oldColor.g, self.oldColor.b)
+        local parent = self:GetParent()
+        if parent._oldHeaderR ~= nil then
+            parent.Header:SetTextColor(parent._oldHeaderR, parent._oldHeaderG, parent._oldHeaderB)
         end
-
-        self = self:GetParent()
+        self = parent
     end
     if not self.isSuperTracked then
         self.hover:Hide()
     end
 
     if self.objectiveBlocks then
-        for _, v in pairs(self.objectiveBlocks) do
-            if not v.StatusBar.notHide then
+        for _, v in ipairs(self.objectiveBlocks) do
+            if not v.StatusBar.notHide and v.StatusBar.progress:IsShown() then
                 v.StatusBar.progress:Hide()
             end
         end
     else
         -- here we have a frame pool
         for frame in self.objectivesPool:EnumerateActive() do
-            if not frame.StatusBar.notHide then
+            if not frame.StatusBar.notHide and frame.StatusBar.progress:IsShown() then
                 frame.StatusBar.progress:Hide()
             end
         end
@@ -160,6 +164,8 @@ function GwObjectivesBlockTemplateMixin:GetObjectiveBlock(index, firstObjectives
         objective:SetScript("OnEnter", nil)
         objective:SetScript("OnLeave", nil)
         objective.isMythicKeystone = false
+        objective.ObjectiveText:SetText("")
+
         return objective
     end
 
@@ -177,6 +183,7 @@ function GwObjectivesBlockTemplateMixin:GetObjectiveBlock(index, firstObjectives
 
     newObjective.StatusBar:SetStatusBarColor(self.color.r, self.color.g, self.color.b)
     newObjective.TimerBar:SetStatusBarColor(self.color.r, self.color.g, self.color.b)
+    newObjective.ObjectiveText:SetText("")
 
     newObjective.notChangeSize = true
     newObjective.hasObjectToHide = false
@@ -192,6 +199,8 @@ function GwObjectivesBlockTemplateMixin:AddObjective(text, objectiveIndex, optio
     self.numObjectives = self.numObjectives + 1
     local objectiveBlock = self:GetObjectiveBlock(objectiveIndex, options.firstObjectivesYValue)
     local precentageComplete = 0
+    local objectiveText = objectiveBlock.ObjectiveText
+    local statusBar = objectiveBlock.StatusBar
 
     objectiveBlock:Show()
     local formattedText = text
@@ -202,8 +211,9 @@ function GwObjectivesBlockTemplateMixin:AddObjective(text, objectiveIndex, optio
     elseif options.isAchievement then
         formattedText = GW.FormatObjectiveNumbers(text)
     end
-    objectiveBlock.ObjectiveText:SetText(formattedText)
-    objectiveBlock.ObjectiveText:SetHeight(objectiveBlock.ObjectiveText:GetStringHeight() + 15)
+    objectiveText:SetText(formattedText)
+    local textHeight = objectiveText:GetStringHeight()
+    objectiveText:SetHeight(textHeight + 15)
 
     if objectiveBlock.hasObjectToHide then
         if objectiveBlock.resetParent then objectiveBlock.objectToHide.SetParent = nil end
@@ -215,39 +225,42 @@ function GwObjectivesBlockTemplateMixin:AddObjective(text, objectiveIndex, optio
 
     if options.isAchievement then
         if options.eligible then
-            objectiveBlock.ObjectiveText:SetTextColor(1, 1, 1)
+            objectiveText:SetTextColor(WHITE_R, WHITE_G, WHITE_B, WHITE_A)
         else
-            objectiveBlock.ObjectiveText:SetTextColor(DIM_RED_FONT_COLOR.r, DIM_RED_FONT_COLOR.g, DIM_RED_FONT_COLOR.b)
+            objectiveText:SetTextColor(DIM_RED_R, DIM_RED_G, DIM_RED_B, DIM_RED_A)
         end
     else
         if options.finished then
-            objectiveBlock.ObjectiveText:SetTextColor(0.8, 0.8, 0.8)
+            if options.useCompletedLine then
+                objectiveText:SetTextColor(0.72, 0.72, 0.72, 0.7)
+            else
+                objectiveText:SetTextColor(0.8, 0.8, 0.8, 0.7)
+            end
         else
-            objectiveBlock.ObjectiveText:SetTextColor(1, 1, 1)
+            objectiveText:SetTextColor(WHITE_R, WHITE_G, WHITE_B, WHITE_A)
         end
     end
 
+    objectiveBlock:SetCompletedLineState(options.finished and options.useCompletedLine)
+
     if options.objectiveType == "progressbar" then
-        objectiveBlock.StatusBar:SetMinMaxValues(0, 100)
-        objectiveBlock.StatusBar:SetValue(options.qty or (self.questID and GetQuestProgressBarPercent(self.questID)) or 0)
-        objectiveBlock.StatusBar:SetShown(options.isMythicKeystone or options.overrideShowStatusbarSetting or GW.settings.QUESTTRACKER_STATUSBARS_ENABLED)
-        objectiveBlock.progress = (options.qty or (self.questID and GetQuestProgressBarPercent(self.questID))) / 100
-        objectiveBlock.StatusBar.precentage = true
+        local progressValue = options.qty or (self.questID and GetQuestProgressBarPercent(self.questID)) or 0
+        statusBar:SetMinMaxValues(0, 100)
+        statusBar:SetValue(progressValue)
+        statusBar:SetShown(options.isMythicKeystone or options.overrideShowStatusbarSetting or GW.settings.QUESTTRACKER_STATUSBARS_ENABLED)
+        objectiveBlock.progress = progressValue / 100
+        statusBar.precentage = true
         precentageComplete = objectiveBlock.progress
     elseif GW.ParseObjectiveString(objectiveBlock, text, options.qty, options.totalqty, (options.overrideShowStatusbarSetting or options.isMythicKeystone)) then
         precentageComplete = objectiveBlock.progress
     else
-        objectiveBlock.StatusBar:Hide()
+        statusBar:Hide()
     end
 
-    local h = objectiveBlock.ObjectiveText:GetStringHeight() + 10
+    local h = textHeight + 10
     objectiveBlock:SetHeight(h)
-    if objectiveBlock.StatusBar:IsShown() then
-        if self.numObjectives >= 1 then
-            h = h + objectiveBlock.StatusBar:GetHeight() + 10
-        else
-            h = h + objectiveBlock.StatusBar:GetHeight() + 5
-        end
+    if statusBar:IsShown() then
+        h = h + statusBar:GetHeight() + 10
         objectiveBlock:SetHeight(h)
     end
 

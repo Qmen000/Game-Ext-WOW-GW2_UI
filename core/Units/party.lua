@@ -16,6 +16,7 @@ local GW_PORTRAIT_BACKGROUND = {
 local partyFrames = {}
 local healtTextColorCurve
 local previewMode = false
+local SUMMON_ICON_PREFIX = GW.Retail and "RaidFrame-Icon-" or "Raid-Icon-"
 
 if GW.Retail then
     healtTextColorCurve = C_CurveUtil.CreateColorCurve()
@@ -51,10 +52,10 @@ local function FilterAura(element, unit, data)
                 if GW.settings.PARTY_SHOW_DEBUFFS then
                     if GW.settings.PARTY_ONLY_DISPELL_DEBUFFS then
                         if data.dispelName and GW.Libs.Dispel:IsDispellableByMe(data.dispelName) then
-                            shouldDisplay = data.name and not (data.spellId == 6788 and data.sourceUnit and not UnitIsUnit(data.sourceUnit, "player")) -- Don't show "Weakened Soul" from other players
+                            shouldDisplay = data.name and not (data.spellId == 6788 and data.sourceUnit and GW.UnitNotUnit(data.sourceUnit, "player")) -- Don't show "Weakened Soul" from other players
                         end
                     else
-                        shouldDisplay = data.name and not (data.spellId == 6788 and data.sourceUnit and not UnitIsUnit(data.sourceUnit, "player")) -- Don't show "Weakened Soul" from other players
+                        shouldDisplay = data.name and not (data.spellId == 6788 and data.sourceUnit and GW.UnitNotUnit(data.sourceUnit, "player")) -- Don't show "Weakened Soul" from other players
                     end
                 end
 
@@ -121,19 +122,23 @@ function GwPartyFrameMixin:UpdateAwayData()
     end
 
     if UnitHasIncomingResurrection(self.unit) then
-        self.classicon:SetTexture("Interface/RaidFrame/Raid-Icon-Rez")
         self.classicon:SetTexCoord(unpack(GW.TexCoords))
+        if GW.Retail then
+            self.classicon:SetAtlas("RaidFrame-Icon-Rez")
+        else
+            self.classicon:SetTexture("Interface/RaidFrame/Raid-Icon-Rez")
+        end
     end
 
-    if GW.Retail and C_IncomingSummon.HasIncomingSummon(self.unit) then
-        local status = C_IncomingSummon.IncomingSummonStatus(self.unit)
+    local status = (GW.Retail or GW.TBC) and C_IncomingSummon.IncomingSummonStatus(self.unit) or 0
+    if status ~= 0 then --Enum.SummonStatus.None
         self.classicon:SetTexCoord(unpack(GW.TexCoords))
         if status == Enum.SummonStatus.Pending then
-            self.classicon:SetAtlas("Raid-Icon-SummonPending")
+            self.classicon:SetAtlas(SUMMON_ICON_PREFIX .. "SummonPending")
         elseif status == Enum.SummonStatus.Accepted then
-            self.classicon:SetAtlas("Raid-Icon-SummonAccepted")
+            self.classicon:SetAtlas(SUMMON_ICON_PREFIX .. "SummonAccepted")
         elseif status == Enum.SummonStatus.Declined then
-            self.classicon:SetAtlas("Raid-Icon-SummonDeclined")
+            self.classicon:SetAtlas(SUMMON_ICON_PREFIX .. "SummonDeclined")
         end
     end
 

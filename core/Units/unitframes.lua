@@ -839,7 +839,7 @@ function GwUnitFrameMixin:OnEvent(event, unit, ...)
         end
     elseif event == "UNIT_THREAT_LIST_UPDATE" and self.showThreat then
         self:UpdateThreatValues()
-    elseif UnitIsUnit(unit, self.unit) then
+    elseif GW.UnitIsUnit(unit, self.unit) then
         if event == "UNIT_AURA" then
             GW.UpdateBuffLayout(self, event, unit, ...)
         elseif IsIn(event, "UNIT_MAXHEALTH", "UNIT_ABSORB_AMOUNT_CHANGED", "UNIT_HEALTH", "UNIT_HEALTH_FREQUENT", "UNIT_HEAL_PREDICTION") then

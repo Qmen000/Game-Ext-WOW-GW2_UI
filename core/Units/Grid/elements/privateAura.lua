@@ -11,11 +11,17 @@ function GW.UpdatePrivateAurasSettings(frame)
 
     frame.PrivateAuras:SetFrameLevel(frame.RaisedElementParent.PrivateAurasLevel)
     frame.PrivateAuras:ClearAllPoints()
-    frame.PrivateAuras:SetPoint("CENTER", frame)
+    frame.PrivateAuras:SetPoint("LEFT", frame, "LEFT", 2, 0)
     frame.PrivateAuras:SetSize(frame:GetSize())
     frame.PrivateAuras.disableCooldown = false
-    frame.PrivateAuras.disableCooldownText = false
-    frame.PrivateAuras.initialAnchor = "CENTER"
+    frame.PrivateAuras.disableCooldownText = true
+    frame.PrivateAuras.initialAnchor = "LEFT"
     frame.PrivateAuras.borderScale = 1
-    frame.PrivateAuras.size = 15
+    frame.PrivateAuras.size = 12
+
+    if frame.showPrivateAuras then
+        frame:EnableElement("PrivateAuras")
+    else
+        frame:DisableElement("PrivateAuras")
+    end
 end

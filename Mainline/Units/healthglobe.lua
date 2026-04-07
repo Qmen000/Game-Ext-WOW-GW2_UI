@@ -120,7 +120,7 @@ function GwHealthglobeMixin:OnEnter()
     if IsInRaid() then
         local groupNumber
         for i = 1, GetNumGroupMembers() do
-            if UnitIsUnit("raid" .. i, self.unit) then
+            if GW.UnitIsUnit("raid" .. i, self.unit) then
                 groupNumber = select(3, GetRaidRosterInfo(i))
             end
         end

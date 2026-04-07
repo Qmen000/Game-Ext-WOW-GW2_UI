@@ -26,6 +26,22 @@ local function IsFakeTimerWidget(widgetInfo)
     return widgetInfo and not widgetInfo.hasTimer and HasValidTimerData(widgetInfo)
 end
 
+local function IsScenarioCriteriaComplete(criteriaInfo)
+    if not criteriaInfo then
+        return false
+    end
+
+    if criteriaInfo.completed ~= nil then
+        return criteriaInfo.completed
+    end
+
+    if criteriaInfo.quantity and criteriaInfo.totalQuantity and criteriaInfo.totalQuantity > 0 then
+        return criteriaInfo.quantity >= criteriaInfo.totalQuantity
+    end
+
+    return false
+end
+
 function GwObjectivesScenarioContainerWidgetMixin:RemoveAllWidgets()
     self.widgetFrames = {}
     self.timerWidgets = {}
@@ -236,12 +252,16 @@ function GwObjectivesScenarioContainerWidgetMixin:ProcessWidget(widgetID, widget
     elseif widgetInfo then
         wipe(self.widgetInfoForStatusBar)
         tinsert(self.widgetInfoForStatusBar, widgetInfo)
-        self.layoutFunc(self.container)
+        if self.layoutFunc then
+            self.layoutFunc(self.container)
+        end
         return
     end
 
     if isNewWidget or widgetFrame.isFakeTimer then
-        self.layoutFunc(self.container)
+        if self.layoutFunc then
+            self.layoutFunc(self.container)
+        end
     end
 end
 
@@ -251,7 +271,9 @@ function GwObjectivesScenarioContainerWidgetMixin:ProcessAllWidgets()
         self:ProcessWidget(widgetInfo.widgetID, widgetInfo.widgetType)
     end
 
-    self.layoutFunc(self.container)
+    if self.layoutFunc then
+        self.layoutFunc(self.container)
+    end
 end
 
 function GwObjectivesScenarioContainerWidgetMixin:UnregisterForWidgetSet()
@@ -288,7 +310,7 @@ function GwObjectivesScenarioContainerWidgetMixin:RegisterForWidgetSet(widgetSet
     end
 
     self.widgetSetID = widgetSetID
-    self.layoutFunc = self.container.UpdateLayout
+    self.layoutFunc = self.container.QueueUpdateLayout
     self.widgetFrames = {}
     self.timerWidgets = {}
     self.widgetInfoForStatusBar = {}
@@ -313,25 +335,50 @@ function GwObjectivesScenarioContainerMixin:UpdateWidgetRegistration(widgetSetID
     end
 end
 
-function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
+local function ScenarioContainerLayoutRunnerOnUpdate(frame)
+    frame:SetScript("OnUpdate", nil)
+
+    local container = frame.container
+    container.layoutQueued = false
+    container:UpdateLayout()
+end
+
+function GwObjectivesScenarioContainerMixin:QueueUpdateLayout(event, ...)
+    if event == "JAILERS_TOWER_LEVEL_UPDATE" then
+        local level, type, textureKit = ...
+        self.jailersTowerLevelUpdateInfo = {level = level, type = type, textureKit = textureKit}
+    end
+
+    if self.layoutQueued then
+        return
+    end
+
+    self.layoutQueued = true
+    self.layoutUpdateFrame:SetScript("OnUpdate", ScenarioContainerLayoutRunnerOnUpdate)
+end
+
+function GwObjectivesScenarioContainerMixin:UpdateLayout()
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Scenario)
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Torghast)
     GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Delve)
 
-    local compassData = {
-        TYPE = GW.Enum.ObjectivesNotificationType.Scenario,
-        TITLE = "Unknown Scenario",
-        ID = "unknown",
-        QUESTID = "unknown",
-        COMPASS = false,
-        MAPID = nil,
-        X = nil,
-        Y = nil,
-        COLOR = GW.Colors.ObjectivesTypeColors[GW.Enum.ObjectivesNotificationType.Scenario],
-    }
+    local compassData = self.compassData or {}
+    self.compassData = compassData
+    compassData.TYPE = GW.Enum.ObjectivesNotificationType.Scenario
+    compassData.TITLE = "Unknown Scenario"
+    compassData.ID = "unknown"
+    compassData.QUESTID = "unknown"
+    compassData.COMPASS = false
+    compassData.MAPID = nil
+    compassData.X = nil
+    compassData.Y = nil
+    compassData.COLOR = GW.Colors.ObjectivesTypeColors[GW.Enum.ObjectivesNotificationType.Scenario]
 
     local block = self.block
     local timerBlock = self.timerBlock
+    local _, _, numStages, _, _, _, _, _, _, _, _, _, scenarioID = C_Scenario.GetInfo()
+    local name, instanceType, difficultyID, difficultyName = GetInstanceInfo()
+    local isDelveScenario = GW.Retail and difficultyID == 208
 
     block.height = 1
 
@@ -343,11 +390,11 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     block.questLogIndex = 0
     block.groupButton:Hide()
     block.delvesFrame:Hide()
+    if not isDelveScenario then
+        GW.StopNemesisCounter()
+    end
     block:Show()
-
-    local _, _, numStages, _, _, _, _, _, _, _, _, _, scenarioID = C_Scenario.GetInfo()
     if numStages == 0 or (GW.Retail and IsOnGroundFloorInJailersTower()) then
-        local name, instanceType, _, difficultyName, _ = GetInstanceInfo()
         if instanceType == "raid" then
             compassData.TITLE = name
             compassData.DESC = difficultyName
@@ -383,7 +430,6 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
 
     local stageName, stageDescription, numCriteria, _, _, _, _, _, allSpellInfo, _, questID, widgetSetID = C_Scenario.GetStepInfo()
     self:UpdateWidgetRegistration(widgetSetID)
-    local _, _, difficultyID, difficultyName = GetInstanceInfo()
     local isMythicKeystone = difficultyID == 8
     stageDescription = stageDescription or ""
     stageName = stageName or ""
@@ -399,10 +445,6 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
 
     if GW.Retail and IsInJailersTower() then
         local floor = ""
-        if event == "JAILERS_TOWER_LEVEL_UPDATE" then
-            local level, type, textureKit = ...
-            self.jailersTowerLevelUpdateInfo = {level = level, type = type, textureKit = textureKit}
-        end
         local widgetInfo = C_UIWidgetManager.GetScenarioHeaderCurrenciesAndBackgroundWidgetVisualizationInfo(3302)
         if widgetInfo then floor = widgetInfo.headerText or "" end
 
@@ -422,7 +464,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     end
 
     -- check for active delves
-    local delvesWidgetInfo = GW.Retail and (difficultyID and difficultyID == 208) and C_UIWidgetManager.GetScenarioHeaderDelvesWidgetVisualizationInfo(6183)
+    local delvesWidgetInfo = isDelveScenario and C_UIWidgetManager.GetScenarioHeaderDelvesWidgetVisualizationInfo(6183)
     if delvesWidgetInfo and delvesWidgetInfo.frameTextureKit == "delves-scenario" then
         local tierLevel = delvesWidgetInfo.tierText or ""
         GwObjectivesNotification.iconFrame.tooltipSpellID = delvesWidgetInfo.tierTooltipSpellID
@@ -434,7 +476,16 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
             if spellInfo.shownState ~= Enum.WidgetShownState.Hidden then
                 local spellData = C_Spell.GetSpellInfo(spellInfo.spellID)
                 local spellBlock = block.delvesFrame.spell[id]
-                spellBlock.icon:SetTexture(spellData.iconID)
+
+                if spellInfo.spellID == 1270179 then -- Chest icon
+                    spellBlock.icon:SetTexture("Interface/AddOns/GW2_UI/textures/icons/chest.png")
+                    GW.RequestNemesisCounterUpdate(spellBlock)
+                else
+                    spellBlock.icon:SetTexture(spellData.iconID)
+                    spellBlock.notification.Text:SetText("")
+                    spellBlock.notification:Hide()
+                end
+
                 if not spellBlock.mask then
                     spellBlock.mask = spellBlock:CreateMaskTexture()
                     spellBlock.mask:SetAllPoints(spellBlock.icon)
@@ -450,6 +501,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
 
         for i = id, 5 do
             block.delvesFrame.spell[i].spellID = nil
+            block.delvesFrame.spell[i].notification:Hide()
             block.delvesFrame.spell[i]:Hide()
         end
 
@@ -493,6 +545,16 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
         GW.CombatQueue_Queue(nil, block.UpdateScenarioSpell, {block, allSpellInfo})
     end
 
+    local objectiveOptions = {
+        finished = false,
+        useCompletedLine = true,
+        scenarioObjective = true,
+        objectiveType = "monster",
+        qty = 0,
+        isMythicKeystone = false,
+        firstObjectivesYValue = -5,
+    }
+
     for criteriaIndex = 1, numCriteria do
         local scenarioCriteriaInfo = C_ScenarioInfo.GetCriteriaInfo(criteriaIndex)
         if scenarioCriteriaInfo then
@@ -506,7 +568,11 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
             if isMythicKeystone then
                 mythicKeystoneCurrentValue = tonumber(string.match(scenarioCriteriaInfo.quantityString, "%d+")) or 1
             end
-            block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description, isMythicKeystone, mythicKeystoneCurrentValue, scenarioCriteriaInfo.isWeightedProgress), criteriaIndex, { finished = false, objectiveType = objectiveType, qty = scenarioCriteriaInfo.quantity, isMythicKeystone = isMythicKeystone, firstObjectivesYValue = -5 })
+            objectiveOptions.finished = IsScenarioCriteriaComplete(scenarioCriteriaInfo)
+            objectiveOptions.objectiveType = objectiveType
+            objectiveOptions.qty = scenarioCriteriaInfo.quantity
+            objectiveOptions.isMythicKeystone = isMythicKeystone
+            block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description, isMythicKeystone, mythicKeystoneCurrentValue, scenarioCriteriaInfo.isWeightedProgress), criteriaIndex, objectiveOptions)
             if scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration then
                 block:AddObjective(TIME_REMAINING, numCriteria + 1, {isQuest = false, qty = nil, totalqty = nil, timerShown = true, duration = scenarioCriteriaInfo.duration, startTime = GetTime() - scenarioCriteriaInfo.elapsed})
             end
@@ -521,7 +587,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
     local bonusSteps = C_Scenario.GetBonusSteps() or {}
     local numCriteriaPrev = numCriteria
 
-    for _, v in pairs(bonusSteps) do
+    for _, v in ipairs(bonusSteps) do
         local bonusStepIndex = v
         local _, _, numCriteriaForStep = C_Scenario.GetStepInfo(bonusStepIndex)
 
@@ -533,18 +599,21 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
             if scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration and not (scenarioCriteriaInfo.failed or scenarioCriteriaInfo.completed) then
                 block:AddObjective(TIME_REMAINING, numCriteriaPrev + 1, {isQuest = false, qty = nil, totalqty = nil, timerShown = true, duration = scenarioCriteriaInfo.duration, startTime = GetTime() - scenarioCriteriaInfo.elapsed})
             else
-                block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description), numCriteriaPrev + 1, { finished = false, objectiveType = objectiveType, qty = scenarioCriteriaInfo.quantity, firstObjectivesYValue = -5 })
+                objectiveOptions.finished = IsScenarioCriteriaComplete(scenarioCriteriaInfo)
+                objectiveOptions.objectiveType = objectiveType
+                objectiveOptions.qty = scenarioCriteriaInfo.quantity
+                objectiveOptions.isMythicKeystone = false
+                block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description), numCriteriaPrev + 1, objectiveOptions)
                 numCriteriaPrev = numCriteriaPrev + 1
             end
         end
     end
 
     --check for additonal statusbar
-    --for id in pairs(allowedWidgetUpdateIdsForStatusBar) do
+    local hasVisibleStatusBarWidget = false
     for _, widgetInfo in ipairs( self.statusBarWidgetManager.widgetInfoForStatusBar or {} ) do
-        DevTools_Dump(widgetInfo)
-        --local widgetInfo = C_UIWidgetManager.GetStatusBarWidgetVisualizationInfo(id)
         if widgetInfo and widgetInfo.shownState ~= Enum.WidgetShownState.Hidden then
+            hasVisibleStatusBarWidget = true
             local objectiveType = "object"
             local quantity = widgetInfo.barValue
             local text = GW.ParseCriteria(widgetInfo.barValue, widgetInfo.barMax, widgetInfo.text)
@@ -557,10 +626,10 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout(event, ...)
             end
             block:AddObjective(text, numCriteriaPrev + 1, { finished = false, objectiveType = objectiveType, qty = quantity, firstObjectivesYValue = -5 })
             numCriteriaPrev = numCriteriaPrev + 1
-            if not self.timerWidgetManager:IsTimerRunning() then
-                self:ClearWidgetSet()
-            end
         end
+    end
+    if hasVisibleStatusBarWidget and not self.timerWidgetManager:IsTimerRunning() then
+        self:ClearWidgetSet()
     end
 
     for i = (block.numObjectives or 0) + 1, #block.objectiveBlocks do
@@ -590,9 +659,9 @@ end
 function GwQuesttrackerScenarioBlockMixin:UpdateAffixes(fakeIds)
     if not GW.Retail then return end
     local _, affixes = C_ChallengeMode.GetActiveKeystoneInfo()
-    affixes = fakeIds and #fakeIds > 0 and fakeIds or affixes
+    affixes = fakeIds and #fakeIds > 0 and fakeIds or affixes or {}
 
-    for idx, v in pairs(affixes) do
+    for idx, v in ipairs(affixes) do
         local affix = self.affixeFrame.affixes[idx]
         local _, _, filedataid = C_ChallengeMode.GetAffixInfo(v)
         if idx == 1 then self.height = self.height + 40 end
@@ -794,7 +863,11 @@ function GwQuesttrackerScenarioBlockMixin:TimerBlockOnEvent(event, ...)
     end
     self:SetHeight(self.height)
 
-    self.container:UpdateLayout()
+    self.container:QueueUpdateLayout()
+end
+
+local function ScenarioContainerOnEvent(self, event, ...)
+    self:QueueUpdateLayout(event, ...)
 end
 
 local function UIWidgetTemplateTooltipFrameOnEnter(self)
@@ -850,17 +923,20 @@ function GwObjectivesScenarioContainerMixin:InitModule()
     self:RegisterEvent("SCENARIO_COMPLETED")
     self:RegisterEvent("SCENARIO_SPELL_UPDATE")
     self:RegisterEvent("JAILERS_TOWER_LEVEL_UPDATE")
-    self:SetScript("OnEvent", self.UpdateLayout)
+    self:SetScript("OnEvent", ScenarioContainerOnEvent)
 
 
     self.jailersTowerType = nil
+    self.layoutQueued = false
+    self.layoutUpdateFrame = CreateFrame("Frame", nil, self)
+    self.layoutUpdateFrame.container = self
 
     -- JailersTower hook
     -- do it only here so we are sure we do not hook more than one time
     if GW.Retail then
         hooksecurefunc(ScenarioObjectiveTracker, "SlideInContents", function(container)
             if container:ShouldShowCriteria() and IsInJailersTower() then
-                self:UpdateLayout()
+                self:QueueUpdateLayout()
             end
         end)
     end
@@ -987,7 +1063,7 @@ function GwObjectivesScenarioContainerMixin:InitModule()
     statusBarWidgetManager.container = self
     self.statusBarWidgetManager = statusBarWidgetManager
 
-    C_Timer.After(0.8, function() self:UpdateLayout() end)
+    C_Timer.After(0.8, function() self:QueueUpdateLayout() end)
 
     self.timerBlock:TimerBlockOnEvent()
 end

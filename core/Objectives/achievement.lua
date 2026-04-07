@@ -137,7 +137,40 @@ function GwAchievementTrackerContainerMixin:BlockOnClick(mouseButton)
         end)
     end
 end
-function GwAchievementTrackerContainerMixin:UpdateLayout(event, ...)
+local function AchievementLayoutFlushOnUpdate(frame)
+    frame:SetScript("OnUpdate", nil)
+
+    local container = frame.container
+    container.layoutUpdateQueued = false
+    container:UpdateLayout()
+    GwQuestTracker:LayoutChanged()
+end
+
+function GwAchievementTrackerContainerMixin:QueueUpdateLayout(event, ...)
+    if event == "TRACKED_ACHIEVEMENT_UPDATE" then
+        local achievementID, criteriaID, elapsed, duration = ...
+        if elapsed and duration then
+            -- Handle timer bars for achievements without visible criteria.
+            local numCriteria = GetAchievementNumCriteria(achievementID)
+            if numCriteria == 0 then
+                local timedCriteria = self.timedCriteria[criteriaID] or {}
+                timedCriteria.achievementID = achievementID
+                timedCriteria.startTime = GetTime() - elapsed
+                timedCriteria.duration = duration
+                self.timedCriteria[criteriaID] = timedCriteria
+            end
+        end
+    end
+
+    if self.layoutUpdateQueued then
+        return
+    end
+
+    self.layoutUpdateQueued = true
+    self.layoutUpdateFrame:SetScript("OnUpdate", AchievementLayoutFlushOnUpdate)
+end
+
+function GwAchievementTrackerContainerMixin:UpdateLayout()
     local savedHeight = 1
     local shownIndex = 1
     local trackedAchievements = GW.Retail and C_ContentTracking.GetTrackedIDs(Enum.ContentTrackingType.Achievement) or {GetTrackedAchievements()}
@@ -149,22 +182,6 @@ function GwAchievementTrackerContainerMixin:UpdateLayout(event, ...)
         self.header:Show()
         numAchievements = 0
         savedHeight = 20
-    end
-
-    if event == "TRACKED_ACHIEVEMENT_UPDATE" then
-        local achievementID, criteriaID, elapsed, duration = ...
-		if elapsed and duration then
-			-- we're already handling timer bars for achievements with visible criteria
-			-- we use this system to handle timer bars for the rest
-			local numCriteria = GetAchievementNumCriteria(achievementID)
-			if numCriteria == 0 then
-				local timedCriteria = self.timedCriteria[criteriaID] or {}
-				timedCriteria.achievementID = achievementID
-				timedCriteria.startTime = GetTime() - elapsed
-				timedCriteria.duration = duration
-				self.timedCriteria[criteriaID] = timedCriteria
-			end
-		end
     end
 
     for i = 1, numAchievements do
@@ -201,11 +218,10 @@ function GwAchievementTrackerContainerMixin:UpdateLayout(event, ...)
         self.blocks[i]:Hide()
     end
 
-    GwQuestTracker:LayoutChanged()
 end
 
 local function OnEvent(self, event, ...)
-    self:UpdateLayout(event, ...)
+    self:QueueUpdateLayout(event, ...)
 end
 
 function GwAchievementTrackerContainerMixin:InitModule()
@@ -228,7 +244,10 @@ function GwAchievementTrackerContainerMixin:InitModule()
     self.header.title:SetTextColor(GW.Colors.ObjectivesTypeColors[GW.Enum.ObjectivesNotificationType.Achievement]:GetRGB())
 
     self.timedCriteria = {}
+    self.layoutUpdateFrame = CreateFrame("Frame", nil, self)
+    self.layoutUpdateFrame.container = self
+    self.layoutUpdateQueued = false
     self.blockMixInTemplate = GwAchievementTrackerBlockMixin
 
-    self:UpdateLayout()
+    self:QueueUpdateLayout()
 end

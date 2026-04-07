@@ -249,7 +249,7 @@ local function LoadLayoutsFrame(smallSettingsFrame, layoutManager)
 
     smallSettingsFrame.layoutView.savedLayoutDropDown.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Small)
     smallSettingsFrame.layoutView.savedLayoutDropDown.title:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
-    smallSettingsFrame.layoutView.savedLayoutDropDown.title:SetText("Layouts")
+    smallSettingsFrame.layoutView.savedLayoutDropDown.title:SetText(L["Layouts"])
 
     smallSettingsFrame.layoutView.specsDropDown.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Small)
     smallSettingsFrame.layoutView.specsDropDown.title:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())

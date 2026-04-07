@@ -28,6 +28,7 @@ local function GridMaintankStyleRegister(self)
     GW.Construct_PredictionBar(self) -- creates only the function regestration
     self.Auras = GW.Construct_Auras(self)
     self.MissingBuffFrame = GW.Construct_MissingAuraIndicator(self)
+    self.PrivateAuras = GW.Construct_PrivateAura(self)
     self.Fader = GW.Construct_Faderframe(self)
 
     return self
@@ -48,6 +49,7 @@ local function UpdateGridMaintankFrame(frame)
     frame.showDebuffs = GW.settings.RAID_SHOW_DEBUFFS_TANK
     frame.showOnlyDispelDebuffs = GW.settings.RAID_ONLY_DISPELL_DEBUFFS_TANK
     frame.showBuffs = GW.settings.RAID_SHOW_BUFFS_TANK
+    frame.showPrivateAuras = GW.settings.RAID_MAINTANK_SHOW_PRIVATE_AURAS
     frame.showAuraTooltipInCombat = GW.settings.RAID_AURA_TOOLTIP_INCOMBAT_TANK
     frame.ignoredAuras = GW.FillTable({}, true, strsplit(",", (GW.settings.AURAS_IGNORED:trim():gsub("%s*,%s*", ","))))
     --frame.missingAuras = GW.FillTable({}, true, strsplit(",", (GW.settings.AURAS_MISSING:trim():gsub("%s*,%s*", ","))))
@@ -93,6 +95,7 @@ local function UpdateGridMaintankFrame(frame)
     GW.Update_PredictionBars(frame)
     GW.UpdateAurasSettings(frame)
     GW.Update_MissingAuraIndicator(frame)
+    GW.UpdatePrivateAurasSettings(frame)
     GW.Update_Faderframe(frame, "gridTank")
 
     frame:UpdateAllElements("Gw2_UpdateAllElements")

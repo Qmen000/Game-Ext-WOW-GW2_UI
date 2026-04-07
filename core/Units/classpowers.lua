@@ -225,9 +225,9 @@ local function SetClassPowerCustomResourceBarAnchor(bar, mover, ownerFrame, yOfs
 
     -- In CENTER mode keep the bar inside mover bounds and shrink it to available side space.
     local gap = GetClassPowerCustomResourceBarGap(edgeGap or 4)
-    if anchorMode == "CENTER" and ownerFrame and ownerFrame:IsShown() then
-        local moverWidth = mover.GetWidth and mover:GetWidth() or 312
-        local ownerWidth = ownerFrame.GetWidth and ownerFrame:GetWidth() or 0
+    if anchorMode == "CENTER" and ownerFrame:IsShown() then
+        local moverWidth = mover:GetWidth()
+        local ownerWidth = ownerFrame:GetWidth()
         local availableWidth = math.max(1, math.floor(((moverWidth - ownerWidth) * 0.5) - gap))
         bar:SetWidth(math.min(configuredWidth, availableWidth))
 
@@ -248,14 +248,14 @@ local function SetClassPowerCustomResourceBarAnchor(bar, mover, ownerFrame, yOfs
 end
 
 local function SetWarlockResourceAnchors(owner)
-    if not owner or not owner.warlock then
+    if not owner then
         return
     end
 
     -- Main shard block follows the classpower anchor mode, not the custom resource side.
     SetClassPowerAnchor(owner.warlock, owner, "LEFT")
 
-    if GW.myspec == 3 and owner.warlock.shardFragment then
+    if GW.myspec == 3 then
         local side = GW.GetClassPowerCustomResourceBarSide()
         local gap = GetClassPowerCustomResourceBarGap(4)
         owner.warlock.shardFragment:ClearAllPoints()
@@ -892,7 +892,6 @@ end
 local function powerSotR()
     local results = GetAuraData("player", nil, "HELPFUL", 132403, 31850, 212641)
 
-    C_Secrets.ShouldSpellAuraBeSecret(212641)
     if results == nil then
         return
     end
@@ -914,10 +913,24 @@ local function powerSotR()
     end
 end
 
+local function UpdateHolyPowerPoints(self)
+    local maxPoints = UnitPowerMax("player", Enum.PowerType.HolyPower)
+    for _, v in pairs(self.paladin.power) do
+        local id = tonumber(v:GetParentKey())
+        if id > maxPoints then
+            v:Hide()
+        else
+            v:Show()
+        end
+    end
+end
 
 local function powerHoly(self, event, ...)
     if event == "UNIT_AURA" then
         HandleUnitAuraEvent(...)
+        return
+    elseif event == "UNIT_MAXPOWER" then
+        UpdateHolyPowerPoints(self)
         return
     end
 
@@ -927,7 +940,7 @@ local function powerHoly(self, event, ...)
     end
 
     local old_power = self.gwPower
-    local pwr = UnitPower("player", 9)
+    local pwr = UnitPower("player", Enum.PowerType.HolyPower)
     local pwrThreshold = (GW.Retail and 3 or 1)
     if pwr < pwrThreshold then
         self.background:SetAlpha(0.2)
@@ -967,15 +980,7 @@ local function setPaladin(f)
 
     f.fill:Hide()
 
-    local maxPoints = UnitPowerMax("player", 9)
-    for _, v in pairs(f.paladin.power) do
-        local id = tonumber(v:GetParentKey())
-        if id > maxPoints then
-            v:Hide()
-        else
-            v:Show()
-        end
-    end
+    UpdateHolyPowerPoints(f)
 
     f:SetScript("OnEvent", powerHoly)
     powerHoly(f, "CLASS_POWER_INIT")
@@ -1632,8 +1637,8 @@ local function powerChi(self, event, ...)
     local old_power = self.gwPower
     old_power = old_power or -1
 
-    local pwrMax = UnitPowerMax("player", 12)
-    local pwr = UnitPower("player", 12)
+    local pwrMax = UnitPowerMax("player", Enum.PowerType.Chi)
+    local pwr = UnitPower("player", Enum.PowerType.Chi)
     local p = pwr - 1
 
     self.gwPower = pwr

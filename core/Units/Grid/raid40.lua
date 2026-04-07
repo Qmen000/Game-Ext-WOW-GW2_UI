@@ -67,6 +67,7 @@ local function UpdateGridRaid40Frame(frame)
     frame.raidShowImportantInstanceDebuffs = GW.settings.RAID_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF
 
     frame.showDebuffs = GW.settings.RAID_SHOW_DEBUFFS
+    frame.showPrivateAuras = GW.settings.RAID_SHOW_PRIVATE_AURAS
     frame.showOnlyDispelDebuffs = GW.settings.RAID_ONLY_DISPELL_DEBUFFS
 
     frame.showBuffs = GW.settings.RAID_SHOW_BUFFS

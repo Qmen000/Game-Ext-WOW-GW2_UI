@@ -4,10 +4,6 @@ local L = GW.L
 local EnableTooltip = GW.EnableTooltip
 local inv
 
-local BANK_ITEM_LARGE_SIZE = 40
-local BANK_ITEM_COMPACT_SIZE = 32
-local BANK_ITEM_PADDING = 5
-
 -- adjusts the ItemButton layout flow when the bank window size changes (or on open)
 local function layoutBankItems(f)
     local max_col = f:GetParent().gw_bank_cols
@@ -15,7 +11,8 @@ local function layoutBankItems(f)
     local col = 0
     local rev = GW.settings.BANK_REVERSE_SORT
 
-    local item_off = GW.settings.BAG_ITEM_SIZE + BANK_ITEM_PADDING
+    local item_off_x = GW.settings.BAG_ITEM_SIZE + GW.settings.BAG_ITEM_SPACING_X
+    local item_off_y = GW.settings.BAG_ITEM_SIZE + GW.settings.BAG_ITEM_SPACING_Y
 
     local iS = NUM_BAG_SLOTS
     local iE = NUM_BAG_SLOTS + NUM_BANKBAGSLOTS
@@ -33,7 +30,7 @@ local function layoutBankItems(f)
             bag_id = BANK_CONTAINER
         end
         local cf = f.Containers[bag_id]
-        col, row = lcf(cf, max_col, row, col, (bag_id == BANK_CONTAINER), item_off)
+        col, row = lcf(cf, max_col, row, col, (bag_id == BANK_CONTAINER), item_off_x, item_off_y)
     end
 end
 
@@ -52,7 +49,7 @@ local function snapFrameSize(f)
     if f.ItemFrame:IsShown() then
         cfs = f.ItemFrame.Containers
     end
-    inv.snapFrameSize(f, cfs, GW.settings.BAG_ITEM_SIZE, BANK_ITEM_PADDING, 370)
+    inv.snapFrameSize(f, cfs, GW.settings.BAG_ITEM_SIZE, GW.settings.BAG_ITEM_SPACING_X, GW.settings.BAG_ITEM_SPACING_Y, 370)
 end
 
 
@@ -242,7 +239,7 @@ end
 
 
 local function onBankFrameChangeSize(self, _, _, skip)
-    local cols = inv.colCount(GW.settings.BAG_ITEM_SIZE, BANK_ITEM_PADDING, self:GetWidth())
+    local cols = inv.colCount(GW.settings.BAG_ITEM_SIZE, GW.settings.BAG_ITEM_SPACING_X, self:GetWidth())
 
     if not self.gw_bank_cols or self.gw_bank_cols ~= cols then
         self.gw_bank_cols = cols
@@ -253,17 +250,33 @@ local function onBankFrameChangeSize(self, _, _, skip)
 end
 
 
--- toggles the setting for compact/large icons
-local function compactToggle()
-    if GW.settings.BAG_ITEM_SIZE == BANK_ITEM_LARGE_SIZE then
-        GW.settings.BAG_ITEM_SIZE = BANK_ITEM_COMPACT_SIZE
+local function setBankItemSize(value)
+    local size = inv.normalizeBagItemSize(value)
+    if GW.settings.BAG_ITEM_SIZE ~= size then
+        GW.settings.BAG_ITEM_SIZE = size
         inv.resizeInventory()
-        return true
     end
+    return size
+end
 
-    GW.settings.BAG_ITEM_SIZE = BANK_ITEM_LARGE_SIZE
-    inv.resizeInventory()
-    return false
+local function setBankItemSpacing(settingKey, normalizeFunc, value)
+    local spacing = normalizeFunc(value)
+    if GW.settings[settingKey] ~= spacing then
+        GW.settings[settingKey] = spacing
+        inv.resizeInventory()
+    end
+    return spacing
+end
+
+local function addBankSliderControl(rootDescription, title, config, getValueFunc, setValueFunc)
+    GW.AddMenuSliderDescription(rootDescription, {
+        title = title,
+        minValue = config.minValue,
+        maxValue = config.maxValue,
+        step = config.step,
+        getValue = getValueFunc,
+        setValue = setValueFunc
+    })
 end
 
 
@@ -362,9 +375,9 @@ end
 local function LoadBank(helpers)
     inv = helpers
 
-    if GW.settings.BAG_ITEM_SIZE > 40 then
-        GW.settings.BAG_ITEM_SIZE = 40
-    end
+    GW.settings.BAG_ITEM_SIZE = inv.normalizeBagItemSize(GW.settings.BAG_ITEM_SIZE)
+    GW.settings.BAG_ITEM_SPACING_X = inv.normalizeBagItemSpacingX(GW.settings.BAG_ITEM_SPACING_X)
+    GW.settings.BAG_ITEM_SPACING_Y = inv.normalizeBagItemSpacingY(GW.settings.BAG_ITEM_SPACING_Y)
 
     -- create bank frame, restore its saved size, and init its many pieces
     local f = CreateFrame("Frame", "GwBankFrame", UIParent, "GwBankFrameTemplate")
@@ -493,7 +506,9 @@ local function LoadBank(helpers)
                 end)
             end
 
-            addCheck(L["Compact Icons"], function() return GW.settings.BAG_ITEM_SIZE == BANK_ITEM_COMPACT_SIZE end, compactToggle)
+            addBankSliderControl(rootDescription, L["Icon Size"], inv.bagItemSizeConfig, function() return GW.settings.BAG_ITEM_SIZE end, setBankItemSize)
+            addBankSliderControl(rootDescription, L["Slot Spacing X"], inv.bagItemSpacingXConfig, function() return GW.settings.BAG_ITEM_SPACING_X end, function(value) return setBankItemSpacing("BAG_ITEM_SPACING_X", inv.normalizeBagItemSpacingX, value) end)
+            addBankSliderControl(rootDescription, L["Slot Spacing Y"], inv.bagItemSpacingYConfig, function() return GW.settings.BAG_ITEM_SPACING_Y end, function(value) return setBankItemSpacing("BAG_ITEM_SPACING_Y", inv.normalizeBagItemSpacingY, value) end)
             addCheck(L["Reverse Bag Order"], function() return GW.settings.BANK_REVERSE_SORT end, function() GW.settings.BANK_REVERSE_SORT = not GW.settings.BANK_REVERSE_SORT; ContainerFrame_UpdateAll() end)
             addCheck(L["Show Quality Color"], function() return GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW end, function() GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW = not GW.settings.BAG_ITEM_QUALITY_BORDER_SHOW; ContainerFrame_UpdateAll() end)
         end)

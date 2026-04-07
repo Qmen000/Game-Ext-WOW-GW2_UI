@@ -25,6 +25,7 @@ GW.Colors.DebuffColors.BadDispel = CreateColor(0.05, 0.85, 0.94)
 GW.Colors.DebuffColors.Stealable = CreateColor(0.93, 0.91, 0.55)
 
 GW.Colors.Fallback = CreateColor(0, 0, 0, 1)
+GW.Colors.FallbackWhite = CreateColor(1, 1, 1, 1)
 
 GW.Colors.TabDenied = CreateColor(159 / 255, 159 / 255, 159 / 255)
 

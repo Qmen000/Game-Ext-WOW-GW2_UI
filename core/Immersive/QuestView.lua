@@ -412,7 +412,7 @@ function QuestViewMixin:showQuestFrame()
     local npc_type = UnitCreatureType("questnpc")
     self.questNPCType = 0
     local gm = self.container.giverModel
-    if UnitIsUnit("questnpc", "player") then
+    if GW.UnitIsUnit("questnpc", "player") then
         -- quest giver is the player; typically for auto-accepted quests, story pushes, etc.
         self.questNPCType = 1
         gm:setBoardUnit()

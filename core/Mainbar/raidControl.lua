@@ -1,5 +1,6 @@
 ---@class GW2
 local GW = select(2, ...)
+local L = GW.L
 
 local created = false
 
@@ -303,7 +304,7 @@ local function CreateRaidControlFrame()
             GwGroupManage.inGroup.workdmarkers[i] = f
         end
     else
-        GwGroupManage.inGroup.countdown:SetText("Countdown")
+        GwGroupManage.inGroup.countdown:SetText(L["Countdown"])
         GwGroupManage.inGroup.readyCheck:ClearAllPoints()
         GwGroupManage.inGroup.readyCheck:SetPoint("TOPLEFT", GwGroupManage.inGroup.header2, "BOTTOMLEFT", -5, 0)
     end

@@ -195,22 +195,39 @@ end
 
 GwQuestLogMixin = {}
 
+local function QuestLogLayoutFlushOnUpdate(frame)
+    frame:SetScript("OnUpdate", nil)
+
+    local container = frame.container
+    container.layoutUpdateQueued = false
+    container:UpdateLayout()
+    GwQuestTracker:LayoutChanged()
+end
+
+function GwQuestLogMixin:QueueUpdateLayout()
+    if self.layoutUpdateQueued then
+        return
+    end
+
+    self.layoutUpdateQueued = true
+    self.layoutUpdateFrame:SetScript("OnUpdate", QuestLogLayoutFlushOnUpdate)
+end
+
 function GwQuestLogMixin:OnEvent(event, ...)
     local arg1 = ...
     local numWatchedQuests = GetNumQuestWatches()
 
     if (event == "QUEST_LOG_UPDATE" or event == "UPDATE_FACTION" or (event == "UNIT_QUEST_LOG_CHANGED" and arg1 == "player")) then
-        self:UpdateLayout()
+        self:QueueUpdateLayout()
     elseif event == "PLAYER_MONEY" and self.watchMoneyReasons > numWatchedQuests then
-        self:UpdateLayout()
+        self:QueueUpdateLayout()
     else
-        self:UpdateLayout()
+        self:QueueUpdateLayout()
     end
 
     if self.watchMoneyReasons > numWatchedQuests then
         self.watchMoneyReasons = self.watchMoneyReasons - numWatchedQuests
     end
-    GwQuestTracker:LayoutChanged()
 end
 
 function GwQuestLogMixin:UpdateLayout()
@@ -342,7 +359,6 @@ function GwQuestLogMixin:UpdateLayout()
     local headerCounterText = " (" .. counterQuest .. ")"
     self.header.title:SetText(TRACKER_HEADER_QUESTS .. headerCounterText)
 
-    GwQuestTracker:LayoutChanged()
     self.isUpdating = false
 end
 
@@ -516,6 +532,9 @@ function GwObjectivesQuestContainerMixin:InitModule()
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
     self.watchMoneyReasons = 0
     self.trackedQuests = {}
+    self.layoutUpdateFrame = CreateFrame("Frame", nil, self)
+    self.layoutUpdateFrame.container = self
+    self.layoutUpdateQueued = false
 
     self.header = CreateFrame("Button", nil, self, "GwQuestTrackerHeader")
     self.header.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header)

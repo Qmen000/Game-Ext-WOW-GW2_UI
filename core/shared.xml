@@ -488,6 +488,87 @@
         </Frames>
     </Frame>
 
+    <Frame name="GwDropdownSliderMenuTemplate" virtual="true">
+        <Size x="300" y="24"/>
+        <Layers>
+            <Layer level="OVERLAY" textureSubLevel="2">
+                <FontString parentKey="title" text="Slider" inherits="GameFontNormalSmall" justifyH="LEFT">
+                    <Size x="76" y="18"/>
+                    <Color r="1" g="1" b="1"/>
+                    <Anchors>
+                        <Anchor point="LEFT" relativePoint="LEFT" x="8" y="0"/>
+                    </Anchors>
+                </FontString>
+                <FontString parentKey="valueText" text="0" inherits="GameFontHighlightSmall" justifyH="RIGHT">
+                    <Size x="28" y="18"/>
+                    <Anchors>
+                        <Anchor point="RIGHT" relativePoint="RIGHT" x="-8" y="0"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+        <Frames>
+            <Slider parentKey="slider" orientation="HORIZONTAL" enableMouse="true">
+                <Size x="140" y="16"/>
+                <Anchors>
+                    <Anchor point="LEFT" relativeKey="$parent.title" relativePoint="RIGHT" x="5" y="0"/>
+                    <Anchor point="RIGHT" relativeKey="$parent.valueText" relativePoint="LEFT" x="-8" y="0"/>
+                </Anchors>
+                <HitRectInsets left="0" right="0" top="-10" bottom="-10"/>
+                <ThumbTexture file="Interface/AddOns/GW2_UI/textures/uistuff/sliderhandle.png">
+                    <Size x="16" y="16"/>
+                </ThumbTexture>
+                <Layers>
+                    <Layer>
+                        <Texture file="Interface/AddOns/GW2_UI/textures/uistuff/sliderbg.png">
+                            <Anchors>
+                                <Anchor point="TOPLEFT" relativePoint="TOPLEFT"/>
+                                <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT"/>
+                            </Anchors>
+                        </Texture>
+                    </Layer>
+                </Layers>
+            </Slider>
+        </Frames>
+    </Frame>
+
+    <Frame name="GwDropdownSliderValueMenuTemplate" virtual="true">
+        <Size x="220" y="20"/>
+        <Layers>
+            <Layer level="OVERLAY" textureSubLevel="2">
+                <FontString parentKey="valueText" text="0" inherits="GameFontHighlightSmall" justifyH="RIGHT">
+                    <Size x="28" y="18"/>
+                    <Anchors>
+                        <Anchor point="RIGHT" relativePoint="RIGHT" x="-8" y="0"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+        <Frames>
+            <Slider parentKey="slider" orientation="HORIZONTAL" enableMouse="true">
+                <Size x="140" y="16"/>
+                <Anchors>
+                    <Anchor point="LEFT" relativePoint="LEFT" x="8" y="0"/>
+                    <Anchor point="RIGHT" relativeKey="$parent.valueText" relativePoint="LEFT" x="-8" y="0"/>
+                </Anchors>
+                <HitRectInsets left="0" right="0" top="-10" bottom="-10"/>
+                <ThumbTexture file="Interface/AddOns/GW2_UI/textures/uistuff/sliderhandle.png">
+                    <Size x="16" y="16"/>
+                </ThumbTexture>
+                <Layers>
+                    <Layer>
+                        <Texture file="Interface/AddOns/GW2_UI/textures/uistuff/sliderbg.png">
+                            <Anchors>
+                                <Anchor point="TOPLEFT" relativePoint="TOPLEFT"/>
+                                <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT"/>
+                            </Anchors>
+                        </Texture>
+                    </Layer>
+                </Layers>
+            </Slider>
+        </Frames>
+    </Frame>
+
     <Frame name="GwWindowLeftPanel" virtual="true">
         <Size x="40" y="512"/>
         <Anchors>

@@ -1,3 +1,20 @@
+10.7.0
+NEW
+    - Added bag and bank slot spacing controls (X/Y) with shared icon size + spacing settings across Mainline, Classic, TBC and Mists
+    - Delve Scenario header now displays the remaining Nemesis enemies.
+
+CHANGES
+    - Updated bag and bank frame sizing to keep consistent right-side padding independent from slot spacing
+    - Improved Scenario tracker update handling: multiple rapid event triggers are now merged into a single layout refresh per frame to prevent duplicate updates and reduce UI jitter
+    - Improved Quest tracker update handling: UpdateLayout and PartialUpdate are now queued and merged per frame to avoid duplicate refreshes and reduce UI jitter
+    - Improved objective notification text formatting: progress values like 2/12 are now kept visible for world and bonus objectives
+    - Improved objective notification visuals: smoother icon/progress transitions plus hover blend feedback for clearer focus
+    - Added a Retail-only "Private Auras" toggle for grid debuffs in raid layouts (including maintank and party grid)
+    - Updated bag and bank settings (Mainline/Classic/TBC/Mists): replaced Compact Icons toggle with a shared icon-size slider and centralized bag item size normalization/configuration
+
+FIXES
+    - Fixed a chat formatting error that could trigger "invalid option in `format`" when messages contained percent signs (%)
+
 10.6.2
 FIXES
     - Temporarily disabled Grid aura timers
@@ -1790,3 +1807,4 @@ NEW
 FIXES
     - Adjust quest view position for a number of Shadowlands NPCs
     - Possible fix for "ZoneabilityContainer"
+    - Improved objective notification text formatting: progress values like 2/12 are now kept visible for world and bonus objectives

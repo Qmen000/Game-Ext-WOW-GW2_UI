@@ -62,6 +62,14 @@
                             </Anchors>
                         </Texture>
                     </Layer>
+                    <Layer textureSubLevel="4" Level="OVERLAY">
+                        <Texture parentKey="flare" hidden="true" file="Interface/AddOns/GW2_UI/textures/hud/expflare.png">
+                            <Size x="90" y="90"></Size>
+                            <Anchors>
+                                <Anchor point="CENTER" relativePoint="CENTER"></Anchor>
+                            </Anchors>
+                        </Texture>
+                    </Layer>
                 </Layers>
                 <Frames>
                     <StatusBar parentKey="bar">

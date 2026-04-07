@@ -26,22 +26,19 @@ end
 GW.ParseObjectiveString = ParseObjectiveString
 local function ParseSimpleObjective(text)
     if not text then return "" end
-    local itemName, numItems, numNeeded = string.match(text, "(.*):%s*([%d]+)%s*/%s*([%d]+)")
+    local trimmed = strtrim(text)
+    local itemName, numItems, numNeeded = string.match(trimmed, "^(.-):%s*([%d]+)%s*/%s*([%d]+)%s*$")
 
-    if itemName == nil then
-        numItems, numNeeded, _ = string.match(text, "(%d+)/(%d+) (%S+)")
-    end
-    local ndString = ""
-
-    if numItems ~= nil then
-        ndString = numItems
+    if itemName and numItems and numNeeded then
+        return string.format("%s: %s/%s", strtrim(itemName), numItems, numNeeded)
     end
 
-    if numNeeded ~= nil then
-        ndString = ndString .. "/" .. numNeeded
+    numItems, numNeeded, itemName = string.match(trimmed, "^(%d+)%s*/%s*(%d+)%s+(.+)$")
+    if itemName and numItems and numNeeded then
+        return string.format("%s: %s/%s", strtrim(itemName), numItems, numNeeded)
     end
 
-    return string.gsub(text, ndString, "")
+    return trimmed
 end
 GW.ParseSimpleObjective = ParseSimpleObjective
 

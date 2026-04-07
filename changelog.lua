@@ -13,6 +13,19 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("10.7.0", {
+    {GW.Enum.ChangelogType.feature, [=[Added bag and bank slot spacing controls (X/Y) with shared icon size + spacing settings across Mainline, Classic, TBC and Mists]=]},
+    {GW.Enum.ChangelogType.feature, [=[Delve Scenario header now displays the remaining Nemesis enemies.]=]},
+    {GW.Enum.ChangelogType.change, [=[Updated bag and bank frame sizing to keep consistent right-side padding independent from slot spacing]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved Scenario tracker update handling: multiple rapid event triggers are now merged into a single layout refresh per frame to prevent duplicate updates and reduce UI jitter]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved Quest tracker update handling: UpdateLayout and PartialUpdate are now queued and merged per frame to avoid duplicate refreshes and reduce UI jitter]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved objective notification text formatting: progress values like 2/12 are now kept visible for world and bonus objectives]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved objective notification visuals: smoother icon/progress transitions plus hover blend feedback for clearer focus]=]},
+    {GW.Enum.ChangelogType.change, [=[Added a Retail-only "Private Auras" toggle for grid debuffs in raid layouts (including maintank and party grid)]=]},
+    {GW.Enum.ChangelogType.change, [=[Updated bag and bank settings (Mainline/Classic/TBC/Mists): replaced Compact Icons toggle with a shared icon-size slider and centralized bag item size normalization/configuration]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed a chat formatting error that could trigger "invalid option in `format`" when messages contained percent signs (%)]=]},
+})
+
 addChange("10.6.2", {
     {GW.Enum.ChangelogType.bug, [=[Temporarily disabled Grid aura timers]=]},
 })

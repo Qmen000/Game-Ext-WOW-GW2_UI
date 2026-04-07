@@ -210,7 +210,7 @@ function GwBonusObjectivesTrackerContainerMixin:UpdateBlocks(questIDs)
                         simpleDesc = simpleDesc .. ", " .. parsedObjective
                     end
 
-                    local progressValue = block:AddObjective(txt, objectiveIndex, { isBonusObjective = true, finished = finished, objectiveType = objectiveType })
+                    local progressValue = block:AddObjective(txt, objectiveIndex, { isBonusObjective = true, finished = finished, useCompletedLine = true, objectiveType = objectiveType })
                     if finished then
                         objectiveProgress = objectiveProgress + (1 / numObjectives)
                     else
@@ -222,7 +222,7 @@ function GwBonusObjectivesTrackerContainerMixin:UpdateBlocks(questIDs)
                 block:TryAddingExpirationWarningLine(numObjectives + 1)
                 if block.tickerSeconds > 0 then
                     block.ticker = C_Timer.NewTicker(block.tickerSeconds, function()
-                        self:UpdateLayout()
+                        self:QueueUpdateLayout()
                     end)
                 end
 
@@ -312,16 +312,40 @@ function GwBonusObjectivesTrackerContainerMixin:UpdateLayout(newQuestId)
         self.header:Hide()
     end
 
-    GwQuestTracker:LayoutChanged()
     self.isUpdating = false
+end
+
+local function BonusObjectiveLayoutFlushOnUpdate(frame)
+    frame:SetScript("OnUpdate", nil)
+
+    local container = frame.container
+    container.layoutUpdateQueued = false
+    local queuedNewQuestId = container.queuedNewQuestId
+    container.queuedNewQuestId = nil
+
+    container:UpdateLayout(queuedNewQuestId)
+    GwQuestTracker:LayoutChanged()
+end
+
+function GwBonusObjectivesTrackerContainerMixin:QueueUpdateLayout(newQuestId)
+    if newQuestId then
+        self.queuedNewQuestId = newQuestId
+    end
+
+    if self.layoutUpdateQueued then
+        return
+    end
+
+    self.layoutUpdateQueued = true
+    self.layoutUpdateFrame:SetScript("OnUpdate", BonusObjectiveLayoutFlushOnUpdate)
 end
 
 function GwBonusObjectivesTrackerContainerMixin:OnEvent(event, ...)
     if event == "QUEST_ACCEPTED" then
         local newQuestId = ...
-        self:UpdateLayout(newQuestId)
+        self:QueueUpdateLayout(newQuestId)
     else
-        self:UpdateLayout()
+        self:QueueUpdateLayout()
     end
 end
 
@@ -344,6 +368,10 @@ function GwBonusObjectivesTrackerContainerMixin:InitModule()
     self.collapsed = false
     self.header:SetScript("OnMouseDown", function() self:CollapseHeader() end) -- this way, otherwiese we have a wrong self at the function
     self.header.title:SetTextColor(GW.Colors.ObjectivesTypeColors[GW.Enum.ObjectivesNotificationType.Event]:GetRGB())
+    self.layoutUpdateFrame = CreateFrame("Frame", nil, self)
+    self.layoutUpdateFrame.container = self
+    self.layoutUpdateQueued = false
+    self.queuedNewQuestId = nil
 
-    self:UpdateLayout()
+    self:QueueUpdateLayout()
 end

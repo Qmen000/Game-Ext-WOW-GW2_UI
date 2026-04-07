@@ -89,5 +89,11 @@ local function Update_Powerbar(frame)
     if not power.origParent.isForced then
         power.fakeToken = nil
     end
+
+    if frame.showResscoureBar == "NONE" then
+        frame:DisableElement("Power")
+    else
+        frame:EnableElement("Power")
+    end
 end
 GW.Update_Powerbar = Update_Powerbar

@@ -273,7 +273,7 @@ local function updateAura(element, unit, data, position)
                 button.Stealable:SetAlpha(0)
             end
         else
-            if(not data.isHarmfulAura and data.isStealable and element.showStealableBuffs and not UnitIsUnit('player', unit)) then
+            if(not data.isHarmfulAura and data.isStealable and element.showStealableBuffs and not ns.UnitIsUnit('player', unit)) then
                 button.Stealable:Show()
             else
                 button.Stealable:Hide()
@@ -350,7 +350,7 @@ local function processData(element, unit, data, filter)
         data.isAuraRaidInCombat = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "HELPFUL|RAID_IN_COMBAT") or not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "HARMFUL|RAID_IN_COMBAT")
         data.isAuraRaidPlayerDispellable = not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "HELPFUL|RAID_PLAYER_DISPELLABLE") or not C_UnitAuras.IsAuraFilteredOutByInstanceID(unit, data.auraInstanceID, "HARMFUL|RAID_PLAYER_DISPELLABLE")
     else
-        data.isAuraPlayer = data.sourceUnit and (UnitIsUnit('player', data.sourceUnit) or UnitIsOwnerOrControllerOfUnit('player', data.sourceUnit))
+        data.isAuraPlayer = data.sourceUnit and (ns.UnitIsUnit('player', data.sourceUnit) or UnitIsOwnerOrControllerOfUnit('player', data.sourceUnit))
     end
     --[[ Callback: Auras:PostProcessAuraData(unit, data)
     Called after the aura data has been processed.
