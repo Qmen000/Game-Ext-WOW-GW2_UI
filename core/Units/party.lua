@@ -130,7 +130,7 @@ function GwPartyFrameMixin:UpdateAwayData()
         end
     end
 
-    local status = (GW.Retail or GW.TBC) and C_IncomingSummon.IncomingSummonStatus(self.unit)
+    local status = (GW.Retail or GW.TBC) and C_IncomingSummon.IncomingSummonStatus(self.unit) or 0
     if status ~= 0 then --Enum.SummonStatus.None
         self.classicon:SetTexCoord(unpack(GW.TexCoords))
         if status == Enum.SummonStatus.Pending then
