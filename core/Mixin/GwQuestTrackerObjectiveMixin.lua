@@ -95,29 +95,59 @@ function GwQuestTrackerObjectiveMixin:OnLoad()
     self.ObjectiveText:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
     self.StatusBar.progress:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
     self.TimerBar.Label:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
-    self.CompletedStrike = self:CreateTexture(nil, "OVERLAY")
-    self.CompletedStrike:SetColorTexture(0.78, 0.78, 0.78, 0.7)
-    self.CompletedStrike:SetHeight(1)
-    self.CompletedStrike:Hide()
     hooksecurefunc(self.StatusBar, "SetValue", statusBarSetValue)
 end
 
+local function GetCompletedStrikeLine(self, index)
+    self.CompletedStrikeLines = self.CompletedStrikeLines or {}
+
+    local line = self.CompletedStrikeLines[index]
+    if line then
+        return line
+    end
+
+    line = self:CreateTexture(nil, "OVERLAY")
+    line:SetColorTexture(0.78, 0.78, 0.78, 0.7)
+    line:SetHeight(1)
+    self.CompletedStrikeLines[index] = line
+
+    return line
+end
+
 function GwQuestTrackerObjectiveMixin:SetCompletedLineState(showLine)
-    if not self.CompletedStrike then
+    self.CompletedStrikeLines = self.CompletedStrikeLines or {}
+
+    if not showLine then
+        for i = 1, #self.CompletedStrikeLines do
+            self.CompletedStrikeLines[i]:Hide()
+        end
         return
     end
 
-    if showLine then
-        local textWidth = self.ObjectiveText:GetStringWidth() or 0
-        local maxWidth = self.ObjectiveText:GetWidth() or 0
-        if maxWidth > 0 then
-            textWidth = math.min(textWidth, maxWidth)
-        end
-
-        self.CompletedStrike:SetWidth(math.max(1, textWidth))
+    local textWidth = self.ObjectiveText:GetStringWidth() or 0
+    local maxWidth = self.ObjectiveText:GetWidth() or 0
+    if maxWidth > 0 then
+        textWidth = math.min(textWidth, maxWidth)
     end
 
-    self.CompletedStrike:ClearAllPoints()
-    self.CompletedStrike:SetPoint("TOPLEFT", self.ObjectiveText, "TOPLEFT", 0, -8)
-    self.CompletedStrike:SetShown(showLine)
+    local lineCount = math.max(1, self.ObjectiveText:GetNumLines() or 1)
+    print(lineCount)
+    local lineWidth = lineCount > 1 and math.max(1, maxWidth > 0 and maxWidth or textWidth) or math.max(1, textWidth)
+
+    local _, fontSize = self.ObjectiveText:GetFont()
+    local lineHeight = self.ObjectiveText:GetLineHeight() or fontSize or 12
+
+    for i = 1, lineCount do
+        local strike = GetCompletedStrikeLine(self, i)
+        local strikeYOffset = -math.floor((((i - 1) * lineHeight) + (lineHeight * 0.5)) + 0.5)
+
+        strike:SetWidth(lineWidth)
+        strike:ClearAllPoints()
+        strike:SetPoint("TOPLEFT", self.ObjectiveText, "TOPLEFT", 0, strikeYOffset)
+        strike:Show()
+    end
+
+    for i = lineCount + 1, #self.CompletedStrikeLines do
+        self.CompletedStrikeLines[i]:Hide()
+    end
 end
