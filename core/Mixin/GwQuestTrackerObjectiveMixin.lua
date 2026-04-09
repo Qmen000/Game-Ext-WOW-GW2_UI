@@ -131,7 +131,6 @@ function GwQuestTrackerObjectiveMixin:SetCompletedLineState(showLine)
     end
 
     local lineCount = math.max(1, self.ObjectiveText:GetNumLines() or 1)
-    print(lineCount)
     local lineWidth = lineCount > 1 and math.max(1, maxWidth > 0 and maxWidth or textWidth) or math.max(1, textWidth)
 
     local _, fontSize = self.ObjectiveText:GetFont()
