@@ -152,7 +152,7 @@ function GwPlayerPetFrameMixin:OnEvent(event, unit, ...)
         SetPortraitTexture(self.portrait, "pet")
         self:UpdateHealthBar()
         self:UpdatePowerBar(true)
-        if GW.Classic or GW.TBC then
+        if GW.Classic or GW.TBC or GW.Wrath then
             C_Timer.After(0.1, function() self:UpdateHappiness() end)
         end
     elseif event == "UNIT_AURA" then
@@ -337,7 +337,7 @@ local function LoadPetFrame(lm)
     playerPetFrame:RegisterEvent("PET_BAR_UPDATE_USABLE")
     playerPetFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
     playerPetFrame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
-    if GW.Classic or GW.TBC then
+    if GW.Classic or GW.TBC or GW.Wrath then
         playerPetFrame:RegisterUnitEvent("UNIT_HEALTH_FREQUENT", "pet")
         playerPetFrame:RegisterEvent("UNIT_HAPPINESS")
     end
@@ -356,7 +356,7 @@ local function LoadPetFrame(lm)
     end
     playerPetFrame:SetActionButtonPositionAndStyle()
 
-    if GW.Retail or GW.TBC then
+    if GW.Retail or GW.TBC or GW.Wrath then
         PetActionBar.ignoreFramePositionManager = true
         PetActionBar:GwKillEditMode()
         PetActionBar:SetParent(GW.HiddenFrame)

@@ -1,0 +1,4 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Include file ="mirrortimer.xml"/>
+    <Script file ="mirrortimer.lua"/>
+</Ui>

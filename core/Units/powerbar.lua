@@ -490,7 +490,7 @@ local function LoadPowerBar()
         playerPowerBar.gwMover:ClearAllPoints()
         playerPowerBar.gwMover:SetPoint(framePoint.point, UIParent, framePoint.relativePoint, framePoint.xOfs + xOff, framePoint.yOfs - yOff)
     end
-    if not (GW.Classic or GW.TBC) then
+    if not (GW.Classic or GW.TBC or GW.Wrath) then
         GW.MixinHideDuringPetAndOverride(playerPowerBar)
         GW.MixinHideDuringPetAndOverride(playerPowerBar.decay)
     end
@@ -507,7 +507,7 @@ local function LoadPowerBar()
     playerPowerBar:ToggleSettings()
     playerPowerBar:ToggleBar()
 
-    if (GW.Classic or GW.TBC) and GW.settings.PLAYER_ENERGY_MANA_TICK then
+    if (GW.Classic or GW.TBC or GW.Wrath) and GW.settings.PLAYER_ENERGY_MANA_TICK then
         GW.Load5SR()
     end
 end

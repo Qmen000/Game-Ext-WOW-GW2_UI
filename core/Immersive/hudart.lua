@@ -460,7 +460,7 @@ GW.ToggleHudBackground = ToggleHudBackground
 
 local function LoadHudArt()
     local hudArtFrame = CreateFrame("Frame", "Gw2_HudBackgroud", UIParent, "GwHudArtFrame")
-    if not (GW.Classic or GW.TBC) then
+    if not (GW.Classic or GW.TBC or GW.Wrath) then
         GW.MixinHideDuringPetAndOverride(hudArtFrame)
     end
 

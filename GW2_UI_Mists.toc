@@ -30,4 +30,4 @@ Libs\Mists\Load.xml
 
 Core\Load.xml
 
-Mists\Load.xml
+Games\Mists\Load.xml

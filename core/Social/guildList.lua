@@ -55,7 +55,7 @@ local function UpdateGuildStatus()
 end
 
 function GW.SkinGuildList()
-    if not GW.TBC then return end
+    if not (GW.TBC or GW.Wrath) then return end
 
     -- this will taint
     --[[

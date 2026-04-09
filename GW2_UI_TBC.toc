@@ -30,4 +30,4 @@ Libs\TBC\Load.xml
 
 Core\Load.xml
 
-TBC\Load.xml
+Games\TBC\Load.xml

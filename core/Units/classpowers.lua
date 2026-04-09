@@ -1589,7 +1589,7 @@ local function setWarlock(f)
         f:RegisterEvent("UNIT_DISPLAYPOWER")
     end
     -- Register "LEARNED_SPELL_IN_TAB" so we can check for the green fire spell and check an login
-    if GW.Retail or GW.TBC then
+    if GW.Retail or GW.TBC or GW.Wrath then
         f:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
     else
         f:RegisterEvent("LEARNED_SPELL_IN_TAB")
@@ -1852,7 +1852,7 @@ local function setDruid(f)
         elseif form == MOONKIN_FORM then           --Moonkin
             barType = "eclips"
         end
-    elseif GW.Classic or GW.TBC then
+    elseif GW.Classic or GW.TBC or GW.Wrath then
         if form == CAT_FORM then                   -- cat
             barType = "combo|little_mana"
         elseif form == BEAR_FORM or form == 8 then --bear
@@ -1984,19 +1984,19 @@ local function selectType(f)
 
     if f.unit == "vehicle" then
         showBar = false
-    elseif GW.myClassID == 2 and not (GW.Classic or GW.TBC) then
+    elseif GW.myClassID == 2 and not (GW.Classic or GW.TBC or GW.Wrath) then
         showBar = setPaladin(f)
     elseif GW.myClassID == 4 then
         showBar = setRogue(f)
-    elseif GW.myClassID == 5 and not (GW.Classic or GW.TBC) then
+    elseif GW.myClassID == 5 and not (GW.Classic or GW.TBC or GW.Wrath) then
         showBar = setPriest(f)
-    elseif GW.myClassID == 6 and not (GW.Classic or GW.TBC) then
+    elseif GW.myClassID == 6 and not (GW.Classic or GW.TBC or GW.Wrath) then
         showBar = setDeathKnight(f)
-    elseif GW.myClassID == 7 and not (GW.Classic or GW.TBC) then
+    elseif GW.myClassID == 7 and not (GW.Classic or GW.TBC or GW.Wrath) then
         showBar = setShaman(f)
     elseif GW.myClassID == 8 and GW.Retail then
         showBar = setMage(f)
-    elseif GW.myClassID == 9 and not (GW.Classic or GW.TBC) then
+    elseif GW.myClassID == 9 and not (GW.Classic or GW.TBC or GW.Wrath) then
         showBar = setWarlock(f)
     elseif GW.myClassID == 10 and (GW.Retail or GW.Mists) then
         showBar = setMonk(f)
@@ -2232,7 +2232,7 @@ local function LoadClassPowers()
     cpf.exbarSecret.label:SetShadowColor(0, 0, 0, 1)
     cpf.exbarSecret.label:SetShadowOffset(1, -1)
 
-    if not (GW.Classic or GW.TBC) then
+    if not (GW.Classic or GW.TBC or GW.Wrath) then
         GW.MixinHideDuringPetAndOverride(cpf)
         GW.MixinHideDuringPetAndOverride(cpf.defaultResourceBar)
         GW.MixinHideDuringPetAndOverride(cpf.customResourceBar)

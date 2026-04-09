@@ -167,7 +167,7 @@ local function InititateProfileSpecSwitchSettings(panel)
         dropDown.title:SetPoint("BOTTOMLEFT", dropDown, "TOPLEFT", 8, -2)
         dropDown.title:SetFont(UNIT_NAME_FONT, 10)
         dropDown.title:SetText(i == currentSpec and format(L["%s - Active"], specNames[i]) or specNames[i])
-        if GW.Classic or GW.TBC then
+        if GW.Classic or GW.TBC or GW.Wrath then
             dropDown:SetScript("OnEnter", function(self)
                 local specIndex = i
                 local highPointsSpentIndex = nil

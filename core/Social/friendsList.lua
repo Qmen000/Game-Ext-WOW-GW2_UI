@@ -396,7 +396,7 @@ function GW.SkinFriendList()
         GW.HandleTrimScrollBar(FriendsListFrame.ScrollBar, true)
         GW.HandleScrollControls(FriendsListFrame)
         hooksecurefunc(FriendsListFrame.ScrollBox, "Update", GW.HandleItemListScrollBoxHover)
-    elseif GW.TBC then
+    elseif GW.TBC or GW.Wrath then
         FriendsFrameFriendsScrollFrame:ClearAllPoints()
         FriendsFrameFriendsScrollFrame:SetPoint("TOPLEFT", FriendsFrame, 8, -87)
         FriendsFrameFriendsScrollFrame:SetPoint("BOTTOMRIGHT", FriendsFrame, -25, 35)
@@ -444,7 +444,7 @@ function GW.SkinFriendList()
         FriendsFrameBattlenetFrame.ContactsMenuButton.gw2Arrow:SetSize(28, 28)
 
         button:SetScript("OnClick", function() FriendsFrameBattlenetFrame.BroadcastFrame:ToggleFrame() end)
-    elseif GW.TBC then
+    elseif GW.TBC or GW.Wrath then
         FriendsFriendsSendRequestButton:GwSkinButton(false, true)
         FriendsFriendsCloseButton:GwSkinButton(false, true)
 
@@ -488,7 +488,7 @@ function GW.SkinFriendList()
         GW.SkinTextBox(FriendsFrameBattlenetFrame.BroadcastFrame.EditBox.MiddleBorder, FriendsFrameBattlenetFrame.BroadcastFrame.EditBox.LeftBorder, FriendsFrameBattlenetFrame.BroadcastFrame.EditBox.RightBorder, nil, nil, 5, 5)
         FriendsFrameBattlenetFrame.BroadcastFrame.UpdateButton:GwSkinButton(false, true)
         FriendsFrameBattlenetFrame.BroadcastFrame.CancelButton:GwSkinButton(false, true)
-    elseif GW.TBC then
+    elseif GW.TBC or GW.Wrath then
         FriendsFrameBattlenetFrame.BroadcastButton:GwKill()
         FriendsFrameBattlenetFrameScrollFrame:GwStripTextures()
         GW.HandleBlizzardRegions(FriendsFrameBattlenetFrameScrollFrame)

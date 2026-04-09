@@ -569,7 +569,7 @@ local function evPlayerLogin(self)
     if GW.settings.MAINMENU_SKIN_ENABLED then
         GW.SkinMainMenu()
     else
-        if GW.Retail or GW.TBC then
+        if GW.Retail or GW.TBC or GW.Wrath then
             hooksecurefunc(GameMenuFrame, 'InitButtons', function(self)
                 self:AddSection()
                 self:AddButton(format(("*%s|r"):gsub("*", GW.Gw2Color), GW.addonName), GW.ToggleGw2Settings)
@@ -630,7 +630,7 @@ local function evPlayerLogin(self)
         GW.SetUpVehicleFrameMover()
     end
 
-    if GW.Mists or GW.Retail or GW.TBC then
+    if GW.Mists or GW.Retail or GW.TBC or GW.Wrath then
         GW.WidgetUISetup()
     end
 
@@ -640,7 +640,7 @@ local function evPlayerLogin(self)
     end
 
     -- load alert settings
-    if not (GW.Classic or GW.TBC) then
+    if not (GW.Classic or GW.TBC or GW.Wrath) then
         GW.LoadAlertSystem()
         GW.SetupAlertFramePosition()
         GW.LoadOurAlertSubSystem()
@@ -717,7 +717,7 @@ local function evPlayerLogin(self)
     elseif GW.settings.HEALTHGLOBE_ENABLED and GW.settings.PLAYER_AS_TARGET_FRAME then
         local hg = GW.LoadPlayerFrame()
         GW.LoadDodgeBar(hg, true)
-        if (GW.Classic or GW.TBC) and GW.settings.PLAYER_ENERGY_MANA_TICK then
+        if (GW.Classic or GW.TBC or GW.Wrath) and GW.settings.PLAYER_ENERGY_MANA_TICK then
             GW.Load5SR(hg)
         end
     end

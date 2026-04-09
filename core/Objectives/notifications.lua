@@ -652,7 +652,7 @@ function GwObjectivesTrackerNotificationMixin:SetObjectiveNotification()
     if not data then
         if GW.Retail then
             data = getNearestQuestPOIRetail()
-        elseif GW.Classic or GW.TBC then
+        elseif GW.Classic or GW.TBC or GW.Wrath then
             data = getNearestQuestPOIClassic()
         elseif GW.Mists then
             data = getNearestQuestPOIMists()

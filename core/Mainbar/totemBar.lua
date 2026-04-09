@@ -8,7 +8,7 @@ local classic = { 2, 1, 3, 4 }
 local function UpdateButton(button, totem)
     if not (button and totem) then return end
 
-    local slot = (GW.Classic or GW.TBC) and totem or totem.slot
+    local slot = (GW.Classic or GW.TBC or GW.Wrath) and totem or totem.slot
     local _, _, startTime, duration, icon = GetTotemInfo(slot)
 
     if startTime then

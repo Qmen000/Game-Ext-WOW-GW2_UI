@@ -41,7 +41,7 @@ elseif GW.Mists then
     DODGEBAR_SPELLS.DRUID = "9821"
     DODGEBAR_SPELLS.DEATHKNIGHT = "444347,48265" -- Death's Advance
     DODGEBAR_SPELLS.SHAMAN = "[spec:2] 58875,2645" -- Spirit Walk if Enhance
-elseif GW.Classic or GW.TBC then
+elseif GW.Classic or GW.TBC or GW.Wrath then
     DODGEBAR_SPELLS.WARRIOR = "100" -- Charge
     DODGEBAR_SPELLS.HUNTER = "781" -- Disengage
     DODGEBAR_SPELLS.ROGUE = "2983" -- Sprint
@@ -531,7 +531,7 @@ function GwDodgeBarMixin:ToggleDodgeBar()
         self:RegisterEvent("SPELLS_CHANGED")
         self:RegisterEvent("PLAYER_ENTERING_WORLD")
         self:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
-        if GW.Retail or GW.TBC then
+        if GW.Retail or GW.TBC or GW.Wrath then
             self:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
         else
             self:RegisterEvent("LEARNED_SPELL_IN_TAB")
@@ -546,7 +546,7 @@ function GwDodgeBarMixin:ToggleDodgeBar()
         self:UnregisterEvent("SPELLS_CHANGED")
         self:UnregisterEvent("PLAYER_ENTERING_WORLD")
         self:UnregisterEvent("UPDATE_SHAPESHIFT_FORM")
-        if GW.Retail or GW.TBC then
+        if GW.Retail or GW.TBC or GW.Wrath then
             self:UnregisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
         else
             self:UnregisterEvent("LEARNED_SPELL_IN_TAB")

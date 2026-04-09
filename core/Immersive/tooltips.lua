@@ -434,7 +434,7 @@ local function SetUnitText(self, unit, isPlayerUnit)
         local awayText = GW.UnitIsAFK(unit) and AFK_LABEL or GW.UnitIsDND(unit) and DND_LABEL or ""
         GameTooltipTextLeft1:SetFormattedText("%s%s", nameColor:WrapTextInColorCode(name or UNKNOWN), awayText)
 
-        local levelLine, specLine = GetLevelLine(self, (guildName and not (GW.Classic or GW.TBC) and 2) or 1)
+        local levelLine, specLine = GetLevelLine(self, (guildName and not (GW.Classic or GW.TBC or GW.Wrath) and 2) or 1)
         if guildName then
             if guildRealm and isShiftKeyDown then
                 guildName = guildName.."-"..guildRealm
@@ -1259,7 +1259,7 @@ local function LoadTooltips()
         hooksecurefunc(GameTooltip, "SetUnitBuffByAuraInstanceID", SetUnitAuraByAuraInstanceId)
     end
 
-    if TooltipDataProcessor and not (GW.TBC or GW.Mists) then
+    if TooltipDataProcessor and not (GW.TBC or GW.Mists or GW.Wrath) then
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, GameTooltip_OnTooltipSetItem)
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, GameTooltip_OnTooltipSetUnit)
         TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, GameTooltip_OnTooltipSetSpell)

@@ -11,7 +11,7 @@ function GW.SkinIgnoreList()
         IgnoreWindow.CloseButton:GwSkinButton(true)
     end
 
-    if GW.TBC then
+    if GW.TBC or GW.Wrath then
         IgnoreListFrameTop:Hide()
         IgnoreListFrameMiddle:Hide()
         IgnoreListFrameBottom:Hide()

@@ -857,7 +857,7 @@ function GW.LoadMinimap()
                 setMinimapButtons("right")
             end
         end)
-    elseif GW.TBC then
+    elseif GW.TBC or GW.Wrath then
         MiniMapBattlefieldFrame:ClearAllPoints()
 
         GwAddonToggle:SetPoint("TOP", MiniMapBattlefieldFrame, "BOTTOM", 0, -20)
@@ -887,7 +887,7 @@ function GW.LoadMinimap()
 
     GW.SkinMinimapInstanceDifficult()
 
-    if GW.TBC then
+    if GW.TBC or GW.Wrath then
         MiniMapBattlefieldBorder:SetTexture(nil)
         BattlegroundShine:SetTexture(nil)
     end

@@ -81,7 +81,7 @@ end
 function RaidMarkerFrameMixin:RaidMarkUpdateKeyDown(keydown)
     if not self or not self.buttons then return end
 
-    local useAttribute = GW.Retail or GW.TBC
+    local useAttribute = GW.Retail or GW.TBC or GW.Wrath
     if useAttribute and InCombatLockdown() then
         GW.CombatQueue_Queue("Update Raid Marker CVAR", self.RaidMarkUpdateKeyDown, {keydown})
         return
@@ -120,7 +120,7 @@ local function LoadRaidMarkerCircle()
         button:SetScript("OnLeave", button.OnLeave)
         button:SetAttribute("type", "macro")
         button:SetAttribute("macrotext", tm)
-        if GW.Retail or GW.TBC then
+        if GW.Retail or GW.TBC or GW.Wrath then
             button:SetScript("OnMouseUp", button.Clicked)
             button:SetAttribute("useOnKeyDown", keydown)
             button:RegisterForClicks("AnyDown", "AnyUp")

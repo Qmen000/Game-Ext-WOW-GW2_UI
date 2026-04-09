@@ -174,7 +174,7 @@ end
 local function updateGuildButton(self, event)
     if event == "GUILD_ROSTER_UPDATE" then
         local gmb = GW.Classic and SocialsMicroButton or GuildMicroButton
-        if GW.TBC and SocialsMicroButton:IsShown() then
+        if (GW.TBC or GW.Wrath) and SocialsMicroButton:IsShown() then
             gmb = SocialsMicroButton
         end
         if gmb == nil then
@@ -785,7 +785,7 @@ local function setupMicroButtons(mbf)
                 ]=]
             )
 
-            if GW.Classic or GW.TBC then
+            if GW.Classic or GW.TBC or GW.Wrath then
                 disableMicroButton(TalentMicroButton, true)
             elseif GW.Mists then
                 TalentMicroButton:ClearAllPoints()
@@ -834,7 +834,7 @@ local function setupMicroButtons(mbf)
 
     -- GuildMicroButton
    local gref
-    for i = 1, (GW.Clasic or GW.TBC) and 2 or 1 do
+    for i = 1, (GW.Clasic or GW.TBC or GW.Wrath) and 2 or 1 do
         if i == 1 then
             gref = GuildMicroButton
         else
@@ -849,7 +849,7 @@ local function setupMicroButtons(mbf)
         gref:HookScript("OnEvent", updateGuildButton)
         gref:HookScript("OnEnter", GW.Guild_OnEnter)
         gref:SetScript("OnClick", GW.Guild_OnClick)
-        if not (GW.Classic or GW.TBC) then
+        if not (GW.Classic or GW.TBC or GW.Wrath) then
             hooksecurefunc(gref, "UpdateTabard", function()
                 gref:GetDisabledTexture():SetAlpha(1)
                 gref:GetNormalTexture():SetAlpha(1)
@@ -1172,7 +1172,7 @@ end
 local function hook_UpdateMicroButtons()
     HelpMicroButton:Show()
     local m = GW.Classic and SocialsMicroButton or GuildMicroButton
-    if GW.TBC and SocialsMicroButton:IsShown() then
+    if (GW.TBC or GW.Wrath) and SocialsMicroButton:IsShown() then
         m = SocialsMicroButton
     end
     m:SetDisabledTexture("Interface/AddOns/GW2_UI/textures/icons/microicons/guildmicrobutton-up.png")
@@ -1189,7 +1189,7 @@ local function hook_UpdateMicroButtons()
         return
     end
 
-    if GW.Classic or GW.TBC then
+    if GW.Classic or GW.TBC or GW.Wrath then
         local tref
         if GW.settings.USE_TALENT_WINDOW then
             tref = GwTalentMicroButton
@@ -1264,7 +1264,7 @@ local function LoadMicroMenu()
         ToggleEventTimerIcon(mbf.cf)
     end
 
-    if not GW.Retail and not GW.TBC then
+    if not GW.Retail and not GW.TBC and not GW.Wrath then
         for i = 1, #MICRO_BUTTONS do
             MICRO_BUTTONS[i] = nil
         end

@@ -74,7 +74,7 @@ function GwObjectivesContainerMixin:GetBlock(idx, colorKey, addItemButton)
         if GW.Classic then
             newBlock.actionButton:FakeHide()
         end
-        if GW.Retail or GW.TBC then
+        if GW.Retail or GW.TBC or GW.Wrath then
             newBlock.actionButton:RegisterForClicks("AnyUp", "AnyDown")
         else
             newBlock.actionButton:RegisterForClicks("AnyDown")

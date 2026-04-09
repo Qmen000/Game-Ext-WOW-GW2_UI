@@ -33,4 +33,4 @@ Libs\Mainline\Load.xml
 
 Core\Load.xml
 
-Mainline\Load.xml
+Games\Mainline\Load.xml

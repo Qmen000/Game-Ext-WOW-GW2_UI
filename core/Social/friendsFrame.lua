@@ -37,7 +37,7 @@ local function HandleTabs()
         tab:SetSize(64, 40)
         friendsFrameTabsAdded = friendsFrameTabsAdded + 1
 
-        if GW.TBC then
+        if GW.TBC or GW.Wrath then
             hooksecurefunc("FriendsFrame_UpdateGuildTabVisibility", function()
                 FriendsFrameTab4:ClearAllPoints()
                 if FriendsFrameTab3:IsShown() then

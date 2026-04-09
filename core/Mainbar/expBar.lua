@@ -389,7 +389,7 @@ local function UpdateData(self)
 
     wipe(self.tooltip)
 
-    if not (GW.Classic or GW.TBC) and C_PetBattles.IsInBattle() then
+    if not (GW.Classic or GW.TBC or GW.Wrath) and C_PetBattles.IsInBattle() then
         local i = C_PetBattles.GetActivePet(Enum.BattlePetOwner.Ally)
         level = C_PetBattles.GetLevel(Enum.BattlePetOwner.Ally, i)
         if level and level < 25 then
