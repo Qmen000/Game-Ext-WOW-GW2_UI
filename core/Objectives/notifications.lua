@@ -717,7 +717,7 @@ function GwObjectivesTrackerNotificationMixin:SetObjectiveNotification()
                 self.compass.Timer:Cancel()
                 self.compass.Timer = nil
             end
-            self.compass.Timer = C_Timer.NewTicker(0.025, function() updateRadar(self.compass) end)
+            self.compass.Timer = C_Timer.NewTicker(0.05, function() updateRadar(self.compass) end)
         end
 
         self.iconFrame.icon:SetTexture(nil)
@@ -794,7 +794,14 @@ function GwObjectivesTrackerNotificationMixin:OnEvent(event, ...)
             self:OnUpdate()
         end
     else
-        C_Timer.After(0.25, function() self:OnUpdate() end)
+        if self.pendingRefresh then
+            return
+        end
+        self.pendingRefresh = true
+        C_Timer.After(0.25, function()
+            self.pendingRefresh = nil
+            self:OnUpdate()
+        end)
     end
 end
 
@@ -821,6 +828,7 @@ function GwObjectivesTrackerNotificationMixin:InitModule()
     self.lastTitleText = nil
     self.lastDescText = nil
     self.usingProgressIndicator = nil
+    self.pendingRefresh = nil
     self.currentBgAlpha = 0.3
     self.currentNotificationColor = CreateColor(1, 1, 1, 1)
     self:SetScript("OnEnter", function() PlayNotificationHover(self, true) end)

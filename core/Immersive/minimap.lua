@@ -265,7 +265,7 @@ function GW.ToogleMinimapCoordsLable()
             hooksecurefunc(GwMapCoords, "SetAlpha", function(self, a)
                 if a == 1 then
                     if not self.CoordsTimer then
-                        self.CoordsTimer = C_Timer.NewTicker(0.3, function() mapCoordsMiniMap_setCoords(self) end)
+                        self.CoordsTimer = C_Timer.NewTicker(0.5, function() mapCoordsMiniMap_setCoords(self) end)
                     end
                 elseif a == 0 then
                     if self.CoordsTimer then
@@ -292,19 +292,26 @@ function GW.ToogleMinimapFpsLable()
     if GW.settings.MINIMAP_FPS then
         GW.BuildAddonList()
         GwMapFPS:SetScript("OnEnter", GW.FpsOnEnter)
-        GwMapFPS:SetScript("OnUpdate", GW.FpsOnUpdate)
         GwMapFPS:SetScript("OnLeave", GW.FpsOnLeave)
         GwMapFPS:SetScript("OnClick", GW.FpsOnClick)
         GwMapFPS:SetScript("OnEvent", GW.FpsOnEvent)
         GwMapFPS:RegisterEvent("MODIFIER_STATE_CHANGED")
+        if GwMapFPS.updateTicker then
+            GwMapFPS.updateTicker:Cancel()
+        end
+        GwMapFPS.updateTicker = C_Timer.NewTicker(1, function() GW.FpsOnUpdate(GwMapFPS) end)
+        GW.FpsOnUpdate(GwMapFPS)
         GwMapFPS:Show()
     else
         GwMapFPS:SetScript("OnEnter", nil)
-        GwMapFPS:SetScript("OnUpdate", nil)
         GwMapFPS:SetScript("OnLeave", nil)
         GwMapFPS:SetScript("OnClick", nil)
         GwMapFPS:SetScript("OnEvent", nil)
         GwMapFPS:UnregisterEvent("MODIFIER_STATE_CHANGED")
+        if GwMapFPS.updateTicker then
+            GwMapFPS.updateTicker:Cancel()
+            GwMapFPS.updateTicker = nil
+        end
         GwMapFPS:Hide()
     end
 end
@@ -314,6 +321,13 @@ local function Minimap_OnMouseDown(self, btn)
         local button = (GW.Retail and MinimapCluster.Tracking.Button) or MiniMapTrackingButton
         if button then
             button:OpenMenu()
+
+            if button.menu then
+				local pos = Minimap.gwMover:GetPoint()
+				local left = pos and pos:match('RIGHT')
+				button.menu:ClearAllPoints()
+				button.menu:SetPoint(left and 'TOPRIGHT' or 'TOPLEFT', Minimap, left and 'LEFT' or 'RIGHT', left and -4 or 4, 0)
+			end
         end
     end
 end
@@ -670,7 +684,6 @@ function GW.LoadMinimap()
     clickHandler:SetPassThroughButtons("LeftButton")
     clickHandler:SetPropagateMouseMotion(true)
     clickHandler:SetAllPoints()
-
     clickHandler:SetScript("OnMouseWheel", Minimap_OnMouseWheel)
     clickHandler:SetScript("OnMouseDown", Minimap_OnMouseDown)
 
@@ -720,7 +733,6 @@ function GW.LoadMinimap()
     MinimapCluster.BorderTop:GwStripTextures()
     if MinimapCluster.Tracking then
         MinimapCluster.Tracking.Background:GwStripTextures()
-        MinimapCluster.Tracking.Button:SetParent(GW.HiddenFrame)
     end
 
     for _, frame in next, killFrames do
@@ -784,7 +796,7 @@ function GW.LoadMinimap()
     GwMapTime.Time:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.Enum.TextSizeType.Normal)
     GwMapTime.Time:SetTextColor(1, 1, 1)
     GwMapTime.Time:SetShadowOffset(2, -2)
-    GwMapTime.timeTimer = C_Timer.NewTicker(0.2, function()
+    GwMapTime.timeTimer = C_Timer.NewTicker(1, function()
         GwMapTime.Time:SetText(GameTime_GetTime(false))
     end)
     GwMapTime:RegisterEvent("UPDATE_INSTANCE_INFO")

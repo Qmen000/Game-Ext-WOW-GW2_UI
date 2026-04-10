@@ -250,7 +250,7 @@ local function ToogleMinimapCoordsLable()
             hooksecurefunc(GwMapCoords, "SetAlpha", function(self, a)
                 if a == 1 then
                     if not self.CoordsTimer then
-                        self.CoordsTimer = C_Timer.NewTicker(0.3, function() mapCoordsMiniMap_setCoords(self) end)
+                        self.CoordsTimer = C_Timer.NewTicker(0.5, function() mapCoordsMiniMap_setCoords(self) end)
                     end
                 elseif a == 0 then
                     if self.CoordsTimer then
@@ -278,15 +278,22 @@ local function ToogleMinimapFpsLable()
     if GW.settings.MINIMAP_FPS then
         GW.BuildAddonList()
         GwMapFPS:SetScript("OnEnter", GW.FpsOnEnter)
-        GwMapFPS:SetScript("OnUpdate", GW.FpsOnUpdate)
         GwMapFPS:SetScript("OnLeave", GW.FpsOnLeave)
         GwMapFPS:SetScript("OnClick", GW.FpsOnClick)
+        if GwMapFPS.updateTicker then
+            GwMapFPS.updateTicker:Cancel()
+        end
+        GwMapFPS.updateTicker = C_Timer.NewTicker(1, function() GW.FpsOnUpdate(GwMapFPS) end)
+        GW.FpsOnUpdate(GwMapFPS)
         GwMapFPS:Show()
     else
         GwMapFPS:SetScript("OnEnter", nil)
-        GwMapFPS:SetScript("OnUpdate", nil)
         GwMapFPS:SetScript("OnLeave", nil)
         GwMapFPS:SetScript("OnClick", nil)
+        if GwMapFPS.updateTicker then
+            GwMapFPS.updateTicker:Cancel()
+            GwMapFPS.updateTicker = nil
+        end
         GwMapFPS:Hide()
     end
 end
@@ -405,7 +412,7 @@ function GW.LoadMinimap()
     GwMapTime.Time:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.Enum.TextSizeType.Normal)
     GwMapTime.Time:SetTextColor(1, 1, 1)
     GwMapTime.Time:SetShadowOffset(2, -2)
-    GwMapTime.timeTimer = C_Timer.NewTicker(0.2, function()
+    GwMapTime.timeTimer = C_Timer.NewTicker(1, function()
         GwMapTime.Time:SetText(GameTime_GetTime(false))
     end)
     GwMapTime:SetScript("OnClick", GW.Time_OnClick)

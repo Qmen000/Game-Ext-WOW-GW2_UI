@@ -435,6 +435,7 @@ local charSecure_OnAttributeChanged = [=[
         self:CallMethod("SoundOpen")
     else
         self:CallMethod("SoundSwap")
+        self:CallMethod("AnimatePanelSwitch", value)
     end
 ]=]
 
@@ -568,19 +569,8 @@ local function loadBaseFrame()
     GwCharacterWindowHeaderRight:AddMaskTexture(fmGCW.backgroundMask)
     GwCharacterWindowHeaderLeft:AddMaskTexture(fmGCW.backgroundMask)
 
-    fmGCW:HookScript("OnShow",function(self)
-        GW.AddToAnimation("HERO_PANEL_ONSHOW", 0, 1, GetTime(), GW.WINDOW_FADE_DURATION,
-        function(p)
-            self:SetAlpha(p)
-            if self.dressingRoom and self.dressingRoom.model then
-                self.dressingRoom.model:SetAlpha(math.max(0, (p - 0.5) / 0.5))
-            end
-            self.backgroundMask:SetPoint("BOTTOMRIGHT", self.background, "BOTTOMLEFT", GW.lerp(-64, self.background:GetWidth(), p) , 0)
-        end, 1, function()
-            self.backgroundMask:SetPoint("TOPLEFT", self.background, "TOPLEFT", -64, 64)
-            self.backgroundMask:SetPoint("BOTTOMRIGHT", self.background, "BOTTOMLEFT",-64, 0)
-        end)
-    end)
+    GW.SetupCharacterPanelSwitchAnimation(fmGCW)
+    GW.SetupCharacterWindowRevealAnimation(fmGCW)
 
     -- secure hook ESC to close char window when it is showing
     fmGCW:WrapScript(fmGCW, "OnShow", charSecure_OnShow)
@@ -683,10 +673,16 @@ local function container_OnShow(self)
     setTabIconState(self.TabFrame, true)
     self.CharWindow.windowIcon:SetTexture(self.HeaderIcon)
     self.CharWindow.WindowHeader:SetText(self.HeaderText)
+    if self.TabFrame then
+        GW.PlayCharacterTabSwitchPulse(self.TabFrame)
+    end
 end
 
 local function container_OnHide(self)
     setTabIconState(self.TabFrame, false)
+    if self.TabFrame then
+        GW.ResetCharacterTabSwitchPulse(self.TabFrame)
+    end
 end
 
 local function charTab_OnEnter(self)

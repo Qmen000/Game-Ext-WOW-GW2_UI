@@ -167,68 +167,84 @@ local function swimAnim()
 end
 
 local updateCB = {}
-local function AddUpdateCB(func, payload)
+local function AddUpdateCB(func, payload, interval)
     if type(func) ~= "function" then
         return
     end
 
-    tinsert(updateCB,{func = func, payload = payload})
+    tinsert(updateCB, {func = func, payload = payload, interval = interval or 0, elapsed = 0})
 end
 GW.AddUpdateCB = AddUpdateCB
 
+local swimStateElapsed = 0
 local function gw_OnUpdate(_, elapsed)
     local foundAnimation = false
     local count = 0
-    local time = GetTime()
-    for _, v in pairs(animations) do
-        count = count + 1
+    if next(animations) then
+        local time = GetTime()
+        for _, v in pairs(animations) do
+            count = count + 1
 
-        if not v.completed then
-            if time >= (v.start + v.duration) then
-                local t = v.easeing and 1 or sin(pi * 0.5)
-                v.progress = GW.lerp(v.from, v.to, t)
+            if not v.completed then
+                if time >= (v.start + v.duration) then
+                    local t = v.easeing and 1 or sin(pi * 0.5)
+                    v.progress = GW.lerp(v.from, v.to, t)
 
-                if v.method then
-                    v.method(v.progress)
+                    if v.method then
+                        v.method(v.progress)
+                    end
+
+                    if v.onCompleteCallback then
+                        v.onCompleteCallback()
+                    end
+
+                    v.completed = true
+                    foundAnimation = true
+                else
+                    local t = v.easeing and ((time - v.start) / v.duration) or sin((time - v.start) / v.duration * pi * 0.5)
+                    v.progress = GW.lerp(v.from, v.to, t)
+
+                    if v.method then
+                        v.method(v.progress)
+                    end
+                    foundAnimation = true
                 end
-
-                if v.onCompleteCallback then
-                    v.onCompleteCallback()
-                end
-
-                v.completed = true
-                foundAnimation = true
-            else
-                local t = v.easeing and ((time - v.start) / v.duration) or sin((time - v.start) / v.duration * pi * 0.5)
-                v.progress = GW.lerp(v.from, v.to, t)
-
-                if v.method then
-                    v.method(v.progress)
-                end
-                foundAnimation = true
             end
         end
-    end
 
-    if not foundAnimation and count > 0 then
-        table.wipe(animations)
+        if not foundAnimation and count > 0 then
+            table.wipe(animations)
+        end
     end
 
     --Swim hud
-    local swimming = IsSwimming()
-    if lastSwimState ~= swimming then
-        if swimming then
-            AddToAnimation("swimAnimation", swimAnimation, 1, time, 0.1, swimAnim)
-            swimAnimation = 1
-        else
-            AddToAnimation("swimAnimation", swimAnimation, 0, time, 3.0, swimAnim)
-            swimAnimation = 0
+    swimStateElapsed = swimStateElapsed + elapsed
+    if swimStateElapsed >= 0.2 then
+        swimStateElapsed = 0
+        local swimming = IsSwimming()
+        if lastSwimState ~= swimming then
+            local time = GetTime()
+            if swimming then
+                AddToAnimation("swimAnimation", swimAnimation, 1, time, 0.1, swimAnim)
+                swimAnimation = 1
+            else
+                AddToAnimation("swimAnimation", swimAnimation, 0, time, 3.0, swimAnim)
+                swimAnimation = 0
+            end
+            lastSwimState = swimming
         end
-        lastSwimState = swimming
     end
 
     for _, cb in ipairs(updateCB) do
-        cb.func(cb.payload, elapsed)
+        if cb.interval > 0 then
+            cb.elapsed = cb.elapsed + elapsed
+            if cb.elapsed >= cb.interval then
+                cb.func(cb.payload, cb.elapsed)
+                cb.elapsed = 0
+            end
+        else
+            cb.func(cb.payload, elapsed)
+        end
     end
 
     if GW.Classic and PetActionBarFrame:IsShown() and GW.settings.PETBAR_ENABLED and loaded and not GW.ShouldBlockIncompatibleAddon("Actionbars") then

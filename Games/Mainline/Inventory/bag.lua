@@ -138,29 +138,28 @@ end
 
 local function watchCurrency(self)
     local watchSlot = 1
-    local currencyCount = C_CurrencyInfo.GetCurrencyListSize()
-    for i = 1, currencyCount do
-        local info = C_CurrencyInfo.GetCurrencyListInfo(i)
-        if not info.isHeader and info.isShowInBackpack and watchSlot <= 4 then
-            self["currency" .. watchSlot]:SetText(GW.GetLocalizedNumber(info.quantity))
-            self["currency" .. watchSlot .. "Texture"]:SetTexture(info.iconFileID)
-            self["currency" .. watchSlot .. "Frame"].CurrencyIdx = i
-            watchSlot = watchSlot + 1
+    for i = 1, BackpackTokenFrame:GetMaxTokensWatched() do
+        local info = C_CurrencyInfo.GetBackpackCurrencyInfo(i)
+        if info then
+            if info.quantity then
+                local currencyFrame = self["currencyFrame" .. watchSlot]
+                currencyFrame.value:SetText(GW.GetLocalizedNumber(info.quantity))
+                currencyFrame.icon:SetTexture(info.iconFileID)
+                currencyFrame.id = i
+                currencyFrame.currencyID = info.currencyTypesID
+                watchSlot = watchSlot + 1
+            end
         end
     end
 
     for i = watchSlot, 4 do
-        self["currency" .. i]:SetText("")
-        self["currency" .. i .. "Texture"]:SetTexture(nil)
-        self["currency" .. watchSlot .. "Frame"].CurrencyIdx = nil
+        local currencyFrame = self["currencyFrame" .. i]
+        currencyFrame.value:SetText("")
+        currencyFrame.icon:SetTexture(nil)
+        currencyFrame.id = nil
+        currencyFrame.currencyID = nil
     end
 end
-
-
-local function updateFreeSpaceString(free, full)
-    GwBagFrame.spaceString:SetText(free .. " / " .. full)
-end
-
 
 -- update the number of free bag slots available and set the display for it
 local function updateFreeBagSlots()
@@ -754,15 +753,33 @@ local function LoadBag(helpers)
 
     -- setup watch currencies
     for i = 1, 4 do
-        local currencyFrame = f["currency" .. i]
-        currencyFrame:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
-        currencyFrame:SetTextColor(1, 1, 1)
-        f["currency" .. i .. "Frame"]:SetScript("OnEnter", function(self)
-            if self.CurrencyIdx then
+        local currencyFrame = f["currencyFrame" .. i]
+        currencyFrame.value:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
+        currencyFrame.value:SetTextColor(1, 1, 1)
+        currencyFrame:SetScript("OnEnter", function(self)
+            if self.id then
                 GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
                 GameTooltip:ClearLines()
-                GameTooltip:SetCurrencyToken(self.CurrencyIdx)
+                GameTooltip:SetBackpackToken(self.id)
+                GameTooltip_AddBlankLineToTooltip(GameTooltip)
+	            GameTooltip_AddInstructionLine(GameTooltip, TOKEN_REMOVE_FROM_BACKPACK_INSTRUCTION)
                 GameTooltip:Show()
+            end
+        end)
+        currencyFrame:SetScript("OnClick", function(self)
+            if IsModifiedClick("CHATLINK") then
+                local linkedToChat = HandleModifiedItemClick(C_CurrencyInfo.GetCurrencyLink(self.currencyID))
+                if linkedToChat then
+                    return
+                end
+            end
+
+            if IsModifiedClick("TOKENWATCHTOGGLE") then
+                C_CurrencyInfo.SetCurrencyBackpackByID(self.currencyID, false)
+            else
+                if not InCombatLockdown() then
+                    ToggleCharacter("TokenFrame")
+                end
             end
         end)
     end
@@ -772,6 +789,7 @@ local function LoadBag(helpers)
     end)
     f.currency:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
     hooksecurefunc(C_CurrencyInfo, "SetCurrencyBackpack", function() watchCurrency(f) end)
+    hooksecurefunc(C_CurrencyInfo, "SetCurrencyBackpackByID", function() watchCurrency(f) end)
     watchCurrency(f)
 
     -- return a callback that should be called when item size changes

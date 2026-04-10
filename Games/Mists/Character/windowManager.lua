@@ -424,6 +424,7 @@ local charSecure_OnAttributeChanged = [=[
         self:CallMethod("SoundOpen")
     else
         self:CallMethod("SoundSwap")
+        self:CallMethod("AnimatePanelSwitch", value)
     end
 ]=]
 
@@ -545,6 +546,23 @@ local function loadBaseFrame()
         PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE)
     end
 
+    fmGCW.backgroundMask = UIParent:CreateMaskTexture()
+    fmGCW.backgroundMask:SetPoint("TOPLEFT", fmGCW, "TOPLEFT", -64, 64)
+    fmGCW.backgroundMask:SetPoint("BOTTOMRIGHT", fmGCW, "BOTTOMLEFT", -64, 0)
+    fmGCW.backgroundMask:SetTexture(
+        "Interface/AddOns/GW2_UI/textures/masktest",
+        "CLAMPTOBLACKADDITIVE",
+        "CLAMPTOBLACKADDITIVE"
+    )
+
+    fmGCW.background:AddMaskTexture(fmGCW.backgroundMask)
+    GwCharacterWindowHeader:AddMaskTexture(fmGCW.backgroundMask)
+    GwCharacterWindowHeaderRight:AddMaskTexture(fmGCW.backgroundMask)
+    GwCharacterWindowHeaderLeft:AddMaskTexture(fmGCW.backgroundMask)
+
+    GW.SetupCharacterPanelSwitchAnimation(fmGCW)
+    GW.SetupCharacterWindowRevealAnimation(fmGCW)
+
     -- secure hook ESC to close char window when it is showing
     fmGCW:WrapScript(fmGCW, "OnShow", charSecure_OnShow)
     fmGCW:WrapScript(fmGCW, "OnHide", charSecure_OnHide)
@@ -646,10 +664,16 @@ local function container_OnShow(self)
     setTabIconState(self.TabFrame, true)
     self.CharWindow.windowIcon:SetTexture(self.HeaderIcon)
     self.CharWindow.WindowHeader:SetText(self.HeaderText)
+    if self.TabFrame then
+        GW.PlayCharacterTabSwitchPulse(self.TabFrame)
+    end
 end
 
 local function container_OnHide(self)
     setTabIconState(self.TabFrame, false)
+    if self.TabFrame then
+        GW.ResetCharacterTabSwitchPulse(self.TabFrame)
+    end
 end
 
 local function charTab_OnEnter(self)

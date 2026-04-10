@@ -212,6 +212,20 @@ local function updateGuildButton(self, event)
     end
 end
 
+local function requestGuildRosterUpdate(self, force)
+    if not IsInGuild() then
+        return
+    end
+
+    local now = GetTime()
+    if not force and self.lastGuildRosterRequest and (now - self.lastGuildRosterRequest) < 30 then
+        return
+    end
+
+    self.lastGuildRosterRequest = now
+    C_GuildInfo.GuildRoster()
+end
+
 
 local function updateQuestLogButton(_, event)
     if event ~= "QUEST_LOG_UPDATE" then
@@ -242,14 +256,7 @@ local function updateQuestLogButton(_, event)
 end
 
 
-local bag_update_interval = 1/30 -- cap bag button updates to 30 FPS
-local function bag_OnUpdate(self, elapsed)
-    self.interval = self.interval - elapsed
-    if self.interval > 0 then
-        return
-    end
-    self.interval = bag_update_interval
-
+local function updateBagButton(self)
     local totalEmptySlots = 0
     for i = BACKPACK_CONTAINER, NUM_TOTAL_EQUIPPED_BAG_SLOTS or NUM_BAG_SLOTS do
         local numberOfFreeSlots, bagFamily = C_Container.GetContainerNumFreeSlots(i)
@@ -502,9 +509,7 @@ local function LatencyInfoToolTip()
     GameTooltip:Show()
 end
 
-local function hook_MainMenuMicroButton_OnUpdate(self, elapsed)
-    -- the main menu button routinely updates its texture based on streaming download
-    -- status and net performance; we undo those changes here on each update interval
+local function refreshMainMenuMicroButton(self, elapsed)
     if self.updateInterval ~= PERFORMANCE_BAR_UPDATE_INTERVAL then
         return
     end
@@ -728,8 +733,11 @@ local function setupMicroButtons(mbf)
     bref:ClearAllPoints()
     bref:SetPoint("BOTTOMLEFT", cref, "BOTTOMRIGHT", 4, 0)
     bref:HookScript("OnClick", ToggleAllBags)
-    bref.interval = 0
-    bref:HookScript("OnUpdate", bag_OnUpdate)
+    bref:HookScript("OnEvent", updateBagButton)
+    bref:RegisterEvent("PLAYER_ENTERING_WORLD")
+    bref:RegisterEvent("BAG_UPDATE_DELAYED")
+    bref:RegisterEvent("PLAYERBANKSLOTS_CHANGED")
+    updateBagButton(bref)
     bref:HookScript("OnEnter", GW.Bags_OnEnter)
 
     -- SpellbookMicroButton
@@ -842,12 +850,14 @@ local function setupMicroButtons(mbf)
         end
         gref:ClearAllPoints()
         gref:SetPoint("BOTTOMLEFT", qref, "BOTTOMRIGHT", 4, 0)
-        gref.Ticker = C_Timer.NewTicker(15, function() C_GuildInfo.GuildRoster() end)
         gref:RegisterEvent("GUILD_ROSTER_UPDATE")
         gref:RegisterEvent("MODIFIER_STATE_CHANGED")
         gref:RegisterEvent("GUILD_MOTD")
         gref:HookScript("OnEvent", updateGuildButton)
-        gref:HookScript("OnEnter", GW.Guild_OnEnter)
+        gref:HookScript("OnEnter", function(self)
+            requestGuildRosterUpdate(self, true)
+            GW.Guild_OnEnter(self)
+        end)
         gref:SetScript("OnClick", GW.Guild_OnClick)
         if not (GW.Classic or GW.TBC or GW.Wrath) then
             hooksecurefunc(gref, "UpdateTabard", function()
@@ -862,6 +872,7 @@ local function setupMicroButtons(mbf)
                 gref:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/icons/microicons/guildmicrobutton-up.png")
             end)
         end
+        requestGuildRosterUpdate(gref, true)
         updateGuildButton(gref, "GUILD_ROSTER_UPDATE")
     end
 
@@ -966,8 +977,7 @@ local function setupMicroButtons(mbf)
         MainMenuBarPerformanceBar:SetScale(0.00001)
         if MainMenuBarDownload then MainMenuBarDownload:Hide() end
     end
-    MainMenuMicroButton.updateInterval = 0
-    MainMenuMicroButton:HookScript("OnUpdate", hook_MainMenuMicroButton_OnUpdate)
+    MainMenuMicroButton:HookScript("OnUpdate", refreshMainMenuMicroButton)
 
     -- HelpMicroButton
     HelpMicroButton:ClearAllPoints()

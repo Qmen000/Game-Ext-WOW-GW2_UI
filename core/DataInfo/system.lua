@@ -66,6 +66,7 @@ end
 local function FpsOnEnter(self, slow)
     if GW.settings.MINIMAP_FPS_TOOLTIP_DISABLED then return end
     enteredInfo = true
+    self.nextTooltipRefresh = GetTime() + (InCombatLockdown() and 4 or 1)
     GameTooltip:ClearLines()
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 
@@ -216,37 +217,25 @@ local function FpsOnLeave()
 end
 GW.FpsOnLeave = FpsOnLeave
 
-local wait, rate, delay = 10, 0, 0
-local function FpsOnUpdate(self, elapsed)
-    if wait < 1 then
-        wait = wait + elapsed
-        rate = rate + 1
-    else
-        wait = 0
+local function FpsOnUpdate(self)
+    self.fps:SetText(format("%d FPS", floor(GetFramerate() + 0.5)))
 
-        self.fps:SetText(rate .. " FPS")
+    if not enteredInfo then
+        return
+    end
 
-        rate = 0 -- ok reset it
-
-        if not enteredInfo then
-			return
-		elseif InCombatLockdown() then
-            if delay > 3 then
-                FpsOnEnter(self)
-                delay = 0
-            else
-                FpsOnEnter(self, delay)
-                delay = delay + 1
-            end
-        else
-            FpsOnEnter(self)
-        end
+    local now = GetTime()
+    local refreshInterval = InCombatLockdown() and 4 or 1
+    if not self.nextTooltipRefresh or now >= self.nextTooltipRefresh then
+        FpsOnEnter(self, InCombatLockdown() and 1 or nil)
+        self.nextTooltipRefresh = now + refreshInterval
     end
 end
 GW.FpsOnUpdate = FpsOnUpdate
 
 local function FpsOnEvent(self)
     if enteredInfo then
+        self.nextTooltipRefresh = 0
         FpsOnEnter(self)
     end
 end

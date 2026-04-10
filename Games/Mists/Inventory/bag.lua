@@ -141,17 +141,19 @@ local function watchCurrency(self)
     for i = 1, currencyCount do
         local _, isHeader, _, _, isWatched, count, icon = GetCurrencyListInfo(i)
         if not isHeader and isWatched and watchSlot < 4 then
-            self["currency" .. tostring(watchSlot)]:SetText(CommaValue(count))
-            self["currency" .. tostring(watchSlot) .. "Texture"]:SetTexture(icon)
-            self["currency" .. tostring(watchSlot) .. "Frame"].CurrencyIdx = i
+            local currencyFrame = self["currencyFrame" .. watchSlot]
+            currencyFrame.value:SetText(CommaValue(count))
+            currencyFrame.icon:SetTexture(icon)
+            currencyFrame.CurrencyIdx = i
             watchSlot = watchSlot + 1
         end
     end
 
     for i = watchSlot, 3 do
-        self["currency" .. tostring(i)]:SetText("")
-        self["currency" .. tostring(i) .. "Texture"]:SetTexture(nil)
-        self["currency" .. tostring(watchSlot) .. "Frame"].CurrencyIdx = nil
+        local currencyFrame = self["currencyFrame" .. i]
+        currencyFrame.value:SetText("")
+        currencyFrame.icon:SetTexture(nil)
+        currencyFrame.CurrencyIdx = nil
     end
 end
 
@@ -759,10 +761,10 @@ local function LoadBag(helpers)
 
     -- setup watch currencies
     for i = 1, 3 do
-        local currencyFrame = f["currency" .. i]
-        currencyFrame:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
-        currencyFrame:SetTextColor(1, 1, 1)
-        f["currency" .. i .. "Frame"]:SetScript("OnEnter", function(self)
+        local currencyFrame = f["currencyFrame" .. i]
+        currencyFrame.value:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
+        currencyFrame.value:SetTextColor(1, 1, 1)
+        currencyFrame:SetScript("OnEnter", function(self)
             if self.CurrencyIdx then
                 GameTooltip:SetOwner(self, "ANCHOR_CURSOR")
                 GameTooltip:ClearLines()

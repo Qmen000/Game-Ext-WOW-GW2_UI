@@ -741,7 +741,7 @@ local function updateMainBar()
     fmActionbar.ClearAllPoints = GW.NoOp
 
     -- event/update handlers
-    AddUpdateCB(actionBar_OnUpdate, fmActionbar)
+    AddUpdateCB(actionBar_OnUpdate, fmActionbar, 1 / 60)
     local helperFrame = CreateFrame("Frame")
     helperFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
     helperFrame:RegisterEvent("PLAYER_REGEN_DISABLED")

@@ -877,7 +877,7 @@ local function updateMainBar()
     fmActionbar.gw_Width = btn_padding
 
     -- event/update handlers
-    AddUpdateCB(actionBar_OnUpdate, fmActionbar)
+    AddUpdateCB(actionBar_OnUpdate, fmActionbar, 1 / 60)
     local eventFrame = CreateFrame("Frame")
     eventFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
     eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")

@@ -52,7 +52,7 @@ local function AddCoordsToWorldMap()
     WorldMapFrame:HookScript("OnShow", function()
         if GW.settings.WORLDMAP_COORDS_TOGGLE and not ticker then
             UpdateCoords()
-            ticker = C_Timer.NewTicker(0.1, UpdateCoords)
+            ticker = C_Timer.NewTicker(0.2, UpdateCoords)
         end
     end)
     WorldMapFrame:HookScript("OnHide", function()
