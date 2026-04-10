@@ -734,7 +734,7 @@
                         self:RegisterEvent("SKILL_LINES_CHANGED")
                         self:RegisterEvent("COMBAT_RATING_UPDATE")
                         self:RegisterEvent("UNIT_NAME_UPDATE")
-                        self:RegisterEvent("BAG_UPDATE")
+                        self:RegisterEvent("BAG_UPDATE_DELAYED")
                         self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
                         self:RegisterEvent("PLAYERBANKSLOTS_CHANGED")
                         self:RegisterEvent("PLAYER_AVG_ITEM_LEVEL_UPDATE")
