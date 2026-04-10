@@ -7,7 +7,6 @@ local function title_OnClick(self)
         SetCurrentTitle(self.TitleID)
     end
 end
-GW.AddForProfiling("paperdoll_titles", "title_OnClick", title_OnClick)
 
 local function loadTitle(titlewin)
     local USED_TITLE_HEIGHT
@@ -45,7 +44,6 @@ local function loadTitle(titlewin)
     USED_TITLE_HEIGHT = BAG_TITLE_SIZE * #savedPlayerTitles
     HybridScrollFrame_Update(titlewin, USED_TITLE_HEIGHT, 433)
 end
-GW.AddForProfiling("paperdoll_titles", "loadTitle", loadTitle)
 
 local function titleSetup(titlewin)
     HybridScrollFrame_CreateButtons(titlewin, "GwTitleRow", 12, 0, "TOPLEFT", "TOPLEFT", 0, 0, "TOP", "BOTTOM")
@@ -62,7 +60,6 @@ local function titleSetup(titlewin)
 
     loadTitle(titlewin)
 end
-GW.AddForProfiling("paperdoll_titles", "titleSetup", titleSetup)
 
 local function saveKnowenTitles()
     wipe(savedPlayerTitles)

@@ -733,8 +733,6 @@ if GW.Mists then
         95809,	-- Insanity
         95223	-- Group Res
     }
-elseif GW.Wrath then
-    
 else
     GW.AURAS_IGNORED = {}
 end

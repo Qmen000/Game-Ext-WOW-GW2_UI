@@ -7,6 +7,7 @@ local Retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 local Classic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 local Cata = WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC
 local TBC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
+local Wrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
 
 local DebuffColors = {}
 DebuffColors.none = {r = 220 / 255, g = 0, b = 0}
@@ -157,7 +158,7 @@ do
     frame:RegisterEvent("CHARACTER_POINTS_CHANGED")
     frame:RegisterEvent("PLAYER_LOGIN")
 
-    if Retail or TBC then
+    if Retail or TBC or Wrath then
         frame:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
     else
         frame:RegisterEvent("LEARNED_SPELL_IN_TAB")

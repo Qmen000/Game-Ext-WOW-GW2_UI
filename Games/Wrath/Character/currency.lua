@@ -15,7 +15,6 @@ local function checkNumWatched()
 
     return numWatched
 end
-GW.AddForProfiling("currency", "checkNumWatched", checkNumWatched)
 
 local function currency_OnClick(self)
     if IsModifiedClick("TOKENWATCHTOGGLE") then
@@ -36,7 +35,6 @@ local function currency_OnClick(self)
         end
     end
 end
-GW.AddForProfiling("currency", "currency_OnClick", currency_OnClick)
 
 local function currency_OnEnter(self)
     if not self.CurrencyID or not self.CurrencyIdx then
@@ -50,7 +48,6 @@ local function currency_OnEnter(self)
     GameTooltip:AddLine(TOKEN_SHOW_ON_BACKPACK, nil, nil, nil, true)
     GameTooltip:Show()
 end
-GW.AddForProfiling("currency", "currency_OnEnter", currency_OnEnter)
 
 local function loadCurrency(curwin)
     local USED_CURRENCY_HEIGHT
@@ -138,7 +135,6 @@ local function loadCurrency(curwin)
     USED_CURRENCY_HEIGHT = BAG_CURRENCY_SIZE * currencyCount
     HybridScrollFrame_Update(curwin, USED_CURRENCY_HEIGHT, 576)
 end
-GW.AddForProfiling("currency", "loadCurrency", loadCurrency)
 
 local function header_OnClick(self)
     if self.isHeaderExpanded then
@@ -180,7 +176,6 @@ local function currencySetup(curwin)
 
     loadCurrency(curwin)
 end
-GW.AddForProfiling("currency", "currencySetup", currencySetup)
 
 local function loadRaidInfo(raidinfo)
     local USED_RAID_INFO_HEIGHT
@@ -221,7 +216,6 @@ local function loadRaidInfo(raidinfo)
     USED_RAID_INFO_HEIGHT = 55 * raidInfoCount
     HybridScrollFrame_Update(raidinfo, USED_RAID_INFO_HEIGHT, 576)
 end
-GW.AddForProfiling("currency", "loadRaidInfo", loadRaidInfo)
 
 local function raidInfoSetup(raidinfo)
     HybridScrollFrame_CreateButtons(raidinfo, "GwRaidInfoRow", 12, 0, "TOPLEFT", "TOPLEFT", 0, 0, "TOP", "BOTTOM")
@@ -245,7 +239,6 @@ local function raidInfoSetup(raidinfo)
 
     loadRaidInfo(raidinfo)
 end
-GW.AddForProfiling("currency", "raidInfoSetup", raidInfoSetup)
 
 local function menuItem_OnClick(self)
     local menuItems = self:GetParent().items
@@ -259,7 +252,6 @@ local function menuItem_OnClick(self)
         RequestRaidInfo()
     end
 end
-GW.AddForProfiling("currency", "menuItem_OnClick", menuItem_OnClick)
 
 local function LoadCurrency()
     local currencyWindow = CreateFrame("Frame", "GwCurrencyDetailsFrame", GwCharacterWindow, "GwCharacterTabContainer")

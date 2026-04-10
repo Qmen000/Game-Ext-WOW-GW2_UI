@@ -1637,7 +1637,7 @@ local function LoadAlertSystem()
         GW.RegisterMovableFrame(GW.AlertContainerFrame, GW.L["Alert Frames"], "AlertPos", ALL .. ",Blizzard,Widgets", {300, 5}, {"default"}, nil, postDragFunction)
 
         GW.AlertContainerFrame:RegisterEvent("PLAYER_LEVEL_UP")
-        if not GW.Retail then
+        if not GW.Retail and not GW.Wrath then
             GW.AlertContainerFrame:RegisterEvent("LEARNED_SPELL_IN_TAB")
             GW.Libs.GW2Lib:RegisterCombatEvent(GW.AlertContainerFrame, "SPELL_CAST_SUCCESS", CLEUHandling)
             GW.Libs.GW2Lib:RegisterCombatEvent(GW.AlertContainerFrame, "SPELL_CREATE", CLEUHandling)
