@@ -217,6 +217,7 @@ local function Chat_OnEvent(self, event, arg1, arg2, arg3, arg4, arg5, arg6, arg
 end
 
 local function ToggelAfkMode()
+    if not AFKMode then return end
     if GW.settings.AFK_MODE then
         AFKMode:RegisterEvent("PLAYER_FLAGS_CHANGED")
         AFKMode:RegisterEvent("PLAYER_REGEN_DISABLED")
