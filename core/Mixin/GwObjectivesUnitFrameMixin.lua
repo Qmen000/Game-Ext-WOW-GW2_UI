@@ -43,7 +43,7 @@ function GwObjectivesUnitFrameMixin:UpdatePower()
 
     if GW.Retail then
         self.power:SetValue(power, Enum.StatusBarInterpolation.ExponentialEaseOut)
-        self.power.value:SetText(string.format("%.0f%%", UnitPowerPercent(self.unit, powerType, CurveConstants.ScaleTo100)))
+        self.power.value:SetText(string.format("%.0f%%", UnitPowerPercent(self.unit, powerType, true, CurveConstants.ScaleTo100)))
     else
         local powerPercentage = (power > 0 and powerMax > 0) and (power / powerMax) or 0
         self.power:SetValue(power)
