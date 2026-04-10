@@ -671,7 +671,7 @@ function GW.LoadMinimap()
     -- Minimap Tracking Button
     clickHandler.gwTrackingButton = CreateFrame("DropdownButton")
     clickHandler.gwTrackingButton:SetFrameStrata("BACKGROUND")
-    Mixin(clickHandler.gwTrackingButton, GW.Retail and MiniMapTrackingButtonMixin or MinimapTrackingDropdownMixin)
+    Mixin(clickHandler.gwTrackingButton, (GW.Retail or GW.Wrath) and MiniMapTrackingButtonMixin or MinimapTrackingDropdownMixin)
     clickHandler.gwTrackingButton:OnLoad()
     clickHandler.gwTrackingButton:SetScript("OnEvent", clickHandler.gwTrackingButton.OnEvent)
     clickHandler.gwTrackingButton:SetAllPoints(Minimap)
