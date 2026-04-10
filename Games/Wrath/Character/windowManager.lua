@@ -828,7 +828,6 @@ local function LoadCharacter()
 
             if container:GetName() == "GwCharacterWindowContainer" then
                 fmGCW:SetFrameRef("GwHeroPanelMenu", GwHeroPanelMenu)
-                fmGCW:SetFrameRef("GwPaperHonor", GwPaperHonor)
                 fmGCW:SetFrameRef("GwPaperSkills", GwPaperSkills)
                 fmGCW:SetFrameRef("GwPaperTitles", GwPaperTitles)
                 fmGCW:SetFrameRef("GwDressingRoom", GwDressingRoom)

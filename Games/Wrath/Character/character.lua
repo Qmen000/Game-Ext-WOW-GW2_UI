@@ -1,8 +1,5 @@
----@class GW2
-local GW = select(2, ...)
-local L = GW.L
+local _, GW = ...
 local GWGetClassColor = GW.GWGetClassColor
-
 
 local PlayerSlots = {
     ["CharacterHeadSlot"] = {0, 0.25, 0, 0.125},
@@ -76,10 +73,31 @@ local STATS_ICONS ={
     Arcane = {x = 2, y = 8},
 }
 
+local durabilityFrame = nil
+
+local function collectDurability(self)
+    local completeDurability = 0
+    local completeDurabilityNumItems = 0
+    for i = 1, 23 do
+        local current, maximum = GetInventoryItemDurability(i)
+
+        if current ~= nil then
+            completeDurability = completeDurability + (current / maximum)
+            completeDurabilityNumItems = completeDurabilityNumItems + 1
+        end
+    end
+    if completeDurabilityNumItems > 0 then
+        self.Value:SetText(GW.RoundDec(completeDurability / completeDurabilityNumItems * 100) .. "%")
+    else
+        self.Value:SetText(NOT_APPLICABLE)
+    end
+end
+GW.AddForProfiling("paperdoll_equipment", "collectDurability", collectDurability)
 
 local function PaperDollStats_QueuedUpdate(self)
     self:SetScript("OnUpdate", nil)
     GW.PaperDollUpdateStats()
+    collectDurability(durabilityFrame)
 end
 
 local function PaperDollUpdateUnitData()
@@ -88,7 +106,7 @@ local function PaperDollUpdateUnitData()
     local color = GWGetClassColor(GW.myclass, true)
     GW.SetClassIcon(GwDressingRoom.classIcon, GW.myclass)
 
-    GwDressingRoom.classIcon:SetVertexColor(color.r, color.g, color.b, color.a)
+   GwDressingRoom.classIcon:SetVertexColor(color.r, color.g, color.b, color.a)
 
     if name ~= nil then
         local data = GUILD_RECRUITMENT_LEVEL .. " " .. GW.mylevel .. " " .. name .. " " .. GW.myLocalizedClass
@@ -131,6 +149,10 @@ local function PaperDollStats_OnEvent(self, event, ...)
     if event == "PLAYER_ENTERING_WORLD" or event == "UNIT_MODEL_CHANGED" or event=="UNIT_NAME_UPDATE" or event=="PLAYER_PVP_RANK_CHANGED" and unit == "player" then
         GwDressingRoom.model:SetUnit("player", false)
         PaperDollUpdateUnitData()
+        GW.collectDurability(durabilityFrame)
+        return
+    elseif event == "UPDATE_INVENTORY_DURABILITY" or event == "MERCHANT_SHOW" then
+        GW.collectDurability(durabilityFrame)
         return
     end
 
@@ -185,7 +207,12 @@ local function statGridPos(grid, x, y)
     return grid, x, y
 end
 
-local function StatOnEnter(self)
+local function stat_OnEnter(self)
+    if self.stat == "DURABILITY" then
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GW.DurabilityTooltip()
+        return
+    end
     if not self.tooltip then
         return
     end
@@ -197,33 +224,42 @@ local function StatOnEnter(self)
     GameTooltip:Show()
 end
 
-local function PaperDollGetStatListFrame(self, i, isPet, stat)
-    local frameName = isPet and ("GwPaperDollPetStat" .. i) or ("GwPaperDollStat" .. i)
-    local frame = _G[frameName]
-    if frame then
-        return frame
+local function PaperDollGetStatListFrame(self, i)
+    if _G["GwPaperDollStat" .. i] ~= nil then
+        return _G["GwPaperDollStat" .. i]
     end
-    frame = CreateFrame("Frame", frameName, self, "GwPaperDollStat")
+    local fm = CreateFrame("Frame", "GwPaperDollStat" .. i, self, "GwPaperDollStat")
 
-    if stat == "DURABILITY" then
-        frame:SetScript("OnEnter", GW.DurabilityTooltip)
-        frame:SetScript("OnEvent", GW.DurabilityOnEvent)
-        frame:RegisterEvent("UPDATE_INVENTORY_DURABILITY")
-        frame:RegisterEvent("MERCHANT_SHOW")
-    else
-        frame:SetScript("OnEnter", StatOnEnter)
+    fm.Value:SetFont(UNIT_NAME_FONT, 14, "")
+    fm.Value:SetText(ERRORS)
+    fm.Label:SetFont(UNIT_NAME_FONT, 1, "")
+    fm.Label:SetTextColor(0, 0, 0, 0)
+
+    fm:SetScript("OnEnter", stat_OnEnter)
+    fm:SetScript("OnLeave", GameTooltip_Hide)
+
+    return fm
+end
+
+local function PaperDollPetGetStatListFrame(self, i)
+    if _G["GwPaperDollPetStat" .. i] ~= nil then
+        return _G["GwPaperDollPetStat" .. i]
     end
-    frame:SetScript("OnLeave", GameTooltip_Hide)
-    frame.Value:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
-    frame.Label:SetFont(UNIT_NAME_FONT, 1, "")
-    frame.Label:SetTextColor(0, 0, 0, 0)
-    frame.Value:SetText("")
+    local fm = CreateFrame("Frame", "GwPaperDollPetStat" .. i, self, "GwPaperDollStat")
 
-    return frame
+    fm.Value:SetFont(UNIT_NAME_FONT, 14, "")
+    fm.Value:SetText(ERRORS)
+    fm.Label:SetFont(UNIT_NAME_FONT, 1, "")
+    fm.Label:SetTextColor(0, 0, 0, 0)
+
+    fm:SetScript("OnEnter", stat_OnEnter)
+    fm:SetScript("OnLeave", GameTooltip_Hide)
+
+    return fm
 end
 
 local function setStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y)
-    local statFrame = PaperDollGetStatListFrame(GwDressingRoom.stats, index, false, stat)
+    local statFrame = PaperDollGetStatListFrame(GwDressingRoom.stats, index)
     statFrame.tooltip = tooltip
     statFrame.tooltip2 = tooltip2
     statFrame.stat = stat
@@ -234,15 +270,15 @@ local function setStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y
     if stat == "DURABILITY" then
         statFrame:SetPoint("TOPRIGHT", GwDressingRoom.stats, "TOPRIGHT", 22, -1)
         statFrame.icon:SetSize(25, 25)
-        GW.DurabilityOnEvent(statFrame, "ForceUpdate")
     else
         statFrame:SetPoint("TOPLEFT", 5 + x, -35 + -y)
     end
     grid, x, y = statGridPos(grid, x, y)
     return grid, x, y, index + 1
 end
+
 local function setPetStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y)
-    local statFrame = PaperDollGetStatListFrame(GwDressingRoomPet.stats, index, true)
+    local statFrame = PaperDollPetGetStatListFrame(GwDressingRoomPet.stats, index)
     statFrame.tooltip = tooltip
     statFrame.tooltip2 = tooltip2
     statFrame.stat = stat
@@ -254,10 +290,9 @@ local function setPetStatFrame(stat, index, statText, tooltip, tooltip2, grid, x
     return grid, x, y, index + 1
 end
 
-local function PaperDollUpdateStats()
-    local avgItemLevel, avgItemLevelEquipped = GW.GetAverageItemLevel()
-    local r, g,b = GW.GetItemLevelColor(avgItemLevel)
-    local statText, tooltip1, tooltip2
+local function UpdateItemLevelAndGearScore()
+    local avgItemLevel, avgItemLevelEquipped = GW.api.GetAverageItemLevel()
+    local r, g,b = GW.api.GetItemLevelColor(avgItemLevel)
 
     avgItemLevelEquipped = avgItemLevelEquipped and avgItemLevelEquipped or 0
     avgItemLevel = avgItemLevel and avgItemLevel or 0
@@ -269,7 +304,10 @@ local function PaperDollUpdateStats()
     avgItemLevelEquipped = avgItemLevelEquipped == 0 and "" or avgItemLevelEquipped
     GwDressingRoom.itemLevel:SetText(avgItemLevelEquipped)
     GwDressingRoom.itemLevel:SetTextColor(r, g,b)
+end
 
+local function PaperDollUpdateStats()
+    local statText, tooltip1, tooltip2
     local numShownStats = 1
     local grid = 1
     local x = 0
@@ -284,11 +322,9 @@ local function PaperDollUpdateStats()
     statText, tooltip1, tooltip2 = GW.stats.getArmor()
     grid, x, y, numShownStats = setStatFrame("ARMOR", numShownStats, statText, tooltip1, tooltip2, grid, x, y)
 
-    -- Defense only for Tanksclasses
-    if GW.myClassID == 1 or GW.myClassID == 2 or GW.myClassID == 11 then
-        statText, tooltip1, tooltip2 = GW.stats.getDefense()
-        grid, x, y, numShownStats = setStatFrame("DEFENSE", numShownStats, statText, tooltip1, tooltip2, grid, x, y)
-    end
+    -- Defense
+    statText, tooltip1, tooltip2 = GW.stats.getDefense()
+    grid, x, y, numShownStats = setStatFrame("DEFENSE", numShownStats, statText, tooltip1, tooltip2, grid, x, y)
 
     --damage
     statText, tooltip1, tooltip2 = GW.stats.getDamage()
@@ -317,14 +353,14 @@ local function PaperDollUpdateStats()
     end
 
     --durability
-    grid, x, y, numShownStats = setStatFrame("DURABILITY", numShownStats, "DURABILITY", nil, nil, grid, x, y)
+    grid, x, y, numShownStats = setStatFrame("DURABILITY", numShownStats, DURABILITY, nil, nil, grid, x, y)
 end
 GW.PaperDollUpdateStats = PaperDollUpdateStats
 
 local function PaperDollUpdatePetStats()
     local hasUI, isHunterPet = HasPetUI()
     local statText, tooltip1, tooltip2
-    GwHeroPanelMenu.petMenu:SetShown(GW.myClassID == 3 or GW.myClassID == 9)
+    GwHeroPanelMenu.petMenu:SetShown(GW.myClassID == 3 or GW.myClassID == 9 or GW.myClassID == 6)
     if not hasUI then return end
 
     local numShownStats = 1
@@ -343,18 +379,15 @@ local function PaperDollUpdatePetStats()
     GwCharacterWindow:SetAttribute("HasPetUI", hasUI)
     if isHunterPet then
         local happiness = GetPetHappiness()
-        local totalPoints, spent = GetPetTrainingPoints()
         local currXP, nextXP = GetPetExperience()
 
-        GwDressingRoomPet.model.expBar:SetMinMaxValues(min(0, currXP), nextXP)
-        GwDressingRoomPet.model.expBar:SetValue(currXP)
+        GwDressingRoomPet.model.expBar:SetValue(currXP / nextXP)
         GwDressingRoomPet.model.expBar.value:SetText(GW.CommaValue(currXP) .. " / " .. GW.CommaValue(nextXP) .. " - " .. math.floor(currXP / nextXP * 100) .. "%")
         GwDressingRoomPet.classIcon:SetTexCoord(GW.getSprite(petStateSprite, happiness, 1))
-        GwDressingRoomPet.itemLevel:SetText(totalPoints - spent)
         GwDressingRoomPet.characterData:SetText(GetPetLoyalty())
         GwDressingRoomPet.characterData:Show()
-        GwDressingRoomPet.itemLevel:Show()
-        GwDressingRoomPet.itemLevelLabel:Show()
+        GwDressingRoomPet.itemLevel:Hide()
+        GwDressingRoomPet.itemLevelLabel:Hide()
         GwDressingRoomPet.classIcon:Show()
         GwDressingRoomPet.model.expBar:Show()
         GwDressingRoomPet.model:SetPosition(-2,0,-0.5)
@@ -398,6 +431,7 @@ local function PaperDollSetStatIcon(self, stat)
 
     if stat == "DURABILITY" then
         newTexture = "Interface/AddOns/GW2_UI/textures/globe/repair.png"
+        durabilityFrame = self
     elseif STATS_ICONS[stat] then
         self.icon:SetTexCoord(GW.getSprite(statsIconsSprite,STATS_ICONS[stat].x,STATS_ICONS[stat].y))
     end
@@ -447,25 +481,8 @@ local function PaperDollSlotButton_Update(self)
         if self.repairIcon then self.repairIcon:Hide() end
     end
 
-    if GW.settings.SHOW_CHARACTER_ITEM_INFO and self.itemlevel then
-        local itemLink = GetInventoryItemLink("player", slot)
-        if itemLink then
-            local iLvl = C_Item.GetDetailedItemLevelInfo(itemLink)
-            if iLvl then
-                local quality = GetInventoryItemQuality("player", slot)
-                if quality >= Enum.ItemQuality.Common then
-                    local r, g, b = C_Item.GetItemQualityColor(quality)
-                    self.itemlevel:SetTextColor(r or 1, g or 1, b or 1, 1)
-                end
-                self.itemlevel:SetText(iLvl)
-            else
-                self.itemlevel:SetText("")
-            end
-        else
-            self.itemlevel:SetText("")
-        end
-    elseif self.itemlevel then
-        self.itemlevel:SetText("")
+    if self.itemlevel then
+        GW.setItemLevel(self, GetInventoryItemQuality("player", slot), GetInventoryItemLink("player", slot))
     end
 
     if self.IconBorder then
@@ -571,6 +588,8 @@ function GWupdateSkills()
         skillMaxRank, isAbandonable, stepCost, rankCost, minLevel, skillCostType,
         skillDescription = GetSkillLineInfo(skillIndex)
 
+        skillRank = skillRank + numTempPoints
+
         local f = getSkillElement(skillIndex)
         local zebra = skillIndex % 2
 
@@ -597,14 +616,25 @@ function GWupdateSkills()
         if skillMaxRank == 0 then skillMaxRank = 1 end
 
         LastElement = f
+
+        if skillModifier == 0 then
+			f.val:SetText(skillRank .. " / " .. skillMaxRank)
+		else
+			local color = RED_FONT_COLOR_CODE
+			if skillModifier > 0 then
+				color = GREEN_FONT_COLOR_CODE .. "+"
+			end
+            f.val:SetText(skillRank .." (" .. color .. skillModifier .. FONT_COLOR_CODE_CLOSE .. ") /" .. skillMaxRank)
+		end
+
         y = y + height
         f.name:SetText(skillName)
         f.tooltip = skillName
         f.tooltip2 = skillDescription
         f.StatusBar:SetValue(skillRank / skillMaxRank)
-        f.val:SetText(skillRank .. " / " .. skillMaxRank)
         f.isHeader = isHeader
         f.isExpanded = isExpanded
+        f:SetID(skillIndex)
         f.bg:SetVertexColor(1, 1, 1, zebra)
         updateSkillItem(f)
         totlaHeight = totlaHeight + f:GetHeight()
@@ -612,6 +642,7 @@ function GWupdateSkills()
     GwPaperSkills.scroll.slider.thumb:SetHeight((GwPaperSkills.scroll:GetHeight()/totlaHeight) * GwPaperSkills.scroll.slider:GetHeight() )
     GwPaperSkills.scroll.slider:SetMinMaxValues (0,math.max(0,totlaHeight - GwPaperSkills.scroll:GetHeight()))
 end
+GW.GWupdateSkills = GWupdateSkills
 
 local CHARACTER_PANEL_OPEN = ""
 function GwToggleCharacter(tab, onlyShow)
@@ -625,6 +656,8 @@ function GwToggleCharacter(tab, onlyShow)
     CHARACTERFRAME_DEFAULTFRAMES["ReputationFrame"] = GwPaperReputation
     CHARACTERFRAME_DEFAULTFRAMES["SkillFrame"] = GwPaperSkills
     CHARACTERFRAME_DEFAULTFRAMES["PetPaperDollFrame"] = GwPetContainer
+    CHARACTERFRAME_DEFAULTFRAMES["TokenFrame"] = GwCurrencyDetailsFrame
+    CHARACTERFRAME_DEFAULTFRAMES["PvpFrame"] = GwPvpDetailsFrame
 
     if CHARACTERFRAME_DEFAULTFRAMES[tab] ~= nil and CHARACTER_PANEL_OPEN ~= tab  then
         CHARACTER_PANEL_OPEN = tab
@@ -648,6 +681,16 @@ function GwToggleCharacter(tab, onlyShow)
                 GwCharacterWindow:SetAttribute("keytoggle", true)
             end
             GwCharacterWindow:SetAttribute("windowpanelopen", "paperdollpet")
+        elseif tab == "TokenFrame" then
+            if not onlyShow then
+                GwCharacterWindow:SetAttribute("keytoggle", true)
+            end
+            GwCharacterWindow:SetAttribute("windowpanelopen", "currency")
+        elseif tab == "PvpFrame" then
+            if not onlyShow then
+                GwCharacterWindow:SetAttribute("keytoggle", true)
+            end
+            GwCharacterWindow:SetAttribute("windowpanelopen", "pvp")
         else
             -- PaperDollFrame or any other value
             if not onlyShow then
@@ -695,6 +738,8 @@ local function grabDefaultSlots(slot, anchor, parent, size)
 
     slot:GetNormalTexture():SetTexture(nil)
 
+    GW.RegisterCooldown(_G[slot:GetName() .. "Cooldown"])
+
     local high = slot:GetHighlightTexture()
     high:SetAllPoints(slot)
     high:SetTexture("Interface/AddOns/GW2_UI/textures/bag/bagitemborder.png")
@@ -713,7 +758,6 @@ local function grabDefaultSlots(slot, anchor, parent, size)
         slot.itemlevel:SetPoint("BOTTOMLEFT", 1, 2)
         slot.itemlevel:SetTextColor(1, 1, 1)
         slot.itemlevel:SetJustifyH("LEFT")
-        slot.itemlevel:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small, "THINOUTLINE")
     end
 
     slot.IsGW2Hooked = true
@@ -723,9 +767,9 @@ local function LoadPaperDoll()
     CreateFrame("Frame", "GwCharacterWindowContainer", GwCharacterWindow, "GwCharacterWindowContainer")
     CreateFrame("Button", "GwDressingRoom", GwCharacterWindowContainer, "GwDressingRoom")
     CreateFrame("Frame", "GwHeroPanelMenu", GwCharacterWindowContainer, "GwCharacterMenuFilledTemplate")
+    CreateFrame("Frame", "GwPaperHonor", GwCharacterWindowContainer, "GwPaperHonor")
+    CreateFrame("Frame", "GwPaperBattleground", GwCharacterWindowContainer, "GwPaperBattleground")
     CreateFrame("Frame", "GwPaperSkills", GwCharacterWindowContainer, "GwPaperSkills")
-
-    tinsert(UISpecialFrames, "GwCharacterWindow")
 
     --Legacy pet window
     CreateFrame("Frame", "GwPetContainer", GwCharacterWindowContainer, "GwPetContainer")
@@ -826,7 +870,6 @@ local function LoadPaperDoll()
     GwDressingRoom.model:SetRotation(-0.15)
     Model_OnLoad(GwDressingRoom.model, 4, 0, -0.1, CharacterModelFrame_OnMouseUp)
 
-    CharacterFrame:UnregisterAllEvents()
     hooksecurefunc("ToggleCharacter", GwToggleCharacter)
 
     GwDressingRoom.characterName:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
@@ -839,7 +882,20 @@ local function LoadPaperDoll()
 
     PaperDollUpdateStats()
     PaperDollUpdatePetStats()
+    C_Timer.After(1, function()
+        PaperDollUpdateStats()
+        PaperDollUpdatePetStats()
+    end)
 
+    -- setup gearscore
+    UpdateItemLevelAndGearScore()
+
+    GwDressingRoomPet.model.expBar:SetScript("OnEnter", function(self)
+        self.value:Show()
+    end)
+    GwDressingRoomPet.model.expBar:SetScript("OnLeave", function(self)
+        self.value:Hide()
+    end)
 
     GwDressingRoom.stats.advancedChatStatsFrame = CreateFrame("Frame", nil, GwDressingRoom.stats)
     GwDressingRoom.stats.advancedChatStatsFrame:SetPoint("TOPLEFT", GwDressingRoom.stats, "TOPLEFT", 0, -1)
