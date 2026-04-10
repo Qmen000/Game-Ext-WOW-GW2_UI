@@ -92,7 +92,6 @@ local function collectDurability(self)
         self.Value:SetText(NOT_APPLICABLE)
     end
 end
-GW.AddForProfiling("paperdoll_equipment", "collectDurability", collectDurability)
 
 local function PaperDollStats_QueuedUpdate(self)
     self:SetScript("OnUpdate", nil)
