@@ -48,6 +48,19 @@
         </Layers>
     </Frame>
 
+    <Button name="GwCharacterMenuButtonBack" inherits="GwStandardButtonNoOutline" virtual="true">
+        <Layers>
+            <Layer level="OVERLAY" textureSubLevel="8">
+                <Texture parentKey="backarrow" file="Interface\AddOns\GW2_UI\textures\character\backicon.png">
+                    <Size x="32" y="32"></Size>
+                    <Anchors>
+                        <Anchor point="LEFT" relativePoint="LEFT"></Anchor>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+    </Button>
+
     <Button name="GwCharacterMenuBlank" inherits="GwStandardButtonNoOutline" text="Not yet loaded" virtual="true">
         <Scripts>
             <OnLoad>
