@@ -1,5 +1,4 @@
----@class GW2
-local GW = select(2, ...)
+local _, GW = ...
 
 local function UpdateGreetingFrame()
 	local i = 1
@@ -77,7 +76,7 @@ local function handleItemButton(item)
     end
 
     if item.Name then
-        item.Name:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
+        item.Name:SetFont(UNIT_NAME_FONT, 12, "")
     end
 
     if item.CircleBackground then
@@ -98,9 +97,9 @@ local function questQualityColors(frame, text, link)
         handleItemButton(frame)
     end
 
-    local quality = link and select(3, C_Item.GetItemInfo(link))
+    local quality = link and select(3, GetItemInfo(link))
     if quality and quality > 1 then
-        local r, g, b = C_Item.GetItemQualityColor(quality)
+        local r, g, b = GetItemQualityColor(quality)
 
         text:SetTextColor(r, g, b)
         frame.backdrop:SetBackdropBorderColor(r, g, b)
@@ -112,7 +111,7 @@ end
 
 
 local function LoadQuestLogFrameSkin()
-    if not GW.settings.QUESTLOG_SKIN_ENABLED then return end
+    if not GW.GetSetting("QUESTLOG_SKIN_ENABLED") then return end
 
     local QuestStrip = {
 		EmptyQuestLogFrame,
@@ -131,7 +130,6 @@ local function LoadQuestLogFrameSkin()
 		QuestLogQuestCount,
 		QuestProgressScrollFrame,
 		QuestRewardScrollChildFrame,
-		QuestRewardScrollFrame,
 		QuestRewardScrollFrame
 	}
 	for _, object in pairs(QuestStrip) do
@@ -147,13 +145,13 @@ local function LoadQuestLogFrameSkin()
 		QuestFrameGoodbyeButton,
 		QuestFrameGreetingGoodbyeButton,
 		QuestFramePushQuestButton,
-		QuestLogFrameAbandonButton
+		QuestLogFrameAbandonButton,
+		QuestLogFrameTrackButton,
+		QuestLogFrameCancelButton
 	}
 	for _, button in pairs(QuestButtons) do
-		if button then
-			button:GwStripTextures()
-			button:GwSkinButton(false, true)
-		end
+		button:GwStripTextures()
+		button:GwSkinButton(false, true)
 	end
 
     local ScrollBars = {
@@ -161,7 +159,6 @@ local function LoadQuestLogFrameSkin()
 		QuestGreetingScrollFrameScrollBar,
 		QuestLogDetailScrollFrameScrollBar,
 		QuestLogListScrollFrameScrollBar,
-		QuestProgressScrollFrameScrollBar,
 		QuestRewardScrollFrameScrollBar
 	}
 	for _, object in pairs(ScrollBars) do
@@ -173,7 +170,6 @@ local function LoadQuestLogFrameSkin()
 		QuestGreetingScrollFrame,
 		QuestLogDetailScrollFrame,
 		QuestLogListScrollFrame,
-		QuestProgressScrollFrame,
 		QuestRewardScrollFrame
 	}
 	for _, object in pairs(ScrollBars) do
@@ -245,7 +241,7 @@ local function LoadQuestLogFrameSkin()
 			end
 		end
 
-        if not GW.settings.QUESTVIEW_ENABLED then
+        if not GW.GetSetting("QUESTVIEW_ENABLED") then
             for i = 1, MAX_REQUIRED_ITEMS do
                 local item = _G['QuestProgressItem'..i]
                 local name = _G['QuestProgressItem'..i..'Name']
@@ -257,55 +253,26 @@ local function LoadQuestLogFrameSkin()
 
 	end)
 
-	do
-		local function UpdateCollapseTexture(button, texture, skip)
-			if skip or not texture then return end
+    hooksecurefunc('QuestLog_Update', function()
+		if not QuestLogFrame:IsShown() then return end
+		local numEntries = GetNumQuestLogEntries()
+		local scrollOffset = HybridScrollFrame_GetOffset(QuestLogListScrollFrame)
+		local buttons = QuestLogListScrollFrame.buttons
 
-			if type(texture) == 'number' then
-				if texture == 130838 then -- Interface\Buttons\UI-PlusButton-UP
-					button:SetNormalTexture("Interface/AddOns/GW2_UI/Textures/uistuff/arrow_right.png", true)
-				elseif texture == 130821 then -- Interface\Buttons\UI-MinusButton-UP
-					button:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down.png", true)
+		for i = 1, 22 do
+			local questIndex = i + scrollOffset
+			if questIndex <= numEntries then
+				local _, _, _, isHeader, isCollapsed = GetQuestLogTitle(questIndex)
+				if isHeader then
+					if isCollapsed then
+						buttons[i]:SetNormalTexture("Interface/AddOns/GW2_UI/Textures/uistuff/arrow_right")
+					else
+						buttons[i]:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down")
+					end
 				end
-			elseif strfind(texture, 'Plus') or strfind(texture, 'Closed') then
-				button:SetNormalTexture("Interface/AddOns/GW2_UI/Textures/uistuff/arrow_right.png", true)
-			elseif strfind(texture, 'Minus') or strfind(texture, 'Open') then
-				button:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down.png", true)
 			end
 		end
-		GW.UpdateCollapseTexture = UpdateCollapseTexture
-
-		local lastIndex = 1
-		hooksecurefunc('QuestLog_Update', function()
-			if not QuestLogFrame:IsShown() then return end
-
-			local numDisplayed = QUESTS_DISPLAYED
-			if lastIndex < numDisplayed then
-				for i = lastIndex, numDisplayed do
-					local title = _G['QuestLogTitle'..i]
-					if not title then break end
-
-					if not title.collapsedSkined then
-						title.collapsedSkined = true
-						hooksecurefunc(title, 'SetNormalTexture', UpdateCollapseTexture)
-						UpdateCollapseTexture(title, title:GetNormalTexture():GetTexture())
-					end
-
-					local normal = title:GetNormalTexture()
-					if normal then
-						normal:SetSize(16, 16)
-					end
-
-					local highlight = _G[title:GetName()..'Highlight']
-					if highlight then
-						highlight:SetAlpha(0)
-					end
-				end
-
-				lastIndex = numDisplayed
-			end
-		end)
-	end
+	end)
 
     hooksecurefunc('QuestLog_UpdateQuestDetails', function()
 		local requiredMoney = GetQuestLogRequiredMoney()
@@ -316,6 +283,11 @@ local function LoadQuestLogFrameSkin()
 				QuestInfoRequiredMoneyText:SetTextColor(1, 0.80, 0.10)
 			end
 		end
+	end)
+
+	hooksecurefunc('QuestLogUpdateQuestCount', function()
+		QuestLogCount:ClearAllPoints()
+		QuestLogCount:SetPoint('BOTTOMLEFT', QuestLogListScrollFrame.backdrop, 'TOPLEFT', 0, 5)
 	end)
 
     local textR, textG, textB = 1, 1, 1
@@ -398,7 +370,9 @@ local function LoadQuestLogFrameSkin()
 		QuestInfoRewardsFrame.ItemChooseText:SetTextColor(textR, textG, textB)
 		QuestInfoRewardsFrame.ItemReceiveText:SetTextColor(textR, textG, textB)
 		QuestInfoRewardsFrame.XPFrame.ReceiveText:SetTextColor(textR, textG, textB)
-		QuestInfoRewardsFrame.PlayerTitleText:SetTextColor(textR, textG, textB)
+		QuestInfoRewardsFrameHonorReceiveText:SetTextColor(textR, textG, textB)
+		QuestInfoRewardsFrameReceiveText:SetTextColor(textR, textG, textB)
+
 		QuestInfoRewardsFrame.spellHeaderPool.textR, QuestInfoRewardsFrame.spellHeaderPool.textG, QuestInfoRewardsFrame.spellHeaderPool.textB = textR, textG, textB
 
 		for spellHeader, _ in QuestInfoFrame.rewardsFrame.spellHeaderPool:EnumerateActive() do
@@ -436,37 +410,35 @@ local function LoadQuestLogFrameSkin()
     QuestFrameGreetingPanel:HookScript('OnUpdate', UpdateGreetingFrame)
 	hooksecurefunc('QuestFrameGreetingPanel_OnShow', UpdateGreetingFrame)
 
-	GW.CreateFrameHeaderWithBody(QuestLogFrame, QuestLogTitleText:GetText(), "Interface/AddOns/GW2_UI/textures/character/questlog-window-icon.png", {QuestLogListScrollFrame, QuestLogDetailScrollFrame}, nil, nil, true)
-	QuestLogListScrollFrame:GwCreateBackdrop(GW.BackdropTemplates.OnlyBorder, true, 2, 2)
-    QuestLogDetailScrollFrame:GwCreateBackdrop(GW.BackdropTemplates.OnlyBorder, true, 2, 4)
+    QuestFramePushQuestButton:ClearAllPoints()
+	QuestFramePushQuestButton:SetPoint('LEFT', QuestLogFrameAbandonButton, 'RIGHT', 1, 0)
+	QuestFramePushQuestButton:SetPoint('RIGHT', QuestLogFrameTrackButton, 'LEFT', -1, 0)
 
-	--local detailBg = QuestLogFrame:CreateTexture(nil, "BACKGROUND", nil, 6)
-	--detailBg:SetPoint("TOPLEFT", QuestLogFrame, "TOPLEFT", 19, -75)
-	--detailBg:SetPoint("BOTTOMRIGHT", QuestLogTitle6, "BOTTOMRIGHT", 19, -5)
-	--detailBg:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-questlog-background.png")
-	--detailBg:SetTexCoord(0, 0.70703125, 0, 0.580078125)
-
-	QuestLogTitleText:Hide()
+	GW.CreateFrameHeaderWithBody(QuestLogFrame, QuestLogTitleText:GetText(), "Interface/AddOns/GW2_UI/textures/character/questlog-window-icon", {QuestLogListScrollFrame, QuestLogDetailScrollFrame}, 10)
+	QuestLogListScrollFrame:GwCreateBackdrop(GW.skins.constBackdropFrameBorder, true, 2, 2)
+    QuestLogDetailScrollFrame:GwCreateBackdrop(GW.skins.constBackdropFrameBorder, true, 2, 4)
+	QuestLogFrameCancelButton:SetPoint('BOTTOMRIGHT', QuestLogFrame, 'BOTTOMRIGHT', -25, 12)
 
 	QuestLogFrameCloseButton:SetPoint("TOPRIGHT", QuestLogFrame, "TOPRIGHT", -5, -3)
     QuestLogFrameCloseButton:GwSkinButton(true)
     QuestLogFrameCloseButton:SetSize(20, 20)
 
+    QuestLogDetailFrameCloseButton:GwSkinButton(true)
+    QuestLogDetailFrameCloseButton:SetSize(20, 20)
+
 	QuestGreetingFrameHorizontalBreak:GwKill()
 
 	QuestLogListScrollFrame:SetWidth(303)
-	QuestLogFrameAbandonButton:SetWidth(123)
-	QuestLogDetailScrollFrame:SetSize(335, 300)
-
-	QuestLogFrameAbandonButton:ClearAllPoints()
-	QuestFramePushQuestButton:ClearAllPoints()
-	QuestLogFrameAbandonButton:SetPoint("BOTTOMLEFT", QuestLogFrame, "BOTTOMLEFT", 20, 8)
-	QuestFramePushQuestButton:SetPoint("LEFT", QuestLogFrameAbandonButton, "RIGHT", 5, 0)
+	QuestLogDetailScrollFrame:SetWidth(303)
+	QuestLogFrameAbandonButton:SetWidth(129)
 
 	QuestLogHighlightFrame:SetWidth(303)
 	QuestLogHighlightFrame.SetWidth = GW.NoOp
 
 	QuestLogSkillHighlight:SetAlpha(0.35)
+
+    QuestLogCount:GwStripTextures()
+    QuestLogCount:GwCreateBackdrop(GW.skins.constBackdropFrameSmallerBorde, true)
 
     --- mover
     QuestLogFrame:EnableMouse(true)
@@ -480,13 +452,13 @@ local function LoadQuestLogFrameSkin()
         self:StopMovingOrSizing()
     end)
 
-    QuestFrameNpcNameText:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.BigHeader, "OUTLINE")
+    QuestFrameNpcNameText:SetFont(DAMAGE_TEXT_FONT, 20, "OUTLINE")
     QuestFrame:GwStripTextures()
     QuestFrame:GwCreateBackdrop()
-    QuestFrame.tex = QuestFrame:CreateTexture(nil, "BACKGROUND", nil, 0)
+    QuestFrame.tex = QuestFrame:CreateTexture("bg", "BACKGROUND", nil, 0)
     QuestFrame.tex:SetPoint("TOP", QuestFrame, "TOP", 0, 20)
     QuestFrame.tex:SetSize(QuestFrame:GetSize())
-    QuestFrame.tex:SetTexture("Interface/AddOns/GW2_UI/textures/party/manage-group-bg.png")
+    QuestFrame.tex:SetTexture("Interface/AddOns/GW2_UI/textures/party/manage-group-bg")
 
     QuestFrameCloseButton:GwSkinButton(true)
     QuestFrameCloseButton:SetSize(20, 20)
@@ -520,26 +492,12 @@ local function LoadQuestLogFrameSkin()
     QuestFrameCompleteQuestButton:GwSkinButton(false, true)
 
     QuestNPCModelTextFrame:GwStripTextures()
-    local w, h = QuestNPCModelTextFrame:GetSize()
+    w, h = QuestNPCModelTextFrame:GetSize()
     QuestNPCModelTextFrame:GwStripTextures()
-    QuestNPCModelTextFrame.tex = QuestNPCModelTextFrame:CreateTexture(nil, "BACKGROUND", nil, 0)
+    QuestNPCModelTextFrame.tex = QuestNPCModelTextFrame:CreateTexture("bg", "BACKGROUND", nil, 0)
     QuestNPCModelTextFrame.tex:SetPoint("TOP", QuestNPCModelTextFrame, "TOP", 0, 20)
     QuestNPCModelTextFrame.tex:SetSize(w + 30, h + 60)
-    QuestNPCModelTextFrame.tex:SetTexture("Interface/AddOns/GW2_UI/textures/party/manage-group-bg.png")
-
-	hooksecurefunc(QuestLogCollapseAllButton, 'SetNormalTexture', GW.UpdateCollapseTexture)
-	GW.UpdateCollapseTexture(QuestLogCollapseAllButton, QuestLogCollapseAllButton:GetNormalTexture():GetTexture())
-
-	QuestLogCollapseAllButton:GwStripTextures()
-	QuestLogCollapseAllButton:SetPoint('TOPLEFT', -45, 7)
-	QuestLogCollapseAllButton:GetNormalTexture():SetSize(16, 16)
-	QuestLogCollapseAllButton:ClearHighlightTexture()
-
-	QuestLogCount:GwStripTextures()
-    QuestLogCount:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true)
-	QuestLogQuestCount:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.Enum.TextSizeType.Small)
-	QuestLogQuestCount:SetTextColor(1, 1, 1)
-	QuestLogCount.backdrop:SetFrameLevel(QuestLogFrame:GetFrameLevel() + 1)
+    QuestNPCModelTextFrame.tex:SetTexture("Interface/AddOns/GW2_UI/textures/party/manage-group-bg")
 
 end
 GW.LoadQuestLogFrameSkin = LoadQuestLogFrameSkin
