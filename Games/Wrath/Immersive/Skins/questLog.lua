@@ -144,7 +144,6 @@ local function LoadQuestLogFrameSkin()
 		QuestFrameCompleteButton,
 		QuestFrameCompleteQuestButton,
 		QuestFrameDeclineButton,
-		QuestFrameExitButton,
 		QuestFrameGoodbyeButton,
 		QuestFrameGreetingGoodbyeButton,
 		QuestFramePushQuestButton,
@@ -461,10 +460,8 @@ local function LoadQuestLogFrameSkin()
 
 	QuestLogFrameAbandonButton:ClearAllPoints()
 	QuestFramePushQuestButton:ClearAllPoints()
-	QuestFrameExitButton:ClearAllPoints()
 	QuestLogFrameAbandonButton:SetPoint("BOTTOMLEFT", QuestLogFrame, "BOTTOMLEFT", 20, 8)
 	QuestFramePushQuestButton:SetPoint("LEFT", QuestLogFrameAbandonButton, "RIGHT", 5, 0)
-	QuestFrameExitButton:SetPoint("LEFT", QuestFramePushQuestButton, "RIGHT", 5, 0)
 
 	QuestLogHighlightFrame:SetWidth(303)
 	QuestLogHighlightFrame.SetWidth = GW.NoOp
