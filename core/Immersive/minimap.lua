@@ -311,13 +311,19 @@ end
 
 local function Minimap_OnMouseDown(self, btn)
     if btn == "RightButton" then
-        self.gwTrackingButton:OpenMenu()
+        local button = (GW.Retail and MinimapCluster.Tracking.Button) or MiniMapTrackingButton
+        if button then
+            button:OpenMenu()
+        end
     end
 end
 
 local function MapCanvas_OnMouseDown(self, btn)
     if btn == "RightButton" then
-        self.gwTrackingButton:OpenMenu()
+        local button = (GW.Retail and MinimapCluster.Tracking.Button) or MiniMapTrackingButton
+        if button then
+            button:OpenMenu()
+        end
     end
 end
 
@@ -669,12 +675,12 @@ function GW.LoadMinimap()
     clickHandler:SetScript("OnMouseDown", Minimap_OnMouseDown)
 
     -- Minimap Tracking Button
-    clickHandler.gwTrackingButton = CreateFrame("DropdownButton")
-    clickHandler.gwTrackingButton:SetFrameStrata("BACKGROUND")
-    Mixin(clickHandler.gwTrackingButton, (GW.Retail or GW.Wrath) and MiniMapTrackingButtonMixin or MinimapTrackingDropdownMixin)
-    clickHandler.gwTrackingButton:OnLoad()
-    clickHandler.gwTrackingButton:SetScript("OnEvent", clickHandler.gwTrackingButton.OnEvent)
-    clickHandler.gwTrackingButton:SetAllPoints(Minimap)
+    --clickHandler.gwTrackingButton = CreateFrame("DropdownButton")
+    --clickHandler.gwTrackingButton:SetFrameStrata("BACKGROUND")
+    --Mixin(clickHandler.gwTrackingButton, GW.Retail and MiniMapTrackingButtonMixin or MinimapTrackingDropdownMixin)
+    --clickHandler.gwTrackingButton:OnLoad()
+    --clickHandler.gwTrackingButton:SetScript("OnEvent", clickHandler.gwTrackingButton.OnEvent)
+    --clickHandler.gwTrackingButton:SetAllPoints(Minimap)
 
     Minimap:HookScript("OnEnter", hoverMiniMapIn)
     Minimap:HookScript("OnLeave", hoverMiniMapOut)
