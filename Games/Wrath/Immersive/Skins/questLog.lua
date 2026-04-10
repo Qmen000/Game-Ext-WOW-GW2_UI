@@ -441,11 +441,11 @@ local function LoadQuestLogFrameSkin()
 	QuestLogListScrollFrame:GwCreateBackdrop(GW.BackdropTemplates.OnlyBorder, true, 2, 2)
     QuestLogDetailScrollFrame:GwCreateBackdrop(GW.BackdropTemplates.OnlyBorder, true, 2, 4)
 
-	local detailBg = QuestLogFrame:CreateTexture(nil, "BACKGROUND", nil, 6)
-	detailBg:SetPoint("TOPLEFT", QuestLogFrame, "TOPLEFT", 19, -75)
-	detailBg:SetPoint("BOTTOMRIGHT", QuestLogTitle6, "BOTTOMRIGHT", 19, -5)
-	detailBg:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-questlog-background.png")
-	detailBg:SetTexCoord(0, 0.70703125, 0, 0.580078125)
+	--local detailBg = QuestLogFrame:CreateTexture(nil, "BACKGROUND", nil, 6)
+	--detailBg:SetPoint("TOPLEFT", QuestLogFrame, "TOPLEFT", 19, -75)
+	--detailBg:SetPoint("BOTTOMRIGHT", QuestLogTitle6, "BOTTOMRIGHT", 19, -5)
+	--detailBg:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-questlog-background.png")
+	--detailBg:SetTexCoord(0, 0.70703125, 0, 0.580078125)
 
 	QuestLogTitleText:Hide()
 

@@ -413,7 +413,7 @@ local function evAddonLoaded(self, loadedAddonName)
         GW.LoadCalendarSkin()
     end
 
-    if not (GW.Classic or GW.TBC) then
+    if not (GW.Classic or GW.TBC or GW.Wrath) then
         GW.LoadSocketUISkin()
         GW.LoadInspectFrameSkin()
     end
