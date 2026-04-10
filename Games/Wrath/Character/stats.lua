@@ -70,7 +70,7 @@ local function getPrimary(i, unit)
     -- Get class specific tooltip for that stat
     local _, classFileName = UnitClass(unit)
     local classStatText
-    
+
     if classFileName then
         classStatText = _G[strupper(classFileName) .. "_" .. PRIMARY_STATS[i] .. "_" .. "TOOLTIP"]
     end
@@ -227,6 +227,12 @@ local function getDamage(unit, prefix)
 
     local colorPos = "|cff20ff20"
     local colorNeg = "|cffff2020"
+
+    	-- epsilon check
+	if ( totalBonus < 0.1 and totalBonus > -0.1 ) then
+		totalBonus = 0.0;
+	end
+
     if totalBonus == 0 then
         if displayMin < 100 and displayMax < 100 then
             stat = displayMin .. " - " .. displayMax
@@ -378,9 +384,9 @@ local function getRating(ratingIndex)
     local tooltip, tooltip2 = HIGHLIGHT_FONT_COLOR_CODE .. statName .. " " .. rating .. FONT_COLOR_CODE_CLOSE, nil
     -- Can probably axe this if else tree if all rating tooltips follow the same format
     if ( ratingIndex == CR_HIT_MELEE ) then
-        tooltip2 = format(CR_HIT_MELEE_TOOLTIP, UnitLevel("player"), ratingBonus, GetArmorPenetration());
+        tooltip2 = format(CR_HIT_MELEE_TOOLTIP, UnitLevel("player"), ratingBonus, GetCombatRating(CR_ARMOR_PENETRATION), GetArmorPenetration());
     elseif ( ratingIndex == CR_HIT_RANGED ) then
-        tooltip2 = format(CR_HIT_RANGED_TOOLTIP, UnitLevel("player"), ratingBonus, GetArmorPenetration());
+        tooltip2 = format(CR_HIT_RANGED_TOOLTIP, UnitLevel("player"), ratingBonus, GetCombatRating(CR_ARMOR_PENETRATION), GetArmorPenetration());
     elseif ( ratingIndex == CR_DODGE ) then
         tooltip2 = format(CR_DODGE_TOOLTIP, ratingBonus);
     elseif ( ratingIndex == CR_PARRY ) then
@@ -594,8 +600,8 @@ local function getRangedDamage(unit, prefix)
         end
     end
 
-    local tooltip2 = ATTACK_SPEED_COLON .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", rangedAttackSpeed) .. FONT_COLOR_CODE_CLOSE .. "\n"
-    tooltip2 = tooltip2 .. DAMAGE_COLON .. HIGHLIGHT_FONT_COLOR_CODE .. tooltip .. FONT_COLOR_CODE_CLOSE .. "\n"
+    local tooltip2 = ATTACK_SPEED_SECONDS .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.2F", rangedAttackSpeed) .. FONT_COLOR_CODE_CLOSE .. "\n"
+    tooltip2 = tooltip2 .. DAMAGE .. HIGHLIGHT_FONT_COLOR_CODE .. tooltip .. FONT_COLOR_CODE_CLOSE .. "\n"
     tooltip2 = tooltip2 .. DAMAGE_PER_SECOND .. HIGHLIGHT_FONT_COLOR_CODE .. format("%.1F", damagePerSecond) .. FONT_COLOR_CODE_CLOSE .. "\n"
     tooltip = HIGHLIGHT_FONT_COLOR_CODE .. INVTYPE_RANGED..FONT_COLOR_CODE_CLOSE
     return stat, tooltip, tooltip2
