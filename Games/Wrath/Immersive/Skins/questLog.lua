@@ -415,8 +415,8 @@ local function LoadQuestLogFrameSkin()
 	QuestFramePushQuestButton:SetPoint('RIGHT', QuestLogFrameTrackButton, 'LEFT', -1, 0)
 
 	GW.CreateFrameHeaderWithBody(QuestLogFrame, QuestLogTitleText:GetText(), "Interface/AddOns/GW2_UI/textures/character/questlog-window-icon", {QuestLogListScrollFrame, QuestLogDetailScrollFrame}, 10)
-	QuestLogListScrollFrame:GwCreateBackdrop(GW.skins.constBackdropFrameBorder, true, 2, 2)
-    QuestLogDetailScrollFrame:GwCreateBackdrop(GW.skins.constBackdropFrameBorder, true, 2, 4)
+	QuestLogListScrollFrame:GwCreateBackdrop(GW.BackdropTemplates.OnlyBorder, true, 2, 2)
+    QuestLogDetailScrollFrame:GwCreateBackdrop(GW.BackdropTemplates.OnlyBorder, true, 2, 4)
 	QuestLogFrameCancelButton:SetPoint('BOTTOMRIGHT', QuestLogFrame, 'BOTTOMRIGHT', -25, 12)
 
 	QuestLogFrameCloseButton:SetPoint("TOPRIGHT", QuestLogFrame, "TOPRIGHT", -5, -3)
@@ -438,7 +438,7 @@ local function LoadQuestLogFrameSkin()
 	QuestLogSkillHighlight:SetAlpha(0.35)
 
     QuestLogCount:GwStripTextures()
-    QuestLogCount:GwCreateBackdrop(GW.skins.constBackdropFrameSmallerBorde, true)
+    QuestLogCount:GwCreateBackdrop(GW.BackdropTemplates.OnlyBorder, true)
 
     --- mover
     QuestLogFrame:EnableMouse(true)
