@@ -88,24 +88,30 @@
                     <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT"></Anchor>
                 </Anchors>
             </Button>
-            <Button name="$parentHonor" parentKey="honorMenu" inherits="GwHeroPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="PVP">
+            <Button name="$parentTitle" parentKey="titleMenu" inherits="GwHeroPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="PAPERDOLL_SIDEBAR_TITLES" >
                 <Size x="231" y="36"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeKey="$parent.skillsMenu" relativePoint="BOTTOMLEFT"></Anchor>
                 </Anchors>
             </Button>
-            <Button name="$parentPet" parentKey="petMenu" inherits="GwHeroPanelMenuButtonTemplate,SecureHandlerClickTemplate,SecureHandlerStateTemplate" text="PET">
+            <Button name="$parentGear" parentKey="gearMenu" inherits="GwHeroPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="EQUIPMENT_MANAGER" >
                 <Size x="231" y="36"></Size>
                 <Anchors>
-                    <Anchor point="TOPLEFT" relativeKey="$parent.honorMenu" relativePoint="BOTTOMLEFT"></Anchor>
+                    <Anchor point="TOPLEFT" relativeKey="$parent.titleMenu" relativePoint="BOTTOMLEFT"></Anchor>
+                </Anchors>
+            </Button>
+            <Button name="$parentPet" parentKey="petMenu" inherits="GwHeroPanelMenuButtonTemplate,SecureHandlerClickTemplate,SecureHandlerStateTemplate" text="PET" >
+                <Size x="231" y="36"></Size>
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeKey="$parent.gearMenu" relativePoint="BOTTOMLEFT"></Anchor>
                 </Anchors>
             </Button>
         </Frames>
         <Scripts>
             <OnLoad>
                 self.skillsMenu:SetText(SKILLS)
-                self.honorMenu:SetText(PVP)
                 self.petMenu:SetText(PET)
+                self.gearMenu:SetText(EQUIPMENT_MANAGER)
             </OnLoad>
         </Scripts>
     </Frame>
