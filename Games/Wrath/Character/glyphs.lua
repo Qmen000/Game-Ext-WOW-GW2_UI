@@ -31,7 +31,7 @@ local function GlyphFrameGlyph_UpdateSlot_Hook(self)
         frame.GwEquiped:Show()
         frame.GwGlyph:Show()
 
-        frame.GwGlyph:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\glyphs\\" .. (iconFilename and iconFilename or "237636")) -- as fallback: sometimes we do not have an id
+        frame.GwGlyph:SetTexture("Interface/AddOns/GW2_UI/textures/character/glyphs/" .. (iconFilename and iconFilename or "237636") .. ".png") -- as fallback: sometimes we do not have an id
 	end
 end
 
@@ -51,7 +51,7 @@ local function loadGlyphSlot(self)
 end
 
 local function overrideBlizzardStyle(self)
-    self.setting:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\glyphbgmajor")
+    self.setting:SetTexture("Interface/AddOns/GW2_UI/textures/character/glyphbgmajor.png")
     self.setting:SetTexCoord(0, 1, 0, 1)
     self.background:Hide()
     self.shine:Hide()
@@ -169,7 +169,7 @@ local function loadGlyphList(self)
         slot:SetAttribute("type1", "macro")
         slot:SetAttribute("type2", "macro")
 
-        slot.hover:SetTexture('Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover')
+        slot.hover:SetTexture('Interface/AddOns/GW2_UI/textures/character/menu-hover.png')
         slot:ClearNormalTexture()
         slot:SetText("")
     end
@@ -192,7 +192,7 @@ local function GlyphFrameOnUpdateTimer()
             _G["GwGlyphesContainerGlyph" .. i].selectable:Show()
             GW.FrameFlash(_G["GwGlyphesContainerGlyph" .. i].selectable, 1, 0.4, 1, true)
             GW.FrameFlash(_G["GwGlyphesContainerGlyph" .. i].GwUnlocked, 1, 0.4, 1, true)
-            GW.FrameFlash(_G["GwGlyphesContainerGlyph" .. i].GwEquiped, 1, 0.4, 1, true) 
+            GW.FrameFlash(_G["GwGlyphesContainerGlyph" .. i].GwEquiped, 1, 0.4, 1, true)
         else
             _G["GwGlyphesContainerGlyph" .. i].selectable:Hide()
             GW.StopFlash(_G["GwGlyphesContainerGlyph" .. i].selectable)
