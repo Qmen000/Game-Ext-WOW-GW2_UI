@@ -898,7 +898,7 @@ local function evPlayerLogin(self)
         GW.SetupSingingSockets()
     end
 
-    if GW.Retail or GW.TBC then
+    if GW.Retail or GW.TBC or GW.Wrath then
         GW.HandleBlizzardEditMode()
     end
 end
