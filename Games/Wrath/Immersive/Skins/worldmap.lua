@@ -12,7 +12,17 @@ local function GetScaleDistance()
     return sqrt(x * x + y * y)
 end
 
-local function worldMapSkin()
+local function HandleDropdownHeaderText(dropdown)
+    for idx, c in pairs({dropdown:GetRegions()}) do
+        if idx > 3 and c:GetObjectType() == "FontString" then
+            c:SetPoint("TOPLEFT", 5, 9)
+            c:SetTextColor(1, 1, 1)
+            break
+        end
+    end
+end
+
+local function LoadWorldMapSkin()
     if not GW.settings.WORLDMAP_SKIN_ENABLED then return end
     WorldMapFrame:GwStripTextures()
     WorldMapFrame.BlackoutFrame:GwKill()
@@ -33,33 +43,34 @@ local function worldMapSkin()
     WorldMapFrame.BorderFrame:GwStripTextures()
     WorldMapFrame.MiniBorderFrame:GwStripTextures()
 
-    WorldMapFrame.BorderFrame:GwCreateBackdrop(GW.BackdropTemplates.Defaulte, true)
+    -- for questie
+    WorldMapFrame.BorderFrame.headerText = WorldMapFrame.BorderFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    WorldMapFrame.BorderFrame.headerText:SetAlpha(0)
+
+    WorldMapFrame.BorderFrame:GwCreateBackdrop(GW.BackdropTemplates.Default, true)
     WorldMapFrame.MiniBorderFrame:GwCreateBackdrop(GW.BackdropTemplates.Default, true)
+    MiniWorldMapTitle:SetAlpha(0)
 
     WorldMapContinentDropdown:GwHandleDropDownBox()
     WorldMapZoneDropdown:GwHandleDropDownBox()
     WorldMapZoneMinimapDropdown:GwHandleDropDownBox()
+    HandleDropdownHeaderText(WorldMapContinentDropdown)
+    HandleDropdownHeaderText(WorldMapZoneDropdown)
+    HandleDropdownHeaderText(WorldMapZoneMinimapDropdown)
 
-    WorldMapTrackQuest:GwSkinCheckButton()
-    WorldMapQuestShowObjectives:GwSkinCheckButton()
-    WorldMapTrackQuest:SetSize(15, 15)
-    WorldMapQuestShowObjectives:SetSize(15, 15)
-
-    QuestScrollFrame:GwSkinScrollFrame()
-    QuestMapFrame.DetailsFrame.ScrollFrame:GwSkinScrollFrame()
-    QuestScrollFrame.ScrollBar:GwSkinScrollBar()
-    QuestMapFrame.DetailsFrame.ScrollFrame.ScrollBar:GwSkinScrollBar()
-
-    WorldMapContinentDropdown:SetPoint("TOPLEFT", WorldMapFrame, "TOPLEFT", 330, -35)
+    WorldMapZoneMinimapDropdown:ClearAllPoints()
+    WorldMapZoneMinimapDropdown:SetPoint("TOPLEFT", WorldMapFrame, "TOPLEFT", 6, -45)
+    WorldMapZoneMinimapDropdown:SetHeight(25)
+    WorldMapContinentDropdown:ClearAllPoints()
+    WorldMapContinentDropdown:SetPoint("LEFT", WorldMapZoneMinimapDropdown, "RIGHT", 0, 0)
     WorldMapContinentDropdown:SetWidth(205)
-    WorldMapContinentDropdown:SetHeight(33)
-    WorldMapZoneDropdown:SetPoint("LEFT", WorldMapContinentDropdown, "RIGHT", -20, 0)
+    WorldMapContinentDropdown:SetHeight(25)
+    WorldMapZoneDropdown:SetPoint("LEFT", WorldMapContinentDropdown, "RIGHT", 0, 0)
     WorldMapZoneDropdown:SetWidth(205)
-    WorldMapZoneDropdown:SetHeight(33)
+    WorldMapZoneDropdown:SetHeight(25)
 
-    WorldMapZoomOutButton:SetPoint("LEFT", WorldMapZoneDropdown, "RIGHT", 3, 2)
+    WorldMapZoomOutButton:SetPoint("LEFT", WorldMapZoneDropdown, "RIGHT", 3, 1)
     WorldMapZoomOutButton:SetHeight(21)
-
     WorldMapZoomOutButton:GwSkinButton(false, true)
 
     WorldMapFrameCloseButton:GwSkinButton(true)
@@ -243,11 +254,5 @@ local function worldMapSkin()
     end
 
     if Questie_Toggle then Questie_Toggle:GwSkinButton(false, true) end
-end
-
-local function LoadWorldMapSkin()
-    if not GW.settings.WORLDMAP_SKIN_ENABLED then return end
-
-    GW.RegisterLoadHook(worldMapSkin, "Blizzard_WorldMap", WorldMapFrame)
 end
 GW.LoadWorldMapSkin = LoadWorldMapSkin
