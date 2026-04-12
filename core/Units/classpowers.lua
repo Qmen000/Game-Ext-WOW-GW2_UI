@@ -931,7 +931,6 @@ local function powerHoly(self, event, ...)
         return
     elseif event == "UNIT_MAXPOWER" then
         UpdateHolyPowerPoints(self)
-        return
     end
 
     local pType = select(2, ...)
