@@ -1244,7 +1244,7 @@ local function LoadMicroMenu()
         return
     end
 
-    if GW.Retail or GW.TBC then
+    if GW.Retail or GW.TBC or GW.Wrath then
         MicroMenuContainer:GwKillEditMode()
     elseif GW.Classic then
         PERFORMANCEBAR_UPDATE_INTERVAL = 1
