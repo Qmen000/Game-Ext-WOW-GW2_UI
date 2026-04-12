@@ -456,13 +456,30 @@ local function PaperDollSlotButton_Update(self)
         if self.repairIcon then self.repairIcon:Hide() end
     end
 
-    if self.itemlevel then
-        GW.setItemLevel(self, GetInventoryItemQuality("player", slot), GetInventoryItemLink("player", slot))
+    if GW.settings.SHOW_CHARACTER_ITEM_INFO and self.itemlevel then
+        local itemLink = GetInventoryItemLink("player", slot)
+        if itemLink then
+            local iLvl = C_Item.GetDetailedItemLevelInfo(itemLink)
+            if iLvl then
+                local quality = GetInventoryItemQuality("player", slot)
+                if quality >= Enum.ItemQuality.Common then
+                    local r, g, b = C_Item.GetItemQualityColor(quality)
+                    self.itemlevel:SetTextColor(r or 1, g or 1, b or 1, 1)
+                end
+                self.itemlevel:SetText(iLvl)
+            else
+                self.itemlevel:SetText("")
+            end
+        else
+            self.itemlevel:SetText("")
+        end
+    elseif self.itemlevel then
+        self.itemlevel:SetText("")
     end
 
     if self.IconBorder then
         local quality = GetInventoryItemQuality("player", slot)
-        GwSetItemButtonQuality(self, quality)
+        GW.SetItemButtonBorderQuality(self, quality)
     end
 end
 

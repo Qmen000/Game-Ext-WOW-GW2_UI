@@ -7,7 +7,7 @@
         <Button parentKey="item" setAllPoints="true" hidden="true">
             <Layers>
             <Layer level="ARTWORK">
-                <Texture parentKey="zebra" file="Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar">
+                <Texture parentKey="zebra" file="Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar.png">
                 <Size x="32" y="32"/>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativePoint="TOPLEFT"/>
@@ -35,7 +35,7 @@
         </Anchors>
         <Layers>
             <Layer level="ARTWORK">
-                <Texture file="Interface\AddOns\GW2_UI\textures\character\item-selectbg">
+                <Texture file="Interface\AddOns\GW2_UI\textures\character\item-selectbg.png">
                     <Size x="231" y="478"/>
                     <Anchors>
                         <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="-3" y="7"/>
@@ -50,7 +50,7 @@
                     <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT" x="0" y="90"></Anchor>
                 </Anchors>
             </Button>
-        
+
             <ScrollFrame parentKey="TitleScroll" inherits="GwHybridScrollFrameTemplate">
                 <Size x="205" y="433"></Size>
                 <Anchors>
