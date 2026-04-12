@@ -68,6 +68,13 @@
         </Layers>
     </Button>
 
+    <Frame name="GwCharacterMenuTemplate" virtual="true">
+        <Size x="231" y="498"></Size>
+        <Anchors>
+            <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="10" y="-20"></Anchor>
+        </Anchors>
+    </Frame>
+
     <Button name="GwCharacterMenuBlank" inherits="GwStandardButtonNoOutline" text="Not yet loaded" virtual="true">
         <Scripts>
             <OnLoad>

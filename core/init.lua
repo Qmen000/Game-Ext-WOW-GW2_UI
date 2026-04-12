@@ -107,6 +107,7 @@ GW.changelog = {}
 GW.Enum = {}
 GW.Colors = {}
 GW.ObjectiveTrackerContainer = {}
+GW.GridHeaders = {}
 
 -- money
 GW.earnedMoney = 0

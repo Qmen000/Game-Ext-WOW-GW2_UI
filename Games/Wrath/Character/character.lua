@@ -750,6 +750,7 @@ local function grabDefaultSlots(slot, anchor, parent, size)
         slot.itemlevel:SetPoint("BOTTOMLEFT", 1, 2)
         slot.itemlevel:SetTextColor(1, 1, 1)
         slot.itemlevel:SetJustifyH("LEFT")
+        slot.itemlevel:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small, "THINOUTLINE")
     end
 
     slot.IsGW2Hooked = true

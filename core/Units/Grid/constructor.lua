@@ -705,6 +705,8 @@ local function CreateHeader(parent, profile, options, overrideName, groupFilter)
 
     header:SetVisibility("custom " .. options.visibility)
 
+    tinsert(GW.GridHeaders, header)
+
     return header
 end
 
