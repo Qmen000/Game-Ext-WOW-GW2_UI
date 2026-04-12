@@ -1234,7 +1234,7 @@ local function hook_UpdateMicroButtons()
         return
     end
 
-    if GW.Classic or GW.TBC or GW.Wrath then
+    if GW.Classic or GW.TBC then
         local tref
         if GW.settings.USE_TALENT_WINDOW then
             tref = GwTalentMicroButton
@@ -1251,6 +1251,32 @@ local function hook_UpdateMicroButtons()
 
         GuildMicroButton:ClearAllPoints()
         GuildMicroButton:SetPoint("BOTTOMLEFT", QuestLogMicroButton, "BOTTOMRIGHT", 4, 0)
+    elseif GW.Wrath then
+        local tref
+        if GW.settings.USE_TALENT_WINDOW then
+            tref = GwTalentMicroButton
+        elseif TalentMicroButton:IsShown() then
+            tref = TalentMicroButton
+        else
+            tref = GW.settings.USE_SPELLBOOK_WINDOW and GwPlayerSpellsMicroButton or SpellbookMicroButton
+        end
+        QuestLogMicroButton:ClearAllPoints()
+        QuestLogMicroButton:SetPoint("BOTTOMLEFT", AchievementMicroButton, "BOTTOMRIGHT", 4, 0)
+
+        SocialsMicroButton:ClearAllPoints()
+        SocialsMicroButton:SetPoint("BOTTOMLEFT", QuestLogMicroButton, "BOTTOMRIGHT", 4, 0)
+
+        GuildMicroButton:ClearAllPoints()
+        GuildMicroButton:SetPoint("BOTTOMLEFT", QuestLogMicroButton, "BOTTOMRIGHT", 4, 0)
+
+        AchievementMicroButton:ClearAllPoints()
+        AchievementMicroButton:SetPoint("BOTTOMLEFT", tref, "BOTTOMRIGHT", 4, 0)
+
+        CollectionsMicroButton:ClearAllPoints()
+        CollectionsMicroButton:SetPoint("BOTTOMLEFT", GuildMicroButton, "BOTTOMRIGHT", 4, 0)
+
+        PVPMicroButton:ClearAllPoints()
+        PVPMicroButton:SetPoint("BOTTOMLEFT", CollectionsMicroButton, "BOTTOMRIGHT", 4, 0)
     elseif GW.Mists then
         AchievementMicroButton:ClearAllPoints()
         AchievementMicroButton:SetPoint("BOTTOMLEFT", (GwTalentMicroButton or TalentMicroButton), "BOTTOMRIGHT", 4, 0)

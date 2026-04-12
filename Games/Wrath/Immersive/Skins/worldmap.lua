@@ -236,7 +236,7 @@ local function worldMapSkin()
 
     -- player pin
     for pin in WorldMapFrame:EnumeratePinsByTemplate("GroupMembersPinTemplate") do
-        pin:SetPinTexture("player", "Interface/AddOns/GW2_UI/textures/icons/player_arrow")
+        pin:SetPinTexture("player", "Interface/AddOns/GW2_UI/textures/icons/player_arrow.png")
         pin.dataProvider:GetUnitPinSizesTable().player = 34
         pin:SynchronizePinSizes()
         break
