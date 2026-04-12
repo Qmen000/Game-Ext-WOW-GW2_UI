@@ -793,9 +793,9 @@ local function setupMicroButtons(mbf)
                 ]=]
             )
 
-            if GW.Classic or GW.TBC or GW.Wrath then
+            if GW.Classic or GW.TBC then
                 disableMicroButton(TalentMicroButton, true)
-            elseif GW.Mists then
+            elseif GW.Mists or GW.Wrath then
                 TalentMicroButton:ClearAllPoints()
                 TalentMicroButton:SetPoint("BOTTOMLEFT", sref, "BOTTOMRIGHT", 8, 0) -- 8 because blizzard is setting is Achievement Button position back to 0, so we add the space here
                 TalentMicroButton:SetAlpha(0)
@@ -817,7 +817,7 @@ local function setupMicroButtons(mbf)
 
     -- AchievementMicroButton
     local aref
-    if GW.Retail or GW.Mists then
+    if GW.Retail or GW.Mists or GW.Wrath then
         AchievementMicroButton:ClearAllPoints()
         AchievementMicroButton:SetPoint("BOTTOMLEFT", tref, "BOTTOMRIGHT", 4, 0)
         aref = AchievementMicroButton
@@ -934,28 +934,64 @@ local function setupMicroButtons(mbf)
             pref:ClearAllPoints()
             pref:SetPoint("BOTTOMLEFT", CollectionsMicroButton, "BOTTOMRIGHT", 4, 0)
         end
-    elseif GW.Mists then
+    elseif GW.Mists or GW.Wrath then
         -- CollectionsMicroButton
         CollectionsMicroButton:ClearAllPoints()
         CollectionsMicroButton:SetPoint("BOTTOMLEFT", GuildMicroButton, "BOTTOMRIGHT", 4, 0)
 
         -- PVPMicroButton
-        PVPMicroButton:ClearAllPoints()
-        PVPMicroButton:SetPoint("BOTTOMLEFT", CollectionsMicroButton, "BOTTOMRIGHT", 4, 0)
-        PVPMicroButtonTexture:SetAlpha(0)
+        local pvpref
+        if GW.Wrath then
+            if GW.settings.USE_CHARACTER_WINDOW then
+                pvpref = CreateFrame("Button", "GwPvpMicroButton", mbf, "SecureHandlerClickTemplate,MainMenuBarMicroButton")
+                pvpref.tooltipText = MicroButtonTooltipText(PLAYER_V_PLAYER, "TOGGLECHARACTER4")
+                pvpref.newbieText = NEWBIE_TOOLTIP_PVP
+                reskinMicroButton(pvpref, "PvpMicroButton", mbf)
+                pvpref:ClearAllPoints()
+                pvpref:SetPoint("BOTTOMLEFT", CollectionsMicroButton, "BOTTOMRIGHT", 4, 0)
+
+                pvpref:SetFrameRef("GwCharacterWindow", GwCharacterWindow)
+                pvpref:SetAttribute(
+                    "_onclick",
+                    [=[
+                    local f = self:GetFrameRef("GwCharacterWindow")
+                    f:SetAttribute("keytoggle", "1")
+                    f:SetAttribute("windowpanelopen", "pvp")
+                    ]=]
+                )
+
+                --disableMicroButton(PVPMicroButton, true)
+                PVPMicroButton:ClearAllPoints()
+                PVPMicroButton:SetPoint("BOTTOMLEFT", CollectionsMicroButton, "BOTTOMRIGHT", 4, 0)
+                PVPMicroButton:SetAlpha(0)
+                PVPMicroButton:EnableMouse(false)
+            else
+                pvpref = PVPMicroButton
+                pvpref:ClearAllPoints()
+                pvpref:SetPoint("BOTTOMLEFT", CollectionsMicroButton, "BOTTOMRIGHT", 4, 0)
+            end
+        else
+            pvpref = PVPMicroButton
+            pvpref:ClearAllPoints()
+            pvpref:SetPoint("BOTTOMLEFT", CollectionsMicroButton, "BOTTOMRIGHT", 4, 0)
+            PVPMicroButtonTexture:SetAlpha(0)
+        end
 
         -- LFGMicroButton
         LFGMicroButton:ClearAllPoints()
-        LFGMicroButton:SetPoint("BOTTOMLEFT", PVPMicroButton, "BOTTOMRIGHT", 4, 0)
+        LFGMicroButton:SetPoint("BOTTOMLEFT", pvpref, "BOTTOMRIGHT", 4, 0)
 
-        -- EJMicroButton
-        EJMicroButton:ClearAllPoints()
-        EJMicroButton:SetPoint("BOTTOMLEFT", LFGMicroButton, "BOTTOMRIGHT", 4, 0)
+        if GW.Mists then
+            -- EJMicroButton
+            EJMicroButton:ClearAllPoints()
+            EJMicroButton:SetPoint("BOTTOMLEFT", LFGMicroButton, "BOTTOMRIGHT", 4, 0)
 
-        StoreMicroButton:ClearAllPoints()
-        StoreMicroButton:SetPoint("BOTTOMLEFT", EJMicroButton, "BOTTOMRIGHT", 4, 0)
-
-        pref = StoreMicroButton
+            StoreMicroButton:ClearAllPoints()
+            StoreMicroButton:SetPoint("BOTTOMLEFT", EJMicroButton, "BOTTOMRIGHT", 4, 0)
+            pref = StoreMicroButton
+        else
+            pref = LFGMicroButton
+        end
     else
          -- WorldMapMicroButton
         WorldMapMicroButton:ClearAllPoints()
@@ -1031,7 +1067,6 @@ local function setupMicroButtons(mbf)
         end)
     end
 end
-
 
 local function UpdateHelpTicketButtonAnchor()
     local ticket = HelpOpenWebTicketButton
