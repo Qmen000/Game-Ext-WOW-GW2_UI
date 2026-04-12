@@ -479,7 +479,7 @@ local function PaperDollSlotButton_Update(self)
 
     if self.IconBorder then
         local quality = GetInventoryItemQuality("player", slot)
-        GW.SetItemButtonBorderQuality(self, quality)
+        GwSetItemButtonQuality(self, quality)
     end
 end
 

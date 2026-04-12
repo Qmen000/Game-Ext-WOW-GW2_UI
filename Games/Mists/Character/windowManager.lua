@@ -733,7 +733,7 @@ GW.CharacterMenuButtonBack_OnLoad = CharacterMenuButtonBack_OnLoad
 local nextShadow, nextAnchor
 local function addAddonButton(name, setting, shadow, anchor, showFunction, hideOurFrame)
     if C_AddOns.IsAddOnLoaded(name) and (setting == nil or setting == true) then
-        GwHeroPanelMenu[name] = CreateFrame("Button", nil, GwHeroPanelMenu, "SecureHandlerClickTemplate,GwCharacterMenuButtonTemplate")
+        GwHeroPanelMenu[name] = CreateFrame("Button", nil, GwHeroPanelMenu, "SecureHandlerClickTemplate,GwHeroPanelMenuButtonTemplate")
         GwHeroPanelMenu[name]:SetText(select(2, C_AddOns.GetAddOnInfo(name)))
         GwHeroPanelMenu[name]:ClearAllPoints()
         GwHeroPanelMenu[name]:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT")

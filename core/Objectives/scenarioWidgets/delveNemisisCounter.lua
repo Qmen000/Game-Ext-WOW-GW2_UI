@@ -74,9 +74,7 @@ function GW.StopNemesisCounter()
 
     if eventFrame.spellFrame then
         eventFrame.spellFrame.notification.Text:SetText("")
-        if eventFrame.spellFrame.notification.Tick then
-            eventFrame.spellFrame.notification.Tick:Hide()
-        end
+        eventFrame.spellFrame.notification.Tick:Hide()
         eventFrame.spellFrame.notification:Hide()
     end
 

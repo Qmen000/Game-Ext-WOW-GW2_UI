@@ -645,7 +645,7 @@ local function LoadTalents()
     fmMenu.items = {}
     talentContainer.fmMenu = fmMenu
 
-    local item = CreateFrame("Button", nil, fmMenu, "GwCharacterMenuButtonTemplate,SecureActionButtonTemplate")
+    local item = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate,SecureActionButtonTemplate")
     item:SetAttribute("macrotext", "/click PlayerSpecTab1")
     item:SetAttribute("type", "macro")
     PlayerSpecTab1:HookScript("OnClick", function()
@@ -659,7 +659,7 @@ local function LoadTalents()
     item:SetPoint("TOPLEFT", fmMenu, "TOPLEFT")
     fmMenu.items.spec1 = item
 
-    item = CreateFrame("Button", nil, fmMenu, "GwCharacterMenuButtonTemplate,SecureActionButtonTemplate")
+    item = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate,SecureActionButtonTemplate")
     item:SetAttribute("macrotext", "/click PlayerSpecTab2")
     item:SetAttribute("type", "macro")
     PlayerSpecTab2:HookScript("OnClick", function()
@@ -673,7 +673,7 @@ local function LoadTalents()
     item:SetPoint("TOPLEFT", fmMenu.items.spec1, "BOTTOMLEFT")
     fmMenu.items.spec2 = item
 
-    item = CreateFrame("Button", nil, fmMenu, "GwCharacterMenuButtonTemplate,SecureActionButtonTemplate")
+    item = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate,SecureActionButtonTemplate")
     item:SetAttribute("macrotext", "/click PlayerTalentFrameTab4")
     item:SetAttribute("type", "macro")
     PlayerTalentFrameTab4:HookScript("OnClick", function()

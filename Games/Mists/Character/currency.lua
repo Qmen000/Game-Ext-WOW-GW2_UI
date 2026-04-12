@@ -308,7 +308,7 @@ local function LoadCurrency()
     local fmMenu = CreateFrame("Frame", "GWCurrencyMenu", currencyWindow, "GwCharacterMenuTemplate")
     fmMenu.items = {}
 
-    local item = CreateFrame("Button", nil, fmMenu, "GwCharacterMenuButtonTemplate")
+    local item = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate")
     item.ToggleMe = curwin
     item:SetScript("OnClick", menuItem_OnClick)
     item:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
@@ -317,7 +317,7 @@ local function LoadCurrency()
     item:SetPoint("TOPLEFT", fmMenu, "TOPLEFT")
     fmMenu.items.currency = item
 
-    item = CreateFrame("Button", "GwRaidInfoFrame", fmMenu, "GwCharacterMenuButtonTemplate")
+    item = CreateFrame("Button", "GwRaidInfoFrame", fmMenu, "GwHeroPanelMenuButtonTemplate")
     item.ToggleMe = raidinfo
     item:SetScript("OnClick", menuItem_OnClick)
     item:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)

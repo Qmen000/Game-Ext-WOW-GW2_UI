@@ -429,7 +429,7 @@ local function LoadProfessions()
 
     loadOverview(professionWindow)
 
-    fmMenu.overviewMenu = CreateFrame("Button", nil, fmMenu, "GwCharacterMenuButtonTemplate")
+    fmMenu.overviewMenu = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate")
     fmMenu.overviewMenu:SetText(TRADESKILLS)
     fmMenu.overviewMenu:ClearAllPoints()
     fmMenu.overviewMenu:SetPoint("TOPLEFT", fmMenu, "TOPLEFT")
