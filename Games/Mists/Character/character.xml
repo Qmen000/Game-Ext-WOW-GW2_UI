@@ -76,34 +76,6 @@
             </Button>
         </Frames>
     </Frame>
-    <Frame name="GwPaperDollStat" enableMouse="true" virtual="true">
-        <Size x="92" y="30"></Size>
-        <Anchors>
-            <Anchor point="TOPLEFT"></Anchor>
-        </Anchors>
-        <Layers>
-            <Layer level="OVERLAY">
-                <Texture name="$parentIcon" parentKey="icon" file="Interface\AddOns\GW2_UI\textures\character\statsicon.png">
-                    <Size x="35" y="35"></Size>
-                    <Anchors>
-                        <Anchor point="LEFT" relativeTo="$parent" relativePoint="LEFT"></Anchor>
-                    </Anchors>
-                </Texture>
-                <FontString parentKey="Value" text="Not Loaded" justifyV="MIDDLE" justifyH="LEFT">
-                    <Size x="72" y="35"></Size>
-                    <Anchors>
-                        <Anchor point="LEFT" x="35"></Anchor>
-                    </Anchors>
-                </FontString>
-                <FontString parentKey="Label" text="" justifyH="LEFT">
-                    <Size x="72" y="20"></Size>
-                    <Anchors>
-                        <Anchor point="LEFT"></Anchor>
-                    </Anchors>
-                </FontString>
-            </Layer>
-        </Layers>
-    </Frame>
 
     <Frame name="GwCharacterMenuFilledTemplate" inherits="GwCharacterPanelMenuTemplate,SecureHandlerBaseTemplate" hidden="true" virtual="true">
         <Frames>
