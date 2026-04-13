@@ -4,8 +4,6 @@
     <Include file ="reputation.xml"/>
     <Include file ="currency.xml"/>
     <Include file ="title.xml"/>
-    <Include file ="professions.xml"/>
-    <Script file ="specializations.lua"/>
     <Script file ="character.lua"/>
     <Script file ="paperdoll.lua"/>
     <Script file ="paperdoll_equipment.lua"/>

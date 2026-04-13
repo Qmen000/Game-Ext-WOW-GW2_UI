@@ -7,7 +7,6 @@
     <Include file ="titles.xml"/>
     <Include file ="glyphs.xml"/>
     <Include file ="gearSets.xml"/>
-    <Include file ="currency.xml"/>
     <Script file ="stats.lua"/>
     <Script file ="glyphData.lua"/>
     <Script file ="advanced_stats.lua"/>

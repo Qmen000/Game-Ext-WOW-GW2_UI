@@ -1,8 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
     <Include file ="character.xml"/>
-    <Include file ="currency.xml"/>
     <Include file ="glyphs.xml"/>
-    <Include file ="professions.xml"/>
     <Include file ="reputation.xml"/>
     <Include file ="spellbook.xml"/>
     <Include file ="talents.xml"/>

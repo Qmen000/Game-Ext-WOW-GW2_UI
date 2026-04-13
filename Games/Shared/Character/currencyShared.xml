@@ -73,7 +73,7 @@
             <Button parentKey="item" setAllPoints="true" hidden="true">
                 <Layers>
                     <Layer level="ARTWORK">
-                        <Texture parentKey="zebra" file="Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar">
+                        <Texture parentKey="zebra" file="Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar.png">
                             <Size x="32" y="55"></Size>
                             <Anchors>
                                 <Anchor point="TOPLEFT" relativePoint="TOPLEFT"></Anchor>
@@ -108,7 +108,6 @@
                         </FontString>
                     </Layer>
                 </Layers>
-    
             </Button>
         </Frames>
     </Button>
@@ -120,7 +119,7 @@
         </Anchors>
         <Layers>
             <Layer level="ARTWORK">
-                <Texture file="Interface\AddOns\GW2_UI\textures\character\paperdollbg">
+                <Texture file="Interface\AddOns\GW2_UI\textures\character\paperdollbg.png">
                     <Size x="608" y="621"></Size>
                     <Anchors>
                         <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="0" y="0"></Anchor>
