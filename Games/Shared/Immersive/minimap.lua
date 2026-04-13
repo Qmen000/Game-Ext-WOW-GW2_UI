@@ -688,12 +688,10 @@ function GW.LoadMinimap()
     clickHandler:SetScript("OnMouseDown", Minimap_OnMouseDown)
 
     -- Minimap Tracking Button
-    --clickHandler.gwTrackingButton = CreateFrame("DropdownButton")
-    --clickHandler.gwTrackingButton:SetFrameStrata("BACKGROUND")
-    --Mixin(clickHandler.gwTrackingButton, GW.Retail and MiniMapTrackingButtonMixin or MinimapTrackingDropdownMixin)
-    --clickHandler.gwTrackingButton:OnLoad()
-    --clickHandler.gwTrackingButton:SetScript("OnEvent", clickHandler.gwTrackingButton.OnEvent)
-    --clickHandler.gwTrackingButton:SetAllPoints(Minimap)
+    if GW.Retail then
+        MinimapCluster.Tracking.Button:EnableMouse(false)
+        MinimapCluster.Tracking.Button:SetAlpha(0)
+    end
 
     Minimap:HookScript("OnEnter", hoverMiniMapIn)
     Minimap:HookScript("OnLeave", hoverMiniMapOut)
