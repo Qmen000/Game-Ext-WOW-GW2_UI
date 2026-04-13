@@ -145,9 +145,9 @@ local function createStatusbar(name, playerFrame)
 
     fsr:ClearAllPoints()
     if playerFrame then
-        fsr:SetPoint("LEFT", playerFrame.powerbar, "LEFT", 0, -3)
+        fsr:SetPoint("TOPLEFT", playerFrame.powerbar, "BOTTOMLEFT", 0, -2)
     else
-        fsr:SetPoint("TOPLEFT", GwPlayerPowerBar, "TOPLEFT", 0, 2)
+        fsr:SetPoint("TOPLEFT", GwPlayerPowerBar, "BOTTOMLEFT", 0, -2)
     end
     fsr:SetSize(width, 1)
 

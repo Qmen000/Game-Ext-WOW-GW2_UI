@@ -621,7 +621,7 @@ end
 
 local function updateUnitData(self)
     self.characterName:SetText(UnitPVPName("player"))
-    local name = select(2, C_SpecializationInfo.GetSpecializationInfo(GW.myspec, nil, nil, nil, GW.mysex))
+    local name = select(2, C_SpecializationInfo.GetSpecializationInfo(GW.myspec, false, false, false, GW.mysex))
 
     if name ~= nil then
         local data = LEVEL .. " " .. GW.mylevel .. " " .. name .. " " .. GW.myLocalizedClass

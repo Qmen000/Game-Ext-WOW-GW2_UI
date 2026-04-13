@@ -1313,7 +1313,7 @@ local function LoadMicroMenu()
 
     -- create our micro button container frame
     local mbf = CreateFrame("Frame", "Gw2MicroBarFrame", UIParent, "GwMicroButtonFrameTmpl")
-    mbf:SetSize(GW.Retail and 500 or GW.Mists and 370 or 280, 41)
+    mbf:SetSize(GW.Retail and 500 or (GW.Mists or GW.Wrath) and 370 or 280, 41)
     local postDragFunction = function(mbf)
         mbf.cf.bg:SetShown(not mbf.isMoved)
     end
@@ -1335,7 +1335,7 @@ local function LoadMicroMenu()
         ToggleEventTimerIcon(mbf.cf)
     end
 
-    if not GW.Retail and not GW.TBC and not GW.Wrath then
+    if not (GW.Retail or GW.TBC or GW.Wrath) then
         for i = 1, #MICRO_BUTTONS do
             MICRO_BUTTONS[i] = nil
         end

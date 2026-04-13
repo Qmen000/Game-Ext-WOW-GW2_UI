@@ -94,41 +94,46 @@ local function outfitSaveButton_OnClick(self)
     )
 end
 
-
 local function outfitEditButton_OnClick(self)
+    local parentButton = self:GetParent()
+
+    local function GetSetID()
+		return parentButton.setID
+	end
+
+    local function IsSelected(i)
+        return C_EquipmentSet.GetEquipmentSetAssignedSpec(GetSetID()) == i
+    end
+
+    local function SetSelected(i)
+		local currentSpecIndex = C_EquipmentSet.GetEquipmentSetAssignedSpec(GetSetID())
+		if currentSpecIndex ~= i then
+			C_EquipmentSet.AssignSpecToEquipmentSet(GetSetID(), i)
+		else
+			C_EquipmentSet.UnassignEquipmentSetSpec(GetSetID())
+		end
+
+		GearSetButton_UpdateSpecInfo(parentButton)
+		PaperDollEquipmentManagerPane_Update(true)
+	end
+
+
     MenuUtil.CreateContextMenu(self, function(ownerRegion, rootDescription)
         rootDescription:SetMinimumWidth(1)
         rootDescription:CreateButton(EQUIPMENT_SET_EDIT, function()
-            GearSetButton_Edit(self:GetParent())
+            GearSetButton_Edit(parentButton)
         end)
+
         rootDescription:CreateTitle(EQUIPMENT_SET_ASSIGN_TO_SPEC)
 
-        do
-            for i = 1, GetNumSpecializations() do
-                local function IsSelected(id)
-                    return C_EquipmentSet.GetEquipmentSetAssignedSpec(self:GetParent().setID) == id
-                end
-
-                local function SetSelected(id)
-                    local currentSpecIndex = C_EquipmentSet.GetEquipmentSetAssignedSpec(self:GetParent().setID)
-                    if currentSpecIndex ~= id then
-                        C_EquipmentSet.AssignSpecToEquipmentSet(self:GetParent().setID, id)
-                    else
-                        C_EquipmentSet.UnassignEquipmentSetSpec(self:GetParent().setID)
-                    end
-
-                    GearSetButton_UpdateSpecInfo(self:GetParent())
-                    PaperDollEquipmentManagerPane_Update(true)
-                end
-
-                local name = select(2, GetSpecializationInfoByID(C_SpecializationInfo.GetSpecializationInfo(i)))
-                local check = rootDescription:CreateCheckbox(name, IsSelected, SetSelected, i)
-                check:AddInitializer(GW.BlizzardDropdownCheckButtonInitializer)
-            end
+        for i = 1, GetNumSpecializations() do
+            local specID = C_SpecializationInfo.GetSpecializationInfo(i)
+            local text = select(2, GetSpecializationInfoByID(specID))
+            local radio = rootDescription:CreateRadio(text, IsSelected, SetSelected, i)
+            radio:AddInitializer(GW.BlizzardDropdownRadioButtonInitializer)
         end
     end)
 end
-
 
 local function outfitDeleteButton_OnClick(self)
     GW.ShowPopup({text = TRANSMOG_OUTFIT_CONFIRM_DELETE:format(self:GetParent().setName),
