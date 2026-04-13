@@ -95,7 +95,7 @@
                         </Texture>
                     </Layer>
                     <Layer level="ARTWORK">
-                        <Texture name="$parentSpark" file="Interface\AddOns\GW2_UI\textures\uistuff/statusbar-spark-white.png">
+                        <Texture name="$parentSpark" parentKey="spark" file="Interface\AddOns\GW2_UI\textures\uistuff/statusbar-spark-white.png">
                             <Size x="10" y="4"></Size>
                             <Anchors>
                                 <Anchor point="RIGHT" relativePoint="LEFT" x="0" y="0"></Anchor>
@@ -113,8 +113,8 @@
                             local min, max = self:GetMinMaxValues()
                             local v = self:GetValue()
                             local width = math.max(1, math.min(10, 10 * ((v / max) / 0.1)))
-                            _G[BNAME .. "Spark"]:SetPoint("RIGHT", self, "LEFT", self:GetWidth() * (v / max), 0)
-                            _G[BNAME .. "Spark"]:SetWidth(width)
+                            self.spark:SetPoint("RIGHT", self, "LEFT", self:GetWidth() * (v / max), 0)
+                            self.spark:SetWidth(width)
                         end)
                     </OnLoad>
                 </Scripts>
@@ -233,7 +233,7 @@
                                 </Texture>
                             </Layer>
                             <Layer level="ARTWORK">
-                                <Texture name="$parentSpark" file="Interface\AddOns\GW2_UI\textures\uistuff/statusbar-spark-white.png">
+                                <Texture name="$parentSpark" parentKey="spark" file="Interface\AddOns\GW2_UI\textures\uistuff/statusbar-spark-white.png">
                                     <Size x="10" y="10"></Size>
                                     <Anchors>
                                         <Anchor point="RIGHT" relativePoint="LEFT" x="0" y="0"></Anchor>
@@ -259,8 +259,8 @@
                                     local min, max = self:GetMinMaxValues()
                                     local v = self:GetValue()
                                     local width = math.max(1, math.min(10, 10 * ((v / max) / 0.1)))
-                                    _G[BNAME .. "Spark"]:SetPoint("RIGHT", self, "LEFT", self:GetWidth() * (v / max), 0)
-                                    _G[BNAME .. "Spark"]:SetWidth(width)
+                                    self.spark:SetPoint("RIGHT", self, "LEFT", self:GetWidth() * (v / max), 0)
+                                    self.spark:SetWidth(width)
                                 end)
                             </OnLoad>
                         </Scripts>
