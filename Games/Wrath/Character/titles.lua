@@ -46,7 +46,7 @@ local function loadTitle(titlewin)
 end
 
 local function titleSetup(titlewin)
-    HybridScrollFrame_CreateButtons(titlewin, "GwTitleRow", 12, 0, "TOPLEFT", "TOPLEFT", 0, 0, "TOP", "BOTTOM")
+    HybridScrollFrame_CreateButtons(titlewin, "GwTitleButtonTemplate", 12, 0, "TOPLEFT", "TOPLEFT", 0, 0, "TOP", "BOTTOM")
     for i = 1, #titlewin.buttons do
         local slot = titlewin.buttons[i]
         slot:SetWidth(titlewin:GetWidth() - 12)
