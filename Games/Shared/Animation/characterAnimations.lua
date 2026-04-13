@@ -106,9 +106,15 @@ function GW.PlayCharacterTabSwitchPulse(tabFrame)
     end
 
     GW.AddToAnimation(tabFrame:GetDebugName() .. "_TabPulse", 0, 1, GetTime(), TAB_PULSE_DURATION, function(step)
+        if InCombatLockdown() then
+            return
+        end
         local pulse = math.sin(step * math.pi)
         tabFrame:SetScale(1 + (pulse * TAB_PULSE_SCALE))
     end, nil, function()
+        if InCombatLockdown() then
+            return
+        end
         tabFrame:SetScale(1)
     end)
 end
