@@ -389,7 +389,7 @@ local function loadOverview(parent)
         local mask = UIParent:CreateMaskTexture()
         mask:SetPoint("CENTER", fm.icon, "CENTER", 0, 0)
         mask:SetTexture(
-            "Interface\\AddOns\\GW2_UI\\textures\\talents\\passive_border.png",
+            "Interface/AddOns/GW2_UI/textures/talents/passive_border.png",
             "CLAMPTOBLACKADDITIVE",
             "CLAMPTOBLACKADDITIVE"
         )
@@ -487,11 +487,11 @@ end
 
 
 local function LoadProfessions(tabContainer)
-    local fmMenu = CreateFrame("Frame", nil, tabContainer, "GwHeroPanelMenuTemplate")
+    local fmMenu = CreateFrame("Frame", nil, tabContainer, "GwCharacterPanelMenuTemplate")
 
     loadOverview(tabContainer)
 
-    fmMenu.overviewMenu = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate")
+    fmMenu.overviewMenu = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate")
     fmMenu.overviewMenu:SetText(TRADESKILLS)
     fmMenu.overviewMenu:GetFontString():GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
     fmMenu.overviewMenu:ClearAllPoints()
@@ -499,6 +499,6 @@ local function LoadProfessions(tabContainer)
 
     CharacterMenuButton_OnLoad(fmMenu.overviewMenu, false)
 
-    fmMenu.overviewMenu:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover.png")
+    fmMenu.overviewMenu:SetNormalTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover.png")
 end
 GW.LoadProfessions = LoadProfessions

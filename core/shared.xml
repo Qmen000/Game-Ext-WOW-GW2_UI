@@ -351,52 +351,6 @@
         </Frames>
     </EditBox>
 
-     <Button name="GwHeroPanelMenuButtonTemplate" inherits="GwStandardButtonNoOutline" virtual="true">
-        <Size x="231" y="36"></Size>
-        <Anchors>
-            <Anchor point="TOPLEFT" relativePoint="TOPLEFT"></Anchor>
-        </Anchors>
-        <NormalTexture file="Interface\AddOns\GW2_UI\textures\character\menu-bg.png"></NormalTexture>
-        <Layers>
-            <Layer textureSubLevel="OVERLAY">
-                <Texture parentKey="activeTexture" file="Interface\AddOns\GW2_UI\textures\character\menu-hover.png" hidden="true">
-                    <Anchors>
-                        <Anchor point="TOPLEFT" relativePoint="TOPLEFT"></Anchor>
-                        <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT"></Anchor>
-                    </Anchors>
-                </Texture>
-            </Layer>
-            <Layer>
-                <Texture parentKey="arrow" file="Interface\AddOns\GW2_UI\textures\character\menu-arrow.png">
-                    <Size x="10" y="20"></Size>
-                    <Anchors>
-                        <Anchor point="RIGHT" relativePoint="RIGHT"></Anchor>
-                    </Anchors>
-                </Texture>
-            </Layer>
-        </Layers>
-    </Button>
-
-    <Button name="GwHeroPanelMenuButtonBackTemplate" inherits="GwStandardButtonNoOutline" virtual="true">
-        <Layers>
-            <Layer level="OVERLAY" textureSubLevel="8">
-                <Texture parentKey="backarrow" file="Interface\AddOns\GW2_UI\textures\character\backicon.png">
-                    <Size x="32" y="32"></Size>
-                    <Anchors>
-                        <Anchor point="LEFT" relativePoint="LEFT"></Anchor>
-                    </Anchors>
-                </Texture>
-            </Layer>
-        </Layers>
-    </Button>
-
-    <Frame name="GwHeroPanelMenuTemplate" virtual="true">
-        <Size x="231" y="498"></Size>
-        <Anchors>
-            <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="10" y="-20"></Anchor>
-        </Anchors>
-    </Frame>
-
     <Frame name="GwStandardInputField" virtual="true">
         <Size x="226" y="26"/>
         <Layers>

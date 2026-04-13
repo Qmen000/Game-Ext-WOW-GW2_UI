@@ -589,7 +589,7 @@ local function encounterJournalSkin()
                 if child.SetDisabledTexture then child:SetDisabledTexture("") end
                 child:GwCreateBackdrop(GW.BackdropTemplates.Default, true, 4, 4)
                 child.hovertex = child:CreateTexture(nil, "ARTWORK", nil, 7)
-                child.hovertex:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\bag\\stancebar-border.png")
+                child.hovertex:SetTexture("Interface/AddOns/GW2_UI/textures/bag/stancebar-border.png")
                 child.hovertex:SetAllPoints(child)
                 child.hovertex:Hide()
                 child:HookScript("OnEnter", SetModifiedBackdrop)

@@ -209,7 +209,7 @@ local function EquipmentSet_InitButton(button, elementData)
     if texture then
         button.icon:SetTexture(texture)
     else
-        button.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+        button.icon:SetTexture("Interface/Icons/INV_Misc_QuestionMark")
     end
 
     if numLost > 0 then

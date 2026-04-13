@@ -675,8 +675,8 @@ local function LoadGossipSkin()
     GW.HandleNextPrevButton(ItemTextNextPageButton)
 
     local GossipPaginControler = CreateFrame("Button", "GossipPaginControler", GossipFrame)
-    local GossipPagingBack = CreateFrame("Button", "GossipPagingBack", GossipPaginControler, "GwHeroPanelMenuButtonBackTemplate")
-    local GossipPagingForward = CreateFrame("Button", "GossipPagingForward", GossipPaginControler, "GwHeroPanelMenuButtonBackTemplate")
+    local GossipPagingBack = CreateFrame("Button", "GossipPagingBack", GossipPaginControler, "GwCharacterPanelMenuButtonBackTemplate")
+    local GossipPagingForward = CreateFrame("Button", "GossipPagingForward", GossipPaginControler, "GwCharacterPanelMenuButtonBackTemplate")
 
     GossipPaginControler:RegisterForClicks("LeftButtonDown", "RightButtonDown")
 

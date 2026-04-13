@@ -1,24 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 
-    <Button name="CharacterWindowTabSelect" inherits="SecureHandlerClickTemplate" registerForClicks="LeftButtonUp, RightButtonUp" virtual="true">
-        <Size x="64" y="40"></Size>
-        <Anchors>
-            <Anchor point="TOP" relativePoint="TOP"></Anchor>
-        </Anchors>
-        <Layers>
-            <Layer>
-                <Texture  parentKey="icon" file="Interface\AddOns\GW2_UI\textures\character\tabicon_character.png">
-                    <Size x="64" y="40"></Size>
-                    <Anchors>
-                        <Anchor point="CENTER"  relativePoint="CENTER"></Anchor>
-                    </Anchors>
-                    <TexCoords left="0" right="0.5" top="0" bottom="0.625"/>
-                </Texture>
-            </Layer>
-        </Layers>
-    </Button>
-
     <Frame name="GwPaperDollStat" enableMouse="true" virtual="true">
         <Size x="92" y="30"></Size>
         <Anchors>
@@ -48,46 +30,31 @@
         </Layers>
     </Frame>
 
-    <Button name="GwCharacterMenuBlank" inherits="GwStandardButtonNoOutline" text="Not yet loaded" virtual="true">
-        <Scripts>
-            <OnLoad>
-                self.hover:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover.png")
-                self.limitHoverStripAmount = 1
-                self:ClearNormalTexture()
-                local fontString = self:GetFontString()
-                fontString:SetTextColor(1, 1, 1, 1)
-                fontString:SetShadowColor(0, 0, 0, 0)
-                fontString:SetShadowOffset(1, -1)
-                fontString:SetFont(DAMAGE_TEXT_FONT, 14, "")
-            </OnLoad>
-        </Scripts>
-    </Button>
-
     <Frame name="GwCharacterMenuFilledTemplate" inherits="SecureHandlerBaseTemplate" hidden="true" virtual="true">
         <Size x="231" y="498"></Size>
         <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="10" y="-20"></Anchor>
         </Anchors>
         <Frames>
-            <Button name="$parentSkills" parentKey="skillsMenu" inherits="GwHeroPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="Skills">
+            <Button name="$parentSkills" parentKey="skillsMenu" inherits="GwCharacterPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="Skills">
                 <Size x="231" y="36"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT"></Anchor>
                 </Anchors>
             </Button>
-            <Button name="$parentHonor" parentKey="honorMenu" inherits="GwHeroPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="PVP">
+            <Button name="$parentHonor" parentKey="honorMenu" inherits="GwCharacterPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="PVP">
                 <Size x="231" y="36"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeKey="$parent.skillsMenu" relativePoint="BOTTOMLEFT"></Anchor>
                 </Anchors>
             </Button>
-            <Button name="$parentRunes" parentKey="runeMenu" inherits="GwHeroPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="RUNES">
+            <Button name="$parentRunes" parentKey="runeMenu" inherits="GwCharacterPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="RUNES">
                 <Size x="231" y="36"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeKey="$parent.honorMenu" relativePoint="BOTTOMLEFT"></Anchor>
                 </Anchors>
             </Button>
-            <Button name="$parentPet" parentKey="petMenu" inherits="GwHeroPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="PET">
+            <Button name="$parentPet" parentKey="petMenu" inherits="GwCharacterPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="PET">
                 <Size x="231" y="36"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeKey="$parent.runeMenu" relativePoint="BOTTOMLEFT"></Anchor>
@@ -169,7 +136,7 @@
                     </OnLeave>
                 </Scripts>
             </Frame>
-            <Button name="$parentBackButton" parentKey="backButton" inherits="GwHeroPanelMenuButtonBackTemplate,SecureHandlerClickTemplate" text="Character: Pet">
+            <Button name="$parentBackButton" parentKey="backButton" inherits="GwCharacterPanelMenuButtonBackSecureTemplate" text="Character: Pet">
                 <Size x="231" y="50"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT" x="13" y="-15"></Anchor>
@@ -290,7 +257,7 @@
         </Frames>
     </Frame>
 
-    <Button name="GwPaperSkillsItem" enableMouse="true" inherits="GwCharacterMenuBlank" virtual="true">
+    <Button name="GwPaperSkillsItem" enableMouse="true" inherits="GwCharacterMenuBlankTemplate" virtual="true">
         <Size x="220" y="50"></Size>
         <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="0" y="8"></Anchor>
@@ -415,7 +382,7 @@
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="10" y="0"></Anchor>
         </Anchors>
         <Frames>
-            <Button name="$parentBackButton" parentKey="backButton" inherits="GwHeroPanelMenuButtonBackTemplate,SecureHandlerClickTemplate" text="Character: Skills" >
+            <Button name="$parentBackButton" parentKey="backButton" inherits="GwCharacterPanelMenuButtonBackSecureTemplate" text="Character: Skills" >
                 <Size x="231" y="50"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT" x="0" y="-15"></Anchor>
@@ -531,7 +498,7 @@
             </Layer>
         </Layers>
         <Frames>
-            <Button name="$parentBackButton" parentKey="backButton" inherits="GwHeroPanelMenuButtonBackTemplate,SecureHandlerClickTemplate">
+            <Button name="$parentBackButton" parentKey="backButton" inherits="GwCharacterPanelMenuButtonBackSecureTemplate">
                 <Size x="231" y="50"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT" x="-232" y="-10"></Anchor>
@@ -726,109 +693,10 @@
         </Frames>
     </Button>
 
-    <Frame name="GwCharacterWindowContainer" inherits="SecureHandlerBaseTemplate" protected="true" virtual="true" frameStrata="HIGH">
-        <Size x="853" y="627"></Size>
-        <Anchors>
-            <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="0"></Anchor>
-        </Anchors>
-    </Frame>
-
     <Frame name="GwPetContainer" inherits="SecureHandlerBaseTemplate" virtual="true">
         <Size x="853" y="627"></Size>
         <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="0"></Anchor>
         </Anchors>
     </Frame>
-
-    <Frame name="GwCharacterWindow" inherits="SecureHandlerStateTemplate,SecureHandlerAttributeTemplate,SecureHandlerShowHideTemplate,SecureHandlerClickTemplate" enableMouse="true" virtual="true" protected="true" hidden="true" frameStrata="HIGH" movable="true" resizable="true" toplevel="true">
-        <Size x="853" y="627"></Size>
-        <Layers>
-            <Layer level="ARTWORK">
-                <Texture parentKey="background" file="Interface\AddOns\GW2_UI\textures\character\windowbg.png">
-                    <Size x="853" y="853"></Size>
-                    <Anchors>
-                        <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="0"></Anchor>
-                    </Anchors>
-                </Texture>
-                <Texture name="$parentHeader" file="Interface\AddOns\GW2_UI\textures\bag\bagheader.png">
-                    <Size x="512" y="64"></Size>
-                    <Anchors>
-                        <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="0" y="0" />
-                    </Anchors>
-                </Texture>
-                <Texture name="$parentHeaderRight" file="Interface\AddOns\GW2_UI\textures\bag\bagheader-right.png">
-                    <Size x="512" y="64"></Size>
-                    <Anchors>
-                        <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" x="0" y="0" />
-                    </Anchors>
-                </Texture>
-                    <Texture name="$parentHeaderLeft" file="Interface\AddOns\GW2_UI\textures\bag\bagleftpanel.png">
-                    <Size x="40" y="512"></Size>
-                    <Anchors>
-                        <Anchor point="TOPRIGHT" relativePoint="TOPLEFT" x="0" y="20" />
-                        <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMLEFT" x="0" y="0" />
-                    </Anchors>
-                </Texture>
-            </Layer>
-            <Layer level="ARTWORK" textureSubLevel="2">
-                <Texture name="$parentLeft" parentKey="windowIcon" file="Interface\AddOns\GW2_UI\textures\character\character-window-icon.png">
-                    <Size x="84" y="84"></Size>
-                    <Anchors>
-                        <Anchor point="BOTTOMRIGHT" relativePoint="TOPLEFT" x="18" y="-22" />
-                    </Anchors>
-                </Texture>
-                <Texture  file="Interface\AddOns\GW2_UI\textures\bag\bottom-right.png">
-                    <Size x="128" y="128"></Size>
-                    <Anchors>
-                        <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" x="0" y="0" />
-                    </Anchors>
-                </Texture>
-                <FontString name="$parentHeaderString" parentKey="WindowHeader" text="Character" inherits="GameFontNormalSmall" justifyH="LEFT">
-                    <Size x="512" y="40"></Size>
-                    <Color r="1" b="0.73" g="0.93"></Color>
-                    <Anchors>
-                        <Anchor point="TOPLEFT" x="10" y="38"></Anchor>
-                    </Anchors>
-                </FontString>
-            </Layer>
-        </Layers>
-        <Frames>
-            <Button parentKey="secure" name="$parentClick" inherits="SecureHandlerClickTemplate" hidden="true"/>
-            <Frame parentKey="mover" enableMouse="true" inherits="SecureHandlerMouseUpDownTemplate">
-                <Size y="40"/>
-                <Anchors>
-                    <Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="-40" y="0"></Anchor>
-                    <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" x="-30" y="0"></Anchor>
-                </Anchors>
-            </Frame>
-            <Frame parentKey="sizer" enableMouse="true">
-                <Size x="32" y="32"></Size>
-                <Anchors>
-                    <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" x="0" y="0"></Anchor>
-                </Anchors>
-                <Layers>
-                    <Layer level="OVERLAY">
-                        <Texture parentKey="texture" file="Interface/AddOns/GW2_UI/textures/uistuff/resize.png">
-                            <Size x="32" y="32"></Size>
-                            <Anchors>
-                                <Anchor point="BOTTOMRIGHT" x="0" y="0"></Anchor>
-                            </Anchors>
-                        </Texture>
-                    </Layer>
-                </Layers>
-            </Frame>
-            <Button name="$parentClose" parentKey="close" inherits="SecureHandlerClickTemplate" text="" framelevel="10">
-                <Size x="20" y="20"/>
-                <Anchors>
-                    <Anchor point="TOPRIGHT" relativePoint="TOPRIGHT" x="-10" y="30"/>
-                </Anchors>
-                <NormalTexture file="Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-normal.png"/>
-                <PushedTexture file="Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-hover.png"/>
-                <HighlightTexture file="Interface/AddOns/GW2_UI/textures/uistuff/window-close-button-hover.png"/>
-                <NormalFont style="ChatBubbleFont"/>
-                <HighlightFont style="ChatBubbleFont"/>
-            </Button>
-        </Frames>
-    </Frame>
-
 </Ui>

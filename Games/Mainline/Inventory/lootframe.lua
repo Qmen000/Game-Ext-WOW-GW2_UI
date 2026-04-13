@@ -30,7 +30,7 @@ local function updateLootFrameButtons(self)
         end
 
         if button.NameFrame then
-            button.NameFrame:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover.png")
+            button.NameFrame:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover.png")
             button.NameFrame:SetHeight(button:GetHeight())
             button.NameFrame:SetPoint("LEFT", button, "RIGHT", 0, 0)
         end

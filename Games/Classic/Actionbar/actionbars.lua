@@ -425,13 +425,13 @@ local function setActionButtonStyle(buttonName, noBackDrop, isStanceButton, isPe
         btn.Border:SetBlendMode("BLEND")
         if isStanceButton then
             btn.Border:Show()
-            btn.Border:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\bag\\stancebar-border.png")
+            btn.Border:SetTexture("Interface/AddOns/GW2_UI/textures/bag/stancebar-border.png")
         else
-            btn.Border:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\bag\\bagitemborder.png")
+            btn.Border:SetTexture("Interface/AddOns/GW2_UI/textures/bag/bagitemborder.png")
         end
     end
     if btn.NormalTexture then
-        btn:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\bag\\bagnormal.png")
+        btn:SetNormalTexture("Interface/AddOns/GW2_UI/textures/bag/bagnormal.png")
     end
 
     if _G[buttonName .. "FloatingBG"] then

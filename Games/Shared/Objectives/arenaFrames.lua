@@ -213,7 +213,7 @@ function GwObjectivesArenaContainerMixin:RegisterFrame(i)
     arenaFrame.name:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
     arenaFrame.name:SetShadowOffset(1, -1)
     arenaFrame.marker:Hide()
-    arenaFrame.icon:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\party\\classicons.png")
+    arenaFrame.icon:SetTexture("Interface/AddOns/GW2_UI/textures/party/classicons.png")
 
     arenaFrame.power.value:Hide()
 

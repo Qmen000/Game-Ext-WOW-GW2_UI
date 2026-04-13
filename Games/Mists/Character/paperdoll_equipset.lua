@@ -234,18 +234,18 @@ drawItemSetList = function()
             if texture then
                 frame.icon:SetTexture(texture)
             else
-                frame.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+                frame.icon:SetTexture("Interface/Icons/INV_Misc_QuestionMark")
             end
 
             if textureC == 1 then
-                frame:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-bg.png")
+                frame:SetNormalTexture("Interface/AddOns/GW2_UI/textures/character/menu-bg.png")
                 textureC = 2
             else
                 frame:ClearNormalTexture()
                 textureC = 1
             end
             if isEquipped then
-                frame:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover.png")
+                frame:SetNormalTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover.png")
             end
             if numLost > 0 then
                 frame:GetFontString():SetTextColor(1, 0.3, 0.3)

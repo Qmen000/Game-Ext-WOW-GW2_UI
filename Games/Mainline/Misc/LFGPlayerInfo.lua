@@ -22,7 +22,7 @@ end
 GW.LFGPI.GetRoleOrder = GetRoleOrder
 
 local localizedSpecNameToID = {} -- { ["Protection"] = 73 }
-local localizedSpecNameToIcon = {} -- { ["Protection"] = "Interface\\Icons\\ability_warrior_defensivestance" }
+local localizedSpecNameToIcon = {} -- { ["Protection"] = "Interface/Icons/ability_warrior_defensivestance" }
 
 for classID = 1, 13 do
     -- Scan all specs and specilizations, 13 is Evoker

@@ -1,119 +1,109 @@
 ---@class GW2
 local GW = select(2, ...)
-local L = GW.L
 
 
-local windowsList = {}
-local hasBeenLoaded = false
 local hideCharframe = true
-local moveDistance, heroFrameX, heroFrameY, heroFrameLeft, heroFrameTop, heroFrameNormalScale, heroFrameEffectiveScale = 0, 0, 0, 0, 0, 1, 0
 
-windowsList[1] = {
-    ['OnLoad'] = "LoadPaperDoll",
-    ['SettingName'] = 'USE_CHARACTER_WINDOW',
-    ['TabIcon'] = 'tabicon_character',
-    ["HeaderIcon"] = "Interface/AddOns/GW2_UI/textures/character/character-window-icon.png",
-    ["HeaderText"] = CHARACTER,
-    ["Bindings"] = {
-        ["TOGGLECHARACTER0"] = "PaperDoll",
-        ["TOGGLECHARACTER3"] = "PetPaperDollFrame",
+local windowsList = {
+    {
+        OnLoad = "LoadPaperDoll",
+        SettingName = "USE_CHARACTER_WINDOW",
+        TabIcon = "tabicon_character",
+        HeaderIcon = "Interface/AddOns/GW2_UI/textures/character/character-window-icon.png",
+        HeaderText = CHARACTER,
+        Bindings = {
+            TOGGLECHARACTER0 = "PaperDoll",
+            TOGGLECHARACTER3 = "PetPaperDollFrame",
+        },
+        OnClick = [=[
+            self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "paperdoll")
+        ]=]
     },
-    ["OnClick"] = [=[
-        self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "paperdoll")
-    ]=]
-}
-
-windowsList[2] = {
-    ['OnLoad'] = "LoadReputation",
-    ['SettingName'] = 'USE_CHARACTER_WINDOW',
-    ['TabIcon'] = 'tabicon_reputation',
-    ["HeaderIcon"] = "Interface/AddOns/GW2_UI/textures/character/character-window-icon.png",
-    ["HeaderText"] = REPUTATION,
-    ["Bindings"] = {
-        ["TOGGLECHARACTER2"] = "Reputation"
+    {
+        OnLoad = "LoadReputation",
+        SettingName = "USE_CHARACTER_WINDOW",
+        TabIcon = "tabicon_reputation",
+        HeaderIcon = "Interface/AddOns/GW2_UI/textures/character/character-window-icon.png",
+        HeaderText = REPUTATION,
+        Bindings = {
+            TOGGLECHARACTER2 = "Reputation"
+        },
+        OnClick = [=[
+            self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "reputation")
+        ]=]
     },
-    ["OnClick"] = [=[
-        self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "reputation")
-    ]=]
-}
-
-windowsList[3] = {
-    ['OnLoad'] = "LoadTalents",
-    ['SettingName'] = "USE_TALENT_WINDOW",
-    ['TabIcon'] = 'tabicon-talents',
-    ["HeaderIcon"] = "Interface/AddOns/GW2_UI/textures/character/talents-window-icon.png",
-    ["HeaderText"] = TALENTS,
-    ["Bindings"] = {
-        ["TOGGLETALENTS"] = "Talents"
+    {
+        OnLoad = "LoadTalents",
+        SettingName = "USE_TALENT_WINDOW",
+        TabIcon = "tabicon-talents",
+        HeaderIcon = "Interface/AddOns/GW2_UI/textures/character/talents-window-icon.png",
+        HeaderText = TALENTS,
+        Bindings = {
+            TOGGLETALENTS = "Talents"
+        },
+        OnClick = [=[
+            self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "talents")
+        ]=]
     },
-    ["OnClick"] = [=[
-        self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "talents")
-    ]=]
-}
-
-windowsList[4] = {
-    ['OnLoad'] = "LoadSpellBook",
-    ['SettingName'] = "USE_SPELLBOOK_WINDOW",
-    ['TabIcon'] = 'tabicon_spellbook',
-    ["HeaderIcon"] = "Interface/AddOns/GW2_UI/textures/character/spellbook-window-icon.png",
-    ["HeaderText"] = SPELLS,
-    ["Bindings"] = {
-        ["TOGGLESPELLBOOK"] = "SpellBook",
-        ["TOGGLEPETBOOK"] = "PetBook"
+    {
+        OnLoad = "LoadSpellBook",
+        SettingName = "USE_SPELLBOOK_WINDOW",
+        TabIcon = "tabicon_spellbook",
+        HeaderIcon = "Interface/AddOns/GW2_UI/textures/character/spellbook-window-icon.png",
+        HeaderText = SPELLS,
+        Bindings = {
+            TOGGLESPELLBOOK = "SpellBook",
+            TOGGLEPETBOOK = "PetBook"
+        },
+        OnClick = [=[
+            self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "spellbook")
+        ]=]
     },
-    ["OnClick"] = [=[
-        self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "spellbook")
-    ]=]
-}
-
-windowsList[5] = {
-    ['OnLoad'] = "LoadGlyphes",
-    ['SettingName'] = "USE_TALENT_WINDOW",
-    ['TabIcon'] = 'tabicon-glyph',
-    ["HeaderIcon"] = "Interface/AddOns/GW2_UI/textures/character/glyph-window-icon.png",
-    ["HeaderText"] = GLYPHS,
-    ["Bindings"] = {
-        ["TOGGLEINSCRIPTION"] = "Glyphes"
+    {
+        OnLoad = "LoadGlyphes",
+        SettingName = "USE_TALENT_WINDOW",
+        TabIcon = "tabicon-glyph",
+        HeaderIcon = "Interface/AddOns/GW2_UI/textures/character/glyph-window-icon.png",
+        HeaderText = GLYPHS,
+        Bindings = {
+            TOGGLEINSCRIPTION = "Glyphes"
+        },
+        OnClick = [=[
+            self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "glyphes")
+        ]=]
     },
-    ["OnClick"] = [=[
-        self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "glyphes")
-    ]=]
-}
-
-windowsList[6] = {
-    ["OnLoad"] = "LoadCurrency",
-    ["SettingName"] = "USE_CHARACTER_WINDOW",
-    ["TabIcon"] = "tabicon_currency",
-    ["HeaderIcon"] = "Interface/AddOns/GW2_UI/textures/character/currency-window-icon.png",
-    ["HeaderText"] = CURRENCY,
-    ["TooltipText"] = CURRENCY,
-    ["Bindings"] = {
-        ["TOGGLECURRENCY"] = "Currency"
+    {
+        OnLoad = "LoadCurrency",
+        SettingName = "USE_CHARACTER_WINDOW",
+        TabIcon = "tabicon_currency",
+        HeaderIcon = "Interface/AddOns/GW2_UI/textures/character/currency-window-icon.png",
+        HeaderText = CURRENCY,
+        TooltipText = CURRENCY,
+        Bindings = {
+            TOGGLECURRENCY = "Currency"
+        },
+        OnClick = [=[
+            self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "currency")
+        ]=]
     },
-    ["OnClick"] = [=[
-        self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "currency")
-    ]=]
+    {
+        OnLoad = "LoadProfessions",
+        FrameName = "GwProfessionsDetailsFrame",
+        SettingName = "USE_CHARACTER_WINDOW",
+        RefName = "GwProfessionsFrame",
+        TabIcon = "tabicon_professions",
+        HeaderIcon = "Interface/AddOns/GW2_UI/textures/character/professions-window-icon.png",
+        HeaderText = TRADE_SKILLS,
+        TooltipText = TRADE_SKILLS,
+        Bindings = {
+            TOGGLEPROFESSIONBOOK = "Professions",
+            TOGGLECHARACTER1 = "Professions"
+        },
+        OnClick = [=[
+            self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "professions")
+        ]=]
+    }
 }
-
-windowsList[8] = {
-    ["OnLoad"] = "LoadProfessions",
-    ["FrameName"] = "GwProfessionsDetailsFrame",
-    ["SettingName"] = "USE_CHARACTER_WINDOW",
-    ["RefName"] = "GwProfessionsFrame",
-    ["TabIcon"] = "tabicon_professions",
-    ["HeaderIcon"] = "Interface/AddOns/GW2_UI/textures/character/professions-window-icon.png",
-    ["HeaderText"] = TRADE_SKILLS,
-    ["TooltipText"] = TRADE_SKILLS,
-    ["Bindings"] = {
-        ["TOGGLEPROFESSIONBOOK"] = "Professions",
-        ["TOGGLECHARACTER1"] = "Professions"
-    },
-    ["OnClick"] = [=[
-        self:GetFrameRef("GwCharacterWindow"):SetAttribute("windowpanelopen", "professions")
-    ]=]
-}
-
-
 
 -- turn click events (generated from key bind overrides) into the correct tab show/hide calls
 local charSecure_OnClick = [=[
@@ -428,352 +418,9 @@ local charSecure_OnAttributeChanged = [=[
     end
 ]=]
 
-local mover_OnDragStart = [=[
-    if button ~= "LeftButton" then
-        return
-    end
-    local f = self:GetParent()
-    if self:GetAttribute("isMoving") then
-        f:CallMethod("StopMovingOrSizing")
-    end
-    self:SetAttribute("isMoving", true)
-    f:CallMethod("StartMoving")
-]=]
-
-local mover_OnDragStop = [=[
-    if button ~= "LeftButton" then
-        return
-    end
-    if not self:GetAttribute("isMoving") then
-        return
-    end
-    self:SetAttribute("isMoving", false)
-    local f = self:GetParent()
-    f:CallMethod("StopMovingOrSizing")
-    local x, y, _ = f:GetRect()
-
-    -- re-anchor to UIParent after the move
-    f:ClearAllPoints()
-    f:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", x, y)
-
-    -- store the updated position
-    self:CallMethod("savePosition", x, y)
-]=]
-
-local charSecure_OnShow = [=[
-    local keyEsc = GetBindingKey("TOGGLEGAMEMENU")
-    if keyEsc ~= nil then
-        self:SetBinding(false, keyEsc, "CLICK GwCharacterWindowClick:Close")
-    end
-]=]
-
-local charSecure_OnHide = [=[
-    self:ClearBindings()
-]=]
-
-local charCloseSecure_OnClick = [=[
-    self:GetParent():SetAttribute("windowpanelopen", nil)
-]=]
-
-local function mover_SavePosition(self, x, y)
-    local setting = self.onMoveSetting
-    if setting then
-        local pos = GW.settings[setting]
-        if pos then
-            wipe(pos)
-        else
-            pos = {}
-        end
-        pos.point = "BOTTOMLEFT"
-        pos.relativePoint = "BOTTOMLEFT"
-        pos.xOfs = x
-        pos.yOfs = y
-        GW.settings[setting] = pos
-    end
-end
-
-local function click_OnEvent(self, event)
-    if event ~= "UPDATE_BINDINGS" then
-        return
-    end
-    ClearOverrideBindings(self)
-
-    for _, win in pairs(windowsList) do
-        if win.TabFrame and win.Bindings then
-            for key, click in pairs(win.Bindings) do
-                local keyBind, keyBind2 = GetBindingKey(key)
-                if keyBind then
-                    SetOverrideBinding(self, false, keyBind, "CLICK GwCharacterWindowClick:" .. click)
-                end
-                if keyBind2 then
-                    SetOverrideBinding(self, false, keyBind2, "CLICK GwCharacterWindowClick:" .. click)
-                end
-            end
-        end
-    end
-end
-
-
-local function GetScaleDistance()
-    local left, top = heroFrameLeft, heroFrameTop
-    local scale = heroFrameEffectiveScale
-    local x, y = GetCursorPosition()
-    x = x / scale - left
-    y = top - y / scale
-    return sqrt(x * x + y * y)
-end
-
-local function loadBaseFrame()
-    if hasBeenLoaded then
-        return
-    end
-    hasBeenLoaded = true
-
-    local fmGCW = CreateFrame('Button', 'GwCharacterWindow', UIParent, 'GwCharacterWindow')
-    fmGCW.WindowHeader:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.BigHeader, nil, 2)
-    fmGCW.WindowHeader:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
-    fmGCW:SetAttribute('windowpanelopen', nil)
-    fmGCW.secure:SetAttribute("_onclick", charSecure_OnClick)
-    fmGCW.secure:SetFrameRef("GwCharacterWindow", GwCharacterWindow)
-    fmGCW:SetAttribute("_onattributechanged", charSecure_OnAttributeChanged)
-    fmGCW.SoundOpen = function()
-        PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
-    end
-    fmGCW.SoundSwap = function()
-        PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB)
-    end
-    fmGCW.SoundExit = function()
-        PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE)
-    end
-
-    fmGCW.backgroundMask = UIParent:CreateMaskTexture()
-    fmGCW.backgroundMask:SetPoint("TOPLEFT", fmGCW, "TOPLEFT", -64, 64)
-    fmGCW.backgroundMask:SetPoint("BOTTOMRIGHT", fmGCW, "BOTTOMLEFT", -64, 0)
-    fmGCW.backgroundMask:SetTexture(
-        "Interface/AddOns/GW2_UI/textures/masktest",
-        "CLAMPTOBLACKADDITIVE",
-        "CLAMPTOBLACKADDITIVE"
-    )
-
-    fmGCW.background:AddMaskTexture(fmGCW.backgroundMask)
-    GwCharacterWindowHeader:AddMaskTexture(fmGCW.backgroundMask)
-    GwCharacterWindowHeaderRight:AddMaskTexture(fmGCW.backgroundMask)
-    GwCharacterWindowHeaderLeft:AddMaskTexture(fmGCW.backgroundMask)
-
-    GW.SetupCharacterPanelSwitchAnimation(fmGCW)
-    GW.SetupCharacterWindowRevealAnimation(fmGCW)
-
-    -- secure hook ESC to close char window when it is showing
-    fmGCW:WrapScript(fmGCW, "OnShow", charSecure_OnShow)
-    fmGCW:WrapScript(fmGCW, "OnHide", charSecure_OnHide)
-
-    -- the close button securely closes the char window
-    fmGCW.close:SetAttribute("_onclick", charCloseSecure_OnClick)
-
-    -- setup movable stuff
-    local pos = GW.settings.HERO_POSITION
-    local scale = GW.settings.HERO_POSITION_SCALE
-
-    fmGCW:SetScale(scale)
-    fmGCW:ClearAllPoints()
-    fmGCW:SetPoint(pos.point, UIParent, pos.relativePoint, pos.xOfs, pos.yOfs)
-    fmGCW.mover.onMoveSetting = "HERO_POSITION"
-    fmGCW.mover.savePosition = mover_SavePosition
-    fmGCW.mover:SetAttribute("_onmousedown", mover_OnDragStart)
-    fmGCW.mover:SetAttribute("_onmouseup", mover_OnDragStop)
-    fmGCW.sizer.texture:SetDesaturated(true)
-    fmGCW.sizer:SetScript("OnEnter", function(self)
-        fmGCW.sizer.texture:SetDesaturated(false)
-        GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT", 10, 30)
-        GameTooltip:ClearLines()
-        GameTooltip_SetTitle(GameTooltip, L["Scale with Right Click"])
-        GameTooltip:Show()
-    end)
-    fmGCW.sizer:SetScript("OnLeave", function()
-        fmGCW.sizer.texture:SetDesaturated(true)
-        GameTooltip_Hide()
-    end)
-    fmGCW.sizer:SetFrameStrata(fmGCW:GetFrameStrata())
-    fmGCW.sizer:SetFrameLevel(fmGCW:GetFrameLevel() + 15)
-    fmGCW.sizer:SetScript("OnMouseDown", function(self, btn)
-        if btn ~= "RightButton" then
-            return
-        end
-        heroFrameLeft, heroFrameTop = GwCharacterWindow:GetLeft(), GwCharacterWindow:GetTop()
-        heroFrameNormalScale = GwCharacterWindow:GetScale()
-        heroFrameX,heroFrameY = heroFrameLeft, heroFrameTop - (UIParent:GetHeight() / heroFrameNormalScale)
-        heroFrameEffectiveScale = GwCharacterWindow:GetEffectiveScale()
-        moveDistance = GetScaleDistance()
-        self:SetScript("OnUpdate", function()
-            local scale = GetScaleDistance() / moveDistance * heroFrameNormalScale
-            if scale < 0.2 then scale = 0.2 elseif scale > 3.0 then scale = 3.0 end
-            GwCharacterWindow:SetScale(scale)
-            local s = heroFrameNormalScale / GwCharacterWindow:GetScale()
-            local x = heroFrameX * s
-            local y = heroFrameY * s
-            GwCharacterWindow:ClearAllPoints()
-            GwCharacterWindow:SetPoint("TOPLEFT", UIParent, "TOPLEFT", x, y)
-        end)
-    end)
-    fmGCW.sizer:SetScript("OnMouseUp", function(self)
-        self:SetScript("OnUpdate", nil)
-        GW.settings.HERO_POSITION_SCALE = GwCharacterWindow:GetScale()
-        -- Save hero frame position
-        local pos = GW.settingsHERO_POSITION
-        if pos then
-            wipe(pos)
-        else
-            pos = {}
-        end
-        pos.point, _, pos.relativePoint, pos.xOfs, pos.yOfs = GwCharacterWindow:GetPoint()
-        GW.settings.HERO_POSITION = pos
-        --Reset Model Camera
-        GwDressingRoom.model:RefreshCamera()
-    end)
-    -- set binding change handlers
-    fmGCW.secure:HookScript("OnEvent", function(self, event)
-        GW.CombatQueue_Queue(nil, click_OnEvent, {self, event})
-    end)
-    fmGCW.secure:RegisterEvent("UPDATE_BINDINGS")
-end
-
-local function setTabIconState(self, b)
-    if b then
-        self.icon:SetTexCoord(0, 0.5, 0, 0.625)
-    else
-        self.icon:SetTexCoord(0.5, 1, 0, 0.625)
-    end
-end
-
-local function createTabIcon(iconName, tabIndex)
-    local f = CreateFrame('Button', nil, GwCharacterWindow, 'CharacterWindowTabSelect')
-    f.icon:SetTexture('Interface\\AddOns\\GW2_UI\\textures\\character\\' .. iconName .. ".png")
-    f:SetPoint('TOP', GwCharacterWindow, 'TOPLEFT', -32, -25 + -((tabIndex - 1) * 45))
-    setTabIconState(f, false)
-
-    return f
-end
-
-local function styleCharacterMenuBackButton(fmBtn, key)
-    fmBtn:SetText(key)
-    GW.CharacterMenuButtonBack_OnLoad(fmBtn)
-    fmBtn:SetFrameRef("GwCharacterWindow", GwCharacterWindow)
-end
-
-local function container_OnShow(self)
-    setTabIconState(self.TabFrame, true)
-    self.CharWindow.windowIcon:SetTexture(self.HeaderIcon)
-    self.CharWindow.WindowHeader:SetText(self.HeaderText)
-    if self.TabFrame then
-        GW.PlayCharacterTabSwitchPulse(self.TabFrame)
-    end
-end
-
-local function container_OnHide(self)
-    setTabIconState(self.TabFrame, false)
-    if self.TabFrame then
-        GW.ResetCharacterTabSwitchPulse(self.TabFrame)
-    end
-end
-
-local function charTab_OnEnter(self)
-    GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT", 10, 30)
-    GameTooltip:ClearLines()
-    GameTooltip_AddNormalLine(GameTooltip, self.gwTipLabel)
-    GameTooltip:Show()
-end
-
-local function CharacterMenuBlank_OnLoad(self)
-    self.hover:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover.png")
-    self.limitHoverStripAmount = 1 --limit that value to 0.75 because we do not use the default hover texture
-    self:ClearNormalTexture()
-    local fontString = self:GetFontString()
-    fontString:SetTextColor(1, 1, 1, 1)
-    fontString:SetShadowColor(0, 0, 0, 0)
-    fontString:SetShadowOffset(1, -1)
-    fontString:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Normal)
-end
-GW.CharacterMenuBlank_OnLoad = CharacterMenuBlank_OnLoad
-
-local function CharacterMenuButton_OnLoad(self, odd, addGwHeroPanelFrameRef)
-    self.hover:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover.png")
-    self.limitHoverStripAmount = 1 --limit that value to 0.75 because we do not use the default hover texture
-    if not odd then
-        self:ClearNormalTexture()
-    else
-        self:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-bg.png")
-    end
-    if self:GetFontString() then
-        self:GetFontString():SetTextColor(1, 1, 1, 1)
-        self:GetFontString():SetShadowColor(0, 0, 0, 0)
-        self:GetFontString():SetShadowOffset(1, -1)
-        self:GetFontString():GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Normal)
-        self:GetFontString():SetJustifyH("LEFT")
-        self:GetFontString():SetPoint("LEFT", self, "LEFT", 5, 0)
-    end
-    self.hover:SetAlpha(0)
-    if addGwHeroPanelFrameRef then
-        self:SetFrameRef("GwCharacterWindow", GwCharacterWindow)
-    end
-end
-GW.CharacterMenuButton_OnLoad = CharacterMenuButton_OnLoad
-
-local function CharacterMenuButtonBack_OnLoad(self)
-    self.hover:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover.png")
-    self.limitHoverStripAmount = 1 --limit that value to 0.75 because we do not use the default hover texture
-    self:ClearNormalTexture()
-    local fontString = self:GetFontString()
-    fontString:SetTextColor(1, 1, 1, 1)
-    fontString:SetShadowColor(0, 0, 0, 0)
-    fontString:SetShadowOffset(1, -1)
-    fontString:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Normal)
-end
-GW.CharacterMenuButtonBack_OnLoad = CharacterMenuButtonBack_OnLoad
-
-local nextShadow, nextAnchor
-local function addAddonButton(name, setting, shadow, anchor, showFunction, hideOurFrame)
-    if C_AddOns.IsAddOnLoaded(name) and (setting == nil or setting == true) then
-        GwHeroPanelMenu[name] = CreateFrame("Button", nil, GwHeroPanelMenu, "SecureHandlerClickTemplate,GwHeroPanelMenuButtonTemplate")
-        GwHeroPanelMenu[name]:SetText(select(2, C_AddOns.GetAddOnInfo(name)))
-        GwHeroPanelMenu[name]:ClearAllPoints()
-        GwHeroPanelMenu[name]:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT")
-        CharacterMenuButton_OnLoad(GwHeroPanelMenu[name], shadow)
-        GwHeroPanelMenu[name]:SetFrameRef("charwin", GwCharacterWindow)
-        GwHeroPanelMenu[name].ui_show = showFunction
-        GwHeroPanelMenu[name]:SetAttribute("hideOurFrame", hideOurFrame)
-        GwHeroPanelMenu[name]:SetAttribute("_onclick", [=[
-            local fchar = self:GetFrameRef("charwin")
-            local hideOurFrame = self:GetAttribute("hideOurFrame")
-            if fchar and hideOurFrame == true then
-                fchar:SetAttribute("windowpanelopen", nil)
-            end
-            self:CallMethod("ui_show")
-        ]=])
-        nextShadow = not nextShadow
-        nextAnchor = GwHeroPanelMenu[name]
-
-        if name == "GearQuipper-TBC" then
-            GwHeroPanelMenu[name]:SetText("GearQuipper")
-            GqUiFrame:ClearAllPoints()
-            GqUiFrame:SetParent(GwCharacterWindow)
-            GqUiFrame:SetPoint("TOPRIGHT", GwCharacterWindow, "TOPRIGHT", 350, -12)
-        end
-    end
-end
-
-local LoadCharWindowAfterCombat = CreateFrame("Frame", nil, UIParent)
 local function LoadCharacter()
     if InCombatLockdown() then
-        LoadCharWindowAfterCombat:SetScript(
-            "OnUpdate",
-            function()
-                local inCombat = UnitAffectingCombat("player")
-                if inCombat == true then
-                    return
-                end
-                LoadCharacter()
-                LoadCharWindowAfterCombat:SetScript("OnUpdate", nil)
-            end)
+        GW.CombatQueue_Queue("load_character_window", LoadCharacter)
         return
     end
 
@@ -787,103 +434,98 @@ local function LoadCharacter()
         return
     end
 
-    loadBaseFrame()
-
-    local fmGCW = GwCharacterWindow
+    local baseFrame = GW.LoadCharacterWindowBase(charSecure_OnClick, charSecure_OnAttributeChanged, windowsList)
     local tabIndex = 1
     for _, v in pairs(windowsList) do
         if GW.settings[v.SettingName] then
-            local container = GW[v.OnLoad](fmGCW)
-            local tab = createTabIcon(v.TabIcon, tabIndex)
+            local container = GW[v.OnLoad](baseFrame)
+            local tab = GW.CreateCharacterWindowTabIcon(v.TabIcon, tabIndex)
 
-            fmGCW:SetFrameRef(container:GetName(), container)
-            container:SetScript("OnShow", container_OnShow)
-            container:SetScript("OnHide", container_OnHide)
-            tab:SetFrameRef('GwCharacterWindow', fmGCW)
-            tab:SetAttribute('_OnClick', v.OnClick)
+            baseFrame:SetFrameRef(container:GetName(), container)
+            container:SetScript("OnShow", GW.CharacterWindowContainer_OnShow)
+            container:SetScript("OnHide", GW.CharacterWindowContainer_OnHide)
+            tab:SetFrameRef("GwCharacterWindow", baseFrame)
+            tab:SetAttribute("_OnClick", v.OnClick)
 
             container.TabFrame = tab
-            container.CharWindow = fmGCW
+            container.CharWindow = baseFrame
             container.HeaderIcon = v.HeaderIcon
             container.HeaderText = v.HeaderText
             tab.gwTipLabel = v.HeaderText
 
-            tab:SetScript("OnEnter", charTab_OnEnter)
+            tab:SetScript("OnEnter", GW.CharacterWindowTab_OnEnter)
             tab:SetScript("OnLeave", GameTooltip_Hide)
 
             if container:GetName() == "GwCharacterWindowContainer" then
-                fmGCW:SetFrameRef("GwHeroPanelMenu", GwHeroPanelMenu)
-                fmGCW:SetFrameRef("GwPaperTitles", GwPaperTitles)
-                fmGCW:SetFrameRef("GwDressingRoom", GwDressingRoom)
-                fmGCW:SetFrameRef("GwPetContainer", GwPetContainer)
-                fmGCW:SetFrameRef("GwPaperGearSets", GwPaperDollOutfits)
-                fmGCW:SetFrameRef("GwPaperDollBagItemList", GwPaperDollBagItemList)
+                baseFrame:SetHeroPanelMenu(GwHeroPanelMenu)
+                baseFrame:SetFrameRef("GwHeroPanelMenu", GwHeroPanelMenu)
+                baseFrame:SetFrameRef("GwPaperTitles", GwPaperTitles)
+                baseFrame:SetFrameRef("GwDressingRoom", GwDressingRoom)
+                baseFrame:SetFrameRef("GwPetContainer", GwPetContainer)
+                baseFrame:SetFrameRef("GwPaperGearSets", GwPaperDollOutfits)
+                baseFrame:SetFrameRef("GwPaperDollBagItemList", GwPaperDollBagItemList)
 
-                CharacterMenuButton_OnLoad(GwHeroPanelMenu.titleMenu, true, true)
-                CharacterMenuButton_OnLoad(GwHeroPanelMenu.gearMenu, false, true)
-                CharacterMenuButton_OnLoad(GwHeroPanelMenu.equipmentMenu, true, true)
-                CharacterMenuButton_OnLoad(GwHeroPanelMenu.petMenu, false, true)
+                GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.titleMenu, true, true)
+                GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.gearMenu, false, true)
+                GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.equipmentMenu, true, true)
+                GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.petMenu, false, true)
 
-                styleCharacterMenuBackButton(GwPaperTitles.backButton, CHARACTER .. ": " .. PAPERDOLL_SIDEBAR_TITLES)
-                styleCharacterMenuBackButton(GwPaperDollOutfits.backButton, CHARACTER .. ":\n" .. EQUIPMENT_MANAGER)
-                styleCharacterMenuBackButton(GwDressingRoomPet.backButton, CHARACTER .. ": " .. PET)
-                styleCharacterMenuBackButton(GwPaperDollBagItemList.backButton, CHARACTER .. ": " .. BAG_FILTER_EQUIPMENT)
+                GW.CharacterMenuButtonBack_OnLoad(GwPaperTitles.backButton, CHARACTER .. ": " .. PAPERDOLL_SIDEBAR_TITLES, true)
+                GW.CharacterMenuButtonBack_OnLoad(GwPaperDollOutfits.backButton, CHARACTER .. ":\n" .. EQUIPMENT_MANAGER, true)
+                GW.CharacterMenuButtonBack_OnLoad(GwDressingRoomPet.backButton, CHARACTER .. ": " .. PET, true)
+                GW.CharacterMenuButtonBack_OnLoad(GwPaperDollBagItemList.backButton, CHARACTER .. ": " .. BAG_FILTER_EQUIPMENT, true)
 
                 -- add addon buttons here
-                fmGCW:SetAttribute("myClassId", GW.myClassID)
+                baseFrame:SetAttribute("myClassId", GW.myClassID)
                 if GW.myClassID == 3 or GW.myClassID == 9 or GW.myClassID == 6 then
-                    nextShadow = true
+                    baseFrame:SetNextAddonMenuButtonShadowState(true)
                 else
-                    nextShadow = false
+                    baseFrame:SetNextAddonMenuButtonShadowState(false)
                 end
-                nextAnchor = (GW.myClassID == 3 or GW.myClassID == 9 or GW.myClassID == 6) and GwHeroPanelMenu.petMenu or GwHeroPanelMenu.equipmentMenu
-                addAddonButton("Outfitter", GW.settings.USE_CHARACTER_WINDOW, nextShadow, nextAnchor, function() hideCharframe = false Outfitter:OpenUI() end, true)
-                addAddonButton("GearQuipper-TBC", GW.settings.USE_CHARACTER_WINDOW, nextShadow, nextAnchor, function() gearquipper:ToggleUI() end, false)
-                addAddonButton("Clique", GW.settings.USE_SPELLBOOK_WINDOW, nextShadow, nextAnchor, function() ShowUIPanel(CliqueConfig) end, true)
-                addAddonButton("Pawn", GW.settings.USE_CHARACTER_WINDOW, nextShadow, nextAnchor, PawnUIShow, false)
+                baseFrame:SetNextAddonMenuButtonAnchor((GW.myClassID == 3 or GW.myClassID == 9 or GW.myClassID == 6) and GwHeroPanelMenu.petMenu or GwHeroPanelMenu.equipmentMenu)
+                GwHeroPanelMenu.Outfitter = GW.AddAddonMenuButtonToHeroPanelMenu({
+                    name = "Outfitter",
+                    setting = GW.settings.USE_CHARACTER_WINDOW,
+                    showFunction = function() hideCharframe = false Outfitter:OpenUI() end,
+                    hideOurFrame = true,
+                })
+
+                GwHeroPanelMenu["GearQuipper-TBC"] = GW.AddAddonMenuButtonToHeroPanelMenu({
+                    name = "GearQuipper-TBC",
+                    setting = GW.settings.USE_CHARACTER_WINDOW,
+                    showFunction = function() gearquipper:ToggleUI() end,
+                    hideOurFrame = false,
+                    onCreated = function(createdButton)
+                        createdButton:SetText("GearQuipper")
+                        GqUiFrame:ClearAllPoints()
+                        GqUiFrame:SetParent(GwCharacterWindow)
+                        GqUiFrame:SetPoint("TOPRIGHT", GwCharacterWindow, "TOPRIGHT", 350, -12)
+                    end,
+                })
+                GwHeroPanelMenu.Clique = GW.AddAddonMenuButtonToHeroPanelMenu({
+                    name = "Clique",
+                    setting = GW.settings.USE_SPELLBOOK_WINDOW,
+                    showFunction = function() ShowUIPanel(CliqueConfig) end,
+                    hideOurFrame = true,
+                })
+
+                GwHeroPanelMenu.Pawn = GW.AddAddonMenuButtonToHeroPanelMenu({
+                    name = "Pawn",
+                    setting = GW.settings.USE_CHARACTER_WINDOW,
+                    showFunction = PawnUIShow,
+                    hideOurFrame = false,
+                })
 
                 GW.ToggleCharacterItemInfo(true)
 
-                GwHeroPanelMenu.titleMenu:SetAttribute("_onclick", [=[
-                    local f = self:GetFrameRef("GwCharacterWindow")
-                    f:SetAttribute("keytoggle", true)
-                    f:SetAttribute("windowpanelopen", "titles")
-                ]=])
-                GwHeroPanelMenu.gearMenu:SetAttribute("_onclick", [=[
-                    local f = self:GetFrameRef("GwCharacterWindow")
-                    f:SetAttribute("keytoggle", true)
-                    f:SetAttribute("windowpanelopen", "gearset")
-                ]=])
-                GwHeroPanelMenu.equipmentMenu:SetAttribute("_onclick", [=[
-                    local f = self:GetFrameRef("GwCharacterWindow")
-                    f:SetAttribute("keytoggle", true)
-                    f:SetAttribute("windowpanelopen", "equipment")
-                ]=])
-                GwHeroPanelMenu.petMenu:SetAttribute("_onclick", [=[
-                    local f = self:GetFrameRef("GwCharacterWindow")
-                    f:SetAttribute("keytoggle", true)
-                    f:SetAttribute("windowpanelopen", "paperdollpet")
-                ]=])
-                GwPaperTitles.backButton:SetAttribute("_onclick", [=[
-                    local f = self:GetFrameRef("GwCharacterWindow")
-                    f:SetAttribute("keytoggle", true)
-                    f:SetAttribute("windowpanelopen", "paperdoll")
-                ]=])
-                GwPaperDollOutfits.backButton:SetAttribute("_onclick", [=[
-                    local f = self:GetFrameRef("GwCharacterWindow")
-                    f:SetAttribute("keytoggle", true)
-                    f:SetAttribute("windowpanelopen", "paperdoll")
-                ]=])
-                GwDressingRoomPet.backButton:SetAttribute("_onclick", [=[
-                    local f = self:GetFrameRef("GwCharacterWindow")
-                    f:SetAttribute("keytoggle", true)
-                    f:SetAttribute("windowpanelopen", "paperdoll")
-                ]=])
-                GwPaperDollBagItemList.backButton:SetAttribute("_onclick", [=[
-                    local f = self:GetFrameRef("GwCharacterWindow")
-                    f:SetAttribute("keytoggle", true)
-                    f:SetAttribute("windowpanelopen", "paperdoll")
-                ]=])
+                GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.titleMenu, "titles")
+                GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.gearMenu, "gearset")
+                GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.equipmentMenu, "equipment")
+                GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.petMenu, "paperdollpet")
+                GW.SetCharacterWindowBackAttribute(GwPaperTitles.backButton)
+                GW.SetCharacterWindowBackAttribute(GwPaperDollOutfits.backButton)
+                GW.SetCharacterWindowBackAttribute(GwDressingRoomPet.backButton)
+                GW.SetCharacterWindowBackAttribute(GwPaperDollBagItemList.backButton)
 
                 -- pet GwDressingRoom
                 GwHeroPanelMenu.petMenu:SetAttribute("_onstate-petstate", [=[
@@ -922,6 +564,6 @@ local function LoadCharacter()
     end
 
     -- set bindings on secure instead of char win to not interfere with secure ESC binding on char win
-    click_OnEvent(fmGCW.secure, "UPDATE_BINDINGS")
+    baseFrame.UpdateBindings()
 end
 GW.LoadCharacter = LoadCharacter

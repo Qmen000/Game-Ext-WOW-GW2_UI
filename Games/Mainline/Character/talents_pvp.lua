@@ -369,7 +369,7 @@ local function slotPool_Resetter(_, btn)
         btn.mask = UIParent:CreateMaskTexture()
         btn.mask:SetPoint("CENTER", btn.icon, "CENTER", 0, 0)
         btn.mask:SetTexture(
-            "Interface\\AddOns\\GW2_UI\\textures\\talents\\passive_border.png",
+            "Interface/AddOns/GW2_UI/textures/talents/passive_border.png",
             "CLAMPTOBLACKADDITIVE",
             "CLAMPTOBLACKADDITIVE"
         )
@@ -410,7 +410,7 @@ local function passivePool_Resetter(_, btn)
         btn.mask = UIParent:CreateMaskTexture()
         btn.mask:SetPoint("CENTER", btn.icon, "CENTER", 0, 0)
         btn.mask:SetTexture(
-            "Interface\\AddOns\\GW2_UI\\textures\\talents\\passive_border.png",
+            "Interface/AddOns/GW2_UI/textures/talents/passive_border.png",
             "CLAMPTOBLACKADDITIVE",
             "CLAMPTOBLACKADDITIVE"
         )

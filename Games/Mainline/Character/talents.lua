@@ -80,7 +80,7 @@ local function menuItem_OnClick(self)
     for _, v in pairs(menuItems) do
         v:ClearNormalTexture()
     end
-    self:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover.png")
+    self:SetNormalTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover.png")
 end
 
 local function LoadTalents(tabContainer)
@@ -96,7 +96,7 @@ local function LoadTalents(tabContainer)
 
     CharacterMenuButton_OnLoad(fmTalents.tree1, true)
     CharacterMenuButton_OnLoad(fmTalents.tree2, false)
-    fmTalents.menuItems[1]:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover.png")
+    fmTalents.menuItems[1]:SetNormalTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover.png")
 
     fmTalents.tabContainers = {}
     fmTalents:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")

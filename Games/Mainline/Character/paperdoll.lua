@@ -1,15 +1,8 @@
 ---@class GW2
 local GW = select(2, ...)
-local CharacterMenuButton_OnLoad = GW.CharacterMenuButton_OnLoad
-local CharacterMenuButtonBack_OnLoad = GW.CharacterMenuButtonBack_OnLoad
-
---local CHARACTER_PANEL_OPEN
 
 local fmMenu
 local hideCharframe = true
-local prevAddonButtonAnchor = nil
-local firstAddonMenuButtonAnchor
-
 local dressingRoom
 local paperDollBagItemList
 local paperDollOutfits
@@ -60,57 +53,26 @@ local function toggleCharacter(tab, onlyShow)
     end
 end
 
-
-local function back_OnClick()
-    characterPanelToggle(fmMenu)
-end
-
-
 local function menuItem_OnClick(self)
     characterPanelToggle(self.ToggleMe)
 end
 
 
 local function menu_SetupBackButton(_, fmBtn, key)
-    fmBtn:SetText(key)
-    fmBtn:GetFontString():GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
-    CharacterMenuButtonBack_OnLoad(fmBtn)
-    fmBtn:SetScript("OnClick", back_OnClick)
-end
-
-
-local isFirstAddonButton = true
-local function addAddonButton(name, setting, showFunction)
-    if C_AddOns.IsAddOnLoaded(name) and (setting == nil or setting == true) then
-        fmMenu[name] = CreateFrame("Button", nil, fmMenu, "SecureHandlerClickTemplate,GwHeroPanelMenuButtonTemplate")
-        fmMenu[name]:SetText(select(2, C_AddOns.GetAddOnInfo(name)))
-        fmMenu[name]:GetFontString():GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
-        fmMenu[name]:ClearAllPoints()
-        fmMenu[name]:SetPoint("TOPLEFT", isFirstAddonButton and firstAddonMenuButtonAnchor or prevAddonButtonAnchor, "BOTTOMLEFT")
-        CharacterMenuButton_OnLoad(fmMenu[name])
-        fmMenu[name]:SetFrameRef("charwin", GwCharacterWindow)
-        fmMenu[name].ui_show = showFunction
-        fmMenu[name]:SetAttribute("_onclick", [=[
-            local fchar = self:GetFrameRef("charwin")
-            if fchar then
-                fchar:SetAttribute("windowpanelopen", nil)
-            end
-            self:CallMethod("ui_show")
-        ]=])
-        prevAddonButtonAnchor = fmMenu[name]
-        isFirstAddonButton = false
-    end
+    GW.CharacterMenuButtonBack_OnLoad(fmBtn, key, false)
+    fmBtn:SetScript("OnClick", function() characterPanelToggle(fmMenu) end)
 end
 
 local function LoadPaperDoll(tabContainer)
-    fmMenu = CreateFrame("Frame", nil, tabContainer, "GwHeroPanelMenuTemplate")
+    fmMenu = CreateFrame("Frame", nil, tabContainer, "GwCharacterPanelMenuTemplate")
+    GwCharacterWindow:SetHeroPanelMenu(fmMenu)
     fmMenu.SetupBackButton = menu_SetupBackButton
 
     dressingRoom, paperDollBagItemList = GW.LoadPDBagList(fmMenu, tabContainer)
     paperDollOutfits = GW.LoadPDEquipset(fmMenu, tabContainer)
     paperDollTitles = GW.LoadPDTitles(fmMenu, tabContainer)
 
-    fmMenu.equipmentMenu = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate")
+    fmMenu.equipmentMenu = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate")
     fmMenu.equipmentMenu.ToggleMe = paperDollBagItemList
     fmMenu.equipmentMenu:SetScript("OnClick", menuItem_OnClick)
     fmMenu.equipmentMenu:SetText(BAG_FILTER_EQUIPMENT)
@@ -118,7 +80,7 @@ local function LoadPaperDoll(tabContainer)
     fmMenu.equipmentMenu:ClearAllPoints()
     fmMenu.equipmentMenu:SetPoint("TOPLEFT", fmMenu, "TOPLEFT")
 
-    fmMenu.outfitsMenu = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate")
+    fmMenu.outfitsMenu = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate")
     fmMenu.outfitsMenu.ToggleMe = paperDollOutfits
     fmMenu.outfitsMenu:SetScript("OnClick", menuItem_OnClick)
     fmMenu.outfitsMenu:SetText(EQUIPMENT_MANAGER)
@@ -126,7 +88,7 @@ local function LoadPaperDoll(tabContainer)
     fmMenu.outfitsMenu:ClearAllPoints()
     fmMenu.outfitsMenu:SetPoint("TOPLEFT", fmMenu.equipmentMenu, "BOTTOMLEFT")
 
-    fmMenu.titlesMenu = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate")
+    fmMenu.titlesMenu = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate")
     fmMenu.titlesMenu.ToggleMe = paperDollTitles
     fmMenu.titlesMenu:SetScript("OnClick", menuItem_OnClick)
     fmMenu.titlesMenu:SetText(PAPERDOLL_SIDEBAR_TITLES)
@@ -134,9 +96,12 @@ local function LoadPaperDoll(tabContainer)
     fmMenu.titlesMenu:ClearAllPoints()
     fmMenu.titlesMenu:SetPoint("TOPLEFT", fmMenu.outfitsMenu, "BOTTOMLEFT")
 
-    CharacterMenuButton_OnLoad(fmMenu.equipmentMenu, GW.nextHeroPanelMenuButtonShadowOdd)
-    CharacterMenuButton_OnLoad(fmMenu.outfitsMenu, GW.nextHeroPanelMenuButtonShadowOdd)
-    CharacterMenuButton_OnLoad(fmMenu.titlesMenu, GW.nextHeroPanelMenuButtonShadowOdd)
+    GW.CharacterMenuButton_OnLoad(fmMenu.equipmentMenu, true)
+    GW.CharacterMenuButton_OnLoad(fmMenu.outfitsMenu, false)
+    GW.CharacterMenuButton_OnLoad(fmMenu.titlesMenu, true)
+    GW.SetCharacterWindowOpenAttribute(fmMenu.equipmentMenu, "paperdollequipment", false)
+    GW.SetCharacterWindowOpenAttribute(fmMenu.outfitsMenu, "paperdolloutfits", false)
+    GW.SetCharacterWindowOpenAttribute(fmMenu.titlesMenu, "paperdolltitles", false)
 
     -- pull corruption thingy from default paperdoll
     if (CharacterStatsPane and CharacterStatsPane.ItemLevelFrame) then
@@ -150,13 +115,46 @@ local function LoadPaperDoll(tabContainer)
     end
 
     --AddOn Support
-    firstAddonMenuButtonAnchor = fmMenu.titlesMenu
-    addAddonButton("Pawn", nil, PawnUIShow)
-    addAddonButton("Clique", nil, function() ShowUIPanel(CliqueConfig) end)
-    addAddonButton("Outfitter", GW.settings.USE_CHARACTER_WINDOW, function() hideCharframe = false Outfitter:OpenUI() end)
-    addAddonButton("MyRolePlay", GW.settings.USE_CHARACTER_WINDOW, function() hideCharframe = false ToggleCharacter("MyRolePlayCharacterFrame") end)
-    addAddonButton("TalentSetManager", GW.settings.USE_TALENT_WINDOW, function() TalentFrame_LoadUI() if PlayerTalentFrame_Toggle then PlayerTalentFrame_Toggle(TALENTS_TAB) end end)
-    addAddonButton("ItemUpgradeTip", nil, function() if ItemUpgradeTip then ItemUpgradeTip:ToggleView() end end)
+    GwCharacterWindow:SetNextAddonMenuButtonShadowState(false)
+    GwCharacterWindow:SetNextAddonMenuButtonAnchor(fmMenu.titlesMenu)
+    fmMenu.Pawn = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "Pawn",
+        showFunction = PawnUIShow,
+        hideOurFrame = true,
+    })
+
+    fmMenu.Clique = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "Clique",
+        showFunction = function() ShowUIPanel(CliqueConfig) end,
+        hideOurFrame = true,
+    })
+
+    fmMenu.Outfitter = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "Outfitter",
+        setting = GW.settings.USE_CHARACTER_WINDOW,
+        showFunction = function() hideCharframe = false Outfitter:OpenUI() end,
+        hideOurFrame = true,
+    })
+
+    fmMenu.MyRolePlay = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "MyRolePlay",
+        setting = GW.settings.USE_CHARACTER_WINDOW,
+        showFunction = function() hideCharframe = false ToggleCharacter("MyRolePlayCharacterFrame") end,
+        hideOurFrame = true,
+    })
+
+    fmMenu.TalentSetManager = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "TalentSetManager",
+        setting = GW.settings.USE_TALENT_WINDOW,
+        showFunction = function() TalentFrame_LoadUI() if PlayerTalentFrame_Toggle then PlayerTalentFrame_Toggle(TALENTS_TAB) end end,
+        hideOurFrame = true,
+    })
+
+    fmMenu.ItemUpgradeTip = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "ItemUpgradeTip",
+        showFunction = function() if ItemUpgradeTip then ItemUpgradeTip:ToggleView() end end,
+        hideOurFrame = true,
+    })
 
     GW.ToggleCharacterItemInfo(true)
     CharacterFrame:SetScript(

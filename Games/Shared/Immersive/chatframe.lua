@@ -1215,7 +1215,7 @@ local function GetPFlag(specialFlag, zoneChannelID, unitGUID)
     if specialFlag ~= "" then
         if specialFlag == "GM" or specialFlag == "DEV" then
             -- Add Blizzard Icon if this was sent by a GM/DEV
-            flag = "|TInterface\\ChatFrame\\UI-ChatIcon-Blizz:12:20:0:0:32:16:4:28:0:16|t "
+            flag = "|TInterface/ChatFrame/UI-ChatIcon-Blizz:12:20:0:0:32:16:4:28:0:16|t "
         elseif specialFlag == "GUIDE" then
             if GetMentorChannelStatus(Enum.PlayerMentorshipStatus.Mentor, C_ChatInfo.GetChannelRulesetForChannelID(zoneChannelID)) == Enum.PlayerMentorshipStatus.Mentor then
                 flag = gsub(NPEV2_CHAT_USER_TAG_GUIDE, "(|A.-|a).+", "%1") .. " "
@@ -2027,21 +2027,21 @@ local function styleChatWindow(frame)
     end
 
     if not GW.Retail then
-        _G[name .. "ButtonFrameBottomButton"]:SetPushedTexture("Interface\\AddOns\\GW2_UI\\textures\\uistuff\\arrowdown_down.png")
-        _G[name .. "ButtonFrameBottomButton"]:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\uistuff\\arrowdown_up.png")
-        _G[name .. "ButtonFrameBottomButton"]:SetHighlightTexture("Interface\\AddOns\\GW2_UI\\textures\\uistuff\\arrowdown_down.png")
+        _G[name .. "ButtonFrameBottomButton"]:SetPushedTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down.png")
+        _G[name .. "ButtonFrameBottomButton"]:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_up.png")
+        _G[name .. "ButtonFrameBottomButton"]:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down.png")
         _G[name .. "ButtonFrameBottomButton"]:SetHeight(24)
         _G[name .. "ButtonFrameBottomButton"]:SetWidth(24)
 
-        _G[name .. "ButtonFrameDownButton"]:SetPushedTexture("Interface\\AddOns\\GW2_UI\\textures\\uistuff\\arrowdown_down.png")
-        _G[name .. "ButtonFrameDownButton"]:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\uistuff\\arrowdown_up.png")
-        _G[name .. "ButtonFrameDownButton"]:SetHighlightTexture("Interface\\AddOns\\GW2_UI\\textures\\uistuff\\arrowdown_down.png")
+        _G[name .. "ButtonFrameDownButton"]:SetPushedTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down.png")
+        _G[name .. "ButtonFrameDownButton"]:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_up.png")
+        _G[name .. "ButtonFrameDownButton"]:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowdown_down.png")
         _G[name .. "ButtonFrameDownButton"]:SetHeight(24)
         _G[name .. "ButtonFrameDownButton"]:SetWidth(24)
 
-        _G[name .. "ButtonFrameUpButton"]:SetPushedTexture("Interface\\AddOns\\GW2_UI\\textures\\uistuff\\arrowup_down.png")
-        _G[name .. "ButtonFrameUpButton"]:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\uistuff\\arrowup_up.png")
-        _G[name .. "ButtonFrameUpButton"]:SetHighlightTexture("Interface\\AddOns\\GW2_UI\\textures\\uistuff\\arrowup_down.png")
+        _G[name .. "ButtonFrameUpButton"]:SetPushedTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowup_down.png")
+        _G[name .. "ButtonFrameUpButton"]:SetNormalTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowup_up.png")
+        _G[name .. "ButtonFrameUpButton"]:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/uistuff/arrowup_down.png")
         _G[name .. "ButtonFrameUpButton"]:SetHeight(24)
         _G[name .. "ButtonFrameUpButton"]:SetWidth(24)
     end

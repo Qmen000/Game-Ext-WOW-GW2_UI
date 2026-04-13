@@ -18,7 +18,7 @@ local function UpdateSets(self)
         if texture then
             button.icon:SetTexture(texture)
         else
-            button.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+            button.icon:SetTexture("Interface/Icons/INV_Misc_QuestionMark")
         end
         if selectedName and button.name == selectedName then
             self.selectedSet = button
@@ -88,7 +88,7 @@ local function LoadGearSets()
         button.title:SetTextColor(0.7, 0.7, 0.5, 1)
         button.title:SetText("")
         button.bg:SetVertexColor(1, 1, 1, 1)
-        button.hover:SetTexture('Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover')
+        button.hover:SetTexture('Interface/AddOns/GW2_UI/textures/character/menu-hover')
         button:ClearNormalTexture()
         button:SetText("")
 

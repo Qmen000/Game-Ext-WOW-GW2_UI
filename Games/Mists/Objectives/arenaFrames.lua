@@ -201,7 +201,7 @@ local function registerFrame(i, container)
     arenaFrame.name:SetFont(UNIT_NAME_FONT, 12)
     arenaFrame.name:SetShadowOffset(1, -1)
     arenaFrame.marker:Hide()
-    arenaFrame.icon:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\party\\classicons.png")
+    arenaFrame.icon:SetTexture("Interface/AddOns/GW2_UI/textures/party/classicons.png")
 
     arenaFrame.power.value:Hide()
 

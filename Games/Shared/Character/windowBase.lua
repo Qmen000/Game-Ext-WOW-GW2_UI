@@ -1,0 +1,407 @@
+---@class GW2
+local GW = select(2, ...)
+local L = GW.L
+
+local moveDistance, heroFrameX, heroFrameY, heroFrameLeft, heroFrameTop, heroFrameNormalScale, heroFrameEffectiveScale = 0, 0, 0, 0, 0, 1, 0
+local characterWindowHeroPanelMenu
+local nextAddonMenuButtonShadowOdd = true
+local nextAddonMenuButtonAnchor
+
+local mover_OnDragStart = [=[
+    if button ~= "LeftButton" then
+        return
+    end
+    local f = self:GetParent()
+    if self:GetAttribute("isMoving") then
+        f:CallMethod("StopMovingOrSizing")
+    end
+    self:SetAttribute("isMoving", true)
+    f:CallMethod("StartMoving")
+]=]
+
+local mover_OnDragStop = [=[
+    if button ~= "LeftButton" then
+        return
+    end
+    if not self:GetAttribute("isMoving") then
+        return
+    end
+    self:SetAttribute("isMoving", false)
+    local f = self:GetParent()
+    f:CallMethod("StopMovingOrSizing")
+    local x, y, _ = f:GetRect()
+
+    -- re-anchor to UIParent after the move
+    f:ClearAllPoints()
+    f:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", x, y)
+
+    -- store the updated position
+    self:CallMethod("savePosition", x, y)
+]=]
+
+local charSecure_OnShow = [=[
+    local keyEsc = GetBindingKey("TOGGLEGAMEMENU")
+    if keyEsc ~= nil then
+        self:SetBinding(false, keyEsc, "CLICK GwCharacterWindowClick:Close")
+    end
+]=]
+
+local charSecure_OnHide = [=[
+    self:ClearBindings()
+]=]
+
+local charCloseSecure_OnClick = [=[
+    self:GetParent():SetAttribute("windowpanelopen", nil)
+]=]
+
+local function mover_SavePosition(self, x, y)
+    local setting = self.onMoveSetting
+    if not setting then
+        return
+    end
+
+    local pos = GW.settings[setting]
+    if pos then
+        wipe(pos)
+    else
+        pos = {}
+    end
+
+    pos.point = "BOTTOMLEFT"
+    pos.relativePoint = "BOTTOMLEFT"
+    pos.xOfs = x
+    pos.yOfs = y
+    GW.settings[setting] = pos
+end
+
+local function click_OnEvent(self, event, windowsList)
+    if event ~= "UPDATE_BINDINGS" then
+        return
+    end
+
+    ClearOverrideBindings(self)
+
+    for _, win in pairs(windowsList) do
+        if win.TabFrame and win.Bindings then
+            for key, click in pairs(win.Bindings) do
+                local keyBind, keyBind2 = GetBindingKey(key)
+                if keyBind then
+                    SetOverrideBinding(self, false, keyBind, "CLICK GwCharacterWindowClick:" .. click)
+                end
+                if keyBind2 then
+                    SetOverrideBinding(self, false, keyBind2, "CLICK GwCharacterWindowClick:" .. click)
+                end
+            end
+        end
+    end
+end
+
+local function GetScaleDistance()
+    local left, top = heroFrameLeft, heroFrameTop
+    local scale = heroFrameEffectiveScale
+    local x, y = GetCursorPosition()
+    x = x / scale - left
+    y = top - y / scale
+    return sqrt(x * x + y * y)
+end
+
+function GW.LoadCharacterWindowBase(secureOnClick, secureOnAttributeChanged, windowsList)
+    if GwCharacterWindow then
+        return GwCharacterWindow
+    end
+
+    local frame = CreateFrame("Frame", "GwCharacterWindow", UIParent, "GwCharacterWindowTemplate")
+    frame.WindowHeader:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.BigHeader, nil, 2)
+    frame.WindowHeader:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
+
+    frame:SetClampedToScreen(true)
+    frame:SetClampRectInsets(-GwCharacterWindowLeft:GetWidth(), 0, GwCharacterWindowHeader:GetHeight(), 0)
+
+    frame:SetAttribute("windowpanelopen", nil)
+    frame.secure:SetAttribute("_onclick", secureOnClick)
+    frame.secure:SetFrameRef("GwCharacterWindow", frame)
+    frame:SetAttribute("_onattributechanged", secureOnAttributeChanged)
+    frame.SoundOpen = function()
+        PlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN)
+    end
+    frame.SoundSwap = function()
+        PlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB)
+    end
+    frame.SoundExit = function()
+        PlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE)
+    end
+
+    frame.backgroundMask = UIParent:CreateMaskTexture()
+    frame.backgroundMask:SetPoint("TOPLEFT", frame, "TOPLEFT", -64, 64)
+    frame.backgroundMask:SetPoint("BOTTOMRIGHT", frame, "BOTTOMLEFT", -64, 0)
+    frame.backgroundMask:SetTexture(
+        "Interface/AddOns/GW2_UI/textures/masktest.png",
+        "CLAMPTOBLACKADDITIVE",
+        "CLAMPTOBLACKADDITIVE"
+    )
+
+    frame.background:AddMaskTexture(frame.backgroundMask)
+    GwCharacterWindowHeader:AddMaskTexture(frame.backgroundMask)
+    GwCharacterWindowHeaderRight:AddMaskTexture(frame.backgroundMask)
+    GwCharacterWindowLeft:AddMaskTexture(frame.backgroundMask)
+
+    GW.SetupCharacterPanelSwitchAnimation(frame)
+    GW.SetupCharacterWindowRevealAnimation(frame)
+
+    frame:WrapScript(frame, "OnShow", charSecure_OnShow)
+    frame:WrapScript(frame, "OnHide", charSecure_OnHide)
+    frame.close:SetAttribute("_onclick", charCloseSecure_OnClick)
+
+    local pos = GW.settings.HERO_POSITION
+    local scale = GW.settings.HERO_POSITION_SCALE
+    frame:SetScale(scale)
+    frame:ClearAllPoints()
+    frame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.xOfs, pos.yOfs)
+    frame.mover.onMoveSetting = "HERO_POSITION"
+    frame.mover.savePosition = mover_SavePosition
+    frame.mover:SetAttribute("_onmousedown", mover_OnDragStart)
+    frame.mover:SetAttribute("_onmouseup", mover_OnDragStop)
+
+    frame.sizer.texture:SetDesaturated(true)
+    frame.sizer:SetScript("OnEnter", function(self)
+        frame.sizer.texture:SetDesaturated(false)
+        GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT", 10, 30)
+        GameTooltip:ClearLines()
+        GameTooltip_SetTitle(GameTooltip, L["Scale with Right Click"])
+        GameTooltip:Show()
+    end)
+    frame.sizer:SetScript("OnLeave", function()
+        frame.sizer.texture:SetDesaturated(true)
+        GameTooltip_Hide()
+    end)
+    frame.sizer:SetFrameStrata(frame:GetFrameStrata())
+    frame.sizer:SetFrameLevel(frame:GetFrameLevel() + 15)
+    frame.sizer:SetScript("OnMouseDown", function(self, btn)
+        if btn ~= "RightButton" then
+            return
+        end
+
+        heroFrameLeft, heroFrameTop = frame:GetLeft(), frame:GetTop()
+        heroFrameNormalScale = frame:GetScale()
+        heroFrameX, heroFrameY = heroFrameLeft, heroFrameTop - (UIParent:GetHeight() / heroFrameNormalScale)
+        heroFrameEffectiveScale = frame:GetEffectiveScale()
+        if heroFrameEffectiveScale == 0 then
+            heroFrameEffectiveScale = UIParent:GetEffectiveScale()
+        end
+        moveDistance = GetScaleDistance()
+
+        self:SetScript("OnUpdate", function()
+            local newScale = GetScaleDistance() / moveDistance * heroFrameNormalScale
+            if newScale < 0.2 then
+                newScale = 0.2
+            elseif newScale > 3.0 then
+                newScale = 3.0
+            end
+
+            frame:SetScale(newScale)
+            local scaleRatio = heroFrameNormalScale / frame:GetScale()
+            local x = heroFrameX * scaleRatio
+            local y = heroFrameY * scaleRatio
+            frame:ClearAllPoints()
+            frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", x, y)
+        end)
+    end)
+    frame.sizer:SetScript("OnMouseUp", function(self)
+        self:SetScript("OnUpdate", nil)
+        GW.settings.HERO_POSITION_SCALE = frame:GetScale()
+
+        local savedPos = GW.settings.HERO_POSITION
+        if savedPos then
+            wipe(savedPos)
+        else
+            savedPos = {}
+        end
+        savedPos.point, _, savedPos.relativePoint, savedPos.xOfs, savedPos.yOfs = frame:GetPoint()
+        GW.settings.HERO_POSITION = savedPos
+
+        if frame.dressingRoom and frame.dressingRoom.model then
+            frame.dressingRoom.model:RefreshCamera()
+        elseif _G.GwDressingRoom and GwDressingRoom.model then
+            GwDressingRoom.model:RefreshCamera()
+        end
+    end)
+
+    frame.secure:HookScript("OnEvent", function(self, event)
+        GW.CombatQueue_Queue("character_update_keybind", click_OnEvent, {self, event, windowsList})
+    end)
+    frame.secure:RegisterEvent("UPDATE_BINDINGS")
+    frame.UpdateBindings = function()
+        click_OnEvent(frame.secure, "UPDATE_BINDINGS", windowsList)
+    end
+    frame.SetHeroPanelMenu = function(_, menuFrame)
+        characterWindowHeroPanelMenu = menuFrame
+    end
+
+
+    frame.SetNextAddonMenuButtonShadowState = function(_, odd)
+        nextAddonMenuButtonShadowOdd = odd == true
+    end
+
+    frame.SetNextAddonMenuButtonAnchor = function(_, anchor)
+        nextAddonMenuButtonAnchor = anchor
+    end
+
+    return frame
+end
+
+function GW.SetCharacterWindowTabIconState(self, enabled)
+    if enabled then
+        self.icon:SetTexCoord(0, 0.5, 0, 0.625)
+    else
+        self.icon:SetTexCoord(0.505, 1, 0, 0.625)
+    end
+end
+
+function GW.CreateCharacterWindowTabIcon(iconName, tabIndex)
+    local tab = CreateFrame("Button", nil, GwCharacterWindow, "GwCharacterTabSelectTemplate")
+    tab.icon:SetTexture("Interface/AddOns/GW2_UI/textures/character/" .. iconName .. ".png")
+    tab:SetPoint("TOP", GwCharacterWindow, "TOPLEFT", -32, -25 + -((tabIndex - 1) * 45))
+    GW.SetCharacterWindowTabIconState(tab, false)
+    return tab
+end
+
+function GW.CharacterWindowContainer_OnShow(self)
+    GW.SetCharacterWindowTabIconState(self.TabFrame, true)
+    self.CharWindow.windowIcon:SetTexture(self.HeaderIcon)
+    self.CharWindow.WindowHeader:SetText(self.HeaderText)
+    if self.TabFrame then
+        GW.PlayCharacterTabSwitchPulse(self.TabFrame)
+    end
+end
+
+function GW.CharacterWindowContainer_OnHide(self)
+    GW.SetCharacterWindowTabIconState(self.TabFrame, false)
+    if self.TabFrame then
+        GW.ResetCharacterTabSwitchPulse(self.TabFrame)
+    end
+end
+
+function GW.CharacterWindowTab_OnEnter(self)
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT", 10, 30)
+    GameTooltip:ClearLines()
+    GameTooltip_SetTitle(GameTooltip, self.gwTipLabel)
+    GameTooltip:Show()
+end
+
+function GW.CharacterMenuBlank_OnLoad(self)
+    self.hover:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover.png")
+    self.limitHoverStripAmount = 1
+    self:ClearNormalTexture()
+
+    local fontString = self:GetFontString()
+    if not fontString then
+        return
+    end
+
+    fontString:SetTextColor(1, 1, 1, 1)
+    fontString:SetShadowColor(0, 0, 0, 0)
+    fontString:SetShadowOffset(1, -1)
+    fontString:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Normal)
+end
+
+function GW.CharacterMenuButton_OnLoad(self, odd, addGwHeroPanelFrameRef)
+    self.hover:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover.png")
+    self.limitHoverStripAmount = 1
+    if odd then
+        self:ClearNormalTexture()
+    else
+        self:SetNormalTexture("Interface/AddOns/GW2_UI/textures/character/menu-bg.png")
+    end
+
+    local fontString = self:GetFontString()
+    if fontString then
+        fontString:SetJustifyH("LEFT")
+        fontString:SetPoint("LEFT", self, "LEFT", 5, 0)
+    end
+
+    if addGwHeroPanelFrameRef then
+        self:SetFrameRef("GwCharacterWindow", GwCharacterWindow)
+    end
+end
+
+function GW.CharacterMenuButtonBack_OnLoad(self, key, setFrameRef)
+    self:SetText(key)
+    self.hover:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover.png")
+    self.limitHoverStripAmount = 1
+    self:ClearNormalTexture()
+
+    local fontString = self:GetFontString()
+    if not fontString then
+        return
+    end
+
+    fontString:SetTextColor(1, 1, 1, 1)
+    fontString:SetShadowColor(0, 0, 0, 0)
+    fontString:SetShadowOffset(1, -1)
+    fontString:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
+
+    if setFrameRef then
+        self:SetFrameRef("GwCharacterWindow", GwCharacterWindow)
+    end
+end
+
+function GW.SetCharacterWindowOpenAttribute(button, target, keytoggle)
+    if not button or not target then
+        return
+    end
+
+    button:SetAttribute("_onclick", ([=[
+        local f = self:GetFrameRef("GwCharacterWindow")
+        if %s then
+            f:SetAttribute("keytoggle", true)
+        end
+        f:SetAttribute("windowpanelopen", "%s")
+    ]=]):format(keytoggle == false and "false" or "true", target))
+end
+
+function GW.SetCharacterWindowBackAttribute(button, target, keytoggle)
+    GW.SetCharacterWindowOpenAttribute(button, target or "paperdoll", keytoggle)
+end
+
+function GW.AddAddonMenuButtonToHeroPanelMenu(options)
+    if not characterWindowHeroPanelMenu or not options or not options.name then
+        return
+    end
+    if not C_AddOns.IsAddOnLoaded(options.name) or (options.setting ~= nil and options.setting ~= true) then
+        return
+    end
+
+    local button = CreateFrame("Button", nil, characterWindowHeroPanelMenu, "SecureHandlerClickTemplate,GwCharacterPanelMenuButtonTemplate")
+    button:SetText(options.label or select(2, C_AddOns.GetAddOnInfo(options.name)))
+    if button:GetFontString() then
+        button:GetFontString():GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
+    end
+    button:ClearAllPoints()
+
+    if nextAddonMenuButtonAnchor then
+        button:SetPoint("TOPLEFT", nextAddonMenuButtonAnchor, "BOTTOMLEFT")
+    else
+        button:SetPoint("TOPLEFT", characterWindowHeroPanelMenu, "TOPLEFT")
+    end
+
+    GW.CharacterMenuButton_OnLoad(button, nextAddonMenuButtonShadowOdd)
+    nextAddonMenuButtonShadowOdd = not nextAddonMenuButtonShadowOdd
+    nextAddonMenuButtonAnchor = button
+    button:SetFrameRef("charwin", GwCharacterWindow)
+    button.ui_show = options.showFunction
+    button:SetAttribute("hideOurFrame", options.hideOurFrame)
+    button:SetAttribute("_onclick", [=[
+        local fchar = self:GetFrameRef("charwin")
+        local hideOurFrame = self:GetAttribute("hideOurFrame")
+        if fchar and hideOurFrame == true then
+            fchar:SetAttribute("windowpanelopen", nil)
+        end
+        self:CallMethod("ui_show")
+    ]=])
+
+    if options.onCreated then
+        options.onCreated(button)
+    end
+
+    return button
+end

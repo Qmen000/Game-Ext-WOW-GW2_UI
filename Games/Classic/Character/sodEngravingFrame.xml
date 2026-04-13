@@ -137,7 +137,7 @@
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="10" y="0"></Anchor>
         </Anchors>
         <Frames>
-            <Button name="$parentBackButton" parentKey="backButton" inherits="GwHeroPanelMenuButtonBackTemplate,SecureHandlerClickTemplate" text="Character: Runes" >
+            <Button name="$parentBackButton" parentKey="backButton" inherits="GwCharacterPanelMenuButtonBackSecureTemplate" text="Character: Runes" >
                 <Size x="231" y="50"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT" x="0" y="-15"></Anchor>

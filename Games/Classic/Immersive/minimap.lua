@@ -63,7 +63,7 @@ local function MinimapPostDrag(self)
 end
 
 local function lfgAnimPvPStop()
-    MiniMapBattlefieldIcon:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\lfgmicrobutton-down.png")
+    MiniMapBattlefieldIcon:SetTexture("Interface/AddOns/GW2_UI/textures/lfgmicrobutton-down.png")
     MiniMapBattlefieldFrame.animationCircle:Hide()
     MiniMapBattlefieldIcon:SetTexCoord(unpack(GW.TexCoords))
 end
@@ -84,9 +84,9 @@ local function lfgAnimPvP(_, elapse)
 
     local _, _, _, _, _, _, isRankedArena  = GetBattlefieldStatus(1)
     if isRankedArena then
-        MiniMapBattlefieldIcon:SetTexture("Interface\\PVPFrame\\PVP-ArenaPoints-Icon");
+        MiniMapBattlefieldIcon:SetTexture("Interface/PVPFrame/PVP-ArenaPoints-Icon");
     elseif UnitFactionGroup("player") then
-        MiniMapBattlefieldIcon:SetTexture("Interface\\BattlefieldFrame\\Battleground-"..UnitFactionGroup("player"));
+        MiniMapBattlefieldIcon:SetTexture("Interface/BattlefieldFrame/Battleground-"..UnitFactionGroup("player"));
     end
 
     local rot = MiniMapBattlefieldFrame.animationCircle.background:GetRotation() + (1.5 * elapse)

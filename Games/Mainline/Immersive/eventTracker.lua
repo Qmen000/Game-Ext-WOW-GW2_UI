@@ -5,7 +5,7 @@ local L = GW.L
 --[[
     Credits: fang2hou -> ElvUI_Windtools
 ]]--
-local LeftButtonIcon = "|TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:13:11:0:-1:512:512:12:66:230:307|t"
+local LeftButtonIcon = "|TInterface/TUTORIALFRAME/UI-TUTORIAL-FRAME:13:11:0:-1:512:512:12:66:230:307|t"
 local mapFrame
 local eventHandlers = {}
 

@@ -118,7 +118,7 @@ local function menuItem_OnClick(self)
 end
 
 local function LoadPvp()
-    local pvpWindow = CreateFrame("Frame", "GwPvpDetailsFrame", GwCharacterWindow, "GwCharacterTabContainer")
+    local pvpWindow = CreateFrame("Frame", "GwPvpDetailsFrame", GwCharacterWindow, "GwCharacterTabContainerTemplate")
     local pvpFrame_outer = CreateFrame("Frame", "GWCharacterPvpFrame", pvpWindow, "GwPvpWindow")
 
     -- setup pvp window
@@ -128,10 +128,10 @@ local function LoadPvp()
     LoadBattlegroundFrame(pvpFrame_outer.Battleground)
 
     -- setup a menu frame
-    local fmMenu = CreateFrame("Frame", "GWPvpMenu", pvpWindow, "GwCharacterMenuTemplate")
+    local fmMenu = CreateFrame("Frame", "GWPvpMenu", pvpWindow, "GwCharacterPanelMenuTemplate")
     fmMenu.items = {}
 
-    local item = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate")
+    local item = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate")
     item.ToggleMe = pvpFrame_outer.Pvp
     item:SetScript("OnClick", menuItem_OnClick)
     item:SetText(PVP)
@@ -139,7 +139,7 @@ local function LoadPvp()
     item:SetPoint("TOPLEFT", fmMenu, "TOPLEFT")
     fmMenu.items.pvp = item
 
-    item = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate")
+    item = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate")
     item.ToggleMe = pvpFrame_outer.Battleground
     item:SetScript("OnClick", menuItem_OnClick)
     item:SetText(BATTLEGROUND)

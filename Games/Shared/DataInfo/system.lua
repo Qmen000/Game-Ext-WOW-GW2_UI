@@ -7,7 +7,7 @@ local enteredInfo = false
 local infoDisplay, ipTypes = {}, {"IPv4", "IPv6"}
 local infoTable = {}
 local cpuProfiling = GetCVar("scriptProfile") == "1"
-local ScrollButtonIcon = "|TInterface\\TUTORIALFRAME\\UI-TUTORIAL-FRAME:13:11:0:-1:512:512:12:66:127:204|t"
+local ScrollButtonIcon = "|TInterface/TUTORIALFRAME/UI-TUTORIAL-FRAME:13:11:0:-1:512:512:12:66:127:204|t"
 
 local CombineAddOns = {
     ["DBM-Core"] = "^<DBM Core>",

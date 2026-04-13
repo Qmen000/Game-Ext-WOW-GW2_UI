@@ -297,7 +297,7 @@ local function skinWorldQuestCompleteAlert(frame)
             for i = 1, frame:GetNumRegions() do
                 local region = select(i, frame:GetRegions())
                 if region:IsObjectType("Texture") then
-                    if region:GetTexture() == "Interface\\LFGFrame\\UI-LFG-DUNGEONTOAST" then
+                    if region:GetTexture() == "Interface/LFGFrame/UI-LFG-DUNGEONTOAST" then
                         region:GwKill()
                     end
                 end
@@ -389,7 +389,7 @@ local function skinGuildChallengeAlert(frame)
     -- Background
     local region = select(2, frame:GetRegions())
     if region:IsObjectType("Texture") then
-        if region:GetTexture() == "Interface\\GuildFrame\\GuildChallenges" then
+        if region:GetTexture() == "Interface/GuildFrame/GuildChallenges" then
             region:GwKill()
         end
     end
@@ -1454,8 +1454,8 @@ local function AlertContainerFrameOnEvent(self, event, ...)
             local factionData = C_Reputation.GetFactionDataByID(PARAGON_QUEST_ID[questId][1])
             local text = GW.RGBToHex(0.22, 0.37, 0.98) .. (factionData and factionData.name or UNKNOWN) .. "|r"
             local name = GetQuestLogCompletionText(C_QuestLog.GetLogIndexForQuestID(questId))
-            -- /run GW.AlertSystem:AddAlert(format("|cff00c0fa%s|r", GetFactionInfoByID(2407)), nil, format("|cff00c0fa%s|r", "TESTE"), false, "Interface\\Icons\\Achievement_Quests_Completed_08", false)
-            GW.AlertSystem:AddAlert(name or "", nil, text, false, "Interface\\Icons\\Achievement_Quests_Completed_08", false)
+            -- /run GW.AlertSystem:AddAlert(format("|cff00c0fa%s|r", GetFactionInfoByID(2407)), nil, format("|cff00c0fa%s|r", "TESTE"), false, "Interface/Icons/Achievement_Quests_Completed_08", false)
+            GW.AlertSystem:AddAlert(name or "", nil, text, false, "Interface/Icons/Achievement_Quests_Completed_08", false)
             PlaySoundFile(GW.Libs.LSM:Fetch("sound", GW.settings.ALERTFRAME_NOTIFICATION_PARAGON_SOUND), "Master")
         end
     elseif event == "VIGNETTE_MINIMAP_UPDATED" and GW.settings.ALERTFRAME_NOTIFICATION_RARE then

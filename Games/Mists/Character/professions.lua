@@ -247,11 +247,11 @@ local function updateOverview(fmOverview)
             end
         else
             if i == 1 then
-                fm.icon:SetTexture("Interface\\Icons\\INV_Scroll_04")
+                fm.icon:SetTexture("Interface/Icons/INV_Scroll_04")
                 fm.title:SetText(PROFESSIONS_FIRST_PROFESSION)
                 fm.desc:SetText(PROFESSIONS_MISSING_PROFESSION)
             elseif i == 2 then
-                fm.icon:SetTexture("Interface\\Icons\\INV_Scroll_04")
+                fm.icon:SetTexture("Interface/Icons/INV_Scroll_04")
                 fm.title:SetText(PROFESSIONS_SECOND_PROFESSION)
                 fm.desc:SetText(PROFESSIONS_MISSING_PROFESSION)
             elseif i == 3 then
@@ -358,7 +358,7 @@ local function loadOverview(parent)
         local mask = UIParent:CreateMaskTexture()
         mask:SetPoint("CENTER", fm.icon, "CENTER", 0, 0)
         mask:SetTexture(
-            "Interface\\AddOns\\GW2_UI\\textures\\talents\\passive_border.png",
+            "Interface/AddOns/GW2_UI/textures/talents/passive_border.png",
             "CLAMPTOBLACKADDITIVE",
             "CLAMPTOBLACKADDITIVE"
         )
@@ -424,19 +424,19 @@ end
 
 
 local function LoadProfessions()
-    local professionWindow = CreateFrame("Frame", "GwProfessionsFrame", GwCharacterWindow, "GwCharacterTabContainer")
-    local fmMenu = CreateFrame("Frame", nil, professionWindow, "GwCharacterMenu")
+    local professionWindow = CreateFrame("Frame", "GwProfessionsFrame", GwCharacterWindow, "GwCharacterTabContainerTemplate")
+    local fmMenu = CreateFrame("Frame", nil, professionWindow, "GwCharacterPanelMenuTemplate")
 
     loadOverview(professionWindow)
 
-    fmMenu.overviewMenu = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate")
+    fmMenu.overviewMenu = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate")
     fmMenu.overviewMenu:SetText(TRADESKILLS)
     fmMenu.overviewMenu:ClearAllPoints()
     fmMenu.overviewMenu:SetPoint("TOPLEFT", fmMenu, "TOPLEFT")
 
     GW.CharacterMenuButton_OnLoad(fmMenu.overviewMenu, false)
 
-    fmMenu.overviewMenu:SetNormalTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-hover.png")
+    fmMenu.overviewMenu:SetNormalTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover.png")
 
     return professionWindow
 end

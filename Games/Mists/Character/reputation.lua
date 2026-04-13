@@ -190,7 +190,7 @@ local function setDetailEx(
     --if factionIndex % 2 == 0 then
     frame.background:SetTexture(nil)
     --else
-    --frame.background:SetTexture("Interface\\AddOns\\GW2_UI\\textures\\character\\menu-bg.png")
+    --frame.background:SetTexture("Interface/AddOns/GW2_UI/textures/character/menu-bg.png")
     --end
 
     if savedHeaderName ~= nil and savedHeaderName ~= "" and savedHeaderName ~= name then
@@ -910,7 +910,7 @@ local function categoriesSetup(catwin)
 end
 
 local function LoadReputation(tabContainer)
-    local container = CreateFrame("Frame", "GwPaperReputationContainer", tabContainer, "GwCharacterWindowContainer")
+    local container = CreateFrame("Frame", "GwPaperReputationContainer", tabContainer, "GwCharacterTabContainerTemplate")
     local fmGPR = CreateFrame("Frame", "GwPaperReputation", container, "GwPaperReputation")
 
     fmGPR.categories.update = updateReputations

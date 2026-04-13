@@ -256,7 +256,7 @@ end
 
 
 local function LoadCurrency()
-    local currencyWindow = CreateFrame("Frame", "GwCurrencyDetailsFrame", GwCharacterWindow, "GwCharacterTabContainer")
+    local currencyWindow = CreateFrame("Frame", "GwCurrencyDetailsFrame", GwCharacterWindow, "GwCharacterTabContainerTemplate")
 
     -- setup the currency window as a HybridScrollFrame and init each of the faux frame buttons
     local curwin_outer = CreateFrame("Frame", "GwCharacterCurrencyRaidInfoFrame", currencyWindow, "GwCurrencyWindow")
@@ -305,10 +305,10 @@ local function LoadCurrency()
     raidinfo:RegisterEvent("UPDATE_INSTANCE_INFO")
 
     -- setup a menu frame
-    local fmMenu = CreateFrame("Frame", "GWCurrencyMenu", currencyWindow, "GwCharacterMenuTemplate")
+    local fmMenu = CreateFrame("Frame", "GWCurrencyMenu", currencyWindow, "GwCharacterPanelMenuTemplate")
     fmMenu.items = {}
 
-    local item = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate")
+    local item = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate")
     item.ToggleMe = curwin
     item:SetScript("OnClick", menuItem_OnClick)
     item:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
@@ -317,7 +317,7 @@ local function LoadCurrency()
     item:SetPoint("TOPLEFT", fmMenu, "TOPLEFT")
     fmMenu.items.currency = item
 
-    item = CreateFrame("Button", "GwRaidInfoFrame", fmMenu, "GwHeroPanelMenuButtonTemplate")
+    item = CreateFrame("Button", "GwRaidInfoFrame", fmMenu, "GwCharacterPanelMenuButtonTemplate")
     item.ToggleMe = raidinfo
     item:SetScript("OnClick", menuItem_OnClick)
     item:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)

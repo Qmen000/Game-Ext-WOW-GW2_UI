@@ -1,3 +1,5 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Include file ="windowBase.xml"/>
+    <Script file ="windowBase.lua"/>
     <Script file ="reputation_table.lua"/>
 </Ui>

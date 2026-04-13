@@ -490,7 +490,7 @@ end
 
 local function LoadTalents()
     TalentFrame_LoadUI()
-    local talentWindow = CreateFrame("Frame", "GwTalentFrame", GwCharacterWindow, "GwCharacterTabContainer")
+    local talentWindow = CreateFrame("Frame", "GwTalentFrame", GwCharacterWindow, "GwCharacterTabContainerTemplate")
     local talentContainer = CreateFrame('Frame', 'GwTalentSpecFrame', talentWindow, 'SecureHandlerStateTemplate,GwTalentFrame')
 
     talentContainer.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header)
@@ -641,11 +641,11 @@ local function LoadTalents()
 
     -- setup a menu frame
     local activeTalentGroup = C_SpecializationInfo.GetActiveSpecGroup(false, isPetTalents)
-    local fmMenu = CreateFrame("Frame", "GWTalemtsMenu", talentWindow, "GwCharacterMenuTemplate")
+    local fmMenu = CreateFrame("Frame", "GWTalemtsMenu", talentWindow, "GwCharacterPanelMenuTemplate")
     fmMenu.items = {}
     talentContainer.fmMenu = fmMenu
 
-    local item = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate,SecureActionButtonTemplate")
+    local item = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate,SecureActionButtonTemplate")
     item:SetAttribute("macrotext", "/click PlayerSpecTab1")
     item:SetAttribute("type", "macro")
     PlayerSpecTab1:HookScript("OnClick", function()
@@ -659,7 +659,7 @@ local function LoadTalents()
     item:SetPoint("TOPLEFT", fmMenu, "TOPLEFT")
     fmMenu.items.spec1 = item
 
-    item = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate,SecureActionButtonTemplate")
+    item = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate,SecureActionButtonTemplate")
     item:SetAttribute("macrotext", "/click PlayerSpecTab2")
     item:SetAttribute("type", "macro")
     PlayerSpecTab2:HookScript("OnClick", function()
@@ -673,7 +673,7 @@ local function LoadTalents()
     item:SetPoint("TOPLEFT", fmMenu.items.spec1, "BOTTOMLEFT")
     fmMenu.items.spec2 = item
 
-    item = CreateFrame("Button", nil, fmMenu, "GwHeroPanelMenuButtonTemplate,SecureActionButtonTemplate")
+    item = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate,SecureActionButtonTemplate")
     item:SetAttribute("macrotext", "/click PlayerTalentFrameTab4")
     item:SetAttribute("type", "macro")
     PlayerTalentFrameTab4:HookScript("OnClick", function()

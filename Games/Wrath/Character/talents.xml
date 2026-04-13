@@ -136,7 +136,7 @@
         </Layers>
     </Frame>
 
-    <Button name="GwspellbookTab" inherits="GwCharacterMenuBlank,SecureHandlerStateTemplate,SecureHandlerClickTemplate,SecureHandlerBaseTemplate" virtual="true">
+    <Button name="GwspellbookTab" inherits="GwCharacterMenuBlankTemplate,SecureHandlerStateTemplate,SecureHandlerClickTemplate,SecureHandlerBaseTemplate" virtual="true">
         <Size x="231" y="44"/>
         <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="0" y="0"/>
