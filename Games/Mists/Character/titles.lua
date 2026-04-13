@@ -22,24 +22,24 @@ local function loadTitle(titlewin)
         local idx = i + offset
         if idx > #savedPlayerTitles then
             -- empty row (blank starter row, final row, and any empty entries)
-            slot.item:Hide()
-            slot.item.TitleID = nil
-            slot.item.TitleIdx = nil
+            slot.Hide()
+            slot.TitleID = nil
+            slot.TitleIdx = nil
         else
-            slot.item.TitleID = savedPlayerTitles[idx].id
-            slot.item.TitleIdx = idx
-            slot.item.name:SetText(savedPlayerTitles[idx].name)
+            slot.TitleID = savedPlayerTitles[idx].id
+            slot.TitleIdx = idx
+            slot.name:SetText(savedPlayerTitles[idx].name)
 
             -- set zebra color by idx or watch status
             local currentTitleId = GetCurrentTitle()
             zebra = idx % 2
             if currentTitleId == savedPlayerTitles[idx].id then
-                slot.item.zebra:SetVertexColor(1, 1, 0.5, 0.15)
+                slot.zebra:SetVertexColor(1, 1, 0.5, 0.15)
             else
-                slot.item.zebra:SetVertexColor(zebra, zebra, zebra, 0.05)
+                slot.zebra:SetVertexColor(zebra, zebra, zebra, 0.05)
             end
 
-            slot.item:Show()
+            slot.Show()
         end
     end
 
@@ -53,11 +53,11 @@ local function titleSetup(titlewin)
     for i = 1, #titlewin.buttons do
         local slot = titlewin.buttons[i]
         slot:SetWidth(titlewin:GetWidth() - 12)
-        slot.item.name:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
-        slot.item.name:SetTextColor(1, 1, 1)
-        if not slot.item.ScriptsHooked then
-            slot.item:HookScript("OnClick", title_OnClick)
-            slot.item.ScriptsHooked = true
+        slot.name:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
+        slot.name:SetTextColor(1, 1, 1)
+        if not slot.ScriptsHooked then
+            slot.HookScript("OnClick", title_OnClick)
+            slot.ScriptsHooked = true
         end
     end
 

@@ -3,6 +3,7 @@
     <Include file ="professionsShared.xml"/>
     <Include file ="characterShared.xml"/>
     <Include file ="reputationShared.xml"/>
+    <Include file ="titlesShared.xml"/>
     <Include file ="windowBase.xml"/>
     <Script file ="windowBase.lua"/>
     <Script file ="reputation_table.lua"/>

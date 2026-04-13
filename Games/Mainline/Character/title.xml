@@ -1,30 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 
-  <Button name="GwTitleButtonTemplate" virtual="true">
-        <Size x="200" y="32"/>
-        <Layers>
-            <Layer level="ARTWORK">
-                <Texture parentKey="zebra" file="Interface/AddOns/GW2_UI/textures/character/menu-bg.png">
-                    <Size x="32" y="32"/>
-                    <Anchors>
-                        <Anchor point="TOPLEFT" relativePoint="TOPLEFT"/>
-                        <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT"/>
-                    </Anchors>
-                </Texture>
-            </Layer>
-            <Layer textureSubLevel="2">
-                <FontString parentKey="name" text="Amount Could not be loaded" inherits="GameFontNormalSmall" justifyV="MIDDLE" justifyH="LEFT">
-                    <Anchors>
-                        <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="5" y="-5"/>
-                    </Anchors>
-                    <Size x="190" y="24"/>
-                </FontString>
-            </Layer>
-        </Layers>
-  </Button>
-
-  <Frame name="GwTitleWindow" inherits="SecureHandlerBaseTemplate" virtual="true" hidden ="true">
+    <Frame name="GwTitleWindow" inherits="SecureHandlerBaseTemplate" virtual="true" hidden ="true">
         <Size x="230" y="478"/>
         <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="13" y="-105"/>

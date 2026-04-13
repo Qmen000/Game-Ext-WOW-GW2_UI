@@ -3,7 +3,6 @@
     <Include file ="spellbook.xml"/>
     <Include file ="talents.xml"/>
     <Include file ="pvp.xml"/>
-    <Include file ="titles.xml"/>
     <Include file ="glyphs.xml"/>
     <Include file ="gearSets.xml"/>
     <Script file ="stats.lua"/>
