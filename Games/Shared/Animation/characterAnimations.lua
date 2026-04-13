@@ -101,7 +101,7 @@ function GW.SetupCharacterWindowRevealAnimation(frame)
 end
 
 function GW.PlayCharacterTabSwitchPulse(tabFrame)
-    if not tabFrame then
+    if not tabFrame or InCombatLockdown() then
         return
     end
 
@@ -114,7 +114,7 @@ function GW.PlayCharacterTabSwitchPulse(tabFrame)
 end
 
 function GW.ResetCharacterTabSwitchPulse(tabFrame)
-    if tabFrame then
+    if tabFrame and not InCombatLockdown() then
         tabFrame:SetScale(1)
     end
 end

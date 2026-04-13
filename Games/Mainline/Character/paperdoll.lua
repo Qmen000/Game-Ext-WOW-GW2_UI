@@ -8,26 +8,6 @@ local paperDollBagItemList
 local paperDollOutfits
 local paperDollTitles
 
-local function characterPanelToggle(frame)
-    if InCombatLockdown() then
-        GW.Notice(ERR_NOT_IN_COMBAT)
-        return
-    end
-    fmMenu:Hide()
-    paperDollBagItemList:Hide()
-    paperDollOutfits:Hide()
-    paperDollTitles:Hide()
-
-    if frame == nil then
-        dressingRoom:Hide()
-        return
-    end
-
-    frame:Show()
-    dressingRoom:Show()
-end
-
-
 local function toggleCharacter(tab, onlyShow)
     -- TODO: update bag frame to a secure stack, or at least the currency icon
     if InCombatLockdown() then
@@ -53,52 +33,47 @@ local function toggleCharacter(tab, onlyShow)
     end
 end
 
-local function menuItem_OnClick(self)
-    characterPanelToggle(self.ToggleMe)
-end
-
 
 local function menu_SetupBackButton(_, fmBtn, key)
-    GW.CharacterMenuButtonBack_OnLoad(fmBtn, key, false)
-    fmBtn:SetScript("OnClick", function() characterPanelToggle(fmMenu) end)
+    GW.CharacterMenuButtonBack_OnLoad(fmBtn, key, true)
+    GW.SetCharacterWindowOpenAttribute(fmBtn, "paperdoll", false)
 end
 
 local function LoadPaperDoll(tabContainer)
-    fmMenu = CreateFrame("Frame", nil, tabContainer, "GwCharacterPanelMenuTemplate")
+    fmMenu = CreateFrame("Frame", nil, tabContainer, "GwCharacterPanelMenuTemplate,SecureHandlerBaseTemplate")
     GwCharacterWindow:SetHeroPanelMenu(fmMenu)
     fmMenu.SetupBackButton = menu_SetupBackButton
 
     dressingRoom, paperDollBagItemList = GW.LoadPDBagList(fmMenu, tabContainer)
     paperDollOutfits = GW.LoadPDEquipset(fmMenu, tabContainer)
     paperDollTitles = GW.LoadPDTitles(fmMenu, tabContainer)
+    GwCharacterWindow:SetFrameRef("GwPaperDollMenu", fmMenu)
+    GwCharacterWindow:SetFrameRef("GwPaperDollDressingRoom", dressingRoom)
+    GwCharacterWindow:SetFrameRef("GwPaperDollEquipment", paperDollBagItemList)
+    GwCharacterWindow:SetFrameRef("GwPaperDollOutfits", paperDollOutfits)
+    GwCharacterWindow:SetFrameRef("GwPaperDollTitles", paperDollTitles)
 
-    fmMenu.equipmentMenu = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate")
-    fmMenu.equipmentMenu.ToggleMe = paperDollBagItemList
-    fmMenu.equipmentMenu:SetScript("OnClick", menuItem_OnClick)
+    fmMenu.equipmentMenu = CreateFrame("Button", nil, fmMenu, "SecureHandlerClickTemplate,GwCharacterPanelMenuButtonTemplate")
     fmMenu.equipmentMenu:SetText(BAG_FILTER_EQUIPMENT)
     fmMenu.equipmentMenu:GetFontString():GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
     fmMenu.equipmentMenu:ClearAllPoints()
     fmMenu.equipmentMenu:SetPoint("TOPLEFT", fmMenu, "TOPLEFT")
 
-    fmMenu.outfitsMenu = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate")
-    fmMenu.outfitsMenu.ToggleMe = paperDollOutfits
-    fmMenu.outfitsMenu:SetScript("OnClick", menuItem_OnClick)
+    fmMenu.outfitsMenu = CreateFrame("Button", nil, fmMenu, "SecureHandlerClickTemplate,GwCharacterPanelMenuButtonTemplate")
     fmMenu.outfitsMenu:SetText(EQUIPMENT_MANAGER)
     fmMenu.outfitsMenu:GetFontString():GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
     fmMenu.outfitsMenu:ClearAllPoints()
     fmMenu.outfitsMenu:SetPoint("TOPLEFT", fmMenu.equipmentMenu, "BOTTOMLEFT")
 
-    fmMenu.titlesMenu = CreateFrame("Button", nil, fmMenu, "GwCharacterPanelMenuButtonTemplate")
-    fmMenu.titlesMenu.ToggleMe = paperDollTitles
-    fmMenu.titlesMenu:SetScript("OnClick", menuItem_OnClick)
+    fmMenu.titlesMenu = CreateFrame("Button", nil, fmMenu, "SecureHandlerClickTemplate,GwCharacterPanelMenuButtonTemplate")
     fmMenu.titlesMenu:SetText(PAPERDOLL_SIDEBAR_TITLES)
     fmMenu.titlesMenu:GetFontString():GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
     fmMenu.titlesMenu:ClearAllPoints()
     fmMenu.titlesMenu:SetPoint("TOPLEFT", fmMenu.outfitsMenu, "BOTTOMLEFT")
 
-    GW.CharacterMenuButton_OnLoad(fmMenu.equipmentMenu, true)
-    GW.CharacterMenuButton_OnLoad(fmMenu.outfitsMenu, false)
-    GW.CharacterMenuButton_OnLoad(fmMenu.titlesMenu, true)
+    GW.CharacterMenuButton_OnLoad(fmMenu.equipmentMenu, true, true)
+    GW.CharacterMenuButton_OnLoad(fmMenu.outfitsMenu, false, true)
+    GW.CharacterMenuButton_OnLoad(fmMenu.titlesMenu, true, true)
     GW.SetCharacterWindowOpenAttribute(fmMenu.equipmentMenu, "paperdollequipment", false)
     GW.SetCharacterWindowOpenAttribute(fmMenu.outfitsMenu, "paperdolloutfits", false)
     GW.SetCharacterWindowOpenAttribute(fmMenu.titlesMenu, "paperdolltitles", false)

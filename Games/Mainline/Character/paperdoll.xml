@@ -192,7 +192,7 @@
         </Frames>
     </EventButton>
 
-    <Frame name="GwPaperDollBagItemList" hidden="true" virtual="true">
+    <Frame name="GwPaperDollBagItemList" inherits="SecureHandlerBaseTemplate" hidden="true" virtual="true">
         <Size x="231" y="498"></Size>
         <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="10" y="-70"></Anchor>
@@ -208,7 +208,7 @@
             </Layer>
         </Layers>
         <Frames>
-            <Button name="$parentBackButton" parentKey="backButton" inherits="GwCharacterPanelMenuButtonBackTemplate" text="Character: Equipment">
+            <Button name="$parentBackButton" parentKey="backButton" inherits="GwCharacterPanelMenuButtonBackSecureTemplate" text="Character: Equipment">
                 <Size x="231" y="50"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT" x="0" y="60"></Anchor>
@@ -217,7 +217,7 @@
         </Frames>
     </Frame>
 
-    <Frame name="GwPaperDollOutfits" hidden="true" virtual="true">
+    <Frame name="GwPaperDollOutfits" inherits="SecureHandlerBaseTemplate" hidden="true" virtual="true">
         <Size x="220" y="478"></Size>
         <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="13" y="-105"></Anchor>
@@ -233,7 +233,7 @@
             </Layer>
         </Layers>
         <Frames>
-            <Button name="$parentBackButton" parentKey="backButton" inherits="GwCharacterPanelMenuButtonBackTemplate" text="Character: Outfits">
+            <Button name="$parentBackButton" parentKey="backButton" inherits="GwCharacterPanelMenuButtonBackSecureTemplate" text="Character: Outfits">
                 <Size x="231" y="50"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT" x="0" y="90"></Anchor>
@@ -276,7 +276,7 @@
             </Layer>
         </Layers>
         <Frames>
-            <Button name="$parentBackButton" parentKey="backButton" inherits="GwCharacterPanelMenuButtonBackTemplate" text="Character: Titles">
+            <Button name="$parentBackButton" parentKey="backButton" inherits="GwCharacterPanelMenuButtonBackSecureTemplate" text="Character: Titles">
                 <Size x="231" y="50"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT" x="0" y="90"></Anchor>
@@ -285,7 +285,7 @@
         </Frames>
     </Frame>
 
-    <Button name="GwDressingRoom" enableMouse="true" registerForClicks="LeftButtonUp" virtual="true">
+    <Button name="GwDressingRoom" inherits="SecureHandlerBaseTemplate" enableMouse="true" registerForClicks="LeftButtonUp" virtual="true">
         <Size x="608" y="621"></Size>
         <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="245" y="-5"></Anchor>

@@ -99,18 +99,63 @@ local charSecure_OnAttributeChanged = [=[
     local rep = self:GetFrameRef("GwReputationFrame")
     local cur = self:GetFrameRef("GwCurrencyFrame")
     local prof = self:GetFrameRef("GwProfessionsFrame")
+    local dollMenu = self:GetFrameRef("GwPaperDollMenu")
+    local dollDress = self:GetFrameRef("GwPaperDollDressingRoom")
+    local dollEquipment = self:GetFrameRef("GwPaperDollEquipment")
+    local dollOutfits = self:GetFrameRef("GwPaperDollOutfits")
+    local dollTitles = self:GetFrameRef("GwPaperDollTitles")
 
     local keytoggle = self:GetAttribute("keytoggle")
     local selected = value
 
-    if selected == "paperdoll" or selected == "character" then
+    if selected == "paperdoll" or selected == "character" or selected == "paperdollequipment" or selected == "paperdolloutfits" or selected == "paperdolltitles" then
         if doll then
-            if keytoggle and doll:IsVisible() then
+            local activeFrame = doll
+            if selected == "paperdollequipment" then
+                activeFrame = dollEquipment or doll
+            elseif selected == "paperdolloutfits" then
+                activeFrame = dollOutfits or doll
+            elseif selected == "paperdolltitles" then
+                activeFrame = dollTitles or doll
+            end
+
+            if keytoggle and activeFrame and activeFrame:IsVisible() then
                 self:SetAttribute("keytoggle", nil)
                 self:SetAttribute("windowpanelopen", nil)
                 return
             else
                 doll:Show()
+            end
+        end
+        if dollMenu then
+            if selected == "paperdoll" or selected == "character" then
+                dollMenu:Show()
+            else
+                dollMenu:Hide()
+            end
+        end
+        if dollDress then
+            dollDress:Show()
+        end
+        if dollEquipment then
+            if selected == "paperdollequipment" then
+                dollEquipment:Show()
+            else
+                dollEquipment:Hide()
+            end
+        end
+        if dollOutfits then
+            if selected == "paperdolloutfits" then
+                dollOutfits:Show()
+            else
+                dollOutfits:Hide()
+            end
+        end
+        if dollTitles then
+            if selected == "paperdolltitles" then
+                dollTitles:Show()
+            else
+                dollTitles:Hide()
             end
         end
         if rep then
@@ -132,9 +177,12 @@ local charSecure_OnAttributeChanged = [=[
                 rep:Show()
             end
         end
-        if doll then
-            doll:Hide()
-        end
+        if doll then doll:Hide() end
+        if dollMenu then dollMenu:Hide() end
+        if dollDress then dollDress:Hide() end
+        if dollEquipment then dollEquipment:Hide() end
+        if dollOutfits then dollOutfits:Hide() end
+        if dollTitles then dollTitles:Hide() end
         if cur then
             cur:Hide()
         end
@@ -151,9 +199,12 @@ local charSecure_OnAttributeChanged = [=[
                 cur:Show()
             end
         end
-        if doll then
-            doll:Hide()
-        end
+        if doll then doll:Hide() end
+        if dollMenu then dollMenu:Hide() end
+        if dollDress then dollDress:Hide() end
+        if dollEquipment then dollEquipment:Hide() end
+        if dollOutfits then dollOutfits:Hide() end
+        if dollTitles then dollTitles:Hide() end
         if rep then
             rep:Hide()
         end
@@ -170,9 +221,12 @@ local charSecure_OnAttributeChanged = [=[
                 prof:Show()
             end
         end
-        if doll then
-            doll:Hide()
-        end
+        if doll then doll:Hide() end
+        if dollMenu then dollMenu:Hide() end
+        if dollDress then dollDress:Hide() end
+        if dollEquipment then dollEquipment:Hide() end
+        if dollOutfits then dollOutfits:Hide() end
+        if dollTitles then dollTitles:Hide() end
         if rep then
             rep:Hide()
         end

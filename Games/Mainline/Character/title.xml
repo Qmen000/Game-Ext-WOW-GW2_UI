@@ -24,7 +24,7 @@
         </Layers>
   </Button>
 
-  <Frame name="GwTitleWindow" virtual="true" hidden ="true">
+  <Frame name="GwTitleWindow" inherits="SecureHandlerBaseTemplate" virtual="true" hidden ="true">
         <Size x="230" y="478"/>
         <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="13" y="-105"/>
