@@ -653,7 +653,7 @@ local function evPlayerLogin(self)
     end
 
     -- load alert settings
-    if not (GW.Classic or GW.TBC or GW.Wrath) then
+    if not (GW.Classic or GW.TBC) then
         GW.LoadAlertSystem()
         GW.SetupAlertFramePosition()
         GW.LoadOurAlertSubSystem()
