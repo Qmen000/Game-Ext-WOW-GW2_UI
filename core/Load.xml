@@ -14,29 +14,13 @@
     <Script file ="backdropTemplates.lua"/>
     <Script file ="..\Settings\defaults2.lua"/>
     <Include file ="..\Settings\Load.xml"/>
-    <Include file ="..\Core\Mixin\Load.xml"/>
-    <Include file ="Immersive\Load.xml"/>
-    <Include file ="Objectives\Load.xml"/>
-    <Include file ="Statusbar\Load.xml"/>
     <Script file ="raid_debuffs.lua"/>
     <Script file ="fonts.lua"/>
     <Script file ="cooldowns.lua"/>
     <Script file ="disableBlizzard.lua"/>
     <Script file ="notaint.lua"/>
-    <Script file ="Shared\characterAnimations.lua"/>
-    <Include file ="Social\Load.xml"/>
-    <Include file ="Mainbar\Load.xml"/>
-    <Include file ="DataInfo\Load.xml"/>
-    <Include file ="Aura\Load.xml"/>
-    <Include file ="Misc\Load.xml"/>
-    <Include file ="DamageText\Load.xml"/>
-    <Include file ="Castingbar\Load.xml"/>
-    <Include file ="Units\Load.xml"/>
-    <Include file ="Stancebar\Load.xml"/>
-    <Include file ="Micromenu\Load.xml"/>
-    <Include file ="Character\Load.xml"/>
-    <Include file ="Inventory\Load.xml"/>
-    <Include file ="Tests\Load.xml"/>
+
+    <Include file ="..\Games\Shared\Load.xml"/>
 
     <Script file ="GW2_ui.lua"/>
 </Ui>

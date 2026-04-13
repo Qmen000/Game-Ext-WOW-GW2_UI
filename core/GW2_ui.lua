@@ -541,9 +541,6 @@ local function evPlayerLogin(self)
     loaded = true
     GW.CheckRole() -- some API's deliver a nil value on init.lua load, we we fill this values also here
 
-    if GW.inDebug then
-        GW.AlertTestsSetup()
-    end
     GW.CombatQueue_Initialize()
 
     --Create the mainbar layout manager
