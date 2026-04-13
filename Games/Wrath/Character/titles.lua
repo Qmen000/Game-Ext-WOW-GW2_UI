@@ -20,7 +20,7 @@ local function loadTitle(titlewin)
         local idx = i + offset
         if idx > #savedPlayerTitles then
             -- empty row (blank starter row, final row, and any empty entries)
-            slot.Hide()
+            slot:Hide()
             slot.TitleID = nil
             slot.TitleIdx = nil
         else
@@ -37,7 +37,7 @@ local function loadTitle(titlewin)
                 slot.zebra:SetVertexColor(zebra, zebra, zebra, 0.05)
             end
 
-            slot.Show()
+            slot:Show()
         end
     end
 
@@ -53,7 +53,7 @@ local function titleSetup(titlewin)
         slot.name:SetFont(UNIT_NAME_FONT, 12, "")
         slot.name:SetTextColor(1, 1, 1)
         if not slot.ScriptsHooked then
-            slot.HookScript("OnClick", title_OnClick)
+            slot:HookScript("OnClick", title_OnClick)
             slot.ScriptsHooked = true
         end
     end
