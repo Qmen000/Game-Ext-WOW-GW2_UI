@@ -325,38 +325,25 @@
                         </Frames>
                     </Frame>
                     <StatusBar minValue="0" maxValue="1" hidden="false" parentKey="StatusBar">
-                        <Size x="0" y="10"></Size>
+                        <Size x="201" y="10"></Size>
                         <Anchors>
                             <Anchor point="TOPLEFT" relativeKey="$parent.name" relativePoint="BOTTOMLEFT" x="0" y="0"></Anchor>
-                            <Anchor point="TOPRIGHT" relativeKey="$parent.name" relativePoint="BOTTOMRIGHT" x="0" y="0"></Anchor>
                         </Anchors>
                         <BarTexture file="Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar.png"/>
                         <Layers>
-                            <Layer level="OVERLAY">
-                                <Texture parentKey="spark" file="Interface/AddOns/GW2_UI/textures/uistuff/statusbar-spark-white.png">
+                            <Layer level="ARTWORK">
+                                <Texture parentKey="Spark" file="Interface/AddOns/GW2_UI/textures/uistuff/statusbar-spark-white.png">
                                     <Size x="10" y="10"></Size>
                                     <Anchors>
                                         <Anchor point="RIGHT" relativePoint="LEFT" x="0" y="0"></Anchor>
                                     </Anchors>
                                 </Texture>
                             </Layer>
-                            <Layer level="OVERLAY" textureSubLevel="2">
-                                <FontString parentKey="currentValue" text="Unknown" justifyH="LEFT">
-                                    <Size x="180" y="20"></Size>
-                                    <Anchors>
-                                        <Anchor point="LEFT" relativePoint="LEFT" x="5" y="0"></Anchor>
-                                    </Anchors>
-                                </FontString>
-                                <FontString parentKey="percentage" text="Unknown" justifyH="CENTER">
-                                    <Size x="180" y="20"></Size>
+                            <Layer level="OVERLAY">
+                                <FontString parentKey="current" text="Unknown" justifyH="CENTER">
+                                    <Size x="550" y="20"></Size>
                                     <Anchors>
                                         <Anchor point="CENTER" relativePoint="CENTER" x="0" y="0"></Anchor>
-                                    </Anchors>
-                                </FontString>
-                                <FontString parentKey="nextValue" text="Unknown" justifyH="RIGHT">
-                                    <Size x="180" y="20"></Size>
-                                    <Anchors>
-                                        <Anchor point="RIGHT" relativePoint="RIGHT" x="-5" y="0"></Anchor>
                                     </Anchors>
                                 </FontString>
                             </Layer>
@@ -366,5 +353,4 @@
             </Frame>
         </Frames>
     </Button>
-
 </Ui>
