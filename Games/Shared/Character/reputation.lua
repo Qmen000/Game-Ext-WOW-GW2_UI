@@ -18,12 +18,20 @@ local updateQueued = false
 
 local factionDataCache = {}
 
+local ExpandAllFactionHeaders = C_Reputation and C_Reputation.ExpandAllFactionHeaders or ExpandAllFactionHeaders
+local SetWatchedFactionByIndex = C_Reputation and C_Reputation.SetWatchedFactionByIndex or SetWatchedFactionIndex
+local ToggleFactionAtWar = C_Reputation and C_Reputation.ToggleFactionAtWar or FactionToggleAtWar
+local GetNumFactions = C_Reputation and C_Reputation.GetNumFactions or GetNumFactions
+local IsMajorFaction = C_Reputation and C_Reputation.IsMajorFaction
+
 local ReputationFrameEvents = {
-	"MAJOR_FACTION_RENOWN_LEVEL_CHANGED",
-	"MAJOR_FACTION_UNLOCKED",
 	"QUEST_LOG_UPDATE",
 	"UPDATE_FACTION",
 }
+if GW.Retail then
+    tinsert(ReputationFrameEvents, "MAJOR_FACTION_RENOWN_LEVEL_CHANGED")
+    tinsert(ReputationFrameEvents, "MAJOR_FACTION_UNLOCKED")
+end
 
 local function SetFontWithShadow(element, font, size, sizeAddition)
     element:GwSetFontTemplate(font, size, nil, sizeAddition)
@@ -86,10 +94,10 @@ local function CollectFactionData(fetchData)
     local searchLower = isSearchResult and string.lower(isSearchResult) or nil
 
     if fetchData then
-        C_Reputation.ExpandAllFactionHeaders()
+        ExpandAllFactionHeaders()
         wipe(factionDataCache)
-        for factionIndex = 1, C_Reputation.GetNumFactions() do
-            local factionData = C_Reputation.GetFactionDataByIndex(factionIndex)
+        for factionIndex = 1, GetNumFactions() do
+            local factionData = GW.GetFactionDataByIndex(factionIndex)
             if factionData then
                 if factionData.name == GUILD then
                     factionData = C_Reputation.GetGuildFactionData()
@@ -159,7 +167,7 @@ local function CollectFactionData(fetchData)
                         cCur = cCur + ranks.currentLevel
                         addToFactionTable(factionTbl, ranks.currentLevel, friendInfo.reaction, true, data.name, hasRewardPending, pendingParagonRewardFactions)
                         if hasRewardPending then hasPendingParagonReward = true end
-                    elseif C_Reputation.IsMajorFaction(data.factionID) then
+                    elseif IsMajorFaction(data.factionID) then
                         local major = C_MajorFactions.GetMajorFactionData(data.factionID)
                         if major then
                             local standingText = RENOWN_LEVEL_LABEL:format(major.renownLevel)
@@ -273,7 +281,7 @@ end
 local function ToggleDetails(self)
     if not self then return end
     g_selectionBehavior:ToggleSelect(self)
-     ToggleDetailsButton(self, g_selectionBehavior:IsSelected(self))
+    ToggleDetailsButton(self, g_selectionBehavior:IsSelected(self))
 end
 
 local function setReputationDetails(frame, data)
@@ -315,11 +323,11 @@ local function setReputationDetails(frame, data)
         frame.controles.atwar.icon:SetTexCoord(0, 0.5, 0, 0.5)
     end
 
-    frame.controles.viewRenown.isShowAble = data.factionID and C_Reputation.IsMajorFaction(data.factionID)
+    frame.controles.viewRenown.isShowAble = data.factionID and IsMajorFaction(data.factionID)
     frame.controles.atwar.isShowAble = data.canToggleAtWar
     frame.controles.showAsBar.checkbutton:SetChecked(data.isWatched)
     frame.controles.inactive.isShowAble = data.canSetInactive
-    frame.controles.inactive.checkbutton:SetChecked(not C_Reputation.IsFactionActive(data.factionIndex))
+    frame.controles.inactive.checkbutton:SetChecked(not GW.IsFactionActive(data.factionIndex))
 
     if data.factionID and RT[data.factionID] then
         frame.repbg:SetTexture("Interface/AddOns/GW2_UI/textures/rep/" .. RT[data.factionID])
@@ -337,10 +345,10 @@ local function setReputationDetails(frame, data)
         frame.repbg:SetAlpha(0)
     end
 
-    if data.factionID and C_Reputation.IsFactionParagonForCurrentPlayer(data.factionID) then
+    if data.factionID and C_Reputation and C_Reputation.IsFactionParagonForCurrentPlayer and C_Reputation.IsFactionParagonForCurrentPlayer(data.factionID) then
         local currentValue, threshold, _, hasRewardPending = C_Reputation.GetFactionParagonInfo(data.factionID)
         local value = currentValue % threshold
-        local isMajorFaction = C_Reputation.IsMajorFaction(data.factionID)
+        local isMajorFaction = IsMajorFaction(data.factionID)
         local majorFactionData = isMajorFaction and C_MajorFactions.GetMajorFactionData(data.factionID)
         local currentRankText = majorFactionData and RENOWN_LEVEL_LABEL:format(majorFactionData.renownLevel) or friendInfo.friendshipFactionID and friendInfo.reaction or currentRank
 
@@ -390,7 +398,7 @@ local function setReputationDetails(frame, data)
             frame.currentValue:SetText()
             frame.percentage:SetText("100%")
         end
-    elseif data.factionID and C_Reputation.IsMajorFaction(data.factionID) then
+    elseif data.factionID and IsMajorFaction(data.factionID) then
         local majorFactionData = C_MajorFactions.GetMajorFactionData(data.factionID)
         if majorFactionData then
             frame.StatusBar:SetMinMaxValues(0, 1)
@@ -468,9 +476,9 @@ end
 local function detailsInactive_OnClick(self)
     local parent = self:GetParent():GetParent()
     isSearchResult = nil
-    local shouldBeActive = not C_Reputation.IsFactionActive(parent.data.factionIndex)
+    local shouldBeActive = not GW.IsFactionActive(parent.data.factionIndex)
     local categories, details = CollectFactionData()
-    C_Reputation.SetFactionActive(parent.data.factionIndex, shouldBeActive)
+    GW.SetFactionActive(parent.data.factionIndex, shouldBeActive)
     UpdateCategories(GwPaperReputation.Categories, categories)
     local firstCategory = GwPaperReputation.Categories:FindElementData(1)
     if firstCategory then
@@ -482,7 +490,7 @@ end
 
 local function detailsAtwar_OnClick(self)
     local parent = self:GetParent():GetParent()
-    C_Reputation.ToggleFactionAtWar(parent.data.factionIndex)
+    ToggleFactionAtWar(parent.data.factionIndex)
     if parent.data.canToggleAtWar then
         isSearchResult = nil
         local _, details = CollectFactionData()
@@ -491,11 +499,11 @@ local function detailsAtwar_OnClick(self)
 end
 
 local function detailsViewRenown_OnClick(self)
-    if not EncounterJournal then
+    if not EncounterJournal and EncounterJournal_LoadUI then
 		EncounterJournal_LoadUI()
 	end
 
-	if not EncounterJournal:IsShown() then
+	if EncounterJournal and not EncounterJournal:IsShown() then
 		ShowUIPanel(EncounterJournal)
 	end
 
@@ -507,9 +515,9 @@ end
 local function detailsShowAsBar_OnClick(self)
     local parent = self:GetParent():GetParent()
     if parent.data.isWatched then
-        C_Reputation.SetWatchedFactionByIndex(0)
+        SetWatchedFactionByIndex(0)
     else
-        C_Reputation.SetWatchedFactionByIndex(parent.data.factionIndex)
+        SetWatchedFactionByIndex(parent.data.factionIndex)
     end
 end
 
@@ -557,6 +565,9 @@ local function InitDetailsButton(button, elementData)
         button.controles.showAsBar.checkbutton:SetScript("OnClick", function() detailsShowAsBar_OnClick(button.controles.showAsBar) end)
         button.controles.showAsBar.checkbutton:SetScript("OnEnter", detailsShowAsBar_OnEnter)
         button.controles.showAsBar.checkbutton:SetScript("OnLeave", GameTooltip_Hide)
+        if GW.Retail then
+            button.accountWide.Icon:SetAtlas("warbands-icon", true)
+        end
         button.accountWide:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText(REPUTATION_TOOLTIP_ACCOUNT_WIDE_LABEL, 1, 1, 1)
@@ -724,7 +735,7 @@ local function SetSearchboxInstructions(editbox, text)
     editbox.Instructions:SetText(text)
 end
 
-local function LoadReputation(tabContainer)
+function GW.LoadReputation(tabContainer)
     local fmGPR = CreateFrame("Frame", "GwPaperReputation", tabContainer, "GwPaperReputationRetailTemplate")
     local fmDetail = CreateFrame("Frame", "GwRepDetailFrame", tabContainer, "GwRepDetailFrameRetailTemplate")
     local view = CreateScrollBoxListLinearView()
@@ -849,4 +860,3 @@ local function LoadReputation(tabContainer)
         FrameUtil.UnregisterFrameForEvents(self.Categories, ReputationFrameEvents)
     end)
 end
-GW.LoadReputation = LoadReputation

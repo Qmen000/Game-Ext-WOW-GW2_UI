@@ -447,8 +447,8 @@ local function loadTalentsFrames(self)
     updateTalentTrees(self)
 end
 
-local function LoadTalents()
-    local talentFrame = CreateFrame("Frame","GwTalentFrame", GwCharacterWindow,"GwLegacyTalentFrame")
+local function LoadTalents(tabContainer)
+    local talentFrame = CreateFrame("Frame", "GwTalentFrame", tabContainer, "GwLegacyTalentFrame")
 
     talentFrame.bottomBar.prevCancel:SetScript("OnClick", function()
         ResetGroupPreviewTalentPoints(isPetTalents, openSpec)
@@ -524,10 +524,7 @@ local function LoadTalents()
         GwCharacterWindow:SetAttribute("keytoggle", true)
         GwCharacterWindow:SetAttribute("windowpanelopen", "talents")
     end)
-    talentFrame:Hide()
 
     loadTalentsFrames(talentFrame)
-
-    return talentFrame
 end
 GW.LoadTalents = LoadTalents

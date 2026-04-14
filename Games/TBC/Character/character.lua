@@ -1,8 +1,8 @@
 ---@class GW2
 local GW = select(2, ...)
-local L = GW.L
 local GWGetClassColor = GW.GWGetClassColor
 
+local hideCharframe = true
 
 local PlayerSlots = {
     ["CharacterHeadSlot"] = {0, 0.25, 0, 0.125},
@@ -644,16 +644,16 @@ local function menu_SetupBackButton(_, fmBtn, key)
     GW.SetCharacterWindowOpenAttribute(fmBtn, "paperdoll", false)
 end
 
-local function LoadPaperDoll()
-    CreateFrame("Frame", "GwCharacterWindowContainer", GwCharacterWindow, "GwCharacterTabContainerTemplate")
-    CreateFrame("Button", "GwDressingRoom", GwCharacterWindowContainer, "GwDressingRoom")
-    CreateFrame("Frame", "GwHeroPanelMenu", GwCharacterWindowContainer, "GwCharacterMenuFilledTemplate")
-    local GwPaperHonor = CreateFrame("Frame", "GwPaperHonor", GwCharacterWindowContainer, "GwPaperHonor")
+local function LoadPaperDoll(tabContainer)
+    CreateFrame("Button", "GwDressingRoom", tabContainer, "GwDressingRoom")
+    CreateFrame("Frame", "GwHeroPanelMenu", tabContainer, "GwCharacterMenuFilledTemplate")
+    local GwPaperHonor = CreateFrame("Frame", "GwPaperHonor", tabContainer, "GwPaperHonor")
+    GwCharacterWindow:SetHeroPanelMenu(GwHeroPanelMenu)
 
     tinsert(UISpecialFrames, "GwCharacterWindow")
 
     --Legacy pet window
-    CreateFrame("Frame", "GwPetContainer", GwCharacterWindowContainer, "GwPetContainer")
+    CreateFrame("Frame", "GwPetContainer", tabContainer, "GwPetContainer")
     CreateFrame("Button", "GwDressingRoomPet", GwPetContainer, "GwPetPaperdoll")
 
     GwDressingRoom.stats:SetScript("OnEvent", PaperDollStats_OnEvent)
@@ -752,11 +752,10 @@ local function LoadPaperDoll()
     PaperDollUpdateStats()
     PaperDollUpdatePetStats()
 
-    GW.LoadPDSkills(GwCharacterWindowContainer, GwHeroPanelMenu)
+    GW.LoadPDSkills(tabContainer, GwHeroPanelMenu)
+    LoadPVPTab(GwPaperHonor)
     GwHeroPanelMenu:SetupBackButton(GwPaperHonor.backButton, CHARACTER .. ": " .. HONOR)
     GwHeroPanelMenu:SetupBackButton(GwDressingRoomPet.backButton, CHARACTER .. ": " .. PET)
-
-    LoadPVPTab(GwPaperHonor)
 
     GwDressingRoom.stats.advancedChatStatsFrame = CreateFrame("Frame", nil, GwDressingRoom.stats)
     GwDressingRoom.stats.advancedChatStatsFrame:SetPoint("TOPLEFT", GwDressingRoom.stats, "TOPLEFT", 0, -1)
@@ -772,6 +771,88 @@ local function LoadPaperDoll()
     end)
     GwDressingRoom.stats.advancedChatStatsFrame:SetScript("OnLeave", GameTooltip_Hide)
 
-    return GwCharacterWindowContainer
+    -- Secure stuff
+    GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.skillsMenu, true, true)
+    GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.honorMenu, false, true)
+    GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.petMenu, true, true)
+    GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.skillsMenu, "paperdollskills")
+    GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.honorMenu, "paperdollhonor")
+    GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.petMenu, "paperdollpet")
+
+    GwCharacterWindow:SetFrameRef("GwHeroPanelMenu", GwHeroPanelMenu)
+    GwCharacterWindow:SetFrameRef("GwPaperHonor", GwPaperHonor)
+    GwCharacterWindow:SetFrameRef("GwPaperSkills", GwPaperSkills)
+    GwCharacterWindow:SetFrameRef("GwDressingRoom", GwDressingRoom)
+    GwCharacterWindow:SetFrameRef("GwPetContainer", GwPetContainer)
+
+    -- add addon buttons here
+    GwCharacterWindow:SetAttribute("myClassId", GW.myClassID)
+    if GW.myClassID == 3 or GW.myClassID == 9 or GW.myClassID == 6 then
+        GwCharacterWindow:SetNextAddonMenuButtonShadowState(false)
+    else
+        GwCharacterWindow:SetNextAddonMenuButtonShadowState(true)
+    end
+    GwCharacterWindow:SetNextAddonMenuButtonAnchor((GW.myClassID == 3 or GW.myClassID == 9 or GW.myClassID == 6) and GwHeroPanelMenu.petMenu or GwHeroPanelMenu.equipmentMenu)
+    GwHeroPanelMenu.Outfitter = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "Outfitter",
+        setting = GW.settings.USE_CHARACTER_WINDOW,
+        showFunction = function() hideCharframe = false Outfitter:OpenUI() end,
+        hideOurFrame = true,
+    })
+
+    GwHeroPanelMenu["GearQuipper-TBC"] = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "GearQuipper-TBC",
+        setting = GW.settings.USE_CHARACTER_WINDOW,
+        showFunction = function() gearquipper:ToggleUI() end,
+        hideOurFrame = false,
+        onCreated = function(createdButton)
+            createdButton:SetText("GearQuipper")
+            GqUiFrame:ClearAllPoints()
+            GqUiFrame:SetParent(GwCharacterWindow)
+            GqUiFrame:SetPoint("TOPRIGHT", GwCharacterWindow, "TOPRIGHT", 350, -12)
+        end,
+    })
+    GwHeroPanelMenu.Clique = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "Clique",
+        setting = GW.settings.USE_SPELLBOOK_WINDOW,
+        showFunction = function() ShowUIPanel(CliqueConfig) end,
+        hideOurFrame = true,
+    })
+
+    GwHeroPanelMenu.Pawn = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "Pawn",
+        setting = GW.settings.USE_CHARACTER_WINDOW,
+        showFunction = PawnUIShow,
+        hideOurFrame = false,
+    })
+
+    -- pet GwDressingRoom
+    GwHeroPanelMenu.petMenu:SetAttribute("_onstate-petstate", [=[
+        local f = self:GetFrameRef("GwCharacterWindow")
+        local myClassId = f:GetAttribute("myClassId")
+        if myClassId == 3 or myClassId == 6 or myClassId == 9 then
+            self:Show()
+        else
+            self:Hide()
+        end
+        if newstate == "nopet" then
+            self:Disable()
+            self:GetFrameRef("GwCharacterWindow"):SetAttribute("HasPetUI", false)
+        elseif newstate == "hasPet" then
+            self:Enable()
+            self:GetFrameRef("GwCharacterWindow"):SetAttribute("HasPetUI", true)
+        end
+    ]=])
+    RegisterStateDriver(GwHeroPanelMenu.petMenu, "petstate", "[target=pet,noexists] nopet; [target=pet,help] hasPet;")
+
+    if GW.settings.USE_CHARACTER_WINDOW then
+        CharacterFrame:SetScript("OnShow", function()
+            if hideCharframe then
+                HideUIPanel(CharacterFrame)
+            end
+            hideCharframe = true
+        end)
+    end
+
 end
 GW.LoadPaperDoll = LoadPaperDoll

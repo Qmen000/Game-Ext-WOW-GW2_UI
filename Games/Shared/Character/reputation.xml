@@ -263,7 +263,7 @@
                 </Anchors>
                 <Layers>
                     <Layer level="BORDER">
-                        <Texture parentKey="Icon" atlas="warbands-icon" useAtlasSize="true" scale="0.9">
+                        <Texture parentKey="Icon" scale="0.9">
                             <Anchors>
                                 <Anchor point="CENTER"></Anchor>
                             </Anchors>

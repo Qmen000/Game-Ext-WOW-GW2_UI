@@ -97,6 +97,55 @@ function GW.IsPlayerSpell(spellID)
     end
 end
 
+function GW.GetFactionDataByIndex(factionIndex)
+    if C_Reputation and C_Reputation.GetFactionDataByIndex then
+        return C_Reputation.GetFactionDataByIndex(factionIndex)
+    else
+        local name, description, standingID, barMin, barMax, barValue, atWarWith, canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID, hasBonusRepGain, canSetInactive = GetFactionInfo(factionIndex)
+        local factionData = {
+            factionID = factionID,
+            name = name,
+            description = description,
+            reaction = standingID,
+            currentReactionThreshold = barMin,
+            nextReactionThreshold = barMax,
+            currentStanding = barValue,
+            atWarWith = atWarWith,
+            canToggleAtWar = canToggleAtWar,
+            isChild = isChild,
+            isHeader = isHeader,
+            isHeaderWithRep = hasRep,
+            isCollapsed = isCollapsed,
+            isWatched = isWatched,
+            hasBonusRepGain = hasBonusRepGain,
+            canSetInactive = canSetInactive,
+            isAccountWide = false
+        }
+
+        return factionData
+    end
+end
+
+function GW.IsFactionActive(factionIndex)
+    if C_Reputation and C_Reputation.IsFactionActive then
+        return C_Reputation.IsFactionActive(factionIndex)
+    else
+        return IsFactionInactive(factionIndex) == false
+    end
+end
+
+function GW.SetFactionActive(factionIndex, active)
+    if C_Reputation and C_Reputation.SetFactionActive then
+        C_Reputation.SetFactionActive(factionIndex, active)
+    else
+        if active then
+            SetFactionActive(factionIndex)
+        else
+            SetFactionInactive(factionIndex)
+        end
+    end
+end
+
 function GW.CropRatio(width, height, mult)
     local left, right, top, bottom = 0.05, 0.95, 0.05, 0.95
     if not mult then mult = 0.5 end

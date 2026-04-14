@@ -1,12 +1,12 @@
 ---@class GW2
 local GW = select(2, ...)
 
-local hideCharframe = true
-
 local windowsList = {
     {
         OnLoad = "LoadPaperDoll",
+        FrameName = "GwPaperDollDetailsFrame",
         SettingName = "USE_CHARACTER_WINDOW",
+        RefName = "GwPaperDoll",
         TabIcon = "tabicon_character",
         HeaderIcon = "Interface/AddOns/GW2_UI/textures/character/character-window-icon.png",
         HeaderText = CHARACTER,
@@ -23,7 +23,9 @@ local windowsList = {
     },
     {
         OnLoad = "LoadReputation",
+        FrameName = "GwReputationDetailsFrame",
         SettingName = "USE_CHARACTER_WINDOW",
+        RefName = "GwReputationFrame",
         TabIcon = "tabicon_reputation",
         HeaderIcon = "Interface/AddOns/GW2_UI/textures/character/reputation-window-icon.png",
         HeaderText = REPUTATION,
@@ -36,7 +38,9 @@ local windowsList = {
     },
     {
         OnLoad = "LoadTalents",
+        FrameName = "GwTalentsFrame",
         SettingName = "USE_TALENT_WINDOW",
+        RefName = "GwTalentsFrame",
         TabIcon = "tabicon-talents",
         HeaderIcon = "Interface/AddOns/GW2_UI/textures/character/talents-window-icon.png",
         HeaderText = TALENTS,
@@ -49,7 +53,9 @@ local windowsList = {
     },
     {
         OnLoad = "LoadSpellBook",
+        FrameName = "GwSpellbookFrame",
         SettingName = "USE_SPELLBOOK_WINDOW",
+        RefName = "GwSpellbookFrame",
         TabIcon = "tabicon_spellbook",
         HeaderIcon = "Interface/AddOns/GW2_UI/textures/character/spellbook-window-icon.png",
         HeaderText = SPELLS,
@@ -65,7 +71,7 @@ local windowsList = {
 
 -- turn click events (generated from key bind overrides) into the correct tab show/hide calls
 local charSecure_OnClick = [=[
-    --print("secure click handler button: " .. button)
+    print("secure click handler button: " .. button)
     local f = self:GetFrameRef("GwCharacterWindow")
     if button == "Close" then
         f:SetAttribute("windowpanelopen", nil)
@@ -105,9 +111,9 @@ local charSecure_OnAttributeChanged = [=[
         return
     end
 
-    local fmDoll = self:GetFrameRef("GwCharacterWindowContainer")
+    local fmDoll = self:GetFrameRef("GwPaperDoll")
     local fmDollMenu = self:GetFrameRef("GwHeroPanelMenu")
-    local fmDollRepu = self:GetFrameRef("GwPaperReputationContainer")
+    local fmDollRepu = self:GetFrameRef("GwReputationFrame")
     local fmDollSkills = self:GetFrameRef("GwPaperSkills")
     local fmDollPetCont = self:GetFrameRef("GwPetContainer")
     local fmDollDress = self:GetFrameRef("GwDressingRoom")
@@ -119,15 +125,17 @@ local charSecure_OnAttributeChanged = [=[
     local showDollEngavings = false
     local showDollHonor = false
     local showDollPetCont = false
-    local fmSBM = self:GetFrameRef("GwSpellbook")
+    local fmSBM = self:GetFrameRef("GwSpellbookFrame")
     local showSpell = false
-    local fmTal = self:GetFrameRef("GwTalentFrame")
+    local fmTal = self:GetFrameRef("GwTalentsFrame")
     local showTal = false
 
     local hasPetUI = self:GetAttribute("HasPetUI")
 
     local close = false
     local keytoggle = self:GetAttribute("keytoggle")
+
+    print("windowpanelopen: " .. tostring(value) .. " keytoggle: " .. tostring(keytoggle), fmSBM, fmTal)
 
     if fmTal ~= nil and value == "talents" then
         if keytoggle and fmTal:IsVisible() then
@@ -309,113 +317,30 @@ local function LoadCharacter()
     local tabIndex = 1
     for _, v in pairs(windowsList) do
         if GW.settings[v.SettingName] then
-            local container = GW[v.OnLoad](baseFrame)
+            local container = CreateFrame("Frame", v.FrameName, baseFrame, "GwCharacterTabContainerTemplate")
             local tab = GW.CreateCharacterWindowTabIcon(v.TabIcon, tabIndex)
 
-            baseFrame:SetFrameRef(container:GetName(), container)
-            container:SetScript("OnShow", GW.CharacterWindowContainer_OnShow)
-            container:SetScript("OnHide", GW.CharacterWindowContainer_OnHide)
-            tab:SetFrameRef("GwCharacterWindow", baseFrame)
-            tab:SetAttribute("_OnClick", v.OnClick)
-
+            baseFrame:SetFrameRef(v.RefName, container)
             container.TabFrame = tab
             container.CharWindow = baseFrame
             container.HeaderIcon = v.HeaderIcon
             container.HeaderText = v.HeaderText
-            tab.gwTipLabel = v.HeaderText
+            tab.gwTipLabel = v.TooltipText
 
             tab:SetScript("OnEnter", GW.CharacterWindowTab_OnEnter)
             tab:SetScript("OnLeave", GameTooltip_Hide)
 
-            if container:GetName() == "GwCharacterWindowContainer" then
-                baseFrame:SetHeroPanelMenu(GwHeroPanelMenu)
-                baseFrame:SetFrameRef("GwHeroPanelMenu", GwHeroPanelMenu)
-                baseFrame:SetFrameRef("GwPaperHonor", GwPaperHonor)
-                baseFrame:SetFrameRef("GwPaperSkills", GwPaperSkills)
-                baseFrame:SetFrameRef("GwDressingRoom", GwDressingRoom)
-                baseFrame:SetFrameRef("GwPetContainer", GwPetContainer)
-
-                GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.skillsMenu, true, true)
-                GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.honorMenu, false, true)
-                GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.petMenu, true, true)
-
-                -- add addon buttons here
-                baseFrame:SetAttribute("myClassId", GW.myClassID)
-                if GW.myClassID == 3 or GW.myClassID == 9 or GW.myClassID == 6 then
-                    baseFrame:SetNextAddonMenuButtonShadowState(false)
-                else
-                    baseFrame:SetNextAddonMenuButtonShadowState(true)
-                end
-                baseFrame:SetNextAddonMenuButtonAnchor((GW.myClassID == 3 or GW.myClassID == 9 or GW.myClassID == 6) and GwHeroPanelMenu.petMenu or GwHeroPanelMenu.equipmentMenu)
-                GwHeroPanelMenu.Outfitter = GW.AddAddonMenuButtonToHeroPanelMenu({
-                    name = "Outfitter",
-                    setting = GW.settings.USE_CHARACTER_WINDOW,
-                    showFunction = function() hideCharframe = false Outfitter:OpenUI() end,
-                    hideOurFrame = true,
-                })
-
-                GwHeroPanelMenu["GearQuipper-TBC"] = GW.AddAddonMenuButtonToHeroPanelMenu({
-                    name = "GearQuipper-TBC",
-                    setting = GW.settings.USE_CHARACTER_WINDOW,
-                    showFunction = function() gearquipper:ToggleUI() end,
-                    hideOurFrame = false,
-                    onCreated = function(createdButton)
-                        createdButton:SetText("GearQuipper")
-                        GqUiFrame:ClearAllPoints()
-                        GqUiFrame:SetParent(GwCharacterWindow)
-                        GqUiFrame:SetPoint("TOPRIGHT", GwCharacterWindow, "TOPRIGHT", 350, -12)
-                    end,
-                })
-                GwHeroPanelMenu.Clique = GW.AddAddonMenuButtonToHeroPanelMenu({
-                    name = "Clique",
-                    setting = GW.settings.USE_SPELLBOOK_WINDOW,
-                    showFunction = function() ShowUIPanel(CliqueConfig) end,
-                    hideOurFrame = true,
-                })
-
-                GwHeroPanelMenu.Pawn = GW.AddAddonMenuButtonToHeroPanelMenu({
-                    name = "Pawn",
-                    setting = GW.settings.USE_CHARACTER_WINDOW,
-                    showFunction = PawnUIShow,
-                    hideOurFrame = false,
-                })
-
-                GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.skillsMenu, "paperdollskills")
-                GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.honorMenu, "paperdollhonor")
-                GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.petMenu, "paperdollpet")
-
-                -- pet GwDressingRoom
-                GwHeroPanelMenu.petMenu:SetAttribute("_onstate-petstate", [=[
-                    local f = self:GetFrameRef("GwCharacterWindow")
-                    local myClassId = f:GetAttribute("myClassId")
-                    if myClassId == 3 or myClassId == 6 or myClassId == 9 then
-                        self:Show()
-                    else
-                        self:Hide()
-                    end
-                    if newstate == "nopet" then
-                        self:Disable()
-                        self:GetFrameRef("GwCharacterWindow"):SetAttribute("HasPetUI", false)
-                    elseif newstate == "hasPet" then
-                        self:Enable()
-                        self:GetFrameRef("GwCharacterWindow"):SetAttribute("HasPetUI", true)
-                    end
-                ]=])
-                RegisterStateDriver(GwHeroPanelMenu.petMenu, "petstate", "[target=pet,noexists] nopet; [target=pet,help] hasPet;")
-            end
             v.TabFrame = tab
+            tab:SetFrameRef("GwCharacterWindow", baseFrame)
+            tab:SetAttribute("_onclick", v.OnClick)
+            container:SetScript("OnShow", GW.CharacterWindowContainer_OnShow)
+            container:SetScript("OnHide", GW.CharacterWindowContainer_OnHide)
+
+            GW[v.OnLoad](container)
+            baseFrame.dressingRoom = container.dressingRoom or baseFrame.dressingRoom
 
             tabIndex = tabIndex + 1
         end
-    end
-
-    if GW.settings.USE_CHARACTER_WINDOW then
-        CharacterFrame:SetScript("OnShow", function()
-            if hideCharframe then
-                HideUIPanel(CharacterFrame)
-            end
-            hideCharframe = true
-        end)
     end
 
     -- set bindings on secure instead of char win to not interfere with secure ESC binding on char win
