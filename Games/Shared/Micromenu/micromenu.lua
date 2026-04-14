@@ -678,7 +678,8 @@ local function setupMicroButtons(mbf)
     -- or if we need to create our own char button for the custom hero panel
     local cref
     if GW.settings.USE_CHARACTER_WINDOW then
-        cref = CreateFrame("Button", "GwCharacterMicroButton", mbf, (GW.Retail and "" or "MainMenuBarMicroButton,") .. "SecureHandlerClickTemplate")
+        --IsProtected()
+        cref = CreateFrame("Button", "GwCharacterMicroButton", mbf, ((GW.Retail or GW.Wrath) and "" or "MainMenuBarMicroButton,") .. "SecureHandlerClickTemplate")
         if GW.Retail then
             Mixin(cref, MainMenuBarMicroButtonMixin)
         end
@@ -725,7 +726,7 @@ local function setupMicroButtons(mbf)
     cref:GwSetAnchorPoint()
 
     -- custom bag microbutton
-    local bref = CreateFrame("Button", nil, mbf, "MainMenuBarMicroButton")
+    local bref = CreateFrame("Button", nil, mbf, ((GW.Retail or GW.Wrath) and "" or "MainMenuBarMicroButton"))
     bref.tooltipText = MicroButtonTooltipText(INVENTORY_TOOLTIP, "OPENALLBAGS")
     bref.newbieText = nil
     bref.textureName = "BagMicroButton"
@@ -744,7 +745,7 @@ local function setupMicroButtons(mbf)
     local sref
     if not GW.Retail then
         if GW.settings.USE_SPELLBOOK_WINDOW then
-            sref = CreateFrame("Button", "GwPlayerSpellsMicroButton", mbf, "SecureHandlerClickTemplate,MainMenuBarMicroButton")
+            sref = CreateFrame("Button", "GwPlayerSpellsMicroButton", mbf, (GW.Wrath and "" or "MainMenuBarMicroButton,") .. "SecureHandlerClickTemplate")
             sref.tooltipText = MicroButtonTooltipText(SPELLBOOK_ABILITIES_BUTTON, "TOGGLESPELLBOOK")
             sref.newbieText = NEWBIE_TOOLTIP_SPELLBOOK
             reskinMicroButton(sref, "SpellbookMicroButton", mbf)
@@ -776,7 +777,7 @@ local function setupMicroButtons(mbf)
     local tref
     if not GW.Retail then
         if GW.settings.USE_TALENT_WINDOW then
-            tref = CreateFrame("Button", "GwTalentMicroButton", mbf, "SecureHandlerClickTemplate,MainMenuBarMicroButton")
+            tref = CreateFrame("Button", "GwTalentMicroButton", mbf, (GW.Wrath and "" or "MainMenuBarMicroButton,") .. "SecureHandlerClickTemplate")
             tref.tooltipText = MicroButtonTooltipText(TALENTS, "TOGGLETALENTS")
             tref.newbieText = NEWBIE_TOOLTIP_TALENTS
             reskinMicroButton(tref, "TalentMicroButton", mbf)
@@ -842,7 +843,7 @@ local function setupMicroButtons(mbf)
 
     -- GuildMicroButton
    local gref
-    for i = 1, (GW.Clasic or GW.TBC or GW.Wrath) and 2 or 1 do
+    for i = 1, (GW.Classic or GW.TBC or GW.Wrath) and 2 or 1 do
         if i == 1 then
             gref = GuildMicroButton
         else
@@ -905,7 +906,7 @@ local function setupMicroButtons(mbf)
 
         --ProfessionMicroButton
         if GW.settings.USE_PROFESSION_WINDOW then
-            pref = CreateFrame("Button", "GwProfessionMicroButton", mbf, (GW.Retail and "" or "MainMenuBarMicroButton,") .. "SecureHandlerClickTemplate")
+            pref = CreateFrame("Button", "GwProfessionMicroButton", mbf, "SecureHandlerClickTemplate")
             if GW.Retail then
                 Mixin(pref, MainMenuBarMicroButtonMixin)
             end
@@ -943,7 +944,7 @@ local function setupMicroButtons(mbf)
         local pvpref
         if GW.Wrath then
             if GW.settings.USE_CHARACTER_WINDOW then
-                pvpref = CreateFrame("Button", "GwPvpMicroButton", mbf, "SecureHandlerClickTemplate,MainMenuBarMicroButton")
+                pvpref = CreateFrame("Button", "GwPvpMicroButton", mbf, "SecureHandlerClickTemplate")
                 pvpref.tooltipText = MicroButtonTooltipText(PLAYER_V_PLAYER, "TOGGLECHARACTER4")
                 pvpref.newbieText = NEWBIE_TOOLTIP_PVP
                 reskinMicroButton(pvpref, "PvpMicroButton", mbf)

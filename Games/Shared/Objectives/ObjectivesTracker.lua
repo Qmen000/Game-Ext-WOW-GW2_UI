@@ -144,7 +144,7 @@ local function DisableBlizzardsObjevtiveTracker()
     elseif GW.Mists or GW.Wrath then
         WatchFrame:SetMovable(1)
         WatchFrame:SetUserPlaced(true)
-        WatchFrame:Hide()
+        WatchFrame:Hide() 
         WatchFrame:SetScript("OnShow",function() WatchFrame:Hide() end)
         SetCVar("autoQuestWatch", "1")
     elseif GW.Classic or GW.TBC then
