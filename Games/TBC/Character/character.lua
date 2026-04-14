@@ -638,6 +638,11 @@ local function grabDefaultSlots(slot, anchor, parent, size)
     slot.IsGW2Hooked = true
 end
 
+local function menu_SetupBackButton(_, fmBtn, key)
+    GW.CharacterMenuButtonBack_OnLoad(fmBtn, key, true)
+    GW.SetCharacterWindowOpenAttribute(fmBtn, "paperdoll", false)
+end
+
 local function LoadPaperDoll()
     CreateFrame("Frame", "GwCharacterWindowContainer", GwCharacterWindow, "GwCharacterTabContainerTemplate")
     CreateFrame("Button", "GwDressingRoom", GwCharacterWindowContainer, "GwDressingRoom")
@@ -652,6 +657,8 @@ local function LoadPaperDoll()
 
     GwDressingRoom.stats:SetScript("OnEvent", PaperDollStats_OnEvent)
     GwDressingRoomPet.stats:SetScript("OnEvent", PaperDollPetStats_OnEvent)
+
+    GwHeroPanelMenu.SetupBackButton = menu_SetupBackButton
 
     grabDefaultSlots(CharacterHeadSlot, {"TOPLEFT", GwDressingRoom.gear, "TOPLEFT", 0, 0}, GwDressingRoom, 50)
     grabDefaultSlots(CharacterShoulderSlot, {"TOPLEFT", CharacterHeadSlot, "BOTTOMLEFT", 0, -5}, GwDressingRoom, 50)
