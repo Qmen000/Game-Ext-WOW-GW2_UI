@@ -291,6 +291,8 @@ local function LoadPetFrame(lm)
     playerPetFrame.displayDebuffs = 40
     playerPetFrame.auras.smallSize = 20
     playerPetFrame.auras.bigSize = 24
+    playerPetFrame.auras.buffFilter = "all"
+    playerPetFrame.auras.debuffFilter = "all"
 
     playerPetFrame.happiness:SetScript("OnEnter", function(self)
         if self.tooltip then
