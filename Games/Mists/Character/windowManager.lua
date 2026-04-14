@@ -161,7 +161,7 @@ local charSecure_OnAttributeChanged = [=[
     local fmDollRepu = self:GetFrameRef("GwPaperReputationContainer")
     local fmDollPetCont = self:GetFrameRef("GwPetContainer")
     local fmDollDress = self:GetFrameRef("GwDressingRoom")
-    local fmDollTitles = self:GetFrameRef("GwPaperTitles")
+    local fmDollTitles = self:GetFrameRef("GwTitleWindow")
     local fmDollGearSets = self:GetFrameRef("GwPaperGearSets")
     local fmDollBagItemList = self:GetFrameRef("GwPaperDollBagItemList")
 
@@ -459,7 +459,7 @@ local function LoadCharacter()
             if container:GetName() == "GwCharacterWindowContainer" then
                 baseFrame:SetHeroPanelMenu(GwHeroPanelMenu)
                 baseFrame:SetFrameRef("GwHeroPanelMenu", GwHeroPanelMenu)
-                baseFrame:SetFrameRef("GwPaperTitles", GwPaperTitles)
+                baseFrame:SetFrameRef("GwTitleWindow", GwTitleWindow)
                 baseFrame:SetFrameRef("GwDressingRoom", GwDressingRoom)
                 baseFrame:SetFrameRef("GwPetContainer", GwPetContainer)
                 baseFrame:SetFrameRef("GwPaperGearSets", GwPaperDollOutfits)
@@ -469,11 +469,6 @@ local function LoadCharacter()
                 GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.gearMenu, false, true)
                 GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.equipmentMenu, true, true)
                 GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.petMenu, false, true)
-
-                GW.CharacterMenuButtonBack_OnLoad(GwPaperTitles.backButton, CHARACTER .. ": " .. PAPERDOLL_SIDEBAR_TITLES, true)
-                GW.CharacterMenuButtonBack_OnLoad(GwPaperDollOutfits.backButton, CHARACTER .. ":\n" .. EQUIPMENT_MANAGER, true)
-                GW.CharacterMenuButtonBack_OnLoad(GwDressingRoomPet.backButton, CHARACTER .. ": " .. PET, true)
-                GW.CharacterMenuButtonBack_OnLoad(GwPaperDollBagItemList.backButton, CHARACTER .. ": " .. BAG_FILTER_EQUIPMENT, true)
 
                 -- add addon buttons here
                 baseFrame:SetAttribute("myClassId", GW.myClassID)
@@ -522,10 +517,6 @@ local function LoadCharacter()
                 GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.gearMenu, "gearset")
                 GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.equipmentMenu, "equipment")
                 GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.petMenu, "paperdollpet")
-                GW.SetCharacterWindowBackAttribute(GwPaperTitles.backButton)
-                GW.SetCharacterWindowBackAttribute(GwPaperDollOutfits.backButton)
-                GW.SetCharacterWindowBackAttribute(GwDressingRoomPet.backButton)
-                GW.SetCharacterWindowBackAttribute(GwPaperDollBagItemList.backButton)
 
                 -- pet GwDressingRoom
                 GwHeroPanelMenu.petMenu:SetAttribute("_onstate-petstate", [=[

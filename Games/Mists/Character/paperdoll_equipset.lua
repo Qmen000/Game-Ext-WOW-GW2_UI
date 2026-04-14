@@ -289,8 +289,8 @@ function local GwPaperDollOutfits_OnEvent(self, event, ...)
     end
 end
 --]]
-local function LoadPDEquipset()
-    local fmGPDO = CreateFrame("Frame", "GwPaperDollOutfits", GwCharacterWindowContainer, "GwPaperDollOutfits")
+local function LoadPDEquipset(parent, fmMenu)
+    local fmGPDO = CreateFrame("Frame", "GwPaperDollOutfits", parent, "GwPaperDollOutfits")
     GwGearManagerPopupFrame = CreateFrame("Frame", "GwGearManagerPopupFrame", GwDressingRoom, "IconSelectorPopupFrameTemplate")
     Mixin(GwGearManagerPopupFrame, GearManagerPopupFrameMixin)
     GwGearManagerPopupFrame:Hide()
@@ -328,5 +328,7 @@ local function LoadPDEquipset()
     drawItemSetList()
 
     hooksecurefunc(GwGearManagerPopupFrame, "OkayButton_OnClick", drawItemSetList)
+
+    fmMenu:SetupBackButton(fmGPDO.backButton, CHARACTER .. ":\n" .. EQUIPMENT_MANAGER)
 end
 GW.LoadPDEquipset = LoadPDEquipset

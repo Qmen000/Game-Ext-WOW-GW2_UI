@@ -160,7 +160,7 @@ local charSecure_OnAttributeChanged = [=[
     local fmDollSkills = self:GetFrameRef("GwPaperSkills")
     local fmDollPetCont = self:GetFrameRef("GwPetContainer")
     local fmDollDress = self:GetFrameRef("GwDressingRoom")
-    local fmDollTitles = self:GetFrameRef("GwPaperTitles")
+    local fmDollTitles = self:GetFrameRef("GwTitleWindow")
     local fmDollGearSets = self:GetFrameRef("GwPaperGearSets")
 
     local showDoll = false
@@ -477,7 +477,7 @@ local function LoadCharacter()
                 baseFrame:SetHeroPanelMenu(GwHeroPanelMenu)
                 baseFrame:SetFrameRef("GwHeroPanelMenu", GwHeroPanelMenu)
                 baseFrame:SetFrameRef("GwPaperSkills", GwPaperSkills)
-                baseFrame:SetFrameRef("GwPaperTitles", GwPaperTitles)
+                baseFrame:SetFrameRef("GwTitleWindow", GwTitleWindow)
                 baseFrame:SetFrameRef("GwDressingRoom", GwDressingRoom)
                 baseFrame:SetFrameRef("GwPetContainer", GwPetContainer)
                 baseFrame:SetFrameRef("GwPaperGearSets", GwPaperGearSets)
@@ -486,11 +486,6 @@ local function LoadCharacter()
                 GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.titleMenu, false, true)
                 GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.gearMenu, true, true)
                 GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.petMenu, false, true)
-
-                GW.CharacterMenuButtonBack_OnLoad(GwPaperSkills.backButton, CHARACTER .. ": " .. SKILLS, true)
-                GW.CharacterMenuButtonBack_OnLoad(GwPaperTitles.backButton, CHARACTER .. ": " .. PAPERDOLL_SIDEBAR_TITLES, true)
-                GW.CharacterMenuButtonBack_OnLoad(GwPaperGearSets.backButton, CHARACTER .. ":\n" .. EQUIPMENT_MANAGER, true)
-                GW.CharacterMenuButtonBack_OnLoad(GwDressingRoomPet.backButton, CHARACTER .. ": " .. PET, true)
 
                 -- add addon buttons here
                 baseFrame:SetAttribute("myClassId", GW.myClassID)
@@ -537,10 +532,6 @@ local function LoadCharacter()
                 GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.titleMenu, "titles")
                 GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.gearMenu, "gearset")
                 GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.petMenu, "paperdollpet")
-                GW.SetCharacterWindowBackAttribute(GwPaperSkills.backButton)
-                GW.SetCharacterWindowBackAttribute(GwPaperTitles.backButton)
-                GW.SetCharacterWindowBackAttribute(GwPaperGearSets.backButton)
-                GW.SetCharacterWindowBackAttribute(GwDressingRoomPet.backButton)
 
                 -- pet GwDressingRoom
                 GwHeroPanelMenu.petMenu:SetAttribute("_onstate-petstate", [=[

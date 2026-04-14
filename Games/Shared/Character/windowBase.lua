@@ -373,9 +373,6 @@ function GW.AddAddonMenuButtonToHeroPanelMenu(options)
 
     local button = CreateFrame("Button", nil, characterWindowHeroPanelMenu, "SecureHandlerClickTemplate,GwCharacterPanelMenuButtonTemplate")
     button:SetText(options.label or select(2, C_AddOns.GetAddOnInfo(options.name)))
-    if button:GetFontString() then
-        button:GetFontString():GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
-    end
     button:ClearAllPoints()
 
     if nextAddonMenuButtonAnchor then

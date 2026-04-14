@@ -69,8 +69,8 @@ local function GeatSetButtonOnClick(self)
     end
 end
 
-local function LoadGearSets()
-    local gearSetsFrame = CreateFrame("Frame", "GwPaperGearSets", GwCharacterWindowContainer, "GwPaperGearSets")
+local function LoadGearSets(parent, fmMenu)
+    local gearSetsFrame = CreateFrame("Frame", "GwPaperGearSets", parent, "GwPaperGearSets")
     local button
     local yPadding = 0
 
@@ -183,5 +183,7 @@ local function LoadGearSets()
             GearManagerDialogPopup_Update()
         end
     end)
+
+    fmMenu:SetupBackButton(gearSetsFrame.backButton, CHARACTER .. ":\n" .. EQUIPMENT_MANAGER)
 end
 GW.LoadGearSets = LoadGearSets

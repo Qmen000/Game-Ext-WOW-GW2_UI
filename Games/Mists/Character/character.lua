@@ -626,6 +626,11 @@ local function SetupCharacterSlots(slots, parent)
     end
 end
 
+local function menu_SetupBackButton(_, fmBtn, key)
+    GW.CharacterMenuButtonBack_OnLoad(fmBtn, key, true)
+    GW.SetCharacterWindowOpenAttribute(fmBtn, "paperdoll", false)
+end
+
 local function LoadPaperDoll()
     CreateFrame("Frame", "GwCharacterWindowContainer", GwCharacterWindow, "GwCharacterTabContainerTemplate")
     CreateFrame("Button", "GwDressingRoom", GwCharacterWindowContainer, "GwDressingRoom")
@@ -636,6 +641,8 @@ local function LoadPaperDoll()
     --Legacy pet window
     CreateFrame("Frame", "GwPetContainer", GwCharacterWindowContainer, "GwPetContainer")
     CreateFrame("Button", "GwDressingRoomPet", GwPetContainer, "GwPetPaperdoll")
+
+    GwHeroPanelMenu.SetupBackButton = menu_SetupBackButton
 
     GwDressingRoom.stats:SetScript("OnEvent", PaperDollStats_OnEvent)
     GwDressingRoomPet.stats:SetScript("OnEvent", PaperDollPetStats_OnEvent)
@@ -694,9 +701,10 @@ local function LoadPaperDoll()
         end
     end)
 
-    GW.LoadTitles()
-    GW.LoadPDEquipset(GwHeroPanelMenu)
-    GW.LoadEquipments()
+    GW.LoadPDTitles(GwCharacterWindowContainer, GwHeroPanelMenu)
+    GW.LoadPDEquipset(GwCharacterWindowContainer, GwHeroPanelMenu)
+    GW.LoadEquipments(GwCharacterWindowContainer, GwHeroPanelMenu)
+    GwHeroPanelMenu:SetupBackButton(GwDressingRoomPet.backButton, CHARACTER .. ": " .. PET)
 
     GwDressingRoom.model:SetUnit("player")
     GwDressingRoom.model:SetPosition(0.8, 0, 0)

@@ -52,31 +52,6 @@
         </Layers>
     </ItemButton>
 
-    <Frame name="GwPaperDollBagItemList" hidden="true" virtual="true">
-        <Size x="231" y="498"></Size>
-        <Anchors>
-            <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="10" y="-70"></Anchor>
-        </Anchors>
-        <Layers>
-            <Layer level="ARTWORK">
-                <Texture file="Interface\AddOns\GW2_UI\textures\character\item-selectbg.png">
-                    <Size x="256" y="512"></Size>
-                    <Anchors>
-                        <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="0" y="0"></Anchor>
-                    </Anchors>
-                </Texture>
-            </Layer>
-        </Layers>
-        <Frames>
-            <Button name="$parentBackButton" parentKey="backButton" inherits="GwCharacterPanelMenuButtonBackSecureTemplate" text="Character: Equipment">
-                <Size x="231" y="50"></Size>
-                <Anchors>
-                    <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT" x="0" y="60"></Anchor>
-                </Anchors>
-            </Button>
-        </Frames>
-    </Frame>
-
     <Frame name="GwCharacterMenuFilledTemplate" inherits="GwCharacterPanelMenuTemplate,SecureHandlerBaseTemplate" hidden="true" virtual="true">
         <Frames>
             <Button name="$parentTitle" parentKey="titleMenu" inherits="GwCharacterPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="PAPERDOLL_SIDEBAR_TITLES" >

@@ -107,12 +107,28 @@ local function ResetFilter()
 end
 
 local function ShowFiterDropDown(self)
+    local function IsSelected(earned)
+        if earned then return showEarned end
+        return showUnearned
+    end
+
+    local function SetSelectedCompleted(earned)
+        if earned then
+            showEarned = not showEarned;
+        else
+            showUnearned = not showUnearned;
+        end
+        GwTitleWindow.input:SetText("");
+        GwTitleWindow.input.clearButton:Hide();
+        saveKnowenTitles(GwTitleWindow)
+    end
+
     local menu = MenuUtil.CreateContextMenu(self, function(ownerRegion, rootDescription)
         rootDescription:SetMinimumWidth(1)
-        local check = rootDescription:CreateCheckbox(ACHIEVEMENTFRAME_FILTER_COMPLETED,function() return showEarned end, function() showEarned = not showEarned; GwTitleWindow.input:SetText(""); GwTitleWindow.input.clearButton:Hide(); saveKnowenTitles(GwTitleWindow) end)
+        local check = rootDescription:CreateCheckbox(ACHIEVEMENTFRAME_FILTER_COMPLETED, IsSelected , SetSelectedCompleted, true)
         check:AddInitializer(GW.BlizzardDropdownCheckButtonInitializer)
 
-        check = rootDescription:CreateCheckbox(L["Unearned"],function() return showUnearned end, function() showUnearned = not showUnearned; GwTitleWindow.input:SetText(""); GwTitleWindow.input.clearButton:Hide(); saveKnowenTitles(GwTitleWindow) end)
+        check = rootDescription:CreateCheckbox(L["Unearned"], IsSelected, SetSelectedCompleted, false)
         check:AddInitializer(GW.BlizzardDropdownCheckButtonInitializer)
 
         check:SetTooltip(function(tooltip, elementDescription)
@@ -128,7 +144,7 @@ local function ShowFiterDropDown(self)
     end)
 end
 
-local function LoadPDTitles(fmMenu, parent)
+function GW.LoadPDTitles(parent, fmMenu)
     local titlewin = CreateFrame("Frame", "GwTitleWindow", parent, "GwTitleWindow")
 
     SetSearchboxInstructions(titlewin.input, SEARCH .. "...")
@@ -167,14 +183,16 @@ local function LoadPDTitles(fmMenu, parent)
         saveKnowenTitles(titlewin)
     end)
 
-    titlewin.filter:SetScript("OnEnter", function(self)
+    titlewin.filter.OnEnter = function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText(FILTER, 1, 1, 1)
         if showUnearned == true then
             GameTooltip:AddLine(L["Right Click To Reset Filter"], 1, 0.82, 0, true)
         end
         GameTooltip:Show()
-    end)
+    end
+
+    titlewin.filter:SetScript("OnEnter", titlewin.filter.OnEnter)
     titlewin.filter:SetScript("OnLeave", GameTooltip_Hide)
     titlewin.filter:SetScript("OnClick", function(self, button)
         if button == "LeftButton" then
@@ -217,4 +235,3 @@ local function LoadPDTitles(fmMenu, parent)
 
     return titlewin
 end
-GW.LoadPDTitles = LoadPDTitles

@@ -3,7 +3,7 @@
     <Include file ="glyphs.xml"/>
     <Include file ="spellbook.xml"/>
     <Include file ="talents.xml"/>
-    <Include file ="title.xml"/>
+    <Include file ="outfit.xml"/>
     <Script file ="advanced_stats.lua"/>
     <Script file ="character.lua"/>
     <Script file ="currency.lua"/>
@@ -15,6 +15,5 @@
     <Script file ="spellbook.lua"/>
     <Script file ="stats.lua"/>
     <Script file ="talents.lua"/>
-    <Script file ="titles.lua"/>
     <Script file ="windowManager.lua"/>
 </Ui>

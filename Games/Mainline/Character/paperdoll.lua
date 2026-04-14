@@ -46,7 +46,7 @@ local function LoadPaperDoll(tabContainer)
 
     dressingRoom, paperDollBagItemList = GW.LoadPDBagList(fmMenu, tabContainer)
     paperDollOutfits = GW.LoadPDEquipset(fmMenu, tabContainer)
-    paperDollTitles = GW.LoadPDTitles(fmMenu, tabContainer)
+    paperDollTitles = GW.LoadPDTitles(tabContainer, fmMenu)
     GwCharacterWindow:SetFrameRef("GwPaperDollMenu", fmMenu)
     GwCharacterWindow:SetFrameRef("GwPaperDollDressingRoom", dressingRoom)
     GwCharacterWindow:SetFrameRef("GwPaperDollEquipment", paperDollBagItemList)

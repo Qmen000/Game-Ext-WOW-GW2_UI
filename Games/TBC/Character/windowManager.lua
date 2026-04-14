@@ -339,10 +339,6 @@ local function LoadCharacter()
                 GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.honorMenu, false, true)
                 GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.petMenu, true, true)
 
-                GW.CharacterMenuButtonBack_OnLoad(GwPaperSkills.backButton, CHARACTER .. ": " .. SKILLS, true)
-                GW.CharacterMenuButtonBack_OnLoad(GwPaperHonor.backButton, CHARACTER .. ": " .. HONOR, true)
-                GW.CharacterMenuButtonBack_OnLoad(GwDressingRoomPet.backButton, CHARACTER .. ": " .. PET, true)
-
                 -- add addon buttons here
                 baseFrame:SetAttribute("myClassId", GW.myClassID)
                 if GW.myClassID == 3 or GW.myClassID == 9 or GW.myClassID == 6 then
@@ -387,9 +383,6 @@ local function LoadCharacter()
                 GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.skillsMenu, "paperdollskills")
                 GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.honorMenu, "paperdollhonor")
                 GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.petMenu, "paperdollpet")
-                GW.SetCharacterWindowBackAttribute(GwPaperSkills.backButton)
-                GW.SetCharacterWindowBackAttribute(GwPaperHonor.backButton)
-                GW.SetCharacterWindowBackAttribute(GwDressingRoomPet.backButton)
 
                 -- pet GwDressingRoom
                 GwHeroPanelMenu.petMenu:SetAttribute("_onstate-petstate", [=[

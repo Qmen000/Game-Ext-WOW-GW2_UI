@@ -14,7 +14,6 @@
     <Script file ="spellbook.lua"/>
     <Script file ="talents.lua"/>
     <Script file ="pvp.lua"/>
-    <Script file ="titles.lua"/>
     <Script file ="glyphs.lua"/>
     <Script file ="gearSets.lua"/>
     <Script file ="currency.lua"/>

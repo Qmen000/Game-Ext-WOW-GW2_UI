@@ -276,13 +276,13 @@ function GwRuneFrameFilter_Initialize()
 	end
 end
 
-local function LoadEngravingFrame()
+local function LoadEngravingFrame(parent, fmMenu)
     if not GW.ClassicSOD then return end
     if not C_AddOns.IsAddOnLoaded("Blizzard_EngravingUI") then
         UIParentLoadAddOn("Blizzard_EngravingUI")
     end
 
-    local engravingFrame = GwEngravingFrame
+    local engravingFrame = CreateFrame("Frame", "GwEngravingFrame", parent, "GwEngravingFrame")
     engravingFrame.scrollFrame.update = function() EngravingFrame_UpdateRuneList(engravingFrame) end
 	engravingFrame.scrollFrame.scrollBar.doNotHide = true
 	engravingFrame.scrollFrame.dynamic = EngravingFrame_CalculateScroll
@@ -294,5 +294,7 @@ local function LoadEngravingFrame()
     engravingFrame:SetScript("OnShow", EngravingFrame_OnShow)
     engravingFrame:SetScript("OnHide", EngravingFrame_OnHide)
     engravingFrame:SetScript("OnEvent", EngravingFrame_OnEvent)
+
+	fmMenu:SetupBackButton(engravingFrame.backButton, CHARACTER .. ": " .. RUNES)
 end
 GW.LoadEngravingFrame = LoadEngravingFrame

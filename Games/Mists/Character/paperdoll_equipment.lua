@@ -314,10 +314,10 @@ getBagSlotFrame = function(i)
     return f
 end
 
-local function LoadEquipments()
+local function LoadEquipments(parent, fmMenu)
     GwDressingRoom:SetScript("OnClick", resetBagInventory)
 
-    local fmGPDBIL = CreateFrame("Frame", "GwPaperDollBagItemList", GwCharacterWindowContainer, "GwPaperDollBagItemList")
+    local fmGPDBIL = CreateFrame("Frame", "GwPaperDollBagItemList", parent, "GwPaperDollBagItemList")
     fmGPDBIL:SetScript("OnEvent", updateBagItemListAll)
     fmGPDBIL:SetScript("OnHide", resetBagInventory)
     fmGPDBIL:SetScript("OnShow", GwPaperDollBagItemList_OnShow)
@@ -326,5 +326,7 @@ local function LoadEquipments()
 
     local fmGPDSI = CreateFrame("Frame", "GwPaperDollSelectedIndicator", GwDressingRoom, "GwPaperDollSelectedIndicator")
     fmGPDSI:SetScript("OnShow", indicatorAnimation)
+
+    fmMenu:SetupBackButton(fmGPDBIL.backButton, CHARACTER .. ": " .. BAG_FILTER_EQUIPMENT)
 end
 GW.LoadEquipments = LoadEquipments

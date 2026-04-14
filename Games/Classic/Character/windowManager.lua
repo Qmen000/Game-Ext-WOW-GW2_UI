@@ -380,10 +380,6 @@ local function LoadCharacter()
                     GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.runeMenu, true, true)
                     GW.CharacterMenuButton_OnLoad(GwHeroPanelMenu.petMenu, false, true)
                 end
-                GW.CharacterMenuButtonBack_OnLoad(GwPaperSkills.backButton, CHARACTER .. ": " .. SKILLS, true)
-                GW.CharacterMenuButtonBack_OnLoad(GwPaperHonor.backButton, CHARACTER .. ": " .. HONOR, true)
-                GW.CharacterMenuButtonBack_OnLoad(GwEngravingFrame.backButton, CHARACTER .. ": " .. RUNES, true)
-                GW.CharacterMenuButtonBack_OnLoad(GwDressingRoomPet.backButton, CHARACTER .. ": " .. PET, true)
 
                 -- add addon buttons here
                 firstAddonMenuButtonAnchor = GW.myClassID == GW.Enum.ClassIndex.Warlock and GwHeroPanelMenu.petMenu or GW.myClassID  == GW.Enum.ClassIndex.Hunter and GwHeroPanelMenu.petMenu or GW.ClassicSOD and GwHeroPanelMenu.runeMenu or GwHeroPanelMenu.honorMenu
@@ -422,10 +418,6 @@ local function LoadCharacter()
                 GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.honorMenu, "paperdollhonor")
                 GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.runeMenu, "paperdollengravings")
                 GW.SetCharacterWindowOpenAttribute(GwHeroPanelMenu.petMenu, "paperdollpet")
-                GW.SetCharacterWindowBackAttribute(GwPaperSkills.backButton)
-                GW.SetCharacterWindowBackAttribute(GwEngravingFrame.backButton)
-                GW.SetCharacterWindowBackAttribute(GwPaperHonor.backButton)
-                GW.SetCharacterWindowBackAttribute(GwDressingRoomPet.backButton)
 
                 -- pet GwDressingRoom
                 GwHeroPanelMenu.petMenu:SetAttribute("_onstate-petstate", [=[
