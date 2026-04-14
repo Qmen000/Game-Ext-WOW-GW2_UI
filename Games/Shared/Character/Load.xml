@@ -6,9 +6,11 @@
     <Include file ="paperdollTitles.xml"/>
     <Include file ="paperdollEquipment.xml"/>
     <Include file ="paperdollSkills.xml"/>
+    <Include file ="reputation.xml"/>
     <Include file ="windowBase.xml"/>
     <Script file ="windowBase.lua"/>
+    <Script file ="reputation_table.lua"/>
+    <Script file ="reputation.lua"/>
     <Script file ="paperdollTitles.lua"/>
     <Script file ="paperdollSkills.lua"/>
-    <Script file ="reputation_table.lua"/>
 </Ui>

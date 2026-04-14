@@ -347,7 +347,7 @@
                             </CheckButton>
                         </Frames>
                     </Button>
-                    <Button parentKey="viewRenown" text="VIEW_RENOWN_BUTTON_LABEL" inherits="GwStandardButton">
+                    <Button parentKey="viewRenown" text="VIEW_RENOWN_BUTTON_LABEL" inherits="GwStandardButton" hidden="true">
                         <Size x="120" y="20"/>
                         <Anchors>
                             <Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT" x="5" y="5"/>
