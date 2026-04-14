@@ -752,7 +752,6 @@ local function LoadPaperDoll()
     PaperDollUpdatePetStats()
 
     GW.LoadPDSkills(GwCharacterWindowContainer, GwHeroPanelMenu)
-    GW.LoadEngravingFrame(GwCharacterWindowContainer, GwHeroPanelMenu)
     GwHeroPanelMenu:SetupBackButton(GwPaperHonor.backButton, CHARACTER .. ": " .. HONOR)
     GwHeroPanelMenu:SetupBackButton(GwDressingRoomPet.backButton, CHARACTER .. ": " .. PET)
 
