@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 
-    <Frame name="GwPaperReputation" virtual="true">
+    <Frame name="GwPaperReputationRetailTemplate" virtual="true">
         <Size x="220" y="627"></Size>
         <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="13" y="0"></Anchor>
@@ -28,7 +28,7 @@
         </Frames>
     </Frame>
 
-    <Frame name="GwRepDetailFrame" virtual="true">
+    <Frame name="GwRepDetailFrameRetailTemplate" virtual="true">
         <Size x="608" y="621"></Size>
         <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="245" y="-5"></Anchor>
@@ -59,7 +59,7 @@
         </Frames>
     </Frame>
 
-    <Button name="GwPaperDollReputationCat" virtual="true">
+    <Button name="GwPaperDollReputationCatRetailTemplate" virtual="true">
         <Size x="231" y="44"/>
         <Anchors>
             <Anchor point="TOPLEFT"></Anchor>
@@ -151,7 +151,7 @@
         </Frames>
     </Button>
 
-    <EventButton name="GwReputationDetails" virtual="true">
+    <EventButton name="GwReputationDetailsRetailTemplate" virtual="true">
         <Size x="580" y="65"></Size>
         <Layers>
             <Layer level="ARTWORK" textureSubLevel="-1">

@@ -18,35 +18,6 @@
         </Layers>
     </Frame>
 
-    <Frame name="GwPaperDollStat" enableMouse="true" virtual="true">
-        <Size x="92" y="30"></Size>
-        <Anchors>
-            <Anchor point="TOPLEFT"></Anchor>
-        </Anchors>
-        <Layers>
-            <Layer level="OVERLAY">
-                <Texture parentKey="icon" file="Interface\AddOns\GW2_UI\textures\character\statsicon.png">
-                    <Size x="30" y="30"></Size>
-                    <Anchors>
-                        <Anchor point="TOPLEFT"></Anchor>
-                    </Anchors>
-                </Texture>
-                <FontString parentKey="Value" text="Not Loaded" justifyV="MIDDLE" justifyH="LEFT">
-                    <Size x="72" y="30"></Size>
-                    <Anchors>
-                        <Anchor point="TOPLEFT" x="35"></Anchor>
-                    </Anchors>
-                </FontString>
-                <FontString parentKey="Label" text="" justifyH="LEFT">
-                    <Size x="72" y="20"></Size>
-                    <Anchors>
-                        <Anchor point="TOPLEFT"></Anchor>
-                    </Anchors>
-                </FontString>
-            </Layer>
-        </Layers>
-    </Frame>
-
     <CheckButton hidden="true" name="GWIgnoreSlotCheck" parentKey="ignoreSlotCheck" checked="false" virtual="true">
         <Size x="16" y="16"></Size>
         <Anchors>

@@ -8,7 +8,7 @@
         </Anchors>
         <Layers>
             <Layer level="OVERLAY">
-                <Texture name="$parentIcon" parentKey="icon" file="Interface\AddOns\GW2_UI\textures\character\statsicon-classic.png">
+                <Texture name="$parentIcon" parentKey="icon" file="Interface\AddOns\GW2_UI\textures\character\statsicon.png">
                     <Size x="35" y="35"></Size>
                     <Anchors>
                         <Anchor point="LEFT" relativeTo="$parent" relativePoint="LEFT"></Anchor>

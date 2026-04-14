@@ -499,7 +499,7 @@ local function UpdateTransferHistorySkins(self)
 end
 
 local function LoadCurrency(tabContainer)
-    local curwin_outer = CreateFrame("Frame", "GwCharacterCurrencyRaidInfoFrame", tabContainer, "GwCurrencyWindow")
+    local curwin_outer = CreateFrame("Frame", "GwCharacterCurrencyRaidInfoFrame", tabContainer, "GwCurrencyWindowRetailTemplate")
 
     --take over TokenFrame
     TokenFrame:Show()

@@ -56,7 +56,7 @@
         </Frames>
     </Button>
 
-    <Frame name="GwCurrencyWindow" virtual="true">
+    <Frame name="GwCurrencyWindowRetailTemplate" virtual="true">
         <Size x="608" y="621"></Size>
         <Anchors>
             <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="245" y="-5"></Anchor>
