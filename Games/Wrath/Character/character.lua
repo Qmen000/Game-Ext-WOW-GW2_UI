@@ -229,7 +229,7 @@ local function PaperDollGetStatListFrame(self, i, isPet, stat)
     frame.Label:SetFont(UNIT_NAME_FONT, 1, "")
     frame.Label:SetTextColor(0, 0, 0, 0)
     frame.Value:SetText("")
-    frame.Icon:SetTexture("Interface/AddOns/GW2_UI/textures/character/statsicon-classic.png")
+    frame.icon:SetTexture("Interface/AddOns/GW2_UI/textures/character/statsicon-classic.png")
 
     return frame
 end
