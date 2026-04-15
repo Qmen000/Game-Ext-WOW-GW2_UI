@@ -3,15 +3,6 @@ local GW = select(2, ...)
 
 local moveDistance, mapX, mapY, mapLeft, mapTop, mapNormalScale, mapEffectiveScale = 0, 0, 0, 0, 0, 1, 0
 
-local function GetScaleDistance()
-    local left, top = mapLeft, mapTop
-    local scale = mapEffectiveScale
-    local x, y = GetCursorPosition()
-    x = x / scale - left
-    y = top - y / scale
-    return sqrt(x * x + y * y)
-end
-
 local function HandleDropdownHeaderText(dropdown)
     for idx, c in pairs({dropdown:GetRegions()}) do
         if idx > 3 and c:GetObjectType() == "FontString" then
@@ -174,9 +165,9 @@ local function LoadWorldMapSkin()
         mapNormalScale = WorldMapFrame:GetScale()
         mapX, mapY = mapLeft, mapTop - (UIParent:GetHeight() / mapNormalScale)
         mapEffectiveScale = WorldMapFrame:GetEffectiveScale()
-        moveDistance = GetScaleDistance()
+        moveDistance = GW.GetScaledCursorDistance(mapLeft, mapTop, mapEffectiveScale)
         frame:SetScript("OnUpdate", function()
-            local scale = GetScaleDistance() / moveDistance * mapNormalScale
+            local scale = GW.GetScaledCursorDistance(mapLeft, mapTop, mapEffectiveScale) / moveDistance * mapNormalScale
             if scale < 0.2 then	scale = 0.2	elseif scale > 3.0 then	scale = 3.0	end
             WorldMapFrame:SetScale(scale)
             local s = mapNormalScale / WorldMapFrame:GetScale()

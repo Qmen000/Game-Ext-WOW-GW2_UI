@@ -173,6 +173,14 @@ local function Clamp(v, min, max)
 end
 GW.Clamp = Clamp
 
+local function GetScaledCursorDistance(left, top, scale)
+    local x, y = GetCursorPosition()
+    x = x / scale - left
+    y = top - y / scale
+    return sqrt(x * x + y * y)
+end
+GW.GetScaledCursorDistance = GetScaledCursorDistance
+
 GW.ShortPrefixValues = {}
 local function BuildPrefixValues()
     if next(GW.ShortPrefixValues) then wipe(GW.ShortPrefixValues) end

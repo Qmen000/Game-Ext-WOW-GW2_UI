@@ -8,15 +8,6 @@ local GW = select(2, ...)
 local moveDistance, socialFrameX, socialFrameY, socialFrameLeft, socialFrameTop, socialFrameNormalScale, socialFrameEffectiveScale = 0, 0, 0, 0, 0, 1, 0
 local friendsFrameTabsAdded = 0
 
-local function GetScaleDistance()
-    local left, top = socialFrameLeft, socialFrameTop
-    local scale = socialFrameEffectiveScale
-    local x, y = GetCursorPosition()
-    x = x / scale - left
-    y = top - y / scale
-    return sqrt(x * x + y * y)
-end
-
 local function HandleTabs()
     for idx, tab in ipairs({FriendsFrameTab1, FriendsFrameTab2, FriendsFrameTab3, FriendsFrameTab4}) do
         if not tab.isSkinned then
@@ -154,9 +145,9 @@ function GW.LoadSocialFrame()
         socialFrameNormalScale = FriendsFrame:GetScale()
         socialFrameX, socialFrameY = socialFrameLeft, socialFrameTop - (UIParent:GetHeight() / socialFrameNormalScale)
         socialFrameEffectiveScale = FriendsFrame:GetEffectiveScale()
-        moveDistance = GetScaleDistance()
+        moveDistance = GW.GetScaledCursorDistance(socialFrameLeft, socialFrameTop, socialFrameEffectiveScale)
         self:SetScript("OnUpdate", function()
-            local scale = GetScaleDistance() / moveDistance * socialFrameNormalScale
+            local scale = GW.GetScaledCursorDistance(socialFrameLeft, socialFrameTop, socialFrameEffectiveScale) / moveDistance * socialFrameNormalScale
             if scale < 0.2 then scale = 0.2 elseif scale > 3.0 then scale = 3.0 end
             FriendsFrame:SetScale(scale)
             local s = socialFrameNormalScale / FriendsFrame:GetScale()

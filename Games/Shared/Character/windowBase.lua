@@ -174,15 +174,6 @@ local function click_OnEvent(self, event, windowsList)
     end
 end
 
-local function GetScaleDistance()
-    local left, top = heroFrameLeft, heroFrameTop
-    local scale = heroFrameEffectiveScale
-    local x, y = GetCursorPosition()
-    x = x / scale - left
-    y = top - y / scale
-    return sqrt(x * x + y * y)
-end
-
 local function LoadCharacterWindowBase(secureOnClick, secureOnAttributeChanged, windowsList)
     if GwCharacterWindow then
         return GwCharacterWindow
@@ -266,10 +257,10 @@ local function LoadCharacterWindowBase(secureOnClick, secureOnAttributeChanged, 
         if heroFrameEffectiveScale == 0 then
             heroFrameEffectiveScale = UIParent:GetEffectiveScale()
         end
-        moveDistance = GetScaleDistance()
+        moveDistance = GW.GetScaledCursorDistance(heroFrameLeft, heroFrameTop, heroFrameEffectiveScale)
 
         self:SetScript("OnUpdate", function()
-            local newScale = GetScaleDistance() / moveDistance * heroFrameNormalScale
+            local newScale = GW.GetScaledCursorDistance(heroFrameLeft, heroFrameTop, heroFrameEffectiveScale) / moveDistance * heroFrameNormalScale
             if newScale < 0.2 then
                 newScale = 0.2
             elseif newScale > 3.0 then
