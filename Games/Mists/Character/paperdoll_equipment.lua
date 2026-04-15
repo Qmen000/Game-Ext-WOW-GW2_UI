@@ -328,5 +328,7 @@ local function LoadEquipments(parent, fmMenu)
     fmGPDSI:SetScript("OnShow", indicatorAnimation)
 
     fmMenu:SetupBackButton(fmGPDBIL.backButton, CHARACTER .. ": " .. BAG_FILTER_EQUIPMENT)
+
+    return fmGPDBIL
 end
 GW.LoadEquipments = LoadEquipments

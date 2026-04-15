@@ -423,8 +423,8 @@ local function loadOverview(parent)
 end
 
 
-local function LoadProfessions()
-    local professionWindow = CreateFrame("Frame", "GwProfessionsFrame", GwCharacterWindow, "GwCharacterTabContainerTemplate")
+local function LoadProfessions(tabContainer)
+    local professionWindow = CreateFrame("Frame", "GwProfessionsFrame", tabContainer, "GwCharacterTabContainerTemplate")
     local fmMenu = CreateFrame("Frame", nil, professionWindow, "GwCharacterPanelMenuTemplate")
 
     loadOverview(professionWindow)
@@ -437,7 +437,5 @@ local function LoadProfessions()
     GW.CharacterMenuButton_OnLoad(fmMenu.overviewMenu, false)
 
     fmMenu.overviewMenu:SetNormalTexture("Interface/AddOns/GW2_UI/textures/character/menu-hover.png")
-
-    return professionWindow
 end
 GW.LoadProfessions = LoadProfessions

@@ -330,5 +330,7 @@ local function LoadPDEquipset(parent, fmMenu)
     hooksecurefunc(GwGearManagerPopupFrame, "OkayButton_OnClick", drawItemSetList)
 
     fmMenu:SetupBackButton(fmGPDO.backButton, CHARACTER .. ":\n" .. EQUIPMENT_MANAGER)
+
+    return fmGPDO
 end
 GW.LoadPDEquipset = LoadPDEquipset

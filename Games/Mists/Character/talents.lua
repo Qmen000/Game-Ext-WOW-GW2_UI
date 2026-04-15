@@ -488,9 +488,9 @@ local function ContainerOnClick(self)
     end
 end
 
-local function LoadTalents()
+local function LoadTalents(tabContainer)
     TalentFrame_LoadUI()
-    local talentWindow = CreateFrame("Frame", "GwTalentFrame", GwCharacterWindow, "GwCharacterTabContainerTemplate")
+    local talentWindow = CreateFrame("Frame", "GwTalentFrame", tabContainer, "GwCharacterTabContainerTemplate")
     local talentContainer = CreateFrame('Frame', 'GwTalentSpecFrame', talentWindow, 'SecureHandlerStateTemplate,GwTalentFrame')
 
     talentContainer.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header)
@@ -691,7 +691,5 @@ local function LoadTalents()
     GW.CharacterMenuButton_OnLoad(fmMenu.items.spec1, false)
     GW.CharacterMenuButton_OnLoad(fmMenu.items.spec2, true)
     GW.CharacterMenuButton_OnLoad(fmMenu.items.specPet, false)
-
-    return talentWindow
 end
 GW.LoadTalents = LoadTalents

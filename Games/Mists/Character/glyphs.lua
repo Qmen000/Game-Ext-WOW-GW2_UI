@@ -66,12 +66,12 @@ local function updateGlyphListFrame()
     end
 end
 
-local function takeOverBlizzardsGlypheFrame()
+local function takeOverBlizzardsGlypheFrame(tabContainer)
     TalentFrame_LoadUI()
     GlyphFrame_LoadUI()
 
     --Error message
-    local glyphesFrame = CreateFrame("Frame", "GwGlyphesFrame", GwCharacterWindow, "GwGlyphTempContainer")
+    local glyphesFrame = CreateFrame("Frame", "GwGlyphesFrame", tabContainer, "GwGlyphTempContainer")
     hooksecurefunc("GlyphFrame_OnEvent", function(self, event, ...)
         if ( event == "ADDON_LOADED" ) then
             local name = ...
@@ -139,11 +139,9 @@ local function takeOverBlizzardsGlypheFrame()
     GlyphFrame.FilterDropdown:SetPoint("TOPLEFT", GlyphFrameSearchBox, "BOTTOMLEFT", -5, -3)
 
     GW.SkinTextBox(GlyphFrameSearchBoxMiddle, GlyphFrameSearchBoxLeft, GlyphFrameSearchBoxRight)
-
-    return glyphesFrame
 end
 
-local function LoadGlyphes()
+local function LoadGlyphes(tabContainer)
     hooksecurefunc("HybridScrollFrame_CreateButtons", function(self, name)
         if name == "GlyphSpellButtonTemplate" and not self.isGw2Skinned then
             self.isGw2Skinned = true
@@ -159,6 +157,6 @@ local function LoadGlyphes()
     end)
 
     UIParent:UnregisterEvent("USE_GLYPH")
-    return takeOverBlizzardsGlypheFrame()
+    takeOverBlizzardsGlypheFrame(tabContainer)
 end
 GW.LoadGlyphes = LoadGlyphes
