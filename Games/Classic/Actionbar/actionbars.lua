@@ -79,24 +79,7 @@ local function hideBlizzardsActionbars()
     MainMenuBar:EnableMouse(false)
 end
 
-
--- other things can register callbacks for when actionbar visibility/fade changes
-local callback = {}
-
-local function AddActionBarCallback(m)
-    local k = CountTable(callback) + 1
-    callback[k] = m
-end
-GW.AddActionBarCallback = AddActionBarCallback
-
-local function stateChanged()
-    for _, v in pairs(callback) do
-        v()
-    end
-end
-
-
-hooksecurefunc("ValidateActionBarTransition", stateChanged)
+GW.HookActionBarStateChanges()
 
 local function FlyoutDirection(actionbar)
     for i = 1, 12 do
@@ -148,7 +131,7 @@ local function fadeIn_OnFinished(self)
         bar.gw_Buttons[i].cooldown:SetDrawBling(true)
     end
     if bar.gw_StateTrigger then
-        stateChanged()
+        GW.TriggerActionBarCallbacks()
     end
     bar:SetAlpha(1.0)
 end
@@ -163,7 +146,7 @@ local function actionBarFrameShow(f, instant)
         f:SetAttribute("gw_FadeShowing", true)
     end
     if f.gw_StateTrigger then
-        stateChanged()
+        GW.TriggerActionBarCallbacks()
     end
 
     if instant then
@@ -177,7 +160,7 @@ end
 local function fadeOut_OnFinished(self)
     local bar = self:GetParent()
     if bar.gw_StateTrigger then
-        stateChanged()
+        GW.TriggerActionBarCallbacks()
     end
     bar:SetAlpha(0.0)
 end

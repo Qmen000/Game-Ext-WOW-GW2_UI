@@ -166,6 +166,29 @@ local function CountTable(T)
 end
 GW.CountTable = CountTable
 
+local function AddActionBarCallback(callback)
+    local callbacks = GW.ActionBarCallbacks
+    callbacks[CountTable(callbacks) + 1] = callback
+end
+GW.AddActionBarCallback = AddActionBarCallback
+
+local function TriggerActionBarCallbacks()
+    for _, callback in pairs(GW.ActionBarCallbacks) do
+        callback()
+    end
+end
+GW.TriggerActionBarCallbacks = TriggerActionBarCallbacks
+
+local function HookActionBarStateChanges()
+    if GW.ActionBarStateChangesHooked then
+        return
+    end
+
+    hooksecurefunc("ValidateActionBarTransition", TriggerActionBarCallbacks)
+    GW.ActionBarStateChangesHooked = true
+end
+GW.HookActionBarStateChanges = HookActionBarStateChanges
+
 local function Clamp(v, min, max)
     if v < min then return min end
     if v > max then return max end
