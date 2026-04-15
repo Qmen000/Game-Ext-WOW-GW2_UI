@@ -185,5 +185,7 @@ local function LoadGearSets(parent, fmMenu)
     end)
 
     fmMenu:SetupBackButton(gearSetsFrame.backButton, CHARACTER .. ":\n" .. EQUIPMENT_MANAGER)
+
+    return gearSetsFrame
 end
 GW.LoadGearSets = LoadGearSets
