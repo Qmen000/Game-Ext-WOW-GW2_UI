@@ -736,11 +736,11 @@ local function SetSearchboxInstructions(editbox, text)
 end
 
 function GW.LoadReputation(tabContainer)
-    local fmGPR = CreateFrame("Frame", "GwPaperReputation", tabContainer, "GwPaperReputationRetailTemplate")
-    local fmDetail = CreateFrame("Frame", "GwRepDetailFrame", tabContainer, "GwRepDetailFrameRetailTemplate")
+    local fmGPR = CreateFrame("Frame", "GwPaperReputation", tabContainer, "GwPaperReputationTemplate")
+    local fmDetail = CreateFrame("Frame", "GwRepDetailFrame", tabContainer, "GwRepDetailFrameTemplate")
     local view = CreateScrollBoxListLinearView()
 
-    view:SetElementInitializer("GwPaperDollReputationCatRetailTemplate", function(button, elementData)
+    view:SetElementInitializer("GwPaperDollReputationCatTemplate", function(button, elementData)
         InitCategorieButton(button, elementData)
     end)
     ScrollUtil.InitScrollBoxListWithScrollBar(fmGPR.Categories, fmGPR.ScrollBar, view)
@@ -809,7 +809,7 @@ function GW.LoadReputation(tabContainer)
     end)
 
     local detailsView = CreateScrollBoxListLinearView()
-    detailsView:SetElementInitializer("GwReputationDetailsRetailTemplate", function(button, elementData)
+    detailsView:SetElementInitializer("GwReputationDetailsTemplate", function(button, elementData)
         InitDetailsButton(button, elementData)
     end)
     detailsView:SetPadding(5, 5, 12, 12, 10)
