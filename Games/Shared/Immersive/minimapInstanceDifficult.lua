@@ -73,11 +73,18 @@ local function InstanceDifficultOnEvent(self, _, inGuildGroup)
     local r, g, b = GetColor(diff)
     local text
 
-
     if (diff >= 3 and diff <= 7) or diff == 9 then
         text = format("|cff%02x%02x%02x%s|r", r, g, b, instanceGroupSize)
     else
-        difficultyName = difficultyName and string.sub(difficultyName, 1, 1) or ""
+        if difficultyName then
+            if GW.mylocal == "zhCN" or GW.mylocal == "zhTW" then
+                difficultyName = string.sub(difficultyName, 1, 3)
+            else
+                difficultyName = string.sub(difficultyName, 1, 1)
+            end
+        else
+            difficultyName = ""
+        end
         text = format("%d |cff%02x%02x%02x%s|r", instanceGroupSize, r, g, b, difficultyName)
     end
 
