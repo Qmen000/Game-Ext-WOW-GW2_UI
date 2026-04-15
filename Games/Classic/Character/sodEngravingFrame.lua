@@ -296,5 +296,7 @@ local function LoadEngravingFrame(parent, fmMenu)
     engravingFrame:SetScript("OnEvent", EngravingFrame_OnEvent)
 
 	fmMenu:SetupBackButton(engravingFrame.backButton, CHARACTER .. ": " .. RUNES)
+
+	return engravingFrame
 end
 GW.LoadEngravingFrame = LoadEngravingFrame

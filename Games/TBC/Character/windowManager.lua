@@ -135,8 +135,6 @@ local charSecure_OnAttributeChanged = [=[
     local close = false
     local keytoggle = self:GetAttribute("keytoggle")
 
-    print("windowpanelopen: " .. tostring(value) .. " keytoggle: " .. tostring(keytoggle), fmSBM, fmTal)
-
     if fmTal ~= nil and value == "talents" then
         if keytoggle and fmTal:IsVisible() then
             self:SetAttribute("keytoggle", nil)

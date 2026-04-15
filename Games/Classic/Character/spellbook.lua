@@ -753,8 +753,8 @@ local function spellBookTab_onClick(self)
     self.background:Show()
 end
 
-local function LoadSpellBook()
-    CreateFrame('Frame', 'GwSpellbook', GwCharacterWindow, 'GwSpellbook')
+local function LoadSpellBook(tabContainer)
+    CreateFrame('Frame', 'GwSpellbook', tabContainer, 'GwSpellbook')
     CreateFrame('Frame', 'GwSpellbookMenu', GwSpellbook, 'GwSpellbookMenu')
 
     GwSpellbook.showAllSpellRanks.checkbutton:SetScript("OnClick", function(self)
@@ -764,7 +764,6 @@ local function LoadSpellBook()
     end)
     spellBookMenu_onLoad(GwSpellbookMenu)
     GwSpellbookMenu:RegisterEvent("PLAYER_ENTERING_WORLD")
-    GwSpellbook:Hide()
     GwSpellbookMenu:SetScript('OnEvent', function(self, event)
         if event == "PLAYER_ENTERING_WORLD" then
             self:UnregisterEvent(event)
@@ -932,7 +931,5 @@ local function LoadSpellBook()
     end)
 
     SpellBookFrame:UnregisterAllEvents()
-
-    return GwSpellbook
 end
 GW.LoadSpellBook = LoadSpellBook

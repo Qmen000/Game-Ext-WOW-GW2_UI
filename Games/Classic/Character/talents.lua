@@ -444,8 +444,8 @@ local function loadTalentsFrames()
     updateTalentTrees()
 end
 
-local function LoadTalents()
-    CreateFrame('Frame','GwTalentFrame', GwCharacterWindow,'GwLegacyTalentFrame')
+local function LoadTalents(tabContainer)
+    CreateFrame('Frame','GwTalentFrame', tabContainer,'GwLegacyTalentFrame')
 
     loadTalentsFrames()
     GwTalentFrame.bottomBar.prevCancel:SetScript("OnClick", function()
@@ -515,8 +515,5 @@ local function LoadTalents()
         GwCharacterWindow:SetAttribute("keytoggle", true)
         GwCharacterWindow:SetAttribute("windowpanelopen", "talents")
     end)
-    GwTalentFrame:Hide()
-
-    return GwTalentFrame
 end
 GW.LoadTalents = LoadTalents

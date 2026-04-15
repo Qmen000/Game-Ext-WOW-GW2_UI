@@ -815,7 +815,7 @@ local function LoadPaperDoll(tabContainer)
             self:GetFrameRef("GwCharacterWindow"):SetAttribute("HasPetUI", true)
         end
     ]=])
-    RegisterStateDriver(heroPanelMenu.petMenu, "petstate", "[target=pet,noexists] nopet; [target=pet,help] hasPet;")
+    RegisterAttributeDriver(heroPanelMenu.petMenu, "state-petstate", "[@pet,noexists] nopet; [@pet,help] hasPet; [@pet,harm] nopet")
 
     CharacterFrame:SetScript("OnShow", function()
         if hideCharframe then

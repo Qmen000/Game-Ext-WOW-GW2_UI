@@ -543,7 +543,7 @@ local function LoadCharacter()
                         self:GetFrameRef("GwCharacterWindow"):SetAttribute("HasPetUI", true)
                     end
                 ]=])
-                RegisterStateDriver(GwHeroPanelMenu.petMenu, "petstate", "[target=pet,noexists] nopet; [target=pet,help] hasPet;")
+                RegisterAttributeDriver(GwHeroPanelMenu.petMenu, "state-petstate", "[@pet,noexists] nopet; [@pet,help] hasPet; [@pet,harm] nopet")
             end
             v.TabFrame = tab
 

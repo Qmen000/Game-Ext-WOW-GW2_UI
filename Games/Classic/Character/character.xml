@@ -25,7 +25,7 @@
                     <Anchor point="TOPLEFT" relativeKey="$parent.honorMenu" relativePoint="BOTTOMLEFT"></Anchor>
                 </Anchors>
             </Button>
-            <Button name="$parentPet" parentKey="petMenu" inherits="GwCharacterPanelMenuButtonTemplate,SecureHandlerClickTemplate" text="PET">
+            <Button name="$parentPet" parentKey="petMenu" inherits="GwCharacterPanelMenuButtonTemplate,SecureHandlerClickTemplate,SecureHandlerStateTemplate" text="PET">
                 <Size x="231" y="36"></Size>
                 <Anchors>
                     <Anchor point="TOPLEFT" relativeKey="$parent.runeMenu" relativePoint="BOTTOMLEFT"></Anchor>

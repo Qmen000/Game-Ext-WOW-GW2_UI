@@ -22,7 +22,7 @@ local ExpandAllFactionHeaders = C_Reputation and C_Reputation.ExpandAllFactionHe
 local SetWatchedFactionByIndex = C_Reputation and C_Reputation.SetWatchedFactionByIndex or SetWatchedFactionIndex
 local ToggleFactionAtWar = C_Reputation and C_Reputation.ToggleFactionAtWar or FactionToggleAtWar
 local GetNumFactions = C_Reputation and C_Reputation.GetNumFactions or GetNumFactions
-local IsMajorFaction = C_Reputation and C_Reputation.IsMajorFaction
+local IsMajorFaction = C_Reputation and C_Reputation.IsMajorFaction or GW.NoOp
 
 local ReputationFrameEvents = {
 	"QUEST_LOG_UPDATE",
