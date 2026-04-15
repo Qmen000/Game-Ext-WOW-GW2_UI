@@ -1,8 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
-    <Include file ="character.xml"/>
     <Include file ="paperdoll.xml"/>
     <Include file ="currency.xml"/>
-    <Script file ="character.lua"/>
+    <Script file ="windowManager.lua"/>
     <Script file ="paperdoll.lua"/>
     <Script file ="paperdoll_equipment.lua"/>
     <Script file ="paperdoll_equipset.lua"/>
