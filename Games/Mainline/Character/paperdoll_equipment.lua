@@ -9,33 +9,6 @@ local IsIn = GW.IsIn
 local bagItemListWaitScheduled = false
 local bagItemListQueued = false
 
-local modelPositions = {
-    Human = {0.4, 0, -0.05},
-    Worgen = {0.1, 0, -0.1},
-    Tauren = {0.6, 0, 0},
-    HighmountainTauren = {0.6, 0, 0},
-    BloodElf = {0.5, 0, 0},
-    VoidElf = {0.5, 0, 0},
-    Draenei = {0.3, 0, -0.15},
-    LightforgedDraenei = {0.3, 0, -0.15},
-    NightElf = {0.3, 0, -0.15},
-    Nightborne = {0.3, 0, -0.15},
-    Pandaren = {0.3, 0, -0.15},
-    KulTiran = {0.3, 0, -0.15},
-    Goblin = {0.2, 0, -0.05},
-    Vulpera = {0.2, 0, -0.05},
-    Troll = {0.2, 0, -0.05},
-    ZandalariTroll = {0.2, 0, -0.05},
-    Scourge = {0.2, 0, -0.05},
-    Dwarf = {0.3, 0, 0},
-    DarkIronDwarf = {0.3, 0, 0},
-    Gnome = {0.2, 0, -0.05},
-    Mechagnome = {0.2, 0, -0.05},
-    Orc = {0.1, 0, -0.15},
-    MagharOrc = {0.1, 0, -0.15},
-    Dracthyr = {0.1, 0, -0.15},
-}
-
 local PlayerSlots = {
     ["CharacterHeadSlot"] = {0, 0.25, 0, 0.25},
     ["CharacterNeckSlot"] = {0.25, 0.5, 0, 0.25},
@@ -394,7 +367,7 @@ local function stat_OnEnter(self)
         return
     end
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText(self.tooltip)
+    GameTooltip:SetText(self.tooltip, 1, 1, 1, 1, true)
     if (self.tooltip2) then
         GameTooltip:AddLine(self.tooltip2, NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, true)
     end
@@ -996,7 +969,7 @@ local function ItemLevelTooltip(self)
         return
     end
     GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    GameTooltip:SetText(self.tooltip)
+    GameTooltip:SetText(self.tooltip, 1, 1, 1, 1, true)
     if self.tooltip2 then
         GameTooltip:AddLine(self.tooltip2, NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, true)
     end
@@ -1157,21 +1130,7 @@ local function LoadPDBagList(fmMenu, parent)
     EquipmentFlyoutFrame:SetScript("OnShow", nil)
     EquipmentFlyoutFrame:SetScript("OnLoad", nil)
 
-    fmPD3M:SetUnit("player")
-    fmPD3M:SetPosition(0.8, 0, 0)
-
-    local pos = modelPositions[GW.myrace]
-    if pos then
-        fmPD3M:SetPosition(unpack(pos))
-    else
-        fmPD3M:SetPosition(0.8, 0, 0) -- fallback
-    end
-
-    fmPD3M:SetRotation(-0.15)
-    Model_OnLoad(fmPD3M, 4, 0, -0.1, CharacterModelFrame_OnMouseUp)
-
-    fmPD3M:SetScript("OnReceiveDrag", EquipCursorItem)
-    fmPD3M:HookScript("OnMouseDown", EquipCursorItem)
+    GW.SetPaperDollModelPosition(fmPD3M)
 
     fmGPDS.header:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Normal)
     fmGPDS.header:SetText(STAT_CATEGORY_ATTRIBUTES)
