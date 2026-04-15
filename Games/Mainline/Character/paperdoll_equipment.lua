@@ -507,6 +507,8 @@ local function getStatListFrame(self)
         frame.Value:SetText(ERRORS)
         frame.Label:SetFont(UNIT_NAME_FONT, 1)
         frame.Label:SetTextColor(0, 0, 0, 0)
+        frame.icon:SetSize(30, 30)
+        frame.icon:SetPoint("TOPLEFT")
 
         frame:SetScript("OnLeave", GameTooltip_Hide)
 
