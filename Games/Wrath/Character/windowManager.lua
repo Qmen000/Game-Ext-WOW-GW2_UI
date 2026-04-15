@@ -115,49 +115,20 @@ local windowsList = {
 }
 
 -- turn click events (generated from key bind overrides) into the correct tab show/hide calls
-local charSecure_OnClick = [=[
-    --print("secure click handler button: " .. button)
-    local f = self:GetFrameRef("GwCharacterWindow")
-    if button == "Close" then
-        f:SetAttribute("windowpanelopen", nil)
-    elseif button == "PaperDoll" then
-        f:SetAttribute("keytoggle", true)
-        f:SetAttribute("windowpanelopen", "paperdoll")
-    elseif button == "Reputation" then
-        f:SetAttribute("keytoggle", true)
-        f:SetAttribute("windowpanelopen", "reputation")
-    elseif button == "SpellBook" then
-        f:SetAttribute("keytoggle", true)
-        f:SetAttribute("windowpanelopen", "spellbook")
-    elseif button == "PetBook" then
-        f:SetAttribute("keytoggle", true)
-        f:SetAttribute("windowpanelopen", "petbook")
-    elseif button == "Glyphes" then
-        f:SetAttribute("keytoggle", true)
-        f:SetAttribute("windowpanelopen", "glyphes")
-    elseif button == "Currency" then
-        f:SetAttribute("keytoggle", true)
-        f:SetAttribute("windowpanelopen", "currency")
-    elseif button == "Talents" then
-        f:SetAttribute("keytoggle", true)
-        f:SetAttribute("windowpanelopen", "talents")
-    elseif button == "PetPaperDollFrame" then
-        f:SetAttribute("keytoggle", true)
-        f:SetAttribute("windowpanelopen", "paperdollpet")
-    elseif button == "Skills" then
-        f:SetAttribute("keytoggle", true)
-        f:SetAttribute("windowpanelopen", "paperdollskills")
-    elseif button == "Titles" then
-        f:SetAttribute("keytoggle", true)
-        f:SetAttribute("windowpanelopen", "titles")
-    elseif button == "GearSet" then
-        f:SetAttribute("keytoggle", true)
-        f:SetAttribute("windowpanelopen", "gearset")
-    elseif button == "Pvp" then
-        f:SetAttribute("keytoggle", true)
-        f:SetAttribute("windowpanelopen", "pvp")
-    end
-]=]
+local charSecure_OnClick = GW.BuildCharacterWindowClickHandler({
+    Currency = "currency",
+    GearSet = "gearset",
+    Glyphes = "glyphes",
+    PaperDoll = "paperdoll",
+    PetBook = "petbook",
+    PetPaperDollFrame = "paperdollpet",
+    Pvp = "pvp",
+    Reputation = "reputation",
+    Skills = "paperdollskills",
+    SpellBook = "spellbook",
+    Talents = "talents",
+    Titles = "titles",
+})
 
 -- use the windowpanelopen attr to show/hide the char frame with correct tab open
 local charSecure_OnAttributeChanged = [=[
@@ -428,53 +399,8 @@ local charSecure_OnAttributeChanged = [=[
 ]=]
 
 
-local function LoadCharacter()
-    if InCombatLockdown() then
-        GW.CombatQueue_Queue("load_character_window", LoadCharacter)
-        return
-    end
-
-    local anyThingToLoad = false
-    for _, v in pairs(windowsList) do
-        if GW.settings[v.SettingName] then
-            anyThingToLoad = true
-        end
-    end
-    if not anyThingToLoad then
-        return
-    end
-
-    local baseFrame = GW.LoadCharacterWindowBase(charSecure_OnClick, charSecure_OnAttributeChanged, windowsList)
-    local tabIndex = 1
-    for _, v in pairs(windowsList) do
-        if GW.settings[v.SettingName] then
-            local container = CreateFrame("Frame", v.FrameName, baseFrame, "GwCharacterTabContainerTemplate")
-            local tab = GW.CreateCharacterWindowTabIcon(v.TabIcon, tabIndex)
-
-            baseFrame:SetFrameRef(v.RefName, container)
-            container.TabFrame = tab
-            container.CharWindow = baseFrame
-            container.HeaderIcon = v.HeaderIcon
-            container.HeaderText = v.HeaderText
-            tab.gwTipLabel = v.TooltipText
-
-            tab:SetScript("OnEnter", GW.CharacterWindowTab_OnEnter)
-            tab:SetScript("OnLeave", GameTooltip_Hide)
-
-            v.TabFrame = tab
-            tab:SetFrameRef("GwCharacterWindow", baseFrame)
-            tab:SetAttribute("_onclick", v.OnClick)
-            container:SetScript("OnShow", GW.CharacterWindowContainer_OnShow)
-            container:SetScript("OnHide", GW.CharacterWindowContainer_OnHide)
-
-            GW[v.OnLoad](container)
-            baseFrame.dressingRoom = container.dressingRoom or baseFrame.dressingRoom
-
-            tabIndex = tabIndex + 1
-        end
-    end
-
-    -- set bindings on secure instead of char win to not interfere with secure ESC binding on char win
-    baseFrame.UpdateBindings()
-end
-GW.LoadCharacter = LoadCharacter
+GW.RegisterCharacterWindowConfig({
+    windowsList = windowsList,
+    charSecure_OnClick = charSecure_OnClick,
+    charSecure_OnAttributeChanged = charSecure_OnAttributeChanged,
+})

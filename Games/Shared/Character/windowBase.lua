@@ -6,6 +6,7 @@ local moveDistance, heroFrameX, heroFrameY, heroFrameLeft, heroFrameTop, heroFra
 local characterWindowHeroPanelMenu
 local nextAddonMenuButtonShadowOdd = true
 local nextAddonMenuButtonAnchor
+local characterWindowConfig
 
 local mover_OnDragStart = [=[
     if button ~= "LeftButton" then
@@ -105,7 +106,7 @@ local function GetScaleDistance()
     return sqrt(x * x + y * y)
 end
 
-function GW.LoadCharacterWindowBase(secureOnClick, secureOnAttributeChanged, windowsList)
+local function LoadCharacterWindowBase(secureOnClick, secureOnAttributeChanged, windowsList)
     if GwCharacterWindow then
         return GwCharacterWindow
     end
@@ -247,6 +248,89 @@ function GW.LoadCharacterWindowBase(secureOnClick, secureOnAttributeChanged, win
     end
 
     return frame
+end
+
+function GW.BuildCharacterWindowClickHandler(buttonTargets)
+    local sortedButtons = {}
+    for buttonName in pairs(buttonTargets) do
+        sortedButtons[#sortedButtons + 1] = buttonName
+    end
+    table.sort(sortedButtons)
+
+    local lines = {
+        "    local f = self:GetFrameRef(\"GwCharacterWindow\")",
+        "    if button == \"Close\" then",
+        "        f:SetAttribute(\"windowpanelopen\", nil)",
+    }
+
+    for _, buttonName in ipairs(sortedButtons) do
+        lines[#lines + 1] = "    elseif button == " .. string.format("%q", buttonName) .. " then"
+        lines[#lines + 1] = "        f:SetAttribute(\"keytoggle\", true)"
+        lines[#lines + 1] = "        f:SetAttribute(\"windowpanelopen\", " .. string.format("%q", buttonTargets[buttonName]) .. ")"
+    end
+
+    lines[#lines + 1] = "    end"
+
+    return table.concat(lines, "\n")
+end
+
+
+function GW.RegisterCharacterWindowConfig(config)
+    characterWindowConfig = config
+end
+
+function GW.LoadCharacter()
+    local config = characterWindowConfig
+    if not config then
+        return
+    end
+
+    if InCombatLockdown() then
+        GW.CombatQueue_Queue("load_character_window", GW.LoadCharacterWindowsFromList, {config.windowsList, config.charSecure_OnClick, config.charSecure_OnAttributeChanged})
+        return
+    end
+
+    local anyThingToLoad = false
+    for _, v in pairs(config.windowsList) do
+        if GW.settings[v.SettingName] then
+            anyThingToLoad = true
+        end
+    end
+    if not anyThingToLoad then
+        return
+    end
+
+    local baseFrame = LoadCharacterWindowBase(config.charSecure_OnClick, config.charSecure_OnAttributeChanged, config.windowsList)
+    local tabIndex = 1
+    for _, v in pairs(config.windowsList) do
+        if GW.settings[v.SettingName] then
+            local container = CreateFrame("Frame", v.FrameName, baseFrame, "GwCharacterTabContainerTemplate")
+            local tab = GW.CreateCharacterWindowTabIcon(v.TabIcon, tabIndex)
+
+            baseFrame:SetFrameRef(v.RefName, container)
+            container.TabFrame = tab
+            container.CharWindow = baseFrame
+            container.HeaderIcon = v.HeaderIcon
+            container.HeaderText = v.HeaderText
+            tab.gwTipLabel = v.TooltipText or v.HeaderText
+
+            tab:SetScript("OnEnter", GW.CharacterWindowTab_OnEnter)
+            tab:SetScript("OnLeave", GameTooltip_Hide)
+
+            v.TabFrame = tab
+            tab:SetFrameRef("GwCharacterWindow", baseFrame)
+            tab:SetAttribute("_onclick", v.OnClick)
+            container:SetScript("OnShow", GW.CharacterWindowContainer_OnShow)
+            container:SetScript("OnHide", GW.CharacterWindowContainer_OnHide)
+
+            GW[v.OnLoad](container)
+            baseFrame.dressingRoom = container.dressingRoom or baseFrame.dressingRoom
+
+            tabIndex = tabIndex + 1
+        end
+    end
+
+    baseFrame.UpdateBindings()
 end
 
 function GW.SetCharacterWindowTabIconState(self, enabled)
