@@ -1,8 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
-    <Include file ="currencyShared.xml"/>
-    <Include file ="professionsShared.xml"/>
-    <Include file ="characterShared.xml"/>
-    <Include file ="reputationShared.xml"/>
+    <Include file ="currency.xml"/>
+    <Include file ="professions.xml"/>
+    <Include file ="character.xml"/>
     <Include file ="paperdollTitles.xml"/>
     <Include file ="paperdollEquipment.xml"/>
     <Include file ="paperdollSkills.xml"/>
