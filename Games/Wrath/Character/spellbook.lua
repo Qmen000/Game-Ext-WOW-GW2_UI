@@ -849,9 +849,9 @@ local function OnEvent(self, event)
 end
 
 
-local function LoadSpellBook()
-    local spellBook = CreateFrame("Frame", "GwSpellbook", GwCharacterWindow, "GwSpellbook")
-    local menu = CreateFrame("Frame", "GwSpellbookMenu", GwSpellbook, "GwSpellbookMenu")
+local function LoadSpellBook(tabContainer)
+    local spellBook = CreateFrame("Frame", "GwSpellbook", tabContainer, "GwSpellbook")
+    local menu = CreateFrame("Frame", "GwSpellbookMenu", spellBook, "GwSpellbookMenu")
 
     spellBook:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
 	spellBook:RegisterEvent("PLAYER_GUILD_UPDATE")
@@ -861,7 +861,6 @@ local function LoadSpellBook()
     spellBook:RegisterEvent("SKILL_LINES_CHANGED")
     spellBook:RegisterEvent("PLAYER_LEVEL_UP")
     spellBook:SetScript("OnEvent", OnEvent)
-    spellBook:Hide()
 
     spellBook.tabs = {}
     spellBook.container = {}
@@ -998,7 +997,5 @@ local function LoadSpellBook()
     SpellBookFrame:UnregisterAllEvents()
 
     updateSpellbookTab(spellBook)
-
-    return spellBook
 end
 GW.LoadSpellBook = LoadSpellBook

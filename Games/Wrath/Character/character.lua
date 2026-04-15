@@ -2,6 +2,8 @@
 local GW = select(2, ...)
 local GWGetClassColor = GW.GWGetClassColor
 
+local hideCharframe = true
+
 local PlayerSlots = {
     ["CharacterHeadSlot"] = {0, 0.25, 0, 0.125},
     ["CharacterNeckSlot"] = {0.25, 0.5, 0, 0.125},
@@ -622,48 +624,51 @@ local function menu_SetupBackButton(_, fmBtn, key)
     GW.SetCharacterWindowOpenAttribute(fmBtn, "paperdoll", false)
 end
 
-local function LoadPaperDoll()
-    CreateFrame("Frame", "GwCharacterWindowContainer", GwCharacterWindow, "GwCharacterTabContainerTemplate")
-    CreateFrame("Button", "GwDressingRoom", GwCharacterWindowContainer, "GwDressingRoom")
-    CreateFrame("Frame", "GwHeroPanelMenu", GwCharacterWindowContainer, "GwCharacterMenuFilledTemplate")
-    CreateFrame("Frame", "GwPaperHonor", GwCharacterWindowContainer, "GwPaperHonor")
-    CreateFrame("Frame", "GwPaperBattleground", GwCharacterWindowContainer, "GwPaperBattleground")
+local function LoadPaperDoll(tabContainer)
+    local dressingRoom = CreateFrame("Button", "GwDressingRoom", tabContainer, "GwDressingRoom")
+    local heroPanelMenu = CreateFrame("Frame", "GwHeroPanelMenu", tabContainer, "GwCharacterMenuFilledTemplate")
+    local honorFrame = CreateFrame("Frame", "GwPaperHonor", tabContainer, "GwPaperHonor")
 
     --Legacy pet window
-    CreateFrame("Frame", "GwPetContainer", GwCharacterWindowContainer, "GwPetContainer")
-    CreateFrame("Button", "GwDressingRoomPet", GwPetContainer, "GwPetPaperdoll")
+    local petContainer = CreateFrame("Frame", "GwPetContainer", tabContainer, "GwPetContainer")
+    local dressingRoomPet = CreateFrame("Button", "GwDressingRoomPet", petContainer, "GwPetPaperdoll")
 
-    GwHeroPanelMenu.SetupBackButton = menu_SetupBackButton
+    GwCharacterWindow:SetHeroPanelMenu(heroPanelMenu)
 
-    GwDressingRoom.stats:SetScript("OnEvent", PaperDollStats_OnEvent)
-    GwDressingRoom.stats:HookScript("OnShow", function(self)
+    dressingRoom.stats:SetScript("OnEvent", PaperDollStats_OnEvent)
+    dressingRoomPet.stats:SetScript("OnEvent", PaperDollPetStats_OnEvent)
+
+    heroPanelMenu.SetupBackButton = menu_SetupBackButton
+
+    dressingRoom.stats:SetScript("OnEvent", PaperDollStats_OnEvent)
+    dressingRoom.stats:HookScript("OnShow", function(self)
         if self.pendingStatsRefresh then
             SchedulePaperDollStatsUpdate(self, 0)
         end
     end)
-    GwDressingRoomPet.stats:SetScript("OnEvent", PaperDollPetStats_OnEvent)
+    dressingRoomPet.stats:SetScript("OnEvent", PaperDollPetStats_OnEvent)
 
-    grabDefaultSlots(CharacterHeadSlot, {"TOPLEFT", GwDressingRoom.gear, "TOPLEFT", 0, 0}, GwDressingRoom, 50)
-    grabDefaultSlots(CharacterShoulderSlot, {"TOPLEFT", CharacterHeadSlot, "BOTTOMLEFT", 0, -5}, GwDressingRoom, 50)
-    grabDefaultSlots(CharacterChestSlot, {"TOPLEFT", CharacterShoulderSlot, "BOTTOMLEFT", 0, -5}, GwDressingRoom, 50)
-    grabDefaultSlots(CharacterWristSlot, {"TOPLEFT", CharacterChestSlot, "BOTTOMLEFT", 0, -5}, GwDressingRoom, 50)
-    grabDefaultSlots(CharacterHandsSlot, {"TOPLEFT", CharacterWristSlot, "BOTTOMLEFT", 0, -5}, GwDressingRoom, 50)
-    grabDefaultSlots(CharacterWaistSlot, {"TOPLEFT", CharacterHandsSlot, "BOTTOMLEFT", 0, -5}, GwDressingRoom, 50)
-    grabDefaultSlots(CharacterLegsSlot, {"TOPLEFT", CharacterWaistSlot, "BOTTOMLEFT", 0, -5}, GwDressingRoom, 50)
-    grabDefaultSlots(CharacterFeetSlot, {"TOPLEFT", CharacterLegsSlot, "BOTTOMLEFT", 0, -5}, GwDressingRoom, 50)
-    grabDefaultSlots(CharacterMainHandSlot, {"TOPLEFT", CharacterFeetSlot, "BOTTOMLEFT", 0, -20}, GwDressingRoom, 50)
-    grabDefaultSlots(CharacterSecondaryHandSlot, {"TOPLEFT", CharacterMainHandSlot, "TOPRIGHT", 5, 0}, GwDressingRoom, 50)
-    grabDefaultSlots(CharacterRangedSlot, {"TOPLEFT", CharacterMainHandSlot, "BOTTOMLEFT", 0, -5}, GwDressingRoom, 50)
-    grabDefaultSlots(CharacterAmmoSlot, {"TOPLEFT", CharacterRangedSlot, "TOPRIGHT", 5, 0}, GwDressingRoom, 50)
+    grabDefaultSlots(CharacterHeadSlot, {"TOPLEFT", dressingRoom.gear, "TOPLEFT", 0, 0}, dressingRoom, 50)
+    grabDefaultSlots(CharacterShoulderSlot, {"TOPLEFT", CharacterHeadSlot, "BOTTOMLEFT", 0, -5}, dressingRoom, 50)
+    grabDefaultSlots(CharacterChestSlot, {"TOPLEFT", CharacterShoulderSlot, "BOTTOMLEFT", 0, -5}, dressingRoom, 50)
+    grabDefaultSlots(CharacterWristSlot, {"TOPLEFT", CharacterChestSlot, "BOTTOMLEFT", 0, -5}, dressingRoom, 50)
+    grabDefaultSlots(CharacterHandsSlot, {"TOPLEFT", CharacterWristSlot, "BOTTOMLEFT", 0, -5}, dressingRoom, 50)
+    grabDefaultSlots(CharacterWaistSlot, {"TOPLEFT", CharacterHandsSlot, "BOTTOMLEFT", 0, -5}, dressingRoom, 50)
+    grabDefaultSlots(CharacterLegsSlot, {"TOPLEFT", CharacterWaistSlot, "BOTTOMLEFT", 0, -5}, dressingRoom, 50)
+    grabDefaultSlots(CharacterFeetSlot, {"TOPLEFT", CharacterLegsSlot, "BOTTOMLEFT", 0, -5}, dressingRoom, 50)
+    grabDefaultSlots(CharacterMainHandSlot, {"TOPLEFT", CharacterFeetSlot, "BOTTOMLEFT", 0, -20}, dressingRoom, 50)
+    grabDefaultSlots(CharacterSecondaryHandSlot, {"TOPLEFT", CharacterMainHandSlot, "TOPRIGHT", 5, 0}, dressingRoom, 50)
+    grabDefaultSlots(CharacterRangedSlot, {"TOPLEFT", CharacterMainHandSlot, "BOTTOMLEFT", 0, -5}, dressingRoom, 50)
+    grabDefaultSlots(CharacterAmmoSlot, {"TOPLEFT", CharacterRangedSlot, "TOPRIGHT", 5, 0}, dressingRoom, 50)
 
-    grabDefaultSlots(CharacterTabardSlot, {"TOPRIGHT", GwDressingRoom.stats, "BOTTOMRIGHT", -5, -20}, GwDressingRoom, 40)
-    grabDefaultSlots(CharacterShirtSlot, {"TOPRIGHT", CharacterTabardSlot, "BOTTOMRIGHT", 0, -5}, GwDressingRoom, 40)
-    grabDefaultSlots(CharacterTrinket0Slot, {"TOPRIGHT", CharacterTabardSlot, "TOPLEFT", -5, 0}, GwDressingRoom, 40)
-    grabDefaultSlots(CharacterTrinket1Slot, {"TOPRIGHT", CharacterTrinket0Slot, "BOTTOMRIGHT", 0, -5}, GwDressingRoom, 40)
-    grabDefaultSlots(CharacterFinger0Slot, {"TOPRIGHT", CharacterTrinket0Slot, "TOPLEFT", -5, 0}, GwDressingRoom, 40)
-    grabDefaultSlots(CharacterFinger1Slot, {"TOPRIGHT", CharacterFinger0Slot, "BOTTOMRIGHT", 0, -5}, GwDressingRoom, 40)
-    grabDefaultSlots(CharacterNeckSlot, {"TOPRIGHT", CharacterFinger0Slot, "TOPLEFT", -5, 0}, GwDressingRoom, 40)
-    grabDefaultSlots(CharacterBackSlot, {"TOPRIGHT", CharacterNeckSlot, "BOTTOMRIGHT", 0, -5}, GwDressingRoom, 40)
+    grabDefaultSlots(CharacterTabardSlot, {"TOPRIGHT", dressingRoom.stats, "BOTTOMRIGHT", -5, -20}, dressingRoom, 40)
+    grabDefaultSlots(CharacterShirtSlot, {"TOPRIGHT", CharacterTabardSlot, "BOTTOMRIGHT", 0, -5}, dressingRoom, 40)
+    grabDefaultSlots(CharacterTrinket0Slot, {"TOPRIGHT", CharacterTabardSlot, "TOPLEFT", -5, 0}, dressingRoom, 40)
+    grabDefaultSlots(CharacterTrinket1Slot, {"TOPRIGHT", CharacterTrinket0Slot, "BOTTOMRIGHT", 0, -5}, dressingRoom, 40)
+    grabDefaultSlots(CharacterFinger0Slot, {"TOPRIGHT", CharacterTrinket0Slot, "TOPLEFT", -5, 0}, dressingRoom, 40)
+    grabDefaultSlots(CharacterFinger1Slot, {"TOPRIGHT", CharacterFinger0Slot, "BOTTOMRIGHT", 0, -5}, dressingRoom, 40)
+    grabDefaultSlots(CharacterNeckSlot, {"TOPRIGHT", CharacterFinger0Slot, "TOPLEFT", -5, 0}, dressingRoom, 40)
+    grabDefaultSlots(CharacterBackSlot, {"TOPRIGHT", CharacterNeckSlot, "BOTTOMRIGHT", 0, -5}, dressingRoom, 40)
 
     if UnitHasRelicSlot("player") then
         CharacterRangedSlot.icon:SetTexCoord(0.25, 0.5, 0.5, 0.625)
@@ -693,48 +698,18 @@ local function LoadPaperDoll()
         end
     end)
 
-    GW.LoadPDSkills(GwCharacterWindowContainer, GwHeroPanelMenu)
-    GW.LoadPDTitles(GwCharacterWindowContainer, GwHeroPanelMenu)
-    GW.LoadGearSets(GwCharacterWindowContainer, GwHeroPanelMenu)
-    GwHeroPanelMenu:SetupBackButton(GwDressingRoomPet.backButton, CHARACTER .. ": " .. PET)
+    GW.SetPaperDollModelPosition(dressingRoom.model)
 
-
-    GwDressingRoom.model:SetUnit("player")
-    GwDressingRoom.model:SetPosition(0.8, 0, 0)
-
-    if GW.myrace == "Human" then
-        GwDressingRoom.model:SetPosition(0.4, 0, -0.05)
-    elseif GW.myrace == "Tauren" then
-        GwDressingRoom.model:SetPosition(0.6, 0, 0)
-    elseif GW.myrace == "BloodElf" then
-        GwDressingRoom.model:SetPosition(0.5, 0, 0)
-    elseif GW.myrace == "Draenei" then
-        GwDressingRoom.model:SetPosition(0.3, 0, -0.15)
-    elseif GW.myrace == "NightElf" then
-        GwDressingRoom.model:SetPosition(0.3, 0, -0.15)
-    elseif GW.myrace == "Troll" then
-        GwDressingRoom.model:SetPosition(0.2, 0, -0.05)
-    elseif GW.myrace == "Scourge" then
-        GwDressingRoom.model:SetPosition(0.2, 0, -0.05)
-    elseif GW.myrace == "Dwarf" then
-        GwDressingRoom.model:SetPosition(0.3, 0, 0)
-    elseif GW.myrace == "Gnome" then
-        GwDressingRoom.model:SetPosition(0.2, 0, -0.05)
-    elseif GW.myrace == "Orc" then
-        GwDressingRoom.model:SetPosition(0.1, 0, -0.15)
-    end
-    GwDressingRoom.model:SetRotation(-0.15)
-    Model_OnLoad(GwDressingRoom.model, 4, 0, -0.1, CharacterModelFrame_OnMouseUp)
-
+    CharacterFrame:UnregisterAllEvents()
     hooksecurefunc("ToggleCharacter", GwToggleCharacter)
 
-    GwDressingRoom.characterName:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
-    GwDressingRoom.characterData:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
-    GwDressingRoom.itemLevel:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.BigHeader, nil, 6)
+    dressingRoom.characterName:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
+    dressingRoom.characterData:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
+    dressingRoom.itemLevel:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.BigHeader, nil, 6)
 
-    GwDressingRoomPet.characterName:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
-    GwDressingRoomPet.characterData:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
-    GwDressingRoomPet.itemLevel:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.BigHeader, nil, 6)
+    dressingRoomPet.characterName:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
+    dressingRoomPet.characterData:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
+    dressingRoomPet.itemLevel:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.BigHeader, nil, 6)
 
     PaperDollUpdateStats()
     PaperDollUpdatePetStats()
@@ -746,27 +721,109 @@ local function LoadPaperDoll()
     -- setup gearscore
     UpdateItemLevelAndGearScore()
 
-    GwDressingRoomPet.model.expBar:SetScript("OnEnter", function(self)
+    local skillsFrame = GW.LoadPDSkills(tabContainer, heroPanelMenu)
+    local titleFrame = GW.LoadPDTitles(tabContainer, heroPanelMenu)
+    local gearSetsFrame = GW.LoadGearSets(tabContainer, heroPanelMenu)
+    heroPanelMenu:SetupBackButton(dressingRoomPet.backButton, CHARACTER .. ": " .. PET)
+
+
+    dressingRoomPet.model.expBar:SetScript("OnEnter", function(self)
         self.value:Show()
     end)
-    GwDressingRoomPet.model.expBar:SetScript("OnLeave", function(self)
+    dressingRoomPet.model.expBar:SetScript("OnLeave", function(self)
         self.value:Hide()
     end)
 
-    GwDressingRoom.stats.advancedChatStatsFrame = CreateFrame("Frame", nil, GwDressingRoom.stats)
-    GwDressingRoom.stats.advancedChatStatsFrame:SetPoint("TOPLEFT", GwDressingRoom.stats, "TOPLEFT", 0, -1)
-    GwDressingRoom.stats.advancedChatStatsFrame:SetSize(180, 40)
-    GwDressingRoom.stats.advancedChatStatsFrame:SetScript("OnMouseUp", function(self)
+    dressingRoom.stats.advancedChatStatsFrame = CreateFrame("Frame", nil, dressingRoom.stats)
+    dressingRoom.stats.advancedChatStatsFrame:SetPoint("TOPLEFT", dressingRoom.stats, "TOPLEFT", 0, -1)
+    dressingRoom.stats.advancedChatStatsFrame:SetSize(180, 40)
+    dressingRoom.stats.advancedChatStatsFrame:SetScript("OnMouseUp", function(self)
         GW.ShowAdvancedChatStats(self:GetParent())
     end)
-    GwDressingRoom.stats.advancedChatStatsFrame:SetScript("OnEnter", function(self)
+    dressingRoom.stats.advancedChatStatsFrame:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:ClearLines()
         GameTooltip:SetText(ADVANCED_LABEL .. " " .. STAT_CATEGORY_ATTRIBUTES, nil, nil, nil, nil, true)
         GameTooltip:Show()
     end)
-    GwDressingRoom.stats.advancedChatStatsFrame:SetScript("OnLeave", GameTooltip_Hide)
+    dressingRoom.stats.advancedChatStatsFrame:SetScript("OnLeave", GameTooltip_Hide)
 
-    return GwCharacterWindowContainer
+    -- Secure stuff
+    GW.CharacterMenuButton_OnLoad(heroPanelMenu.skillsMenu, true, true)
+    GW.CharacterMenuButton_OnLoad(heroPanelMenu.titleMenu, false, true)
+    GW.CharacterMenuButton_OnLoad(heroPanelMenu.gearMenu, true, true)
+    GW.CharacterMenuButton_OnLoad(heroPanelMenu.petMenu, false, true)
+    GW.SetCharacterWindowOpenAttribute(heroPanelMenu.skillsMenu, "paperdollskills")
+    GW.SetCharacterWindowOpenAttribute(heroPanelMenu.titleMenu, "titles")
+    GW.SetCharacterWindowOpenAttribute(heroPanelMenu.gearMenu, "gearset")
+    GW.SetCharacterWindowOpenAttribute(heroPanelMenu.petMenu, "paperdollpet")
+
+    GwCharacterWindow:SetFrameRef("GwHeroPanelMenu", heroPanelMenu)
+    GwCharacterWindow:SetFrameRef("GwPaperSkills", skillsFrame)
+    GwCharacterWindow:SetFrameRef("GwTitleWindow", titleFrame)
+    GwCharacterWindow:SetFrameRef("GwDressingRoom", dressingRoom)
+    GwCharacterWindow:SetFrameRef("GwPetContainer", petContainer)
+    GwCharacterWindow:SetFrameRef("GwPaperGearSets", gearSetsFrame)
+
+    -- add addon buttons here
+    GwCharacterWindow:SetAttribute("myClassId", GW.myClassID)
+    if GW.myClassID == 3 or GW.myClassID == 9 or GW.myClassID == 6 then
+        GwCharacterWindow:SetNextAddonMenuButtonShadowState(false)
+    else
+        GwCharacterWindow:SetNextAddonMenuButtonShadowState(true)
+    end
+    GwCharacterWindow:SetNextAddonMenuButtonAnchor((GW.myClassID == 3 or GW.myClassID == 9 or GW.myClassID == 6) and heroPanelMenu.petMenu or heroPanelMenu.equipmentMenu)
+    heroPanelMenu.Outfitter = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "Outfitter",
+        setting = GW.settings.USE_CHARACTER_WINDOW,
+        showFunction = function() hideCharframe = false Outfitter:OpenUI() end,
+        hideOurFrame = true,
+    })
+
+    heroPanelMenu["GearQuipper-TBC"] = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "GearQuipper-TBC",
+        setting = GW.settings.USE_CHARACTER_WINDOW,
+        showFunction = function() gearquipper:ToggleUI() end,
+        hideOurFrame = false,
+        onCreated = function(createdButton)
+            createdButton:SetText("GearQuipper")
+            GqUiFrame:ClearAllPoints()
+            GqUiFrame:SetParent(GwCharacterWindow)
+            GqUiFrame:SetPoint("TOPRIGHT", GwCharacterWindow, "TOPRIGHT", 350, -12)
+        end,
+    })
+    heroPanelMenu.Clique = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "Clique",
+        setting = GW.settings.USE_SPELLBOOK_WINDOW,
+        showFunction = function() ShowUIPanel(CliqueConfig) end,
+        hideOurFrame = true,
+    })
+
+    heroPanelMenu.Pawn = GW.AddAddonMenuButtonToHeroPanelMenu({
+        name = "Pawn",
+        setting = GW.settings.USE_CHARACTER_WINDOW,
+        showFunction = PawnUIShow,
+        hideOurFrame = false,
+    })
+
+    -- pet GwDressingRoom
+    heroPanelMenu.petMenu:SetAttribute("_onstate-petstate", [=[
+        if newstate == "nopet" then
+            self:Disable()
+            self:GetFrameRef("GwCharacterWindow"):SetAttribute("HasPetUI", false)
+        elseif newstate == "hasPet" then
+            self:Enable()
+            self:GetFrameRef("GwCharacterWindow"):SetAttribute("HasPetUI", true)
+        end
+    ]=])
+    RegisterAttributeDriver(heroPanelMenu.petMenu, "state-petstate", "[@pet,noexists] nopet; [@pet,help] hasPet; [@pet,harm] nopet")
+
+    CharacterFrame:SetScript("OnShow", function()
+        if hideCharframe then
+            HideUIPanel(CharacterFrame)
+        end
+        hideCharframe = true
+    end)
+
 end
 GW.LoadPaperDoll = LoadPaperDoll

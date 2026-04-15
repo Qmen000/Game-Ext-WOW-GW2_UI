@@ -272,11 +272,11 @@ local function GlyphFrameGlyph_OnEnter(self) -- copy from blizzard with littel t
 	GameTooltip:Show();
 end
 
-local function LoadGlyphes()
+local function LoadGlyphes(tabContainer)
     TalentFrame_LoadUI()
     GlyphFrame_LoadUI()
 
-    local glyphesFrame = CreateFrame("Frame", "GwGlyphesFrame", GwCharacterWindow, "GwGlyphesFrame")
+    local glyphesFrame = CreateFrame("Frame", "GwGlyphesFrame", tabContainer, "GwGlyphesFrame")
 
     GwGlyphsList.GlyphScroll.update = updateGlyphListFrame
     GwGlyphsList.GlyphScroll.scrollBar.doNotHide = true
@@ -324,7 +324,5 @@ local function LoadGlyphes()
         GwGlyphsList.OnUpdateTimer= nil
         UpdateGlyphList()
     end)
-
-    return glyphesFrame
 end
 GW.LoadGlyphes = LoadGlyphes

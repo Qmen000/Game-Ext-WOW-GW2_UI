@@ -157,41 +157,6 @@
         </Frames>
     </Frame>
 
-    <Frame name="GwPaperBattleground" inherits="SecureHandlerBaseTemplate" hidden="true" virtual="true">
-        <Size x="608" y="621"></Size>
-        <Anchors>
-            <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="245" y="-5"></Anchor>
-        </Anchors>
-        <Layers>
-            <Layer level="ARTWORK">
-                <Texture file="Interface\AddOns\GW2_UI\textures\character\paperdollbg">
-                    <Size x="608" y="621"></Size>
-                    <Anchors>
-                        <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="0" y="0"></Anchor>
-                    </Anchors>
-                </Texture>
-            </Layer>
-        </Layers>
-        <Frames>
-            <Button name="$parentBackButton" parentKey="backButton" inherits="GwCharacterPanelMenuButtonBackSecureTemplate">
-                <Size x="231" y="50"></Size>
-                <Anchors>
-                    <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT" x="-232" y="-10"></Anchor>
-                </Anchors>
-            </Button>
-            <Frame name="$parentBattlegroundDetails" parentKey="BattlegoundDetails" inherits="SecureHandlerBaseTemplate" hidden="true" virtual="true">
-                <Size x="580" y="576"></Size>
-                <Anchors>
-                    <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="-2" y="-10"></Anchor>
-                </Anchors>
-            </Frame>
-        </Frames>
-        <Scripts>
-            <OnLoad>
-                self.backButton:SetText(CHARACTER .. ": " .. BATTLEGROUND)
-            </OnLoad>
-        </Scripts>
-    </Frame>
 
     <Button name="GwDressingRoom" inherits="SecureHandlerBaseTemplate" enableMouse="true" registerForClicks="LeftButtonUp" virtual="true">
         <Size x="608" y="621"></Size>

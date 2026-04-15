@@ -608,8 +608,7 @@ local function LoadPaperDoll(tabContainer)
     local dressingRoom = CreateFrame("Button", "GwDressingRoom", tabContainer, "GwDressingRoom")
     local heroPanelMenu = CreateFrame("Frame", "GwHeroPanelMenu", tabContainer, "GwCharacterMenuFilledTemplate")
     local honorFrame = CreateFrame("Frame", "GwPaperHonor", tabContainer, "GwPaperHonor")
-    local battlegroundFrame = CreateFrame("Frame", "GwPaperBattleground", tabContainer, "GwPaperBattleground")
-
+ 
     --Legacy pet window
     local petContainer = CreateFrame("Frame", "GwPetContainer", tabContainer, "GwPetContainer")
     local dressingRoomPet = CreateFrame("Button", "GwDressingRoomPet", petContainer, "GwPetPaperdoll")

@@ -253,8 +253,8 @@ local function menuItem_OnClick(self)
     end
 end
 
-local function LoadCurrency()
-    local currencyWindow = CreateFrame("Frame", "GwCurrencyDetailsFrame", GwCharacterWindow, "GwCharacterTabContainerTemplate")
+local function LoadCurrency(tabContainer)
+    local currencyWindow = CreateFrame("Frame", "GwCurrencyDetailsFrame", tabContainer, "GwCharacterTabContainerTemplate")
 
     -- setup the currency window as a HybridScrollFrame and init each of the faux frame buttons
     local curwin_outer = CreateFrame("Frame", "GWCharacterCurrenyRaidInfoFrame", currencyWindow, "GwCurrencyWindow")
@@ -324,7 +324,5 @@ local function LoadCurrency()
 
     GW.CharacterMenuButton_OnLoad(fmMenu.items.currency, false)
     GW.CharacterMenuButton_OnLoad(fmMenu.items.raidinfo, true)
-
-    return currencyWindow
 end
 GW.LoadCurrency = LoadCurrency

@@ -117,8 +117,8 @@ local function menuItem_OnClick(self)
     self.ToggleMe:Show()
 end
 
-local function LoadPvp()
-    local pvpWindow = CreateFrame("Frame", "GwPvpDetailsFrame", GwCharacterWindow, "GwCharacterTabContainerTemplate")
+local function LoadPvp(tabContainer)
+    local pvpWindow = CreateFrame("Frame", "GwPvpDetailsFrame", tabContainer, "GwCharacterTabContainerTemplate")
     local pvpFrame_outer = CreateFrame("Frame", "GWCharacterPvpFrame", pvpWindow, "GwPvpWindow")
 
     -- setup pvp window
@@ -156,7 +156,5 @@ local function LoadPvp()
             ToggleCharacter("PvpFrame")
         end
     end)
-
-    return pvpWindow
 end
 GW.LoadPvp = LoadPvp
