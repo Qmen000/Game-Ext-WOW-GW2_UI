@@ -133,273 +133,82 @@ local charSecure_OnClick = GW.BuildCharacterWindowClickHandler({
     Titles = "titles",
 })
 
--- use the windowpanelopen attr to show/hide the char frame with correct tab open
-local charSecure_OnAttributeChanged = [=[
-    if name ~= "windowpanelopen" then
-        return
-    end
-
-    local fmDoll = self:GetFrameRef("GwPaperDoll")
-    local fmDollMenu = self:GetFrameRef("GwHeroPanelMenu")
-    local fmDollRepu = self:GetFrameRef("GwReputationFrame")
-    local fmDollPetCont = self:GetFrameRef("GwPetContainer")
-    local fmDollDress = self:GetFrameRef("GwDressingRoom")
-    local fmDollTitles = self:GetFrameRef("GwTitleWindow")
-    local fmDollGearSets = self:GetFrameRef("GwPaperGearSets")
-    local fmDollBagItemList = self:GetFrameRef("GwPaperDollBagItemList")
-
-    local showDoll = false
-    local showDollMenu = false
-    local showDollRepu = false
-    local showDollTitles = false
-    local showDollGearSets = false
-    local showDollEquipment = false
-    local showDollPetCont = false
-    local fmSBM = self:GetFrameRef("GwSpellbookFrame")
-    local showSpell = false
-    local fmTal = self:GetFrameRef("GwTalentsFrame")
-    local showTal = false
-    local fmGlyphes = self:GetFrameRef("GwGlyphsFrame")
-    local showGlyphes = false
-    local fmCurrency = self:GetFrameRef("GwCurrencyFrame")
-    local showCurrency = false
-    local fmProf = self:GetFrameRef("GwProfessionsFrame")
-    local showProf = false
-
-    local hasPetUI = self:GetAttribute("HasPetUI")
-
-    local close = false
-    local keytoggle = self:GetAttribute("keytoggle")
-
-    if fmTal ~= nil and value == "talents" then
-        if keytoggle and fmTal:IsVisible() then
-            self:SetAttribute("keytoggle", nil)
-            self:SetAttribute("windowpanelopen", nil)
-            return
-        else
-            showTal = true
-        end
-    elseif fmGlyphes ~= nil and value == "glyphes" then
-        if keytoggle and fmGlyphes:IsVisible() then
-            self:SetAttribute("keytoggle", nil)
-            self:SetAttribute("windowpanelopen", nil)
-            return
-        else
-            showGlyphes = true
-        end
-    elseif fmCurrency ~= nil and value == "currency" then
-        if keytoggle and fmCurrency:IsVisible() then
-            self:SetAttribute("keytoggle", nil)
-            self:SetAttribute("windowpanelopen", nil)
-            return
-        else
-            showCurrency = true
-        end
-    elseif fmSBM ~= nil and value == "spellbook" then
-        if keytoggle and fmSBM:IsVisible() then
-            self:SetAttribute("keytoggle", nil)
-            self:SetAttribute("windowpanelopen", nil)
-            return
-        else
-            showSpell = true
-        end
-    elseif fmSBM ~= nil and value == "petbook" then
-        if keytoggle and fmSBM:IsVisible() then
-            self:SetAttribute("keytoggle", nil)
-            self:SetAttribute("windowpanelopen", nil)
-            return
-        else
-            showSpell = true
-        end
-    elseif fmProf ~= nil and value == "professions" then
-        if keytoggle and fmProf:IsVisible() then
-            self:SetAttribute("keytoggle", nil)
-            self:SetAttribute("windowpanelopen", nil)
-            return
-        else
-            showProf = true
-        end
-    elseif fmDoll ~= nil and value == "paperdoll" then
-        if keytoggle and fmDoll:IsVisible() and (not fmDollPetCont:IsVisible() and not fmDollTitles:IsVisible() and not fmDollGearSets:IsVisible() and not fmDollBagItemList:IsVisible()) then
-            self:SetAttribute("keytoggle", nil)
-            self:SetAttribute("windowpanelopen", nil)
-            return
-        else
-            showDoll = true
-        end
-    elseif fmDollRepu ~= nil and value == "reputation" then
-        if keytoggle and fmDollRepu:IsVisible() then
-            self:SetAttribute("keytoggle", nil)
-            self:SetAttribute("windowpanelopen", nil)
-            return
-        else
-            showDollRepu = true
-        end
-    elseif fmDollTitles ~= nil and value == "titles" then
-        if keytoggle and fmDollTitles:IsVisible() then
-            self:SetAttribute("keytoggle", nil)
-            self:SetAttribute("windowpanelopen", nil)
-            return
-        else
-            showDollTitles = true
-        end
-    elseif fmDollGearSets ~= nil and value == "gearset" then
-        if keytoggle and fmDollGearSets:IsVisible() then
-            self:SetAttribute("keytoggle", nil)
-            self:SetAttribute("windowpanelopen", nil)
-            return
-        else
-            showDollGearSets = true
-        end
-    elseif fmDollBagItemList ~= nil and value == "equipment" then
-        if keytoggle and fmDollBagItemList:IsVisible() then
-            self:SetAttribute("keytoggle", nil)
-            self:SetAttribute("windowpanelopen", nil)
-            return
-        else
-            showDollEquipment = true
-        end
-    elseif fmDollPetCont ~= nil and value == "paperdollpet" and hasPetUI then
-        if keytoggle and fmDollPetCont:IsVisible() then
-            self:SetAttribute("keytoggle", nil)
-            self:SetAttribute("windowpanelopen", nil)
-            return
-        else
-            showDollPetCont = true
-        end
-    else
-        close = true
-    end
-
-    if keytoggle then
-        self:SetAttribute("keytoggle", nil)
-    end
-
-    if fmDoll then
-        if showDoll and not close then
-            fmDoll:Show()
-            fmDollMenu:Show()
-            fmDollDress:Show()
-
-            fmDollRepu:Hide()
-            fmDollPetCont:Hide()
-            fmDollTitles:Hide()
-            fmDollGearSets:Hide()
-            fmDollBagItemList:Hide()
-        else
-            fmDoll:Hide()
-        end
-    end
-    if fmTal then
-        if showTal and not close then
-            fmTal:Show()
-        else
-            fmTal:Hide()
-        end
-    end
-    if fmGlyphes then
-        if showGlyphes and not close then
-            fmGlyphes:Show()
-        else
-            fmGlyphes:Hide()
-        end
-    end
-    if fmCurrency then
-        if showCurrency and not close then
-            fmCurrency:Show()
-        else
-            fmCurrency:Hide()
-        end
-    end
-    if fmProf then
-        if showProf and not close then
-            fmProf:Show()
-        else
-            fmProf:Hide()
-        end
-    end
-    if fmSBM then
-        if showSpell and not close then
-            fmSBM:Show()
-        else
-            fmSBM:Hide()
-        end
-    end
-    if fmDollRepu then
-        if showDollRepu and not close then
-            fmDollRepu:Show()
-        else
-            fmDollRepu:Hide()
-        end
-    end
-    if fmDollPetCont and showDollPetCont then
-        if showDollPetCont and not close then
-            fmDoll:Show()
-            fmDollPetCont:Show()
-
-            fmDollDress:Hide()
-            fmDollMenu:Hide()
-            fmDollTitles:Hide()
-            fmDollGearSets:Hide()
-            fmDollBagItemList:Hide()
-        else
-            fmDoll:Hide()
-        end
-    end
-    if fmDollTitles and showDollTitles then
-        if showDollTitles and not close then
-            fmDoll:Show()
-            fmDollTitles:Show()
-            fmDollDress:Show()
-
-            fmDollMenu:Hide()
-            fmDollPetCont:Hide()
-            fmDollGearSets:Hide()
-        else
-            fmDoll:Hide()
-        end
-    end
-    if fmDollGearSets and showDollGearSets then
-        if showDollGearSets and not close then
-            fmDoll:Show()
-            fmDollGearSets:Show()
-            fmDollDress:Show()
-
-            fmDollMenu:Hide()
-            fmDollPetCont:Hide()
-            fmDollTitles:Hide()
-            fmDollBagItemList:Hide()
-        else
-            fmDoll:Hide()
-        end
-    end
-
-    if fmDollBagItemList and showDollEquipment then
-        if showDollEquipment and not close then
-            fmDoll:Show()
-            fmDollBagItemList:Show()
-            fmDollDress:Show()
-
-            fmDollMenu:Hide()
-            fmDollPetCont:Hide()
-            fmDollTitles:Hide()
-            fmDollGearSets:Hide()
-        else
-            fmDoll:Hide()
-        end
-    end
-
-    if close then
-        self:Hide()
-        self:CallMethod("SoundExit")
-    elseif not self:IsVisible() then
-        self:Show()
-        self:CallMethod("SoundOpen")
-    else
-        self:CallMethod("SoundSwap")
-        self:CallMethod("AnimatePanelSwitch", value)
-    end
-]=]
+local charSecure_OnAttributeChanged = GW.BuildCharacterWindowAttributeChangedHandler({
+    managedRefs = {
+        "GwPaperDoll",
+        "GwHeroPanelMenu",
+        "GwDressingRoom",
+        "GwReputationFrame",
+        "GwPetContainer",
+        "GwPaperDollTitles",
+        "GwPaperDollOutfits",
+        "GwPaperDollEquipment",
+        "GwSpellbookFrame",
+        "GwTalentsFrame",
+        "GwGlyphsFrame",
+        "GwCurrencyFrame",
+        "GwProfessionsFrame",
+    },
+    states = {
+        {
+            value = "talents",
+            toggleRef = "GwTalentsFrame",
+            showRefs = {"GwTalentsFrame"},
+        },
+        {
+            value = "glyphes",
+            toggleRef = "GwGlyphsFrame",
+            showRefs = {"GwGlyphsFrame"},
+        },
+        {
+            value = "currency",
+            toggleRef = "GwCurrencyFrame",
+            showRefs = {"GwCurrencyFrame"},
+        },
+        {
+            values = {"spellbook", "petbook"},
+            toggleRef = "GwSpellbookFrame",
+            showRefs = {"GwSpellbookFrame"},
+        },
+        {
+            value = "professions",
+            toggleRef = "GwProfessionsFrame",
+            showRefs = {"GwProfessionsFrame"},
+        },
+        {
+            value = "paperdoll",
+            toggleRef = "GwPaperDoll",
+            toggleHiddenRefs = {"GwPetContainer", "GwPaperDollTitles", "GwPaperDollOutfits", "GwPaperDollEquipment"},
+            showRefs = {"GwPaperDoll", "GwHeroPanelMenu", "GwDressingRoom"},
+        },
+        {
+            value = "reputation",
+            toggleRef = "GwReputationFrame",
+            showRefs = {"GwReputationFrame"},
+        },
+        {
+            value = "titles",
+            toggleRef = "GwPaperDollTitles",
+            showRefs = {"GwPaperDoll", "GwPaperDollTitles", "GwDressingRoom"},
+        },
+        {
+            value = "gearset",
+            toggleRef = "GwPaperDollOutfits",
+            showRefs = {"GwPaperDoll", "GwPaperDollOutfits", "GwDressingRoom"},
+        },
+        {
+            value = "equipment",
+            toggleRef = "GwPaperDollEquipment",
+            showRefs = {"GwPaperDoll", "GwPaperDollEquipment", "GwDressingRoom"},
+        },
+        {
+            value = "paperdollpet",
+            toggleRef = "GwPetContainer",
+            requiresAttribute = "HasPetUI",
+            showRefs = {"GwPaperDoll", "GwPetContainer"},
+        },
+    },
+})
 
 GW.RegisterCharacterWindowConfig({
     windowsList = windowsList,

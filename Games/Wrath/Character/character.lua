@@ -760,10 +760,10 @@ local function LoadPaperDoll(tabContainer)
 
     GwCharacterWindow:SetFrameRef("GwHeroPanelMenu", heroPanelMenu)
     GwCharacterWindow:SetFrameRef("GwPaperSkills", skillsFrame)
-    GwCharacterWindow:SetFrameRef("GwTitleWindow", titleFrame)
-    GwCharacterWindow:SetFrameRef("GwDressingRoom", dressingRoom)
+    GwCharacterWindow:SetFrameRef("GwPaperDollTitles", titleFrame)
+    GwCharacterWindow:SetFrameRef("GwPaperDollDressingRoom", dressingRoom)
+    GwCharacterWindow:SetFrameRef("GwPaperDollOutfits", gearSetsFrame)
     GwCharacterWindow:SetFrameRef("GwPetContainer", petContainer)
-    GwCharacterWindow:SetFrameRef("GwPaperGearSets", gearSetsFrame)
 
     -- add addon buttons here
     GwCharacterWindow:SetAttribute("myClassId", GW.myClassID)
