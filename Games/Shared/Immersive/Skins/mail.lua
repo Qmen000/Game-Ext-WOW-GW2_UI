@@ -108,7 +108,9 @@ local function SkinOpenMailFrame()
     OpenMailFrame:SetPoint("TOPLEFT", MailFrame, "TOPLEFT", 331, 0)
     OpenMailFrame:SetPoint("TOPRIGHT", MailFrame, "TOPRIGHT", 0, 0)
     OpenMailFrameCloseButton:Hide()
-    OpenMailFrameIcon:Hide()
+    if OpenMailFrameIcon then
+        OpenMailFrameIcon:Hide()
+    end
     OpenMailSenderLabel:Hide()
     OpenMailSubjectLabel:Hide()
     OpenMailFrame.TitleContainer:Hide()

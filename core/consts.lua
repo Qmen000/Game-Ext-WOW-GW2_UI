@@ -142,6 +142,52 @@ GW.ShortPrefixStyles = {
 GW.INDICATORS = { "BAR", "TOPLEFT", "TOP", "TOPRIGHT", "LEFT", "CENTER", "RIGHT" }
 GW.indicatorsText = { "Bar", "Top Left", "Top", "Top Right", "Left", "Center", "Right" }
 
+GW.cooldownNumberFormatter = nil
+if C_StringUtil and C_StringUtil.CreateNumericRuleFormatter then
+    GW.cooldownNumberFormatter = C_StringUtil.CreateNumericRuleFormatter()
+    GW.cooldownNumberFormatter:SetBreakpoints({
+        {
+            threshold = 0, -- seconds
+            format = "%ds",
+            step = 1,
+            rounding = Enum.NumericRuleFormatRounding.Floor,
+        },
+        {
+            threshold = 60, -- minute
+            format = "%.0fm",
+            components = {
+                {
+                    div = 60,
+                    step = 1,
+                    rounding = Enum.NumericRuleFormatRounding.Nearest,
+                },
+            }
+        },
+        {
+            threshold = 3600, -- 1 hour
+            format = "%.0fh",
+            components = {
+                {
+                    div = 3600,
+                    step = 1,
+                    rounding = Enum.NumericRuleFormatRounding.Nearest,
+                },
+            }
+        },
+        {
+            threshold = 86400, -- 1 day
+            format = "%.0fd",
+            components = {
+                {
+                    div = 86400,
+                    step = 1,
+                    rounding = Enum.NumericRuleFormatRounding.Nearest,
+                },
+            }
+        },
+    });
+end
+
 -- Taken from ElvUI: https://git.tukui.org/elvui/elvui/blob/master/ElvUI/Settings/Filters/UnitFrame.lua
 -- Format: {class = {id = {r, g, b[, <spell-id-same-slot>]} ...}, ...}
 

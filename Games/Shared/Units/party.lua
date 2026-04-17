@@ -669,6 +669,7 @@ local function CreatePartyFrame(i, isPlayer)
             privateAura.auraIndex = k
             privateAura:SetSize(24, 24)
             local auraAnchor = {
+                isContainer = false,
                 unitToken = registerUnit,
                 auraIndex = privateAura.auraIndex,
                 parent = privateAura,

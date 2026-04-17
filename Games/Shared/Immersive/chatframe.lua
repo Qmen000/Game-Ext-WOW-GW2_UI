@@ -1410,7 +1410,7 @@ local function MessageFormatter(frame, info, chatType, chatGroup, chatTarget, ch
         local classLink = realm and playerLink and not isProtected and (info.colorNameByClass and gsub(playerLink, "(|h|c.-)|r|h$","%1-" .. realm .. "|r|h") or gsub(playerLink, "(|h.-)|h$","%1-" .. realm .. "|h"))
 		body = (classLink and gsub(message, arg2 .. "%-" .. realm, pflag .. classLink, 1)) or ((GW.NotSecretValue(arg2) and arg2 ~= senderLink) and gsub(message, arg2, senderLink, 1)) or message
     else
-        body = format(_G["CHAT_" .. chatType .. "_GET"], pflag .. senderLink) .. message
+        body = format(_G["CHAT_" .. chatType .. "_GET"] .. message, pflag .. senderLink)
     end
 
     -- Add Channel

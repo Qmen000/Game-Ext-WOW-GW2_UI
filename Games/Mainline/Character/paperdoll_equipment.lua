@@ -356,14 +356,10 @@ end
 
 
 local function stat_OnEnter(self)
-    if self.stat == "MASTERY" then
-        Mastery_OnEnter(self)
-        return
-    elseif self.stat == "MOVESPEED" then
-        MovementSpeed_OnEnter(self)
-        return
-    end
     if (not self.tooltip) then
+        if self.onEnterFunc and not InCombatLockdown() then
+            self.onEnterFunc(self)
+        end
         return
     end
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -531,6 +527,10 @@ local function updateStats(self)
 
     local primaryStat = select(6, C_SpecializationInfo.GetSpecializationInfo(GW.myspec, nil, nil, nil, GW.mysex))
 
+    if InCombatLockdown() then
+        GW.CombatQueue_Queue("update character stats", updateStats, {self})
+        return
+    end
     self.statsFramePool:ReleaseAll()
 
     local grid, x, y = 1, 0, 0
@@ -547,6 +547,7 @@ local function updateStats(self)
 
             local frame = getStatListFrame(self)
             frame.UpdateTooltip = nil
+            frame.onEnterFunc = nil
             PAPERDOLL_STATINFO[stat.stat].updateFunc(frame, "player")
 
             if showStat and (not stat.hideAt or stat.hideAt ~= frame.numericValue) then

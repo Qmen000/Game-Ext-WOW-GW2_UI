@@ -24,6 +24,10 @@ local function CreateAuraFrame(name, parent)
     f.Cooldown:SetReverse(false)
     f.Cooldown:SetHideCountdownNumbers(false)
 
+    if f.Cooldown.SetCountdownFormatter then
+        f.Cooldown:SetCountdownFormatter(GW.cooldownNumberFormatter)
+    end
+
     f.status.stacks:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small, "OUTLINE", -1)
 
     local r = {f.Cooldown:GetRegions()}

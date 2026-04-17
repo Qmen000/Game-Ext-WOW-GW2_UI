@@ -365,6 +365,7 @@ end
 
 local function HandleScrollControls(self, specifiedScrollBar)
     local scrollBar = specifiedScrollBar and self[specifiedScrollBar] or self.ScrollBar
+    if not scrollBar then return end
     scrollBar:SetWidth(20)
 
     scrollBar.Track:ClearAllPoints()

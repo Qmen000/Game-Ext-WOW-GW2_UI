@@ -490,6 +490,10 @@ function GwAuraTmpl_OnLoad(self)
         self.border:ClearAllPoints()
         self.border:SetPoint("TOPLEFT", self, "TOPLEFT", 2, -2)
         self.border:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -2, 2)
+
+        if self.cooldown.SetCountdownFormatter then
+            self.cooldown:SetCountdownFormatter(GW.cooldownNumberFormatter)
+        end
     end
 
     UpdateIcon(self)
@@ -661,6 +665,7 @@ local function loadAuras(lm)
                 aura:SetPoint("TOPLEFT")
             end
             local auraAnchor = {
+                isContainer = false,
                 unitToken = "player",
                 auraIndex = aura.auraIndex,
                 -- The parent frame of an aura anchor must have a valid rect with a non-zero
