@@ -717,10 +717,7 @@ local function evPlayerLogin(self)
         GW.LoadTooltips()
     end
 
-    if GW.settings.QUESTVIEW_ENABLED and not GW.ShouldBlockIncompatibleAddon("ImmersiveQuesting") then
-        GW.LoadQuestview()
-    end
-
+    GW.LoadImmersiveQuesting()
     GW.LoadChat()
 
     --Create player hud

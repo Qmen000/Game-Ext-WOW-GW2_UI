@@ -242,7 +242,7 @@ local function LoadQuestLogFrameSkin()
 			end
 		end
 
-        if not GW.settings.QUESTVIEW_ENABLED then
+        if not GW.settings.immersiveQuesting.enabled then
             for i = 1, MAX_REQUIRED_ITEMS do
                 local item = _G['QuestProgressItem'..i]
                 local name = _G['QuestProgressItem'..i..'Name']

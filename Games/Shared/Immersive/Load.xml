@@ -10,11 +10,6 @@
     <Include file ="hudelements.xml"/>
     <Include file ="popupFrame.xml"/>
     <Script file ="popupFrame.lua"/>
-    <Script file ="QuestReqItems.lua"/>
-    <Include file ="QuestReqItems.xml"/>
-    <Script file ="QuestViewData.lua"/>
-    <Script file ="QuestView.lua"/>
-    <Include file ="QuestView.xml"/>
     <Include file ="toast.xml"/>
     <Script file ="alertPosition.lua"/>
     <Script file ="alerts.lua"/>

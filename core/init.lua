@@ -109,6 +109,7 @@ GW.Enum = {}
 GW.Colors = {}
 GW.ObjectiveTrackerContainer = {}
 GW.GridHeaders = {}
+GW.immersiveQuesting = {}
 
 -- money
 GW.earnedMoney = 0

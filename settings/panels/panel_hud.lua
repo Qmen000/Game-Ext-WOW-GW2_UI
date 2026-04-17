@@ -57,6 +57,21 @@ local function LoadHudPanel(sWindow)
     fct.breadcrumb:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
     fct.breadcrumb:SetText(COMBAT_TEXT_LABEL)
 
+
+    local questing = CreateFrame("Frame", nil, p, "GwSettingsPanelTmpl")
+    questing.panelId = "hud_questing"
+    questing.header:SetFont(DAMAGE_TEXT_FONT, 20)
+    questing.header:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
+    questing.header:SetText(UIOPTIONS_MENU)
+    questing.sub:SetFont(UNIT_NAME_FONT, 12)
+    questing.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
+    questing.sub:SetText(L["Edit Immersive quest settings."])
+    questing.header:SetWidth(questing.header:GetStringWidth())
+    questing.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
+    questing.breadcrumb:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
+    questing.breadcrumb:SetText(L["Immersive Questing"])
+
+
     --GENERAL
     general:AddOption(L["Show HUD background"], L["The HUD background changes color in the following situations: In Combat, Not In Combat, In Water, Low HP, Ghost"], {getterSetter = "HUD_BACKGROUND", callback = GW.ToggleHudBackground})
     general:AddOption(L["Dynamic HUD"], L["Enable or disable the dynamically changing HUD background."], {getterSetter = "HUD_SPELL_SWAP", dependence = {["HUD_BACKGROUND"] = true}})
@@ -261,6 +276,16 @@ local function LoadHudPanel(sWindow)
     fct:AddOptionSlider(L["Crit modifier"], nil, { getterSetter = "GW_COMBAT_TEXT_FONT_SIZE_CRIT_MODIFIER", callback = GW.UpdateDameTextSettings, min = 2, max = 50, decimalNumbers = 0, step = 1, incompatibleAddons = "FloatingCombatText", groupHeaderName = COMBAT_TEXT_LABEL, dependence = {["GW_COMBAT_TEXT_MODE"] = "GW2"}})
     fct:AddOptionSlider(L["Pet number modifier"], nil, { getterSetter = "GW_COMBAT_TEXT_FONT_SIZE_PET_MODIFIER", callback = GW.UpdateDameTextSettings, min = 2, max = 50, decimalNumbers = 0, step = 1, incompatibleAddons = "FloatingCombatText", groupHeaderName = COMBAT_TEXT_LABEL, dependence = {["GW_COMBAT_TEXT_MODE"] = "GW2"}})
 
-    sWindow:AddSettingsPanel(p, UIOPTIONS_MENU, L["Edit the modules in the Heads-Up Display for more customization."], {{name = GENERAL, frame = general}, {name = MINIMAP_LABEL, frame = minimap}, {name = WORLDMAP_BUTTON, frame = worldmap}, not GW.Retail and {name = COMBAT_TEXT_LABEL, frame = fct} or nil})
+    -- Immersive questing
+    questing:AddOption(L["Lock Frame"], L["Prevents the Immersive Questing window from being moved from its current position."], {getterSetter = "immersiveQuesting.lockFrame", callback = function() if GwImmersiveQuestFrame then GwImmersiveQuestFrame:applyLockFrame() end end, dependence = {["immersiveQuesting.enabled"] = true}})
+    questing:AddOptionSlider(L["Scale"], L["Adjusts the size of the Immersive Questing window."], { getterSetter = "immersiveQuesting.scale", callback = function() if GwImmersiveQuestFrame then GwImmersiveQuestFrame:UiScaleChanged() end end, min = 0.5, max = 2, decimalNumbers = 2, step = 0.05, dependence = {["immersiveQuesting.enabled"] = true}})
+    questing:AddOptionDropdown(L["Title Style"], L["Adjusts the style of the title bar."], { getterSetter = "immersiveQuesting.titleStyle", callback = function() if GwImmersiveQuestFrame then GwImmersiveQuestFrame:applyTitleStyle() end end, optionsList = {"DEFAULT", "THIN", "TRANSPARENT"}, optionNames = {DEFAULT, L["Thin"], L["Transparent"]}, dependence = {["immersiveQuesting.enabled"] = true}})
+    questing:AddOption(L["Left-Click to Accept/Complete"], L["Determines if left-clicking anywhere in the Immersive Questing window counts the same as clicking on the Accept and Complete Quest buttons."], {getterSetter = "immersiveQuesting.clickAccept", dependence = {["immersiveQuesting.enabled"] = true}})
+    questing:AddOption(L["Head Slot Behavior"], L["Determines the default head slot visibility behavior."], {getterSetter = "immersiveQuesting.showHelmet", dependence = {["immersiveQuesting.enabled"] = true}})
+    questing:AddOptionDropdown(L["Weapon Behavior"], L["Determines the default weapon visibility behavior."], { getterSetter = "immersiveQuesting.weaponMode", optionsList = {"STOW", "DRAW", "HIDE"}, optionNames = {L["Stow"], L["Draw"], HIDE}, dependence = {["immersiveQuesting.enabled"] = true}})
+    questing:AddOptionSlider(L["Scale Player Model"], L["Adjusts the size of the player model for the current character."], { getterSetter = "immersiveQuesting.playerScale", callback = function() if GwImmersiveQuestFrame then GwImmersiveQuestFrame:UiScaleChanged() end end, min = 0.5, max = 2, decimalNumbers = 2, step = 0.05, dependence = {["immersiveQuesting.enabled"] = true}})
+
+
+    sWindow:AddSettingsPanel(p, UIOPTIONS_MENU, L["Edit the modules in the Heads-Up Display for more customization."], {{name = GENERAL, frame = general}, {name = MINIMAP_LABEL, frame = minimap}, {name = WORLDMAP_BUTTON, frame = worldmap}, {name = L["Immersive Questing"], frame = questing}, not GW.Retail and {name = COMBAT_TEXT_LABEL, frame = fct} or nil})
 end
 GW.LoadHudPanel = LoadHudPanel

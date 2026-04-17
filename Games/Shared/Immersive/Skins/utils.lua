@@ -1071,7 +1071,7 @@ end
 GW.HandleItemReward = HandleItemReward
 
 local function QuestInfo_Display(template, parentFrame)
-    if not GW.settings.GOSSIP_SKIN_ENABLED and not GW.settings.QUESTVIEW_ENABLED and (template == QUEST_TEMPLATE_DETAIL or template == QUEST_TEMPLATE_REWARD or template == QUEST_TEMPLATE_LOG) then
+    if not GW.settings.GOSSIP_SKIN_ENABLED and not GW.settings.immersiveQuesting.enabled and (template == QUEST_TEMPLATE_DETAIL or template == QUEST_TEMPLATE_REWARD or template == QUEST_TEMPLATE_LOG) then
         return
     end
     local isMapStyle = false
@@ -1165,7 +1165,7 @@ local function QuestInfo_Display(template, parentFrame)
         QuestMapFrame.DetailsFrame.BackFrame.AccountCompletedNotice.Text:SetTextColor(0, 0.9, 0.6)
     end
 
-    if not isMapStyle and GW.settings.QUESTVIEW_ENABLED then
+    if not isMapStyle and GW.settings.immersiveQuesting.enabled then
         fRwd.Header:SetTextColor(1, 1, 1)
         fRwd.Header:SetShadowColor(0, 0, 0, 1)
     elseif fRwd.Header.SetTextColor then

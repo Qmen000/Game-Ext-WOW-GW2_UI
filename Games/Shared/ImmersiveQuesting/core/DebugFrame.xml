@@ -1,0 +1,84 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/../../Blizzard_SharedXML/UI.xsd">
+    <Button name="GwImmersiveQuestingDebugButtonTemplate" inherits="GwStandardButton" virtual="true">
+        <Size x="64" y="32" />
+        <KeyValues>
+            <KeyValue key="fitTextCanWidthDecrease" value="false" type="boolean"/>
+            <KeyValue key="fitTextWidthPadding" value="20" type="number"/>
+        </KeyValues>
+    </Button>
+
+    <Frame name="GwImmersiveQuestingDebugFrameTemplate" virtual="true" hidden="true" frameStrata="HIGH" mixin="GwImmersiveQuestingDebugFrameMixin" enableMouse="true">
+        <Size x="364" y="512"></Size>
+        <Anchors>
+            <Anchor point="left" relativeTo="GwImmersiveQuestFrame" relativePoint="right" x="-35" y="0" />
+        </Anchors>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture parentKey="border" file="Interface/AddOns/GW2_UI/textures/questview/border.png">
+                    <Size x="1024" y="512"></Size>
+                    <Anchors>
+                        <Anchor point="center" x="0" y="0" />
+                    </Anchors>
+                </Texture>
+                <Texture>
+                    <Color r="0" g="0" b="0"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" x="48" y="-32"/>
+                        <Anchor point="BOTTOMRIGHT" x="-48" y="32"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Frames>
+            <Frame parentKey="container">
+                <Size x="290" y="474"></Size>
+                <Anchors>
+                    <Anchor point="center" x="0" y="0"/>
+                </Anchors>
+                <Layers>
+                    <Layer level="BACKGROUND" textureSubLevel="2">
+                        <Texture>
+                            <Size x="290" y="474"/>
+                            <Anchors>
+                                <Anchor point="TOP"/>
+                            </Anchors>
+                            <Color r="0" g="0" b="0"/>
+                        </Texture>
+                    </Layer>
+                </Layers>
+                <Frames>
+                    <Button parentKey="gridButton" inherits="GwImmersiveQuestingDebugButtonTemplate" text="Grid">
+                        <Anchors>
+                            <Anchor point="TOPLEFT" x="0" y="0"/>
+                        </Anchors>
+                    </Button>
+                    <Button parentKey="feetButton" inherits="GwImmersiveQuestingDebugButtonTemplate" text="Feet">
+                        <Anchors>
+                            <Anchor point="TOP" x="-37" y="0"/>
+                        </Anchors>
+                    </Button>
+                    <Button parentKey="faceButton" inherits="GwImmersiveQuestingDebugButtonTemplate" text="Face">
+                        <Anchors>
+                            <Anchor point="TOP" x="37" y="0"/>
+                        </Anchors>
+                    </Button>
+                    <Button parentKey="resetButton" inherits="GwImmersiveQuestingDebugButtonTemplate" text="Reset">
+                        <Anchors>
+                            <Anchor point="TOPRIGHT" x="0" y="0"/>
+                        </Anchors>
+                    </Button>
+                    <Button parentKey="kitButton" inherits="GwImmersiveQuestingDebugButtonTemplate" text="Kit">
+                        <Anchors>
+                            <Anchor point="TOPLEFT" x="0" y="-32"/>
+                        </Anchors>
+                    </Button>
+                    <Button parentKey="setButton" inherits="GwImmersiveQuestingDebugButtonTemplate" text="Set">
+                        <Anchors>
+                            <Anchor point="TOPRIGHT" x="0" y="-32"/>
+                        </Anchors>
+                    </Button>
+                </Frames>
+            </Frame>
+        </Frames>
+    </Frame>
+</Ui>

@@ -13,12 +13,13 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
-addChange("10.7.1", {
+addChange("10.8.0", {
     {GW.Enum.ChangelogType.change, [=[Added per-grid Private Auras size settings for Raid, Raid 10, Raid 25, Maintank and Party grids]=]},
     {GW.Enum.ChangelogType.change, [=[Added Narcissus Achievement Frame support for achievements opened from the Objectives Tracker]=]},
     {GW.Enum.ChangelogType.change, [=[Improved UI responsiveness by reducing frequent update loops across the global update handler, micro menu, minimap, quest compass and 5-second rule timer]=]},
     {GW.Enum.ChangelogType.change, [=[Added smoother character panel transitions across Mainline, Classic, TBC, Wrath and Mists and centralized the shared character window animation handling]=]},
     {GW.Enum.ChangelogType.change, [=[Refactored watched bag currency displays in Mainline and Mists to use shared currency slot templates]=]},
+    {GW.Enum.ChangelogType.change, [=[Reworked Immersive Questing and added new customization options]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed an Objectives notification taint error caused by protected (secret) text comparisons]=]},
 })
 

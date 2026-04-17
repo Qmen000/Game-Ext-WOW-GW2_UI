@@ -55,7 +55,7 @@
                 </Anchors>
                 <Layers>
                     <Layer textureSubLevel="2" Level="BACKGROUND">
-                        <Texture file="Interface\AddOns\GW2_UI\textures\questview\bonusobjective-background.png">
+                        <Texture file="Interface\AddOns\GW2_UI\textures\notification\bonusobjective-background.png">
                             <Size x="40" y="40"></Size>
                             <Anchors>
                                 <Anchor point="CENTER" relativePoint="CENTER" x="0"></Anchor>
@@ -77,7 +77,7 @@
                         <Anchors>
                             <Anchor point="CENTER" relativePoint="CENTER" x="0" y="-1"></Anchor>
                         </Anchors>
-                        <BarTexture file="Interface\AddOns\GW2_UI\textures\questview\bonusobjective-fill.png" />
+                        <BarTexture file="Interface\AddOns\GW2_UI\textures\notification\bonusobjective-fill.png" />
                     </StatusBar>
                 </Frames>
             </Frame>
@@ -88,7 +88,7 @@
                 </Anchors>
                 <Layers>
                     <Layer textureSubLevel="2" Level="BACKGROUND">
-                        <Texture parentKey="roundTexture" file="Interface/AddOns/GW2_UI/textures/questview/compass-rad-bg.png">
+                        <Texture parentKey="roundTexture" file="Interface/AddOns/GW2_UI/textures/notification/compass-rad-bg.png">
                             <Size x="60" y="60"></Size>
                             <Anchors>
                                 <Anchor point="LEFT" relativePoint="LEFT" x="-15"></Anchor>
@@ -96,7 +96,7 @@
                         </Texture>
                     </Layer>
                     <Layer textureSubLevel="3" Level="BACKGROUND">
-                        <Texture parentKey="arrow" file="Interface/AddOns/GW2_UI/textures/questview/compass-arrow.png">
+                        <Texture parentKey="arrow" file="Interface/AddOns/GW2_UI/textures/notification/compass-arrow.png">
                             <Size x="60" y="60"></Size>
                             <Anchors>
                                 <Anchor point="LEFT" relativePoint="LEFT" x="-15"></Anchor>

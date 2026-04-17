@@ -16,4 +16,5 @@
     <Include file ="Micromenu\Load.xml"/>
     <Include file ="Character\Load.xml"/>
     <Include file ="Inventory\Load.xml"/>
+    <Include file ="ImmersiveQuesting\!Load.xml"/>
 </Ui>

@@ -105,7 +105,6 @@ GW.globalDefault = {
         QUESTTRACKER_ENABLED = true,
         TOOLTIPS_ENABLED = true,
         CHATFRAME_ENABLED = true,
-        QUESTVIEW_ENABLED = true,
         HEALTHGLOBE_ENABLED = true,
         PLAYER_BUFFS_ENABLED = true,
         ACTIONBARS_ENABLED = true,
@@ -145,6 +144,17 @@ GW.globalDefault = {
         FONTS_NORMAL_SIZE = 14,
         FONTS_SMALL_SIZE = 12,
         FONTS_OUTLINE = "",
+
+        immersiveQuesting = {
+            enabled = true,
+            lockFrame = false,
+            scale = 1,
+            showHelmet = true,
+            playerScale = 1,
+            weaponMode = "STOW",
+            titleStyle = "DEFAULT",
+            clickAccept = true,
+        },
 
         TOOLTIP_MOUSE = false,
         TOOLTIP_HEADER_FONT_SIZE = 16,
