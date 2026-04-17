@@ -14,6 +14,7 @@
     <Script file="mail.lua"/>
     <Script file="merchant.lua"/>
     <Script file="socket.lua"/>
+    <Script file="colorPicker.lua"/>
 
     <Script file="addons\auctionator.lua"/>
     <Script file="addons\masqueSkin.lua"/>
