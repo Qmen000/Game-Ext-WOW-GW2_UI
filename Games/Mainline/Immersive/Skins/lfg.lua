@@ -82,6 +82,9 @@ local function HandleAffixIcons(self)
     for _, frame in ipairs(list) do
         frame.Border:SetTexture()
         frame.Portrait:SetTexture()
+        if frame.CircleMask then
+            frame.CircleMask:Hide()
+        end
 
         if frame.info then
             frame.Portrait:SetTexture(CHALLENGE_MODE_EXTRA_AFFIX_INFO[frame.info.key].texture)
@@ -141,13 +144,13 @@ local function SkinLookingForGroupFrames()
                 end
             end)
 
-			GW.SkinSideTabButton(tab, iconTexture, tab:GetText())
-		end
+            GW.SkinSideTabButton(tab, iconTexture, tab:GetText())
+        end
 
-		tab:ClearAllPoints()
-		tab:SetPoint("TOPRIGHT", PVEFrame.LeftSidePanel, "TOPLEFT", 1, -32 + (-40 * (idx - 1)))
-		tab:SetParent(PVEFrame.LeftSidePanel)
-		tab:SetSize(64, 40)
+        tab:ClearAllPoints()
+        tab:SetPoint("TOPRIGHT", PVEFrame.LeftSidePanel, "TOPLEFT", 1, -32 + (-40 * (idx - 1)))
+        tab:SetParent(PVEFrame.LeftSidePanel)
+        tab:SetSize(64, 40)
     end
 
     -- copy from blizzard and modified
@@ -878,10 +881,10 @@ local function ApplyPvPUISkin()
     hooksecurefunc(PVPQueueFrame.HonorInset.RatedPanel, "Update", function(self)
         local seasonState = ConquestFrame.seasonState
         if seasonState == SEASON_STATE_OFFSEASON then
-			self.Tier.Title:SetTextColor(DISABLED_FONT_COLOR:GetRGB())
-		else
-			self.Tier.Title:SetTextColor(1, 1, 1)
-		end
+            self.Tier.Title:SetTextColor(DISABLED_FONT_COLOR:GetRGB())
+        else
+            self.Tier.Title:SetTextColor(1, 1, 1)
+        end
     end)
 
     if PlunderstormFrame then

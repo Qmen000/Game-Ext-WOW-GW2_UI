@@ -380,7 +380,7 @@ function GW.CheckRestrictionState(which)
 end
 
 function GW.IsChatRestricted()
-    return GW.CheckRestrictionState("ChallengeMode") > 1 or GW.CheckRestrictionState("Encounter") > 1
+    return C_CVar.GetCVarBool("addonChatRestrictionsForced") or GW.CheckRestrictionState("ChallengeMode") > 1 or GW.CheckRestrictionState("Encounter") > 1
 end
 
 function GW.GetWowheadLinkForLanguage()

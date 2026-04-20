@@ -506,9 +506,8 @@ local function getStatListFrame(self)
         frame.icon:SetSize(30, 30)
         frame.icon:SetPoint("TOPLEFT")
 
+        frame:SetScript("OnEnter", stat_OnEnter)
         frame:SetScript("OnLeave", GameTooltip_Hide)
-
-        frame.onEnterFunc = nil
         frame.initialized = true
     end
 
@@ -546,8 +545,6 @@ local function updateStats(self)
             end
 
             local frame = getStatListFrame(self)
-            frame.UpdateTooltip = nil
-            frame.onEnterFunc = nil
             PAPERDOLL_STATINFO[stat.stat].updateFunc(frame, "player")
 
             if showStat and (not stat.hideAt or stat.hideAt ~= frame.numericValue) then
@@ -1060,10 +1057,14 @@ end
 
 local function ResetStatsFrame(_, f)
     f:SetScript("OnEvent", nil)
-    f:SetScript("OnEnter", stat_OnEnter)
     f:UnregisterAllEvents()
     f:ClearAllPoints()
     f:Hide()
+    f.UpdateTooltip = nil
+    f.onEnterFunc = nil
+    f.stat = nil
+    f.tooltip = nil
+    f.tooltip2 = nil
 end
 
 local function LoadPDBagList(fmMenu, parent)

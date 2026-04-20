@@ -697,11 +697,17 @@ local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgroun
     header:SetMovable(true)
     frame.gwHeader = header
 
-    header.BGLEFT:SetWidth(math.min(512, frame:GetWidth() - 20))
+    local function UpdateFrameHeaderBodyLayout()
+        header.BGLEFT:SetWidth(math.max(0, math.min(512, frame:GetWidth() - 20)))
+
+        if frame.backgroundMask and frame.tex and frame:GetAlpha() >= 1 then
+            frame.backgroundMask:SetPoint("BOTTOMRIGHT", frame.tex, "BOTTOMLEFT", frame.tex:GetWidth() + 200, 0)
+        end
+    end
+
+    frame:HookScript("OnSizeChanged", UpdateFrameHeaderBodyLayout)
     if frame.OnFrameSizeChanged then
-        hooksecurefunc(frame, "OnFrameSizeChanged", function()
-            header.BGLEFT:SetWidth(math.min(512, frame:GetWidth() - 20))
-        end)
+        hooksecurefunc(frame, "OnFrameSizeChanged", UpdateFrameHeaderBodyLayout)
     end
     if titleText then
         if type(titleText) ~= "string" then
@@ -766,6 +772,8 @@ local function CreateFrameHeaderWithBody(frame, titleText, icon, detailBackgroun
             end)
         end)
     end
+
+    UpdateFrameHeaderBodyLayout()
 end
 GW.CreateFrameHeaderWithBody = CreateFrameHeaderWithBody
 
