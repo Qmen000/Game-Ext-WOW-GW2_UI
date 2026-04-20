@@ -31,7 +31,7 @@
                     <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeKey="$parent.backButton" x="0" y="-5"/>
                 </Anchors>
             </Button>
-            <Button parentKey="equipe" text="EQUIPSET_EQUIP" registerForClicks="AnyDown" enableMouse="true" inherits="GwStandardButton">
+            <Button parentKey="equip" text="EQUIPSET_EQUIP" registerForClicks="AnyDown" enableMouse="true" inherits="GwStandardButton">
                 <Size x="70" y="20"/>
                 <Anchors>
                     <Anchor point="LEFT" relativePoint="RIGHT" relativeKey="$parent.delete" x="5" y="0"/>
@@ -40,7 +40,7 @@
             <Button parentKey="save" text="SAVE" registerForClicks="AnyDown" enableMouse="true" inherits="GwStandardButton">
                 <Size x="70" y="20"/>
                 <Anchors>
-                    <Anchor point="LEFT" relativePoint="RIGHT" relativeKey="$parent.equipe" x="5" y="0"/>
+                    <Anchor point="LEFT" relativePoint="RIGHT" relativeKey="$parent.equip" x="5" y="0"/>
                 </Anchors>
             </Button>
 

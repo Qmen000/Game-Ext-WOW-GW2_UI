@@ -37,10 +37,10 @@ local function UpdateSets(self)
 
     if self.selectedSet then
         self.delete:Enable()
-        self.equipe:Enable()
+        self.equip:Enable()
     else
         self.delete:Disable()
-        self.equipe:Disable()
+        self.equip:Disable()
     end
 
     for i = numSets + 1, MAX_EQUIPMENT_SETS_PER_PLAYER do
@@ -126,7 +126,7 @@ local function LoadGearSets(parent, fmMenu)
 
     GearManagerDialogPopup:HookScript("OnShow", function()
         GearManagerDialogPopup:ClearAllPoints()
-        GearManagerDialogPopup:SetPoint("TOPLEFT", GwCharacterWindowContainer, "TOPRIGHT", 0, 0)
+        GearManagerDialogPopup:SetPoint("TOPLEFT", GwCharacterWindow, "TOPRIGHT", 0, 0)
         gearSetsFrame.save:Disable()
 
     end)
@@ -138,11 +138,11 @@ local function LoadGearSets(parent, fmMenu)
 
     hooksecurefunc("GearManagagerDialogPopup_AdjustAnchors", function()
         GearManagerDialogPopup:ClearAllPoints()
-        GearManagerDialogPopup:SetPoint("TOPLEFT", GwCharacterWindowContainer, "TOPRIGHT", 0, 0)
+        GearManagerDialogPopup:SetPoint("TOPLEFT", GwCharacterWindow, "TOPRIGHT", 0, 0)
     end)
 
 
-    GearManagerDialogPopup:SetParent(GwCharacterWindowContainer)
+    GearManagerDialogPopup:SetParent(GwCharacterWindow)
 
     hooksecurefunc(C_EquipmentSet, "DeleteEquipmentSet", function() UpdateSets(gearSetsFrame) end)
     hooksecurefunc("RecalculateGearManagerDialogPopup", function()
@@ -155,16 +155,15 @@ local function LoadGearSets(parent, fmMenu)
     gearSetsFrame.delete:SetScript("OnClick", function()
         local selectedSet = gearSetsFrame.selectedSet;
         if selectedSet then
-            local dialog = StaticPopup_Show("CONFIRM_DELETE_EQUIPMENT_SET", selectedSet.name)
+            local dialog = StaticPopup_Show("CONFIRM_DELETE_EQUIPMENT_SET", selectedSet.name, nil, selectedSet.id)
             if dialog then
-                dialog.data = selectedSet.id
                 C_Timer.After(0.5, function() UpdateSets(gearSetsFrame) end)
             else
                 UIErrorsFrame:AddMessage(ERR_CLIENT_LOCKED_OUT, 1.0, 0.1, 0.1, 1.0)
             end
         end
     end)
-    gearSetsFrame.equipe:SetScript("OnClick", function()
+    gearSetsFrame.equip:SetScript("OnClick", function()
         local selectedSet = gearSetsFrame.selectedSet
         if selectedSet then
             local name = selectedSet.id
