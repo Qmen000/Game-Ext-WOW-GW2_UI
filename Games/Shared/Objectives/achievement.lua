@@ -168,8 +168,8 @@ function GwAchievementTrackerContainerMixin:BlockOnClick(mouseButton)
                     AchievementFrameAchievements_ForceUpdate();
                 end
             end)
-            rootDescription:CreateButton("Wowhead URL", function()
-                GW.ShowPopup({text = "WoWHead URL",
+            rootDescription:CreateButton(GW.L["Wowhead URL"], function()
+                GW.ShowPopup({text = GW.L["Wowhead URL"],
                     hasEditBox = true,
                     hideOnEscape = true,
                     EditBoxOnEnterPressed = function(popup) popup:Hide() end,

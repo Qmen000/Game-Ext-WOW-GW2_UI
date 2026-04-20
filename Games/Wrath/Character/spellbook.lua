@@ -879,7 +879,6 @@ local function LoadSpellBook(tabContainer)
 	spellBook:RegisterEvent("PLAYER_GUILD_UPDATE")
 	spellBook:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
     spellBook:RegisterEvent("SPELLS_CHANGED")
-    spellBook:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
     spellBook:RegisterEvent("SKILL_LINES_CHANGED")
     spellBook:RegisterEvent("PLAYER_LEVEL_UP")
     spellBook:SetScript("OnEvent", OnEvent)
@@ -1005,7 +1004,7 @@ local function LoadSpellBook(tabContainer)
     spellBook.tabs[6].buttons = {}
     spellBook.container[6].headerFrame = {}
 
-    menu:SetAttribute("tabOpen", 2)
+    menu:SetAttribute("tabopen", 2)
     menu:SetScript("OnShow", function()
         if InCombatLockdown() then return end
         updateSpellbookTab(spellBook)

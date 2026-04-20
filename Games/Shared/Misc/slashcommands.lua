@@ -6,14 +6,14 @@ local function LoadSlashCommands()
     SLASH_GWSLASH1 = "/gw2"
     function SlashCmdList.GWSLASH(msg)
         if msg == "" then
-            GW.Notice("Slash commands:")
-            GW.Notice("  /gw2 settings       -> To open the settings window")
-            GW.Notice("  /gw2 reset windows  -> To reset the inventory and hero panel windows")
-            GW.Notice("  /gw2 status         -> To show GW2 Status window")
-            GW.Notice("  /gw2 kb             -> To activate the keybindoptions")
-            GW.Notice("  /gw2 mh             -> To activate 'Move HUD'-Mode")
-            GW.Notice("  /gw2 reset profile  -> To reset the current profile to default settings")
-            GW.Notice("  /gw2 clear achievements  -> Untrack all earned achievements (Blizzard bug)")
+            GW.Notice(L["Slash commands:"])
+            GW.Notice(L["  /gw2 settings       -> Open the settings window"])
+            GW.Notice(L["  /gw2 reset windows  -> Reset the inventory and hero panel windows"])
+            GW.Notice(L["  /gw2 status         -> Show the GW2 status window"])
+            GW.Notice(L["  /gw2 kb             -> Activate keybind mode"])
+            GW.Notice(L["  /gw2 mh             -> Activate Move HUD mode"])
+            GW.Notice(L["  /gw2 reset profile  -> Reset the current profile to default settings"])
+            GW.Notice(L["  /gw2 clear achievements  -> Untrack all earned achievements (Blizzard bug)"])
         elseif msg == "settings" then
             if InCombatLockdown() then
                 GW.Notice(L["Settings are not available in combat!"])
@@ -37,7 +37,7 @@ local function LoadSlashCommands()
             GW.DisplayHoverBinding()
         elseif msg == "mh" then
             if InCombatLockdown() then
-                GW.Notice(L["You can not move elements during combat!"])
+                GW.Notice(L["You cannot move elements during combat!"])
                 return
             end
             if GW.MoveHudScaleableFrame:IsShown() then

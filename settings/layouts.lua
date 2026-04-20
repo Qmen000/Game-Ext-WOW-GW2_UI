@@ -122,8 +122,8 @@ local function CreateNewLayout(self)
             local newName = popup.input:GetText()
             local savedLayouts = GW.GetAllLayouts()
             if savedLayouts[newName] then
-                GW.Notice("Layout with that name already exists")
-                GW.ShowPopup({text = "Layout with that name already exists"})
+                GW.Notice(L["Layout with that name already exists"])
+                GW.ShowPopup({text = L["Layout with that name already exists"]})
                 return
             end
             local newMoverFrameIndex = 0
@@ -163,8 +163,8 @@ local function RenameSelectedLayout(self)
             if popup.input:GetText() == nil then return end
             local layoutName = popup.input:GetText() or UNKNOWN
             if GW.global.layouts[layoutName] then
-                GW.Notice("Layout with that name already exists")
-                GW.ShowPopup({text = "Layout with that name already exists"})
+                GW.Notice(L["Layout with that name already exists"])
+                GW.ShowPopup({text = L["Layout with that name already exists"]})
                 return
             end
             GW.global.layouts[GW.private.Layouts.currentSelected].name = layoutName

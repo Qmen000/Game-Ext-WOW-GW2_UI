@@ -105,7 +105,7 @@ GW.moveHudObjects = moveHudObjects
 
 local function HandleMoveHudEvents(self, event)
     if event == "PLAYER_REGEN_DISABLED" then
-        GW.Notice(L["You can not move elements during combat!"])
+        GW.Notice(L["You cannot move elements during combat!"])
         self:UnregisterEvent(event)
         self:RegisterEvent("PLAYER_REGEN_ENABLED")
         lockHudObjects(self, nil, true)

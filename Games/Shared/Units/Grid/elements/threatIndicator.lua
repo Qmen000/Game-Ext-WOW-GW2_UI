@@ -30,7 +30,7 @@ local function Update(self, event, unit)
     end
 end
 
-local function Construct_ThreathIndicator(frame)
+local function Construct_ThreatIndicator(frame)
     local threatIndicator = frame.RaisedElementParent.TextureParent:CreateTexture(nil, "BORDER")
     threatIndicator:SetPoint("TOPLEFT", frame, 0, 0)
     threatIndicator:SetPoint("BOTTOMRIGHT", frame, 0, 0)
@@ -41,9 +41,9 @@ local function Construct_ThreathIndicator(frame)
 
 	return threatIndicator
 end
-GW.Construct_ThreathIndicator = Construct_ThreathIndicator
+GW.Construct_ThreatIndicator = Construct_ThreatIndicator
 
-local function UpdateThreathIndicatorSettings(frame)
+local function UpdateThreatIndicatorSettings(frame)
     -- nothing atm
 end
-GW.UpdateThreathIndicatorSettings = UpdateThreathIndicatorSettings
+GW.UpdateThreatIndicatorSettings = UpdateThreatIndicatorSettings

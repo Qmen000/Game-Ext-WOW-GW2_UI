@@ -983,7 +983,7 @@ local function LoadSpellBook(tabContainer)
     spellBook.tabs[6].buttons = {}
     spellBook.container[6].headerFrame = {}
 
-    menu:SetAttribute("tabOpen", 2)
+    menu:SetAttribute("tabopen", 2)
     menu:SetScript("OnShow", function()
         if InCombatLockdown() then return end
         updateSpellbookTab(spellBook)

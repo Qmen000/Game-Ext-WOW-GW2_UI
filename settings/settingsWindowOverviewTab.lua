@@ -605,7 +605,7 @@ function GW.LoadSettingsOverview(container)
         {settingsOverview.menu.creditsbtn, L["Credits"], function() ShowCredits(settingsOverview.ScrollBox) end},
         {settingsOverview.menu.movehudbtn, L["Move HUD"], function()
             if InCombatLockdown() then
-                GW.Notice(L["You can not move elements during combat!"])
+                GW.Notice(L["You cannot move elements during combat!"])
                 return
             end
             GW.moveHudObjects(GW.MoveHudScaleableFrame)

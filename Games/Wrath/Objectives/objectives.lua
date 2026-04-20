@@ -406,7 +406,7 @@ function GwQuestLogMixin:BlockOnClick(button)
             end
 
             rootDescription:CreateButton(COMMUNITIES_INVITE_MANAGER_LINK_TO_CHAT, function() LinkQuestIntoChat(self.title, self.questID) end)
-            rootDescription:CreateButton("Wowhead URL", function() StaticPopup_Show("QUESTIE_WOWHEAD_URL", self.questID, self.title) end)
+            rootDescription:CreateButton(GW.L["Wowhead URL"], function() StaticPopup_Show("QUESTIE_WOWHEAD_URL", self.questID, self.title) end)
             rootDescription:CreateButton(OBJECTIVES_VIEW_IN_QUESTLOG, function() QuestLogFrame:Show()
                 QuestLog_SetSelection(self.questLogIndex)
                 QuestLog_Update()

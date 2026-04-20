@@ -917,7 +917,7 @@ local function LoadSpellBook(tabContainer)
             return
         end
     ]=])
-    GwSpellbookMenu:SetAttribute('tabOpen', 3)
+    GwSpellbookMenu:SetAttribute('tabopen', 3)
 
     GwspellbookTab5:HookScript('OnHide', function() spellBookTab_onClick(GwspellbookTab3) end)
 

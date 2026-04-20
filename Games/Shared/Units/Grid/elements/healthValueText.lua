@@ -1,7 +1,7 @@
 ---@class GW2
 local GW = select(2, ...)
 
-local function Construct_HealtValueText(frame)
+local function Construct_HealthValueText(frame)
     local healthValue = GW.CreateRaisedText(frame.RaisedElementParent)
 
     healthValue:SetShadowOffset(-1, -1)
@@ -13,10 +13,10 @@ local function Construct_HealtValueText(frame)
 
 	return healthValue
 end
-GW.Construct_HealtValueText = Construct_HealtValueText
+GW.Construct_HealthValueText = Construct_HealthValueText
 
-local function UpdateHealtValueTextSettings(frame)
+local function UpdateHealthValueTextSettings(frame)
     local name = frame.HealthValueText
     frame:Tag(name, ("[GW2_Grid:healtValue(%s,%s)]"):format(frame.healthStringFormat, tostring(frame.shortendHealthValue)))
 end
-GW.UpdateHealtValueTextSettings = UpdateHealtValueTextSettings
+GW.UpdateHealthValueTextSettings = UpdateHealthValueTextSettings
