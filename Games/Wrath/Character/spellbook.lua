@@ -286,7 +286,18 @@ local function getHeaderHeight(pagingContainer, lastHeader)
     return c2
 end
 
-local function setUpPaging(self)
+local function getCurrentPage(container)
+    for i = 1, 8 do
+        local page = container["container" .. i]
+        if page and page:IsShown() then
+            return i
+        end
+    end
+
+    return 1
+end
+
+local function setUpPaging(self, targetPage)
     self.left:SetFrameRef("tab", self.attrDummy)
     self.left:SetAttribute("_onclick", [=[
         self:GetFrameRef("tab"):SetAttribute("page", "left")
@@ -375,6 +386,11 @@ local function setUpPaging(self)
         end
     ]=]))
     self.attrDummy:SetAttribute("page", "left")
+
+    targetPage = math.max(1, math.min(targetPage or 1, self.tabs or 1))
+    for _ = 2, targetPage do
+        self.attrDummy:SetAttribute("page", "right")
+    end
 end
 
 local UNKNOW_SPELL_MAX_INDEX = 0
@@ -703,6 +719,11 @@ local function updateSpellbookTab(self)
     end
 
     local showAllRanks = GetCVarBool("ShowAllSpellRanks")
+    local currentPages = {}
+
+    for spellBookTab = 1, 5 do
+        currentPages[spellBookTab] = getCurrentPage(self.container[spellBookTab])
+    end
 
     resetSpellbookPages(self)
 
@@ -810,8 +831,9 @@ local function updateSpellbookTab(self)
                 lastName = nameSpell
                 lastButton = button
             end
-            setUpPaging(container)
         end
+
+        setUpPaging(container, currentPages[spellBookTab])
     end
 
     updateUnknownTab()
