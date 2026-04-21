@@ -1,13 +1,15 @@
 ---@class GW2
 local GW = select(2, ...)
 
-local afterCombatQueue = {}
-local afterCombatQueueHead = 1
-local afterCombatQueueTail = 0
-local afterCombatQueueByKey = {}
 local maxUpdatesPerCircle = 5
 local EMPTY = {}
 local NIL = {}
+GW.CombatQueue = {
+    queue = {},
+    head = 1,
+    tail = 0,
+    byKey = {}
+}
 
 local function SetDeadIcon(self)
     local tex = GW.CLASS_ICONS.dead
@@ -93,7 +95,7 @@ local function StringWithRGB(string, color)
 end
 GW.StringWithRGB = StringWithRGB
 
-local function CombatQueue_Initialize()
+function GW.CombatQueue:Initialize()
     C_Timer.NewTicker(0.1, function()
         if InCombatLockdown() then
             return
@@ -101,20 +103,20 @@ local function CombatQueue_Initialize()
 
         local count = 0
         while count < maxUpdatesPerCircle do
-            local entry = afterCombatQueue[afterCombatQueueHead]
+            local entry = self.queue[self.head]
             if not entry then
-                if afterCombatQueueHead > afterCombatQueueTail then
-                    afterCombatQueueHead = 1
-                    afterCombatQueueTail = 0
+                if self.head > self.tail then
+                    self.head = 1
+                    self.tail = 0
                 end
                 break
             end
 
-            afterCombatQueue[afterCombatQueueHead] = nil
-            afterCombatQueueHead = afterCombatQueueHead + 1
+            self.queue[self.head] = nil
+            self.head = self.head + 1
 
-            if entry.key and afterCombatQueueByKey[entry.key] == entry then
-                afterCombatQueueByKey[entry.key] = nil
+            if entry.key and self.byKey[entry.key] == entry then
+                self.byKey[entry.key] = nil
             end
 
             if entry.obj then
@@ -130,11 +132,10 @@ local function CombatQueue_Initialize()
         end
     end)
 end
-GW.CombatQueue_Initialize = CombatQueue_Initialize
 
-local function CombatQueue_Queue(key, func, obj)
+function GW.CombatQueue:Queue(key, func, obj)
     if key ~= nil then
-        local existing = afterCombatQueueByKey[key]
+        local existing = self.byKey[key]
         if existing then
             existing.func = func
             existing.obj = obj
@@ -143,14 +144,13 @@ local function CombatQueue_Queue(key, func, obj)
     end
 
     local entry = {key = key, func = func, obj = obj}
-    afterCombatQueueTail = afterCombatQueueTail + 1
-    afterCombatQueue[afterCombatQueueTail] = entry
+    self.tail = self.tail + 1
+    self.queue[self.tail] = entry
 
     if key ~= nil then
-        afterCombatQueueByKey[key] = entry
+        self.byKey[key] = entry
     end
 end
-GW.CombatQueue_Queue = CombatQueue_Queue
 
 local function StoreGameMenuButton()
     GameMenuFrame.GwMenuButtons = {}

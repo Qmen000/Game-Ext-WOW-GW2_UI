@@ -405,10 +405,10 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
             GwObjectivesNotification:RemoveNotificationOfType(GW.Enum.ObjectivesNotificationType.Torghast)
             block:Hide()
         end
-        GW.CombatQueue_Queue(nil, block.UpdateObjectiveActionButton, {block})
+        GW.CombatQueue:Queue(nil, block.UpdateObjectiveActionButton, {block})
         if block.hasItem then
             block.fromContainerTopHeight = block.height
-            GW.CombatQueue_Queue("update_tracker_scenario_itembutton_position", block.UpdateObjectiveActionButtonPosition, {block})
+            GW.CombatQueue:Queue("update_tracker_scenario_itembutton_position", block.UpdateObjectiveActionButtonPosition, {block})
         end
 
         for i = (block.numObjectives or 0) + 1, #block.objectiveBlocks do
@@ -542,7 +542,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
     --check for groupfinder button and add spells
     if GW.Retail then
         block:UpdateFindGroupButton(scenarioID, true)
-        GW.CombatQueue_Queue(nil, block.UpdateScenarioSpell, {block, allSpellInfo})
+        GW.CombatQueue:Queue(nil, block.UpdateScenarioSpell, {block, allSpellInfo})
     end
 
     local objectiveOptions = {
@@ -639,7 +639,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
     block.height = block.height + 5
     if block.hasItem then
         block.fromContainerTopHeight = block.height
-        GW.CombatQueue_Queue("update_tracker_scenario_itembutton_position", block.UpdateObjectiveActionButtonPosition, {block})
+        GW.CombatQueue:Queue("update_tracker_scenario_itembutton_position", block.UpdateObjectiveActionButtonPosition, {block})
     end
 
     local intGWQuestTrackerHeight = 0

@@ -11,7 +11,7 @@ local MAX_BOSS_FRAMES = 10
 local function LockParent(frame, parent)
     if parent ~= GW.HiddenFrame then
         if frame:IsProtected() and InCombatLockdown() then
-            GW.CombatQueue_Queue("resetParentFrame: " .. frame:GetDebugName(), LockParent, {frame, parent})
+            GW.CombatQueue:Queue("resetParentFrame: " .. frame:GetDebugName(), LockParent, {frame, parent})
             return
         end
         frame:SetParent(GW.HiddenFrame)

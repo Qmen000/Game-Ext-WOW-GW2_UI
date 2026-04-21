@@ -189,7 +189,7 @@ end
 
 local function UpdateButtons(self)
     if InCombatLockdown() or (C_PetBattles and C_PetBattles.IsInBattle()) then
-        GW.CombatQueue_Queue("StackMinimapButtons", function() UpdateButtons(self) end)
+        GW.CombatQueue:Queue("StackMinimapButtons", function() UpdateButtons(self) end)
         return
     end
 

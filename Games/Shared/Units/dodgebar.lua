@@ -222,7 +222,7 @@ function GwDodgeBarMixin:SetupBar()
     end
 
     if GW.Retail and InCombatLockdown() then
-        GW.CombatQueue_Queue("Dodgebar Update", self.SetupBar, {self})
+        GW.CombatQueue:Queue("Dodgebar Update", self.SetupBar, {self})
         return
     end
 

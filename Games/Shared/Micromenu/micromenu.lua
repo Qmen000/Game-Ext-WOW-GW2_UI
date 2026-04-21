@@ -277,7 +277,7 @@ end
 
 local function reskinMicroButton(btn, name, mbf, hook)
     if InCombatLockdown() and btn:IsProtected() then
-        GW.CombatQueue_Queue("Update Micromenu: " .. name, reskinMicroButton, {btn, name, mbf, hook})
+        GW.CombatQueue:Queue("Update Micromenu: " .. name, reskinMicroButton, {btn, name, mbf, hook})
         return
     end
 
@@ -1231,7 +1231,7 @@ local function hook_UpdateMicroButtons()
     reskinMicroButtons(Gw2MicroBarFrame.cf)
 
     if InCombatLockdown() then
-        GW.CombatQueue_Queue("Update Micromenu", hook_UpdateMicroButtons)
+        GW.CombatQueue:Queue("Update Micromenu", hook_UpdateMicroButtons)
         return
     end
 

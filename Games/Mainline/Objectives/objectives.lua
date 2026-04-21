@@ -56,7 +56,7 @@ local function UpdateBlockInternal(self, parent, quest, questID, questLogIndex)
         self:GetScript("OnLeave")(self)
     end
 
-    GW.CombatQueue_Queue(nil, self.UpdateObjectiveActionButton, {self})
+    GW.CombatQueue:Queue(nil, self.UpdateObjectiveActionButton, {self})
 
     if numObjectives == 0 and GetMoney() >= quest.requiredMoney and not quest.startEvent then
         isComplete = true
@@ -335,14 +335,14 @@ function GwQuestLogMixin:UpdateLayout()
                     block:Show()
                     savedContainerHeight = savedContainerHeight + block.height
                     block.fromContainerTopHeight = savedContainerHeight
-                    GW.CombatQueue_Queue("update_tracker_" .. frameName .. block.index, block.UpdateObjectiveActionButtonPosition, {block})
+                    GW.CombatQueue:Queue("update_tracker_" .. frameName .. block.index, block.UpdateObjectiveActionButtonPosition, {block})
                 else
                     counterQuest = counterQuest + 1
                     local block = self.blocks and self.blocks[counterQuest]
                     if block then
                         block:Hide()
                         block.questLogIndex = 0
-                        GW.CombatQueue_Queue("update_tracker_" .. frameName .. counterQuest, block.UpdateObjectiveActionButton, {block})
+                        GW.CombatQueue:Queue("update_tracker_" .. frameName .. counterQuest, block.UpdateObjectiveActionButton, {block})
                     end
                 end
             end
@@ -359,7 +359,7 @@ function GwQuestLogMixin:UpdateLayout()
         block.questID = nil
         block.questLogIndex = 0
         block:Hide()
-        GW.CombatQueue_Queue("update_tracker_itembutton_remove" .. i, block.UpdateObjectiveActionButton, {block})
+        GW.CombatQueue:Queue("update_tracker_itembutton_remove" .. i, block.UpdateObjectiveActionButton, {block})
     end
 
     if counterQuest == 0 and self.isCampaignContainer then
@@ -431,7 +431,7 @@ function GwQuestLogMixin:PartialUpdate(questID, added)
         end
 
         block.fromContainerTopHeight = heightForQuestItem
-        GW.CombatQueue_Queue("update_tracker_quest_itembutton_position" .. block.index, block.UpdateObjectiveActionButtonPosition, {block})
+        GW.CombatQueue:Queue("update_tracker_quest_itembutton_position" .. block.index, block.UpdateObjectiveActionButtonPosition, {block})
     end
 
     self.isUpdating = false

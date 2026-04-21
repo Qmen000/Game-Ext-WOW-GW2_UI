@@ -129,7 +129,7 @@ local function UpdateBlockInternal(self, parent, quest)
     self.title = quest.title
     self.Header:SetText(text .. quest.title)
 
-    GW.CombatQueue_Queue(nil, self.UpdateObjectiveActionButton, {self})
+    GW.CombatQueue:Queue(nil, self.UpdateObjectiveActionButton, {self})
 
     if Questie and Questie.started and GW.settings.QUESTTRACKER_SHOW_XP and GW.mylevel < GetMaxPlayerLevel() then
         local xpReward = QuestieLoader:ImportModule("QuestXP"):GetQuestLogRewardXP(quest.questId, false)
@@ -326,7 +326,7 @@ function GwQuestLogMixin:UpdateLayout()
                 savedContainerHeight = savedContainerHeight + block.height
                 block.fromContainerTopHeight = savedContainerHeight
 
-                GW.CombatQueue_Queue("update_tracker_" .. frameName .. block.index, block.UpdateObjectiveActionButtonPosition, {block})
+                GW.CombatQueue:Queue("update_tracker_" .. frameName .. block.index, block.UpdateObjectiveActionButtonPosition, {block})
                 tinsert(self.trackedQuests, quest)
             else
                 counterQuest = counterQuest + 1
@@ -336,7 +336,7 @@ function GwQuestLogMixin:UpdateLayout()
                     block.questLogIndex = 0
                     block.sourceItemId = nil
                     block:Hide()
-                    GW.CombatQueue_Queue("update_tracker_" .. counterQuest, block.UpdateObjectiveActionButton, {block})
+                    GW.CombatQueue:Queue("update_tracker_" .. counterQuest, block.UpdateObjectiveActionButton, {block})
                 end
             end
         end
@@ -353,7 +353,7 @@ function GwQuestLogMixin:UpdateLayout()
         block.questLogIndex = 0
         block.sourceItemId = nil
         block:Hide()
-        GW.CombatQueue_Queue("update_tracker_itembutton_remove" .. i, block.UpdateObjectiveActionButton, {block})
+        GW.CombatQueue:Queue("update_tracker_itembutton_remove" .. i, block.UpdateObjectiveActionButton, {block})
     end
 
     local headerCounterText = " (" .. counterQuest .. ")"

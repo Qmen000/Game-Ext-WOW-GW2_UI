@@ -296,7 +296,7 @@ local function LoadCharacterWindowBase(secureOnClick, secureOnAttributeChanged, 
     end)
 
     frame.secure:HookScript("OnEvent", function(self, event)
-        GW.CombatQueue_Queue("character_update_keybind", click_OnEvent, {self, event, windowsList})
+        GW.CombatQueue:Queue("character_update_keybind", click_OnEvent, {self, event, windowsList})
     end)
     frame.secure:RegisterEvent("UPDATE_BINDINGS")
     frame.UpdateBindings = function()
@@ -478,7 +478,7 @@ function GW.LoadCharacter()
     end
 
     if InCombatLockdown() then
-        GW.CombatQueue_Queue("load_character_window", GW.LoadCharacterWindowsFromList, {config.windowsList, config.charSecure_OnClick, config.charSecure_OnAttributeChanged})
+        GW.CombatQueue:Queue("load_character_window", GW.LoadCharacterWindowsFromList, {config.windowsList, config.charSecure_OnClick, config.charSecure_OnAttributeChanged})
         return
     end
 

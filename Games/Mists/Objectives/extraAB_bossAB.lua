@@ -10,7 +10,7 @@ local ExtraButtons = {}
 
 local function ExtraButtons_ZoneScale()
     if InCombatLockdown() then
-        GW.CombatQueue_Queue("SetSizeForZoneAbilityFrame", GW.ExtraButtons_ZoneScale)
+        GW.CombatQueue:Queue("SetSizeForZoneAbilityFrame", GW.ExtraButtons_ZoneScale)
         return
     end
     local scale = GW.settings.ZoneAbilityFramePos_scale

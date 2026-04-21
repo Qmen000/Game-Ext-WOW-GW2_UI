@@ -83,7 +83,7 @@ function RaidMarkerFrameMixin:RaidMarkUpdateKeyDown(keydown)
 
     local useAttribute = GW.Retail or GW.TBC or GW.Wrath
     if useAttribute and InCombatLockdown() then
-        GW.CombatQueue_Queue("Update Raid Marker CVAR", self.RaidMarkUpdateKeyDown, {keydown})
+        GW.CombatQueue:Queue("Update Raid Marker CVAR", self.RaidMarkUpdateKeyDown, {keydown})
         return
     end
     for _, button in next, self.buttons do

@@ -17,7 +17,7 @@ local StripAllTextures = {
 local function LoadRaidFrame()
     if raidInit then return end
     if InCombatLockdown() then
-        GW.CombatQueue_Queue(nil,  LoadRaidFrame)
+        GW.CombatQueue:Queue(nil,  LoadRaidFrame)
         return
     end
     raidInit = true

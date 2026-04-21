@@ -180,7 +180,7 @@ function GwBonusObjectivesTrackerContainerMixin:UpdateBlocks(questIDs)
                 block.questID = questID
                 block:UpdateFindGroupButton(questID, false)
 
-                GW.CombatQueue_Queue(nil, block.UpdateObjectiveActionButton, {block})
+                GW.CombatQueue:Queue(nil, block.UpdateObjectiveActionButton, {block})
 
                 if not foundEvent then
                     savedContainerHeight = 20
@@ -239,7 +239,7 @@ function GwBonusObjectivesTrackerContainerMixin:UpdateBlocks(questIDs)
                 savedContainerHeight = savedContainerHeight + block.height + 10
                 block.fromContainerTopHeight = savedContainerHeight
                 if block.hasItem then
-                    GW.CombatQueue_Queue("update_tracker_bonus_itembutton_position" .. blockIndex, block.UpdateObjectiveActionButtonPosition, {block})
+                    GW.CombatQueue:Queue("update_tracker_bonus_itembutton_position" .. blockIndex, block.UpdateObjectiveActionButtonPosition, {block})
                 end
 
                 block:Show()
@@ -271,7 +271,7 @@ function GwBonusObjectivesTrackerContainerMixin:UpdateLayout(newQuestId)
             block.ticker:Cancel()
             block.ticker = nil
         end
-        GW.CombatQueue_Queue("update_tracker_bonus_itembutton_remove" .. i, block.UpdateObjectiveActionButton, {block})
+        GW.CombatQueue:Queue("update_tracker_bonus_itembutton_remove" .. i, block.UpdateObjectiveActionButton, {block})
         block:Hide()
     end
 
@@ -298,7 +298,7 @@ function GwBonusObjectivesTrackerContainerMixin:UpdateLayout(newQuestId)
         local block = self.blocks[i]
         block.questID = false
         block:Hide()
-        GW.CombatQueue_Queue("update_tracker_bonus_itembutton_remove" .. i, block.UpdateObjectiveActionButton, {block})
+        GW.CombatQueue:Queue("update_tracker_bonus_itembutton_remove" .. i, block.UpdateObjectiveActionButton, {block})
         if block.ticker then
             block.ticker:Cancel()
             block.ticker = nil

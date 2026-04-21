@@ -113,7 +113,7 @@ local function UpdateBlockInternal(self, parent, quest)
     self.isAutoComplete = quest.isAutoComplete
     self.Header:SetText(text .. quest.title)
 
-    GW.CombatQueue_Queue(nil, self.UpdateObjectiveActionButton, {self})
+    GW.CombatQueue:Queue(nil, self.UpdateObjectiveActionButton, {self})
 
     if quest.numObjectives == 0 and GetMoney() >= quest.requiredMoney and not quest.startEvent then
         quest.isComplete = true
@@ -324,7 +324,7 @@ function GwQuestLogMixin:UpdateLayout()
             savedContainerHeight = savedContainerHeight + block.height
             block.fromContainerTopHeight = savedContainerHeight
 
-            GW.CombatQueue_Queue("update_tracker_" .. frameName .. block.index, block.UpdateObjectiveActionButtonPosition, {block})
+            GW.CombatQueue:Queue("update_tracker_" .. frameName .. block.index, block.UpdateObjectiveActionButtonPosition, {block})
             tinsert(self.trackedQuests, quest)
         else
             counterQuest = counterQuest + 1
@@ -333,7 +333,7 @@ function GwQuestLogMixin:UpdateLayout()
                 block.questID = nil
                 block.questLogIndex = 0
                 block:Hide()
-                GW.CombatQueue_Queue("update_tracker_" .. counterQuest, block.UpdateObjectiveActionButton, {block})
+                GW.CombatQueue:Queue("update_tracker_" .. counterQuest, block.UpdateObjectiveActionButton, {block})
             end
         end
     end
@@ -348,7 +348,7 @@ function GwQuestLogMixin:UpdateLayout()
         block.questID = nil
         block.questLogIndex = 0
         block:Hide()
-        GW.CombatQueue_Queue("update_tracker_itembutton_remove" .. i, block.UpdateObjectiveActionButton, {block})
+        GW.CombatQueue:Queue("update_tracker_itembutton_remove" .. i, block.UpdateObjectiveActionButton, {block})
     end
 
     local headerCounterText = " (" .. counterQuest .. ")"
