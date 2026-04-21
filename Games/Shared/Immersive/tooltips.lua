@@ -777,11 +777,27 @@ local function SetUnitInfo(self, unit, data)
     return color
 end
 
+local function GetDisplayedUnit(self)
+    if not self.GetPrimaryTooltipData then
+        local _, unit = self:GetUnit()
+        return unit
+    end
+
+    if not self:IsTooltipType(Enum.TooltipDataType.Unit) then
+        return -- tooltip not a unit
+    end
+
+    local data = self:GetPrimaryTooltipData()
+    if not data or not data.guid then return end
+
+    return UnitTokenFromGUID(data.guid)
+end
+
 local function GetUnitToken(self)
     if not self or self:IsForbidden() then return end
 
     local mouseover = UnitExists("mouseover") and "mouseover"
-    local _, unit = self:GetUnit()
+    local unit = GetDisplayedUnit(self)
     if unit then
         return (GW.NotSecretValue(unit) and UnitExists(unit) and unit) or mouseover or nil
     end

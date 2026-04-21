@@ -187,6 +187,11 @@ local function SetAlphaRecursive(frame, alpha)
     if not frame or not frame.SetAlpha then return end
     frame:SetAlpha(alpha)
 
+    local numChildren = frame:GetNumChildren()
+    if numChildren == 0 then
+        return
+    end
+
     for _, child in ipairs({frame:GetChildren()}) do
         SetAlphaRecursive(child, alpha)
     end

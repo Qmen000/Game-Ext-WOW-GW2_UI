@@ -178,42 +178,42 @@ GW.AddUpdateCB = AddUpdateCB
 
 local swimStateElapsed = 0
 local function gw_OnUpdate(_, elapsed)
-    local foundAnimation = false
-    local count = 0
     if next(animations) then
         local time = GetTime()
-        for _, v in pairs(animations) do
-            count = count + 1
+        local completedAnimations = nil
 
-            if not v.completed then
-                if time >= (v.start + v.duration) then
-                    local t = v.easeing and 1 or sin(pi * 0.5)
-                    v.progress = GW.lerp(v.from, v.to, t)
+        for name, animation in pairs(animations) do
+            if animation.completed then
+                completedAnimations = completedAnimations or {}
+                completedAnimations[#completedAnimations + 1] = name
+            elseif time >= (animation.start + animation.duration) then
+                local t = animation.easeing and 1 or sin(pi * 0.5)
+                animation.progress = GW.lerp(animation.from, animation.to, t)
 
-                    if v.method then
-                        v.method(v.progress)
-                    end
+                if animation.method then
+                    animation.method(animation.progress)
+                end
 
-                    if v.onCompleteCallback then
-                        v.onCompleteCallback()
-                    end
+                if animation.onCompleteCallback then
+                    animation.onCompleteCallback()
+                end
 
-                    v.completed = true
-                    foundAnimation = true
-                else
-                    local t = v.easeing and ((time - v.start) / v.duration) or sin((time - v.start) / v.duration * pi * 0.5)
-                    v.progress = GW.lerp(v.from, v.to, t)
+                completedAnimations = completedAnimations or {}
+                completedAnimations[#completedAnimations + 1] = name
+            else
+                local t = animation.easeing and ((time - animation.start) / animation.duration) or sin((time - animation.start) / animation.duration * pi * 0.5)
+                animation.progress = GW.lerp(animation.from, animation.to, t)
 
-                    if v.method then
-                        v.method(v.progress)
-                    end
-                    foundAnimation = true
+                if animation.method then
+                    animation.method(animation.progress)
                 end
             end
         end
 
-        if not foundAnimation and count > 0 then
-            table.wipe(animations)
+        if completedAnimations then
+            for i = 1, #completedAnimations do
+                animations[completedAnimations[i]] = nil
+            end
         end
     end
 

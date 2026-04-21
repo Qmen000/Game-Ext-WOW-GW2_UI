@@ -2,6 +2,9 @@
 local GW = select(2, ...)
 
 local afterCombatQueue = {}
+local afterCombatQueueHead = 1
+local afterCombatQueueTail = 0
+local afterCombatQueueByKey = {}
 local maxUpdatesPerCircle = 5
 local EMPTY = {}
 local NIL = {}
@@ -96,33 +99,55 @@ local function CombatQueue_Initialize()
             return
         end
 
-        local func = tremove(afterCombatQueue, 1)
         local count = 0
-        while func do
-            if func.obj then
-                func.func(unpack(func.obj))
-            else
-                func.func()
-            end
-            if InCombatLockdown() or count >= maxUpdatesPerCircle then
+        while count < maxUpdatesPerCircle do
+            local entry = afterCombatQueue[afterCombatQueueHead]
+            if not entry then
+                if afterCombatQueueHead > afterCombatQueueTail then
+                    afterCombatQueueHead = 1
+                    afterCombatQueueTail = 0
+                end
                 break
             end
-            func = tremove(afterCombatQueue, 1)
+
+            afterCombatQueue[afterCombatQueueHead] = nil
+            afterCombatQueueHead = afterCombatQueueHead + 1
+
+            if entry.key and afterCombatQueueByKey[entry.key] == entry then
+                afterCombatQueueByKey[entry.key] = nil
+            end
+
+            if entry.obj then
+                entry.func(unpack(entry.obj))
+            else
+                entry.func()
+            end
+
             count = count + 1
+            if InCombatLockdown() then
+                break
+            end
         end
     end)
 end
 GW.CombatQueue_Initialize = CombatQueue_Initialize
 
 local function CombatQueue_Queue(key, func, obj)
-    local alreadyIn = false
-    for _, v in pairs(afterCombatQueue) do
-        if v.key == key and v.func == func and v.obj == obj then
-            alreadyIn = true
+    if key ~= nil then
+        local existing = afterCombatQueueByKey[key]
+        if existing then
+            existing.func = func
+            existing.obj = obj
+            return
         end
     end
-    if not alreadyIn or key == nil then
-        tinsert(afterCombatQueue, {key = key, func = func, obj = obj})
+
+    local entry = {key = key, func = func, obj = obj}
+    afterCombatQueueTail = afterCombatQueueTail + 1
+    afterCombatQueue[afterCombatQueueTail] = entry
+
+    if key ~= nil then
+        afterCombatQueueByKey[key] = entry
     end
 end
 GW.CombatQueue_Queue = CombatQueue_Queue
