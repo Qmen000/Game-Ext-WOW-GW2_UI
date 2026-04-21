@@ -1215,7 +1215,35 @@ local function checkElvUI()
 end
 
 
-local function hook_UpdateMicroButtons()
+local hook_UpdateMicroButtons
+
+local function queueMicroMenuUpdate()
+    if InCombatLockdown() then
+        GW.CombatQueue:Queue("Update Micromenu", hook_UpdateMicroButtons)
+        return
+    end
+
+    C_Timer.After(0, function()
+        if InCombatLockdown() then
+            GW.CombatQueue:Queue("Update Micromenu", hook_UpdateMicroButtons)
+            return
+        end
+
+        hook_UpdateMicroButtons(true)
+    end)
+end
+
+hook_UpdateMicroButtons = function(fromDeferredUpdate)
+    if GW.Retail and not fromDeferredUpdate then
+        queueMicroMenuUpdate()
+        return
+    end
+
+    if InCombatLockdown() then
+        GW.CombatQueue:Queue("Update Micromenu", hook_UpdateMicroButtons)
+        return
+    end
+
     HelpMicroButton:Show()
     local m = GW.Classic and SocialsMicroButton or GuildMicroButton
     if (GW.TBC or GW.Wrath) and SocialsMicroButton:IsShown() then
@@ -1229,11 +1257,6 @@ local function hook_UpdateMicroButtons()
     if MicroButtonPortrait then MicroButtonPortrait:Hide() end
 
     reskinMicroButtons(Gw2MicroBarFrame.cf)
-
-    if InCombatLockdown() then
-        GW.CombatQueue:Queue("Update Micromenu", hook_UpdateMicroButtons)
-        return
-    end
 
     if GW.Classic or GW.TBC then
         local tref
