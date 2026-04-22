@@ -9,7 +9,7 @@ local function SpellButton_OnModifiedClick(self)
         if MacroFrameText and MacroFrameText:HasFocus() then
             local spell, subSpell = GetSpellBookItemName(slot, book)
             if spell and not IsPassiveSpell(slot, book) then
-                if subSpell and strlen(subSpell) > 0 then
+                if subSpell and #subSpell > 0 then
                     ChatEdit_InsertLink(spell .. "(" .. subSpell .. ")")
                 else
                     ChatEdit_InsertLink(spell)
@@ -36,9 +36,9 @@ local function spell_buttonOnEnter(self)
 
     if self.booktype == "pet" then isPet = true end
 
-    if GW.IsSpellKnown(self.spellId, isPet) and self.futureSpellOverrider==nil then
+    if GW.IsSpellKnown(self.spellId, isPet) and self.futureSpellOverrider == nil then
         if not self.isFlyout then
-            GameTooltip:SetSpellBookItem(self.spellbookIndex,self.booktype)
+            GameTooltip:SetSpellBookItem(self.spellbookIndex, self.booktype)
         else
             local name, desc = GetFlyoutInfo(self.spellId)
             GameTooltip:AddLine(name)
@@ -220,21 +220,21 @@ local function setButtonStyle(ispassive, spellID, skillType, icon, spellbookInde
     return btn
 end
 
-local function getHeaderHeight(pagingContainer,lastHeader)
+local function getHeaderHeight(pagingContainer, lastHeader)
     local lastColumn = 1
-    if lastHeader~=nil then
+    if lastHeader ~= nil then
         lastColumn = lastHeader.column
     end
-    local c1 =0
-    local c2 =0
-    for _, h in pairs(pagingContainer.headers) do
+    local c1 = 0
+    local c2 = 0
+    for _, h in ipairs(pagingContainer.headers) do
         if h.column == 1 then
-        c1=c1 + h.height
+            c1 = c1 + h.height
         else
-            c2=c2 + h.height
+            c2 = c2 + h.height
         end
     end
-    if lastColumn==2 then
+    if lastColumn == 2 then
         return c1
     end
     return c2
@@ -344,34 +344,34 @@ local function setUpPaging(self)
     self.attrDummy:SetAttribute('page', 'left')
 end
 
-local UNKNOW_SPELL_MAX_INDEX = 0
+local UNKNOWN_SPELL_MAX_INDEX = 0
 local function getUnknownSpellItem(index)
-    if _G["GwSpellbookUnknownSpell"..index]~=nil then
-        return _G["GwSpellbookUnknownSpell"..index]
+    if _G["GwSpellbookUnknownSpell" .. index] ~= nil then
+        return _G["GwSpellbookUnknownSpell" .. index]
     end
 
-    UNKNOW_SPELL_MAX_INDEX = UNKNOW_SPELL_MAX_INDEX + 1;
+    UNKNOWN_SPELL_MAX_INDEX = UNKNOWN_SPELL_MAX_INDEX + 1
 
-    local f = CreateFrame("Button","GwSpellbookUnknownSpell"..index, GwSpellbookUnknown.container,"GwSpellbookUnknownSpell")
+    local f = CreateFrame("Button", "GwSpellbookUnknownSpell" .. index, GwSpellbookUnknown.container, "GwSpellbookUnknownSpell")
     local mask = UIParent:CreateMaskTexture()
-    mask:SetPoint("CENTER", f, 'CENTER', 0, 0)
+    mask:SetPoint("CENTER", f, "CENTER", 0, 0)
     mask:SetTexture("Interface/AddOns/GW2_UI/textures/talents/passive_border.png", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
     mask:SetSize(40, 40)
 
     f.mask = mask
     return f
 end
-local UNKNOW_SPELL_CONTAINER_MAX_INDEX = 0
+local UNKNOWN_SPELL_CONTAINER_MAX_INDEX = 0
 local function getUnknownSpellContainer(index)
     if _G["GwUnknownSpellCat" .. index] then
         return _G["GwUnknownSpellCat" .. index]
     end
 
-    UNKNOW_SPELL_CONTAINER_MAX_INDEX = UNKNOW_SPELL_CONTAINER_MAX_INDEX + 1
+    UNKNOWN_SPELL_CONTAINER_MAX_INDEX = UNKNOWN_SPELL_CONTAINER_MAX_INDEX + 1
 
     return CreateFrame("Button", "GwUnknownSpellCat" .. index, GwSpellbookUnknown.container, "GwUnknownSpellCat")
 end
-local function setUnknowSpellButton(self, icon, spellID, rank, ispassive, level, money)
+local function setUnknownSpellButton(self, icon, spellID, rank, ispassive, level, money)
     self.icon:SetTexture(icon)
     self.spellId = spellID
     self.booktype = "spell"
@@ -509,13 +509,13 @@ local function filterUnknownSpell(spellData)
 end
 
 local function updateUnknownTab()
-    local previousSpellMaxIndex = UNKNOW_SPELL_MAX_INDEX
+    local previousSpellMaxIndex = UNKNOWN_SPELL_MAX_INDEX
 
-    UNKNOW_SPELL_MAX_INDEX = 0
-    for i = 1,previousSpellMaxIndex do
+    UNKNOWN_SPELL_MAX_INDEX = 0
+    for i = 1, previousSpellMaxIndex do
         _G["GwSpellbookUnknownSpell" .. i]:Hide()
     end
-    for i = 1,UNKNOW_SPELL_CONTAINER_MAX_INDEX do
+    for i = 1, UNKNOWN_SPELL_CONTAINER_MAX_INDEX do
         _G["GwUnknownSpellCat" .. i]:Hide()
     end
     GwSpellbookUnknown.slider:SetMinMaxValues(0, 0)
@@ -547,7 +547,7 @@ local function updateUnknownTab()
                     SpellData.rank = SpellData.rank and SpellData.rank:gsub(RANK, "") or ""
 
                     buttons[#buttons + 1] = f
-                    setUnknowSpellButton(f, icon, SpellData[1], SpellData.rank and SpellData.rank or nil, ispassive, i, SpellData[2])
+                    setUnknownSpellButton(f, icon, SpellData[1], SpellData.rank and SpellData.rank or nil, ispassive, i, SpellData[2])
 
                     SPELL_INDEX = SPELL_INDEX + 1
                 end
