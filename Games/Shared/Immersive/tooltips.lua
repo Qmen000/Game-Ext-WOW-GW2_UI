@@ -88,14 +88,10 @@ local function ShowAuraInfo(self, auraData)
             self:AddLine(" ")
         end
 
-        if auraData.sourceUnit then
-            if GW.NotSecretValue(auraData.sourceUnit) then
-                local _, class = UnitClass(auraData.sourceUnit)
-                local color = GWGetClassColor(class, GW.settings.ADVANCED_TOOLTIP_SHOW_CLASS_COLOR, true)
-                self:AddDoubleLine(format(IDLine, ID, auraData.spellId), color:WrapTextInColorCode(UnitName(auraData.sourceUnit) or UNKNOWN))
-            else
-                self:AddDoubleLine(format(IDLine, ID, auraData.spellId), UnitName(auraData.sourceUnit) or UNKNOWN)
-            end
+        if auraData.sourceUnit and GW.NotSecretValue(auraData.sourceUnit) then
+            local _, class = UnitClass(auraData.sourceUnit)
+            local color = GWGetClassColor(class, GW.settings.ADVANCED_TOOLTIP_SHOW_CLASS_COLOR, true)
+            self:AddDoubleLine(format(IDLine, ID, auraData.spellId), color:WrapTextInColorCode(UnitName(auraData.sourceUnit) or UNKNOWN))
         else
             self:AddLine(format(IDLine, ID, auraData.spellId))
         end
