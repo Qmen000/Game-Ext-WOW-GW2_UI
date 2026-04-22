@@ -465,10 +465,15 @@ local function filterUnknownSpell(spellData)
 
     if spellData.race then
         if type(spellData.race) == "table" then
+            local raceMatch = false
             for _, v in pairs(spellData.race) do
-                if v ~= GW.myrace then
-                    return false
+                if v == GW.myrace then
+                    raceMatch = true
+                    break
                 end
+            end
+            if not raceMatch then
+                return false
             end
         else
             if spellData.race ~= GW.myrace then
@@ -504,8 +509,10 @@ local function filterUnknownSpell(spellData)
 end
 
 local function updateUnknownTab()
+    local previousSpellMaxIndex = UNKNOW_SPELL_MAX_INDEX
+
     UNKNOW_SPELL_MAX_INDEX = 0
-    for i = 1,UNKNOW_SPELL_MAX_INDEX do
+    for i = 1,previousSpellMaxIndex do
         _G["GwSpellbookUnknownSpell" .. i]:Hide()
     end
     for i = 1,UNKNOW_SPELL_CONTAINER_MAX_INDEX do
@@ -635,7 +642,9 @@ local function updateSpellbookTab()
         return
     end
 
-    for spellBookTabs = 1, 6 do
+    local numBooks = GW.ClassicSOD and 6 or 5
+
+    for spellBookTabs = 1, numBooks do
         local name, texture, offset, numSpells = GetSpellTabInfo(spellBookTabs)
         local BOOKTYPE = 'spell'
 
@@ -646,7 +655,7 @@ local function updateSpellbookTab()
         SpellbookHeaderIndex = 1
         spellButtonIndex = 1
 
-        if spellBookTabs == 6 then
+        if spellBookTabs == numBooks then
             BOOKTYPE = 'pet'
             numSpells = HasPetSpells() or 0
             offset = 0
@@ -724,13 +733,14 @@ local function updateSpellbookTab()
             lastName = nameSpell
             lastButton = mainButton
 
-            setUpPaging(_G['GwSpellbookContainerTab' .. spellBookTabs])
         end
+
+        setUpPaging(_G['GwSpellbookContainerTab' .. spellBookTabs])
 
         for i = boxIndex, 100 do
             _G['GwSpellbookTab' .. spellBookTabs .. 'Actionbutton' .. i]:SetAlpha(0)
             _G['GwSpellbookTab' .. spellBookTabs .. 'Actionbutton' .. i]:EnableMouse(false)
-            _G['GwSpellbookTab' .. spellBookTabs .. 'Actionbutton' .. boxIndex]:SetScript('OnEvent', nil)
+            _G['GwSpellbookTab' .. spellBookTabs .. 'Actionbutton' .. i]:SetScript('OnEvent', nil)
         end
         for i = SpellbookHeaderIndex + 1, 100 do
             if _G['GwSpellbookContainerTab' .. spellBookTabs .. 'GwSpellbookActionBackground' .. i] then
@@ -749,7 +759,9 @@ local function spellBookTab_onClick(self)
     GwspellbookTab4.background:Hide()
     GwspellbookTab5.background:Hide()
     GwspellbookTab6.background:Hide()
-    GwspellbookTab7.background:Hide()
+    if GW.ClassicSOD then
+        GwspellbookTab7.background:Hide()
+    end
     self.background:Show()
 end
 
@@ -784,7 +796,10 @@ local function LoadSpellBook(tabContainer)
     mask:SetTexture("Interface/AddOns/GW2_UI/textures/character/windowbg-mask.png", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
     mask:SetSize(853, 853)
 
-    for tab = 1, 6 do
+    local numBooks = GW.ClassicSOD and 6 or 5
+    GwSpellbookMenu:SetAttribute("maxContainer", numBooks)
+    local petTab
+    for tab = 1, numBooks do
         local menuItem = CreateFrame('Button', 'GwspellbookTab' .. tab, GwSpellbookMenu, 'GwspellbookTab')
         menuItem:SetPoint("TOPLEFT", GwSpellbookMenu, "TOPLEFT", 0, -menuItem:GetHeight() * (tab - 1))
         local container = CreateFrame('Frame', 'GwSpellbookContainerTab' .. tab, GwSpellbook, 'GwSpellbookContainerTab')
@@ -793,6 +808,10 @@ local function LoadSpellBook(tabContainer)
         container.pages:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.BigHeader, "OUTLINE", 2)
         container.pages:SetTextColor(0.7, 0.7, 0.5, 1)
         container:Hide()
+
+        if tab == numBooks then
+            petTab = menuItem
+        end
 
         local zebra = tab % 2
         menuItem.title:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Header)
@@ -843,83 +862,63 @@ local function LoadSpellBook(tabContainer)
     end
 
     local unknownFrame = CreateFrame('ScrollFrame', 'GwSpellbookUnknown', GwSpellbook, 'GwSpellbookUnknown')
-    local menuItem = CreateFrame('Button', 'GwspellbookTab' .. 7, GwSpellbookMenu, 'GwspellbookTab')
-    menuItem:SetPoint("TOPLEFT", GwSpellbookMenu, "TOPLEFT", 0, -menuItem:GetHeight() * (7 - 1))
+    local menuItem = CreateFrame('Button', 'GwspellbookTab' .. numBooks + 1, GwSpellbookMenu, 'GwspellbookTab')
+    menuItem:SetPoint("TOPLEFT", GwSpellbookMenu, "TOPLEFT", 0, -menuItem:GetHeight() * numBooks)
     menuItem.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Normal, "OUTLINE")
     menuItem.title:SetTextColor(0.7, 0.7, 0.5, 1)
     menuItem.title:SetText(L["Future Spells"])
-    menuItem.bg:SetVertexColor(1, 1, 1, (7 % 2))
+    menuItem.bg:SetVertexColor(1, 1, 1, ((numBooks + 1) % 2))
     menuItem.hover:SetTexture('Interface/AddOns/GW2_UI/textures/character/menu-hover.png')
     menuItem:ClearNormalTexture()
     menuItem:SetText("")
     unknownFrame.title:SetText(L["Future Spells"])
     GwSpellbookMenu:SetFrameRef('GwSpellbookUnknown', unknownFrame)
     menuItem:SetFrameRef('GwSpellbookMenu', GwSpellbookMenu)
-    menuItem:SetAttribute("_onclick", [=[
-        self:GetFrameRef('GwSpellbookMenu'):SetAttribute('tabopen', 7)
-    ]=])
+    menuItem:SetAttribute("_onclick", format([=[
+        self:GetFrameRef('GwSpellbookMenu'):SetAttribute('tabopen', %s)
+    ]=], numBooks + 1))
 
-
+    local futureTab = menuItem:GetName()
     -- pet tab
-    GwspellbookTab6:SetFrameRef('GwspellbookTab7', GwspellbookTab7)
-    GwspellbookTab6:SetAttribute("_onstate-petstate", [=[
+    petTab:SetFrameRef(futureTab, menuItem)
+    petTab:SetAttribute("_onstate-petstate", format([=[
+        local numTabs = self:GetFrameRef('GwSpellbookMenu'):GetAttribute("maxContainer")
         if newstate == "nopet" then
-            self:GetFrameRef('GwspellbookTab7'):SetPoint("TOPLEFT",self:GetFrameRef('GwSpellbookMenu'),"TOPLEFT",0,-44*5)
+            self:GetFrameRef("%s"):SetPoint("TOPLEFT", self:GetFrameRef('GwSpellbookMenu'),"TOPLEFT",0,-44 * (numTabs - 1))
             self:Hide()
             if self:GetFrameRef('GwSpellbookMenu'):GetAttribute('tabopen') then
                 self:GetFrameRef('GwSpellbookMenu'):SetAttribute('tabopen', 3)
             end
         elseif newstate == "hasPet" then
-            self:GetFrameRef('GwspellbookTab7'):SetPoint("TOPLEFT",self:GetFrameRef('GwSpellbookMenu'),"TOPLEFT",0,-44*6)
+            self:GetFrameRef("%s"):SetPoint("TOPLEFT",self:GetFrameRef('GwSpellbookMenu'),"TOPLEFT",0,-44 * numTabs)
             self:Show()
         end
-    ]=])
-    RegisterStateDriver(GwspellbookTab6, "petstate", "[target=pet,noexists] nopet; [target=pet,help] hasPet;")
+    ]=], futureTab, futureTab))
+    RegisterStateDriver(petTab, "petstate", "[target=pet,noexists] nopet; [target=pet,help] hasPet;")
 
 
     GwSpellbookMenu:SetAttribute('_onattributechanged', [=[
         if name~='tabopen' then return end
 
-        self:GetFrameRef('GwSpellbookContainerTab1'):Hide()
-        self:GetFrameRef('GwSpellbookContainerTab2'):Hide()
-        self:GetFrameRef('GwSpellbookContainerTab3'):Hide()
-        self:GetFrameRef('GwSpellbookContainerTab4'):Hide()
-        self:GetFrameRef('GwSpellbookContainerTab5'):Hide()
-        self:GetFrameRef('GwSpellbookContainerTab6'):Hide()
+        local numBooks = self:GetAttribute("maxContainer")
+        for i = 1, numBooks do
+            self:GetFrameRef('GwSpellbookContainerTab' .. i):Hide()
+        end
         self:GetFrameRef('GwSpellbookUnknown'):Hide()
 
-        if value == 1 then
-            self:GetFrameRef('GwSpellbookContainerTab1'):Show()
+        if value >= 1 and value <= numBooks then
+            self:GetFrameRef('GwSpellbookContainerTab' .. value):Show()
             return
         end
-        if value == 2 then
-            self:GetFrameRef('GwSpellbookContainerTab2'):Show()
-            return
-        end
-        if value == 3 then
-            self:GetFrameRef('GwSpellbookContainerTab3'):Show()
-            return
-        end
-        if value == 4 then
-            self:GetFrameRef('GwSpellbookContainerTab4'):Show()
-            return
-        end
-        if value == 5 then
-            self:GetFrameRef('GwSpellbookContainerTab5'):Show()
-            return
-        end
-        if value == 6 then
-            self:GetFrameRef('GwSpellbookContainerTab6'):Show()
-            return
-        end
-        if value == 7 then
+
+        if value == (numBooks + 1) then
             self:GetFrameRef('GwSpellbookUnknown'):Show()
             return
         end
     ]=])
     GwSpellbookMenu:SetAttribute('tabopen', 3)
 
-    GwspellbookTab5:HookScript('OnHide', function() spellBookTab_onClick(GwspellbookTab3) end)
+    petTab:HookScript('OnHide', function() spellBookTab_onClick(GwspellbookTab3) end)
 
     GwSpellbookMenu:SetScript('OnShow', function()
         if InCombatLockdown() then return end

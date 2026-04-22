@@ -8,7 +8,7 @@
         </Anchors>
         <Layers>
             <Layer Level="BACKGROUND">
-                <Texture parentKey="compassBG" file="Interface/AddOns/GW2_UI/textures/questview/compas-bg.png">
+                <Texture parentKey="compassBG" file="Interface/AddOns/GW2_UI/textures/notification/compas-bg.png">
                     <Color r="1" g="1" b="1" a="0.3"></Color>
                     <Size x="300" y="70"></Size>
                     <Anchors>
@@ -39,7 +39,7 @@
                 </Anchors>
                 <Layers>
                     <Layer level="OVERLAY">
-                        <Texture name="$parenticon" parentKey="icon" file="Interface/AddOns/GW2_UI/textures/questview/compas-bg.png">
+                        <Texture name="$parenticon" parentKey="icon" file="Interface/AddOns/GW2_UI/textures/notification/compas-bg.png">
                             <Size x="30" y="30"></Size>
                             <Anchors>
                                 <Anchor point="CENTER"></Anchor>

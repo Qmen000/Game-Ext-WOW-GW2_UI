@@ -935,7 +935,9 @@ local function LoadPaperDoll(tabContainer)
     GwCharacterWindow:SetFrameRef("GwHeroPanelMenu", heroPanelMenu)
     GwCharacterWindow:SetFrameRef("GwPaperHonor", honorFrame)
     GwCharacterWindow:SetFrameRef("GwPaperSkills", skillsFrame)
-    GwCharacterWindow:SetFrameRef("GwEngravingFrame", engravingFrame)
+    if GW.ClassicSOD then
+        GwCharacterWindow:SetFrameRef("GwEngravingFrame", engravingFrame)
+    end
     GwCharacterWindow:SetFrameRef("GwDressingRoom", dressingRoom)
     GwCharacterWindow:SetFrameRef("GwPetContainer", petContainer)
 

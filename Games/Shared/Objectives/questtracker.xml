@@ -145,14 +145,14 @@
         </Anchors>
         <Layers>
             <Layer Level="BACKGROUND">
-                <Texture alphaMode="add" file="Interface/AddOns/GW2_UI/textures/questview/compas-bg.png">
+                <Texture alphaMode="add" file="Interface/AddOns/GW2_UI/textures/notification/compas-bg.png">
                     <Color r="1" b="1" g="1" a="0.6"></Color>
                     <Size x="300" y="1"></Size>
                     <Anchors>
                         <Anchor point="TOPRIGHT" relativePoint="TOPRIGHT" y="0"></Anchor>
                     </Anchors>
                 </Texture>
-                <Texture parentKey="hover" hidden="true" file="Interface/AddOns/GW2_UI/textures/questview/compas-bg.png">
+                <Texture parentKey="hover" hidden="true" file="Interface/AddOns/GW2_UI/textures/notification/compas-bg.png">
                     <Size x="300" y="70"></Size>
                     <Anchors>
                         <Anchor point="TOPRIGHT" relativePoint="TOPRIGHT" y="0"></Anchor>
