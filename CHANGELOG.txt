@@ -1,3 +1,8 @@
+10.8.2
+FIXES
+    - More secrets
+    - Classic hero panel works again
+
 10.8.1
 FIXES
     - More 12.0.5 secrets

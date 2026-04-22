@@ -14,6 +14,11 @@ AddChange(string addonVersion, table changeList)
 ]]
 
 addChange("10.8.1", {
+    {GW.Enum.ChangelogType.bug, [=[More secrets]=]},
+    {GW.Enum.ChangelogType.bug, [=[Classic hero panel works again]=]},
+})
+
+addChange("10.8.1", {
     {GW.Enum.ChangelogType.bug, [=[More 12.0.5 secrets]=]},
 })
 

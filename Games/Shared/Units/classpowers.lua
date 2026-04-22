@@ -738,6 +738,7 @@ local FillingAnimationTime = 5.0
 
 local function Essence_OnUpdate(self)
     local peace = GetPowerRegenForPowerType(Enum.PowerType.Essence)
+    if GW.IsSecretValue(peace) then return end
     if (peace == nil or peace == 0) then
         peace = 0.2
     end
@@ -813,6 +814,7 @@ local function powerEssence(self, event, ...)
 
     local isAtMaxPoints = pwr == pwrMax
     local peace = GetPowerRegenForPowerType(Enum.PowerType.Essence)
+    if GW.IsSecretValue(peace) then return end
     if (peace == nil or peace == 0) then
         peace = 0.2
     end
