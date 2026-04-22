@@ -1,4 +1,0 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/">
-    <Script file="alert_tests.lua"/>
-    <Script file ="mocks.lua"/>
-</Ui>

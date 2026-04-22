@@ -164,8 +164,7 @@ local function StripType(which, object, kill, alpha)
         end
 
         if object.GetNumRegions then
-            for i = 1, object:GetNumRegions() do
-                local region = select(i, object:GetRegions())
+            for _, region in ipairs({object:GetRegions()}) do
                 if region and region.IsObjectType and region:IsObjectType(which) then
                     StripRegion(which, region, kill, alpha)
                 end
@@ -269,8 +268,8 @@ local function GwSkinSliderFrame(frame)
         tex:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/sliderbg.png")
         frame:SetHeight(SIZE)
 
-        for _, region in next, { frame:GetRegions() } do
-            if region:IsObjectType("FontString") then
+        for _, region in ipairs({frame:GetRegions()}) do
+            if region and region:IsObjectType("FontString") then
                 local point, anchor, anchorPoint, x, y = region:GetPoint()
                 if strfind(anchorPoint, "BOTTOM") then
                     region:SetPoint(point, anchor, anchorPoint, x, y - 4)

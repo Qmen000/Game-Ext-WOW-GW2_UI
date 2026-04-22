@@ -38,6 +38,10 @@ local function getNameForAPI(name)
     return name and (name:gsub("[%s%-]", "")) or nil
 end
 
+local function IsSecretValue(value)
+    return issecretvalue and issecretvalue(value)
+end
+
 ------------------------------------------------------------------------
 
 local currentRegion
@@ -138,7 +142,7 @@ end
 function lib:GetRealmInfoByUnit(unit)
     assert(type(unit) == "string", "Usage: GetRealmInfoByUnit(unit)")
     local guid = UnitGUID(unit)
-    if not guid then
+    if not guid or IsSecretValue(guid) then
         return debug("No GUID available for unit", unit)
     end
     return self:GetRealmInfoByGUID(guid)

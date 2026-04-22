@@ -152,7 +152,7 @@ local function UpdateColor(self, event, unit)
 		end
 
 		if(oUF.isRetail and element.colorPowerSmooth and color and color:GetCurve()) then
-			color = UnitPowerPercent(unit, true, color:GetCurve())
+			color = UnitPowerPercent(unit, nil, true, color:GetCurve())
 		end
 	elseif(element.colorClass and isPlayer)
 		or (element.colorClassNPC and not isPlayer)

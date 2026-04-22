@@ -30,4 +30,4 @@ Libs\Classic\Load.xml
 
 Core\Load.xml
 
-Classic\Load.xml
+Games\Classic\Load.xml

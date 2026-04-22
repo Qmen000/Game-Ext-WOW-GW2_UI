@@ -91,6 +91,7 @@ GW.ShowRlPopup = false
 GW.InMoveHudMode = false
 
 --Tables
+GW.ActionBarCallbacks = {}
 GW.unitIlvlsCache = {}
 GW.TexCoords = {0, 1, 0, 1}
 GW.gwMocks = {}
@@ -107,6 +108,8 @@ GW.changelog = {}
 GW.Enum = {}
 GW.Colors = {}
 GW.ObjectiveTrackerContainer = {}
+GW.GridHeaders = {}
+GW.immersiveQuesting = {}
 
 -- money
 GW.earnedMoney = 0

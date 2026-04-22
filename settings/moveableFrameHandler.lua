@@ -105,7 +105,7 @@ GW.moveHudObjects = moveHudObjects
 
 local function HandleMoveHudEvents(self, event)
     if event == "PLAYER_REGEN_DISABLED" then
-        GW.Notice(L["You can not move elements during combat!"])
+        GW.Notice(L["You cannot move elements during combat!"])
         self:UnregisterEvent(event)
         self:RegisterEvent("PLAYER_REGEN_ENABLED")
         lockHudObjects(self, nil, true)
@@ -486,7 +486,7 @@ end
 local function ParentOnSizeChanged(self, width, height)
     if self.gwMover.ignoreSize == true then return end
     if InCombatLockdown() then
-        GW.CombatQueue_Queue(self.gwMover:GetName() .. "Size", ParentOnSizeChanged, {self, width, height})
+        GW.CombatQueue:Queue(self.gwMover:GetName() .. "Size", ParentOnSizeChanged, {self, width, height})
         return
     end
     self.gwMover:SetSize(width, height)
@@ -495,7 +495,7 @@ end
 local function ParentOnHeightChanged(self, height)
     if self.gwMover.ignoreSize == true then return end
     if InCombatLockdown() then
-        GW.CombatQueue_Queue(self.gwMover:GetName() .. "Height", ParentOnHeightChanged, {self, height})
+        GW.CombatQueue:Queue(self.gwMover:GetName() .. "Height", ParentOnHeightChanged, {self, height})
         return
     end
     self.gwMover:SetHeight(height)
@@ -504,7 +504,7 @@ end
 local function ParentOnWidthChanged(self, width)
     if self.gwMover.ignoreSize == true then return end
     if InCombatLockdown() then
-        GW.CombatQueue_Queue(self.gwMover:GetName() .. "Width", ParentOnWidthChanged, {self, width})
+        GW.CombatQueue:Queue(self.gwMover:GetName() .. "Width", ParentOnWidthChanged, {self, width})
         return
     end
     self.gwMover:SetWidth(width)
@@ -513,7 +513,7 @@ end
 local function ParentOnScaleChanged(self, scale, override)
     if not override and self.gwMover.ignoreSize == true then return end
     if InCombatLockdown() then
-        GW.CombatQueue_Queue(self.gwMover:GetName() .. "Scale", ParentOnScaleChanged, {self, scale})
+        GW.CombatQueue:Queue(self.gwMover:GetName() .. "Scale", ParentOnScaleChanged, {self, scale})
         return
     end
     self.gwMover:SetScale(scale)

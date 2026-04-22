@@ -255,8 +255,8 @@ local function rename_OnClick(self)
             local newName = popup.input:GetText()
             if not newName or newName == "" then return end
             if GW.globalSettings.profiles[newName] then
-                GW.Notice("Profile with that name already exists")
-                GW.ShowPopup({ text = "Profile with that name already exists" })
+                GW.Notice(L["Profile with that name already exists"])
+                GW.ShowPopup({ text = L["Profile with that name already exists"] })
                 return
             end
 
@@ -386,8 +386,8 @@ local function AddProfile(name, addNewProfile, importProfileString)
                 name = name .. "-" .. importCounter
                 importCounter = importCounter + 1
             else
-                GW.Notice("Profile with that name already exists")
-                GW.ShowPopup({ text = "Profile with that name already exists" })
+                GW.Notice(L["Profile with that name already exists"])
+                GW.ShowPopup({ text = L["Profile with that name already exists"] })
                 return
             end
         end

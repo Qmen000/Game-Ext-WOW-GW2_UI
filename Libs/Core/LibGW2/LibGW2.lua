@@ -178,7 +178,8 @@ end
 
 local function CoordsWatcherStop(event)
     if event == "CRITERIA_UPDATE" then
-        if lib.locationData.coordsFalling or (GetUnitSpeed("player") or 0) > 0 then return end
+        local speed = GetUnitSpeed("player") or 0
+        if lib.locationData.coordsFalling or (GW.NotSecretValue(speed) and speed > 0) then return end
         lib.locationData.coordsFalling = nil
     elseif (event == "PLAYER_STOPPED_MOVING" or event == "PLAYER_CONTROL_GAINED") and IsFalling() then
         lib.locationData.coordsFalling = true

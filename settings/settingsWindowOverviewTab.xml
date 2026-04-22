@@ -159,7 +159,7 @@
         </Frames>
     </EventButton>
 
-    <Button name="GwSettingsOverviewMenuButton" inherits="GwHeroPanelMenuButtonTemplate" text="" virtual="true">
+    <Button name="GwSettingsOverviewMenuButton" inherits="GwCharacterPanelMenuButtonTemplate" text="" virtual="true">
         <Size x="221" y="36"></Size>
     </Button>
 

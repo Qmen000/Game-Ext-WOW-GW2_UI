@@ -1,3 +1,24 @@
+10.8.2
+FIXES
+    - More secrets
+    - Classic hero panel works again
+
+10.8.1
+FIXES
+    - More 12.0.5 secrets
+
+10.8.0
+CHANGES
+    - Added per-grid Private Auras size settings for Raid, Raid 10, Raid 25, Maintank and Party grids
+    - Added Narcissus Achievement Frame support for achievements opened from the Objectives Tracker
+    - Improved UI responsiveness by reducing frequent update loops across the global update handler, micro menu, minimap, quest compass and 5-second rule timer
+    - Added smoother character panel transitions across Mainline, Classic, TBC, Wrath and Mists and centralized the shared character window animation handling
+    - Refactored watched bag currency displays in Mainline and Mists to use shared currency slot templates
+    - Reworked Immersive Questing and added new customization options
+
+FIXES
+    - Fixed an Objectives notification taint error caused by protected (secret) text comparisons
+
 10.7.0
 NEW
     - Added bag and bank slot spacing controls (X/Y) with shared icon size + spacing settings across Mainline, Classic, TBC and Mists

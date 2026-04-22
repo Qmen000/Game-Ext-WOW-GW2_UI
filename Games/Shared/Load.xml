@@ -1,0 +1,20 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Include file ="Mixin\Load.xml"/>
+    <Include file ="Immersive\Load.xml"/>
+    <Include file ="Objectives\Load.xml"/>
+    <Include file ="Statusbar\Load.xml"/>
+    <Include file ="Animation\Load.xml"/>
+    <Include file ="Social\Load.xml"/>
+    <Include file ="Mainbar\Load.xml"/>
+    <Include file ="DataInfo\Load.xml"/>
+    <Include file ="Aura\Load.xml"/>
+    <Include file ="Misc\Load.xml"/>
+    <Include file ="DamageText\Load.xml"/>
+    <Include file ="Castingbar\Load.xml"/>
+    <Include file ="Units\Load.xml"/>
+    <Include file ="Stancebar\Load.xml"/>
+    <Include file ="Micromenu\Load.xml"/>
+    <Include file ="Character\Load.xml"/>
+    <Include file ="Inventory\Load.xml"/>
+    <Include file ="ImmersiveQuesting\!Load.xml"/>
+</Ui>

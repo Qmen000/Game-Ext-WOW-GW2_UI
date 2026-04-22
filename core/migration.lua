@@ -308,6 +308,11 @@ local function DatabaseValueMigration()
         GW.settings.party_grid_show_powerbar = GW.settings.RAID_POWER_BARS_PARTY and "ALL" or "NONE"
         GW.settings.RAID_POWER_BARS_PARTY = nil
     end
+
+    if GW.settings.QUESTVIEW_ENABLED ~= nil then
+        GW.settings.immersiveQuesting.enabled = GW.settings.QUESTVIEW_ENABLED
+        GW.settings.QUESTVIEW_ENABLED = nil
+    end
 end
 GW.DatabaseValueMigration = DatabaseValueMigration
 

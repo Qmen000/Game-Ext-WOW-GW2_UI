@@ -1,0 +1,27 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/../../Blizzard_SharedXML/UI.xsd">
+    <Frame name="GwImmersiveQuestingSummaryFrameTemplate" mixin="GwImmersiveQuestingSummaryFrameMixin" virtual="true">
+        <Size x="950" y="374"></Size>
+        <Layers>
+            <Layer level="OVERLAY">
+                <FontString parentKey="objectiveHeader" inherits="GwImmersiveQuestingHeaderFont" justifyH="LEFT" text="QUEST_OBJECTIVES" hidden="true">
+                    <Anchors>
+                        <Anchor point="LEFT" relativePoint="CENTER" x="-150" y="160"/>
+                    </Anchors>
+                </FontString>
+                <FontString parentKey="objectiveText" inherits="GwImmersiveQuestingObjectiveFont" justifyH="LEFT">
+                    <Size x="300" y="0"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeKey="$parent.objectiveHeader" x="0" y="-5"/>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+        <Frames>
+            <Frame inherits="GwImmersiveQuestingReqItemsFrameTemplate" parentKey="reqItems" hidden="true">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeKey="$parent.objectiveText" x="0" y="-15"/>
+                </Anchors>
+            </Frame>
+        </Frames>
+    </Frame>
+</Ui>

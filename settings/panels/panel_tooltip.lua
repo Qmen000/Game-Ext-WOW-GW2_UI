@@ -13,7 +13,7 @@ local function LoadTooltipPanel(sWindow)
     p.sub:SetText(L["Edit the modules in the Heads-Up Display for more customization."])
 
     p:AddOption(L["Cursor Tooltips"], L["Anchor the tooltips to the cursor."], {getterSetter = "TOOLTIP_MOUSE", dependence = {["TOOLTIPS_ENABLED"] = true}})
-    p:AddOption(L["Current Mount"], L["Display current mount the unit is riding."], {getterSetter = "ADVANCED_TOOLTIP_SHOW_MOUNT", dependence = {["TOOLTIPS_ENABLED"] = true}, hidden = GW.Classic or GW.TBC})
+    p:AddOption(L["Current Mount"], L["Display current mount the unit is riding."], {getterSetter = "ADVANCED_TOOLTIP_SHOW_MOUNT", dependence = {["TOOLTIPS_ENABLED"] = true}, hidden = GW.Classic or GW.TBC or GW.Wrath})
     p:AddOption(L["Target Info"], L["When in a raid group, show if anyone in your raid is targeting the current tooltip unit."], {getterSetter = "ADVANCED_TOOLTIP_SHOW_TARGET_INFO", dependence = {["TOOLTIPS_ENABLED"] = true}})
     p:AddOption(SHOW_PLAYER_TITLES, L["Display player titles."], {getterSetter = "ADVANCED_TOOLTIP_SHOW_PLAYER_TITLES", dependence = {["TOOLTIPS_ENABLED"] = true}})
     p:AddOption(GUILDCONTROL_GUILDRANKS, L["Display guild ranks if a unit is a member of a guild."], {getterSetter = "ADVANCED_TOOLTIP_SHOW_GUILD_RANKS", dependence = {["TOOLTIPS_ENABLED"] = true}})

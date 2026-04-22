@@ -590,7 +590,7 @@ function GW.LoadSettingsOverview(container)
     if GW.Retail then
         settingsOverview.splashart:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/splashscreen/settingartwork-retail.png")
         settingsOverview.splashart2:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/splashscreen/settingartwork-retail-dark.png")
-    elseif GW.Classic or GW.TBC then
+    elseif GW.Classic or GW.TBC or GW.Wrath then
         settingsOverview.splashart:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/splashscreen/settingartwork-classic.png")
         settingsOverview.splashart2:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/splashscreen/settingartwork-classic.png")
     elseif GW.Mists then
@@ -605,7 +605,7 @@ function GW.LoadSettingsOverview(container)
         {settingsOverview.menu.creditsbtn, L["Credits"], function() ShowCredits(settingsOverview.ScrollBox) end},
         {settingsOverview.menu.movehudbtn, L["Move HUD"], function()
             if InCombatLockdown() then
-                GW.Notice(L["You can not move elements during combat!"])
+                GW.Notice(L["You cannot move elements during combat!"])
                 return
             end
             GW.moveHudObjects(GW.MoveHudScaleableFrame)

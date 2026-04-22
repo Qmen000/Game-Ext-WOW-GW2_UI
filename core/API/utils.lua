@@ -1,10 +1,15 @@
 ---@class GW2
 local GW = select(2, ...)
 
-local afterCombatQueue = {}
 local maxUpdatesPerCircle = 5
 local EMPTY = {}
 local NIL = {}
+GW.CombatQueue = {
+    queue = {},
+    head = 1,
+    tail = 0,
+    byKey = {}
+}
 
 local function SetDeadIcon(self)
     local tex = GW.CLASS_ICONS.dead
@@ -90,42 +95,62 @@ local function StringWithRGB(string, color)
 end
 GW.StringWithRGB = StringWithRGB
 
-local function CombatQueue_Initialize()
+function GW.CombatQueue:Initialize()
     C_Timer.NewTicker(0.1, function()
         if InCombatLockdown() then
             return
         end
 
-        local func = tremove(afterCombatQueue, 1)
         local count = 0
-        while func do
-            if func.obj then
-                func.func(unpack(func.obj))
-            else
-                func.func()
-            end
-            if InCombatLockdown() or count >= maxUpdatesPerCircle then
+        while count < maxUpdatesPerCircle do
+            local entry = self.queue[self.head]
+            if not entry then
+                if self.head > self.tail then
+                    self.head = 1
+                    self.tail = 0
+                end
                 break
             end
-            func = tremove(afterCombatQueue, 1)
+
+            self.queue[self.head] = nil
+            self.head = self.head + 1
+
+            if entry.key and self.byKey[entry.key] == entry then
+                self.byKey[entry.key] = nil
+            end
+
+            if entry.obj then
+                entry.func(unpack(entry.obj))
+            else
+                entry.func()
+            end
+
             count = count + 1
+            if InCombatLockdown() then
+                break
+            end
         end
     end)
 end
-GW.CombatQueue_Initialize = CombatQueue_Initialize
 
-local function CombatQueue_Queue(key, func, obj)
-    local alreadyIn = false
-    for _, v in pairs(afterCombatQueue) do
-        if v.key == key and v.func == func and v.obj == obj then
-            alreadyIn = true
+function GW.CombatQueue:Queue(key, func, obj)
+    if key ~= nil then
+        local existing = self.byKey[key]
+        if existing then
+            existing.func = func
+            existing.obj = obj
+            return
         end
     end
-    if not alreadyIn or key == nil then
-        tinsert(afterCombatQueue, {key = key, func = func, obj = obj})
+
+    local entry = {key = key, func = func, obj = obj}
+    self.tail = self.tail + 1
+    self.queue[self.tail] = entry
+
+    if key ~= nil then
+        self.byKey[key] = entry
     end
 end
-GW.CombatQueue_Queue = CombatQueue_Queue
 
 local function StoreGameMenuButton()
     GameMenuFrame.GwMenuButtons = {}
@@ -166,12 +191,43 @@ local function CountTable(T)
 end
 GW.CountTable = CountTable
 
+local function AddActionBarCallback(callback)
+    local callbacks = GW.ActionBarCallbacks
+    callbacks[CountTable(callbacks) + 1] = callback
+end
+GW.AddActionBarCallback = AddActionBarCallback
+
+local function TriggerActionBarCallbacks()
+    for _, callback in pairs(GW.ActionBarCallbacks) do
+        callback()
+    end
+end
+GW.TriggerActionBarCallbacks = TriggerActionBarCallbacks
+
+local function HookActionBarStateChanges()
+    if GW.ActionBarStateChangesHooked then
+        return
+    end
+
+    hooksecurefunc("ValidateActionBarTransition", TriggerActionBarCallbacks)
+    GW.ActionBarStateChangesHooked = true
+end
+GW.HookActionBarStateChanges = HookActionBarStateChanges
+
 local function Clamp(v, min, max)
     if v < min then return min end
     if v > max then return max end
     return v
 end
 GW.Clamp = Clamp
+
+local function GetScaledCursorDistance(left, top, scale)
+    local x, y = GetCursorPosition()
+    x = x / scale - left
+    y = top - y / scale
+    return sqrt(x * x + y * y)
+end
+GW.GetScaledCursorDistance = GetScaledCursorDistance
 
 GW.ShortPrefixValues = {}
 local function BuildPrefixValues()
@@ -1352,7 +1408,7 @@ local function BlizzardDropdownCheckButtonInitializer(button, description, menu,
     button.highlight:SetBlendMode("BLEND")
     button.highlight:SetAlpha(0.5)
     button.leftTexture1:SetSize(13, 13)
-    if GW.Retail then
+    if GW.Retail or not isSelected then
         button.leftTexture1:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/checkbox.png")
         if button.leftTexture2 then
             button.leftTexture2:SetSize(13, 13)

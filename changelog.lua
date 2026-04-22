@@ -13,6 +13,25 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("10.8.2", {
+    {GW.Enum.ChangelogType.bug, [=[More secrets]=]},
+    {GW.Enum.ChangelogType.bug, [=[Classic hero panel works again]=]},
+})
+
+addChange("10.8.1", {
+    {GW.Enum.ChangelogType.bug, [=[More 12.0.5 secrets]=]},
+})
+
+addChange("10.8.0", {
+    {GW.Enum.ChangelogType.change, [=[Added per-grid Private Auras size settings for Raid, Raid 10, Raid 25, Maintank and Party grids]=]},
+    {GW.Enum.ChangelogType.change, [=[Added Narcissus Achievement Frame support for achievements opened from the Objectives Tracker]=]},
+    {GW.Enum.ChangelogType.change, [=[Improved UI responsiveness by reducing frequent update loops across the global update handler, micro menu, minimap, quest compass and 5-second rule timer]=]},
+    {GW.Enum.ChangelogType.change, [=[Added smoother character panel transitions across Mainline, Classic, TBC, Wrath and Mists and centralized the shared character window animation handling]=]},
+    {GW.Enum.ChangelogType.change, [=[Refactored watched bag currency displays in Mainline and Mists to use shared currency slot templates]=]},
+    {GW.Enum.ChangelogType.change, [=[Reworked Immersive Questing and added new customization options]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed an Objectives notification taint error caused by protected (secret) text comparisons]=]},
+})
+
 addChange("10.7.0", {
     {GW.Enum.ChangelogType.feature, [=[Added bag and bank slot spacing controls (X/Y) with shared icon size + spacing settings across Mainline, Classic, TBC and Mists]=]},
     {GW.Enum.ChangelogType.feature, [=[Delve Scenario header now displays the remaining Nemesis enemies.]=]},

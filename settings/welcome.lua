@@ -72,7 +72,7 @@ local function button1_OnClick()
 
                 -- move general bottom left
                 if id == 1 then
-                    if GW.Retail or GW.TBC then
+                    if GW.Retail or GW.TBC or GW.Wrath then
                         -- this needs to be done via the edit mode lib
                         LEMO:LoadLayouts()
                         local doesGw2LayoutExists = LEMO:DoesLayoutExist("GW2_Layout")
@@ -136,7 +136,7 @@ local function button1_OnClick()
                 ToggleChatColorNamesByClassGroup(true, v)
             end
 
-            if not (GW.Classic or GW.TBC) then
+            if not (GW.Classic or GW.TBC or GW.Wrath) then
                 GW.AlertSystem:AddAlert(L["Complete"], nil, L["Setup Chat"], false, "Interface/AddOns/GW2_UI/textures/icons/icon-levelup.png", true)
             end
 
@@ -174,7 +174,7 @@ local function button1_OnClick()
             C_CVar.SetCVar("fstack_preferParentKeys", "0")
             C_CVar.SetCVar("whisperMode", "inline")
 
-            if not (GW.Classic or GW.TBC) then
+            if not (GW.Classic or GW.TBC or GW.Wrath) then
                 GW.AlertSystem:AddAlert(L["Complete"], nil, L["Setup CVars"], false, "Interface/AddOns/GW2_UI/textures/icons/icon-levelup.png", true)
             end
 
@@ -198,7 +198,7 @@ local function button1_OnClick()
             GW.settings.PIXEL_PERFECTION = true
             GW.PixelPerfection()
 
-            if not (GW.Classic or GW.TBC) then
+            if not (GW.Classic or GW.TBC or GW.Wrath) then
                 GW.AlertSystem:AddAlert(L["Pixel Perfect Mode"], nil, L["Turn Pixel Perfect Mode On"], false, "Interface/AddOns/GW2_UI/textures/icons/icon-levelup.png", true)
             end
 

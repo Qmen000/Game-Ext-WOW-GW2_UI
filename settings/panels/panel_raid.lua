@@ -40,7 +40,7 @@ local function LoadGeneralGridSettings(panel)
     return general
 end
 
-local function CreateAuraFilterSection(panel, profile, buffDb, debuffDb, showBuffs, showDebuffs, dependence, showPrivateAuras)
+local function CreateAuraFilterSection(panel, profile, buffDb, debuffDb, showBuffs, showDebuffs, dependence, showPrivateAuras, privateAuraSize)
     panel:AddGroupHeader(L["Buffs"])
 
     panel:AddOption(SHOW_BUFFS, nil, {getterSetter = showBuffs, callback = function() GW.UpdateGridSettings(profile) end, dependence = {["RAID_FRAMES"] = true, [dependence] = true}, groupHeaderName = L["Buffs"]})
@@ -50,6 +50,7 @@ local function CreateAuraFilterSection(panel, profile, buffDb, debuffDb, showBuf
     panel:AddOption(SHOW_DEBUFFS, OPTION_TOOLTIP_SHOW_ALL_ENEMY_DEBUFFS, {getterSetter = showDebuffs, callback = function() GW.UpdateGridSettings(profile) end, dependence = {["RAID_FRAMES"] = true, [dependence] = true}, groupHeaderName = L["Debuffs"]})
     panel:AddOptionDropdown(L["Debuffs"], nil, {getterSetter = debuffDb, callback = function() GW.UpdateGridSettings(profile) end, optionsList = auraOptions, optionNames = auraOptionsNames, checkbox = true, dependence = {["RAID_FRAMES"] = true, [dependence] = true, [showDebuffs] = true}, groupHeaderName = L["Debuffs"], hidden = not GW.Retail})
     panel:AddOption(L["Private Auras"], nil, {getterSetter = showPrivateAuras, callback = function() GW.UpdateGridSettings(profile) end, dependence = {["RAID_FRAMES"] = true, [dependence] = true}, groupHeaderName = L["Debuffs"], hidden = not GW.Retail or not showPrivateAuras})
+    panel:AddOptionSlider(L["Private Auras size"], L["Set the size of Private Auras on this grid."], {getterSetter = privateAuraSize, callback = function() GW.UpdateGridSettings(profile) end, min = 8, max = 40, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, [dependence] = true}, groupHeaderName = L["Debuffs"], hidden = not GW.Retail or not showPrivateAuras})
 end
 
 -- Profiles
@@ -90,7 +91,7 @@ local function LoadRaid10Profile(panel)
     raid10:AddOption(L["Leader/Assist Icon"], nil, {getterSetter = "RAID_SHOW_LEADER_ICON_RAID10", callback = function() GW.UpdateGridSettings("RAID10") end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
     raid10:AddOption(L["Start Near Center"], L["The initial group will start near the center and grow out."], {getterSetter = "UNITFRAME_ANCHOR_FROM_CENTER_RAID10", callback = function() GW.UpdateGridSettings("RAID10", true) end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
     raid10:AddOption(L["Shorten health values"], nil, {getterSetter = "RAID_SHORT_HEALTH_VALUES_RAID10", callback = function() GW.UpdateGridSettings("RAID10") end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}, hidden = not GW.Retail})
-    raid10:AddOption(L["Show absorb bar"], nil, {getterSetter = "RAID_SHOW_ABSORB_BAR_RAID10", callback = function() GW.UpdateGridSettings("RAID10") end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}, hidden = GW.Classic or GW.TBC})
+    raid10:AddOption(L["Show absorb bar"], nil, {getterSetter = "RAID_SHOW_ABSORB_BAR_RAID10", callback = function() GW.UpdateGridSettings("RAID10") end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}, hidden = GW.Classic or GW.TBC or GW.Wrath})
 
     raid10:AddOptionDropdown(L["Show Aura Tooltips"], L["Show tooltips of buffs and debuffs."], { getterSetter = "RAID_AURA_TOOLTIP_INCOMBAT_RAID10", callback = function() GW.UpdateGridSettings("RAID10") end, optionsList = {"ALWAYS", "NEVER", "IN_COMBAT", "OUT_COMBAT"}, optionNames = {ALWAYS, NEVER, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Out of combat"]}, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
     raid10:AddOptionDropdown(COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT, nil, { getterSetter = "RAID_UNIT_HEALTH_RAID10", callback = function() GW.UpdateGridSettings("RAID10") end, optionsList = {"NONE", "PREC", "HEALTH", "LOSTHEALTH"}, optionNames = {COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_NONE, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_PERC, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_HEALTH, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_LOSTHEALTH}, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
@@ -108,9 +109,9 @@ local function LoadRaid10Profile(panel)
     end
 
     -- retail only filter
-    CreateAuraFilterSection(raid10, "RAID10", "RAID_10_BUFF_FILTER", "RAID_10_DEBUFF_FILTER", "RAID_10_SHOW_BUFFS", "RAID_SHOW_DEBUFFS_RAID10", "RAID10_ENABLED", "RAID_10_SHOW_PRIVATE_AURAS")
+    CreateAuraFilterSection(raid10, "RAID10", "RAID_10_BUFF_FILTER", "RAID_10_DEBUFF_FILTER", "RAID_10_SHOW_BUFFS", "RAID_SHOW_DEBUFFS_RAID10", "RAID10_ENABLED", "RAID_10_SHOW_PRIVATE_AURAS", "RAID_10_PRIVATE_AURA_SIZE")
     -- none retail debuff filter
-    raid10:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispell."], {getterSetter = "RAID_ONLY_DISPELL_DEBUFFS_RAID10", callback = function() GW.UpdateGridSettings("RAID10") end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true, ["RAID_SHOW_DEBUFFS_RAID10"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
+    raid10:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispel."], {getterSetter = "RAID_ONLY_DISPELL_DEBUFFS_RAID10", callback = function() GW.UpdateGridSettings("RAID10") end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true, ["RAID_SHOW_DEBUFFS_RAID10"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
     raid10:AddOption(L["Dungeon & Raid Debuffs"], L["Show important Dungeon & Raid debuffs"], {getterSetter = "RAID_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF_RAID10", callback = function() GW.UpdateGridSettings("RAID10") end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
 
 
@@ -187,7 +188,7 @@ local function LoadRaid25Profile(panel)
     raid25:AddOption(L["Leader/Assist Icon"], nil, {getterSetter = "RAID_SHOW_LEADER_ICON_RAID25", callback = function() GW.UpdateGridSettings("RAID25") end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
     raid25:AddOption(L["Start Near Center"], L["The initial group will start near the center and grow out."], {getterSetter = "UNITFRAME_ANCHOR_FROM_CENTER_RAID25", callback = function() GW.UpdateGridSettings("RAID25", true) end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
     raid25:AddOption(L["Shorten health values"], nil, {getterSetter = "RAID_SHORT_HEALTH_VALUES_RAID25", callback = function() GW.UpdateGridSettings("RAID25") end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}, hidden = not GW.Retail})
-    raid25:AddOption(L["Show absorb bar"] , nil, {getterSetter = "RAID_SHOW_ABSORB_BAR_RAID25", callback = function() GW.UpdateGridSettings("RAID25") end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}, hidden = GW.Classic or GW.TBC})
+    raid25:AddOption(L["Show absorb bar"] , nil, {getterSetter = "RAID_SHOW_ABSORB_BAR_RAID25", callback = function() GW.UpdateGridSettings("RAID25") end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}, hidden = GW.Classic or GW.TBC or GW.Wrath})
 
     raid25:AddOptionDropdown(L["Show Aura Tooltips"], L["Show tooltips of buffs and debuffs."], { getterSetter = "RAID_AURA_TOOLTIP_INCOMBAT_RAID25", callback = function() GW.UpdateGridSettings("RAID25") end, optionsList = {"ALWAYS", "NEVER", "IN_COMBAT", "OUT_COMBAT"}, optionNames = {ALWAYS, NEVER, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Out of combat"]}, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
     raid25:AddOptionDropdown(COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT, nil, { getterSetter = "RAID_UNIT_HEALTH_RAID25", callback = function() GW.UpdateGridSettings("RAID25") end, optionsList = {"NONE", "PREC", "HEALTH", "LOSTHEALTH"}, optionNames = {COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_NONE, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_PERC, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_HEALTH, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_LOSTHEALTH}, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
@@ -205,9 +206,9 @@ local function LoadRaid25Profile(panel)
     end
 
     -- retail only filter
-    CreateAuraFilterSection(raid25, "RAID25", "RAID_25_BUFF_FILTER", "RAID_25_DEBUFF_FILTER", "RAID_25_SHOW_BUFFS", "RAID_SHOW_DEBUFFS_RAID25", "RAID25_ENABLED", "RAID_25_SHOW_PRIVATE_AURAS")
+    CreateAuraFilterSection(raid25, "RAID25", "RAID_25_BUFF_FILTER", "RAID_25_DEBUFF_FILTER", "RAID_25_SHOW_BUFFS", "RAID_SHOW_DEBUFFS_RAID25", "RAID25_ENABLED", "RAID_25_SHOW_PRIVATE_AURAS", "RAID_25_PRIVATE_AURA_SIZE")
     -- none retail debuff filter
-    raid25:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispell."], {getterSetter = "RAID_ONLY_DISPELL_DEBUFFS_RAID25", callback = function() GW.UpdateGridSettings("RAID25") end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true, ["RAID_SHOW_DEBUFFS_RAID25"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
+    raid25:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispel."], {getterSetter = "RAID_ONLY_DISPELL_DEBUFFS_RAID25", callback = function() GW.UpdateGridSettings("RAID25") end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true, ["RAID_SHOW_DEBUFFS_RAID25"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
     raid25:AddOption(L["Dungeon & Raid Debuffs"], L["Show important Dungeon & Raid debuffs"], {getterSetter = "RAID_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF_RAID25", callback = function() GW.UpdateGridSettings("RAID25") end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
 
 
@@ -283,7 +284,7 @@ local function LoadRaid40Profile(panel)
     raid40:AddOption(L["Leader/Assist Icon"], nil, {getterSetter = "RAID_SHOW_LEADER_ICON", callback = function() GW.UpdateGridSettings("RAID40") end, dependence = {["RAID_FRAMES"] = true}})
     raid40:AddOption(L["Start Near Center"], L["The initial group will start near the center and grow out."], {getterSetter = "UNITFRAME_ANCHOR_FROM_CENTER", callback = function() GW.UpdateGridSettings("RAID40", true) end, dependence = {["RAID_FRAMES"] = true}})
     raid40:AddOption(L["Shorten health values"], nil, {getterSetter = "RAID_SHORT_HEALTH_VALUES", callback = function() GW.UpdateGridSettings("RAID40") end, dependence = {["RAID_FRAMES"] = true}, hidden = not GW.Retail})
-    raid40:AddOption(L["Show absorb bar"], nil, {getterSetter = "RAID_SHOW_ABSORB_BAR", callback = function() GW.UpdateGridSettings("RAID40") end, dependence = {["RAID_FRAMES"] = true}, hidden = GW.Classic or GW.TBC})
+    raid40:AddOption(L["Show absorb bar"], nil, {getterSetter = "RAID_SHOW_ABSORB_BAR", callback = function() GW.UpdateGridSettings("RAID40") end, dependence = {["RAID_FRAMES"] = true}, hidden = GW.Classic or GW.TBC or GW.Wrath})
     raid40:AddOptionDropdown(L["Show Aura Tooltips"], L["Show tooltips of buffs and debuffs."], { getterSetter = "RAID_AURA_TOOLTIP_INCOMBAT", callback = function() GW.UpdateGridSettings("RAID40") end, optionsList = {"ALWAYS", "NEVER", "IN_COMBAT", "OUT_COMBAT"}, optionNames = {ALWAYS, NEVER, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Out of combat"]}, dependence = {["RAID_FRAMES"] = true}})
     raid40:AddOptionDropdown(COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT, nil, { getterSetter = "RAID_UNIT_HEALTH", callback = function() GW.UpdateGridSettings("RAID40") end, optionsList = {"NONE", "PREC", "HEALTH", "LOSTHEALTH"}, optionNames = {COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_NONE, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_PERC, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_HEALTH, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_LOSTHEALTH}, dependence = {["RAID_FRAMES"] = true}})
     raid40:AddOptionDropdown(L["Show Country Flag"], L["Display a country flag based on the unit's language"], { getterSetter = "RAID_UNIT_FLAGS", callback = function() GW.UpdateGridSettings("RAID40") end, optionsList = {"NONE", "DIFFERENT", "ALL"}, optionNames = {NONE_KEY, L["Different Than Own"], ALL}, dependence = {["RAID_FRAMES"] = true}, hidden = not GW.Retail})
@@ -299,9 +300,9 @@ local function LoadRaid40Profile(panel)
     end
 
     -- retail only filter
-    CreateAuraFilterSection(raid40, "RAID40", "RAID_BUFF_FILTER", "RAID_DEBUFF_FILTER", "RAID_SHOW_BUFFS", "RAID_SHOW_DEBUFFS", "RAID_FRAMES", "RAID_SHOW_PRIVATE_AURAS")
+    CreateAuraFilterSection(raid40, "RAID40", "RAID_BUFF_FILTER", "RAID_DEBUFF_FILTER", "RAID_SHOW_BUFFS", "RAID_SHOW_DEBUFFS", "RAID_FRAMES", "RAID_SHOW_PRIVATE_AURAS", "RAID_PRIVATE_AURA_SIZE")
     -- none retail debuff filter
-    raid40:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispell."], {getterSetter = "RAID_ONLY_DISPELL_DEBUFFS", callback = function() GW.UpdateGridSettings("RAID40") end, dependence = {["RAID_FRAMES"] = true, ["RAID_SHOW_DEBUFFS"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
+    raid40:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispel."], {getterSetter = "RAID_ONLY_DISPELL_DEBUFFS", callback = function() GW.UpdateGridSettings("RAID40") end, dependence = {["RAID_FRAMES"] = true, ["RAID_SHOW_DEBUFFS"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
     raid40:AddOption(L["Dungeon & Raid Debuffs"], L["Show important Dungeon & Raid debuffs"], {getterSetter = "RAID_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF", callback = function() GW.UpdateGridSettings("RAID40") end, dependence = {["RAID_FRAMES"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
 
 
@@ -376,7 +377,7 @@ local function LoadMaintankProfile(panel)
     tank:AddOption(L["Tank Icon"], nil, {getterSetter = "RAID_SHOW_TANK_ICON_TANK", callback = function() GW.UpdateGridSettings("TANK") end, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
     tank:AddOption(L["Leader/Assist Icon"], nil, {getterSetter = "RAID_SHOW_LEADER_ICON_TANK", callback = function() GW.UpdateGridSettings("TANK") end, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
     tank:AddOption(L["Shorten health values"], nil, {getterSetter = "RAID_SHORT_HEALTH_VALUES_TANK", callback = function() GW.UpdateGridSettings("TANK") end, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}, hidden = not GW.Retail})
-    tank:AddOption(L["Show absorb bar"], nil, {getterSetter = "RAID_SHOW_ABSORB_BAR_TANK", callback = function() GW.UpdateGridSettings("TANK") end, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}, hidden = GW.Classic or GW.TBC})
+    tank:AddOption(L["Show absorb bar"], nil, {getterSetter = "RAID_SHOW_ABSORB_BAR_TANK", callback = function() GW.UpdateGridSettings("TANK") end, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}, hidden = GW.Classic or GW.TBC or GW.Wrath})
 
 
     tank:AddOptionDropdown(L["Show Aura Tooltips"], L["Show tooltips of buffs and debuffs."], { getterSetter = "RAID_AURA_TOOLTIP_INCOMBAT_TANK", callback = function() GW.UpdateGridSettings("TANK") end, optionsList = {"ALWAYS", "NEVER", "IN_COMBAT", "OUT_COMBAT"}, optionNames = {ALWAYS, NEVER, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Out of combat"]}, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
@@ -393,9 +394,9 @@ local function LoadMaintankProfile(panel)
     end
 
     -- retail only filter
-    CreateAuraFilterSection(tank, "TANK", "RAID_MAINTANK_BUFF_FILTER", "RAID_MAINTANK_DEBUFF_FILTER", "RAID_SHOW_BUFFS_TANK", "RAID_SHOW_DEBUFFS_TANK", "RAID_MAINTANK_FRAMES_ENABLED", "RAID_MAINTANK_SHOW_PRIVATE_AURAS")
+    CreateAuraFilterSection(tank, "TANK", "RAID_MAINTANK_BUFF_FILTER", "RAID_MAINTANK_DEBUFF_FILTER", "RAID_SHOW_BUFFS_TANK", "RAID_SHOW_DEBUFFS_TANK", "RAID_MAINTANK_FRAMES_ENABLED", "RAID_MAINTANK_SHOW_PRIVATE_AURAS", "RAID_MAINTANK_PRIVATE_AURA_SIZE")
     -- none retail debuff filter
-    tank:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispell."], {getterSetter = "RAID_ONLY_DISPELL_DEBUFFS_TANK", callback = function() GW.UpdateGridSettings("TANK") end, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true, ["RAID_SHOW_DEBUFFS_TANK"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
+    tank:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispel."], {getterSetter = "RAID_ONLY_DISPELL_DEBUFFS_TANK", callback = function() GW.UpdateGridSettings("TANK") end, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true, ["RAID_SHOW_DEBUFFS_TANK"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
     tank:AddOption(L["Dungeon & Raid Debuffs"], L["Show important Dungeon & Raid debuffs"], {getterSetter = "RAID_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF_TANK", callback = function() GW.UpdateGridSettings("TANK") end, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
 
 
@@ -457,7 +458,7 @@ local function LoadRaidPetProfile(panel)
     p:AddOption(RAID_TARGET_ICON, L["Displays the Target Markers on the Raid Unit Frames"], {getterSetter = "RAID_UNIT_MARKERS_PET", callback = function() GW.UpdateGridSettings("RAID_PET") end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
     p:AddOption(L["Start Near Center"], L["The initial group will start near the center and grow out."], {getterSetter = "UNITFRAME_ANCHOR_FROM_CENTER_PET", callback = function() GW.UpdateGridSettings("RAID_PET", true) end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
     p:AddOption(L["Shorten health values"], nil, {getterSetter = "RAID_SHORT_HEALTH_VALUES_PET", callback = function() GW.UpdateGridSettings("RAID_PET") end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}, hidden = not GW.Retail})
-    p:AddOption(L["Show absorb bar"], nil, {getterSetter = "RAID_SHOW_ABSORB_BAR_PET", callback = function() GW.UpdateGridSettings("RAID_PET") end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}, hidden = GW.Classic or GW.TBC})
+    p:AddOption(L["Show absorb bar"], nil, {getterSetter = "RAID_SHOW_ABSORB_BAR_PET", callback = function() GW.UpdateGridSettings("RAID_PET") end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}, hidden = GW.Classic or GW.TBC or GW.Wrath})
 
     p:AddOptionDropdown(L["Show Aura Tooltips"], L["Show tooltips of buffs and debuffs."], { getterSetter = "RAID_AURA_TOOLTIP_INCOMBAT_PET", callback = function() GW.UpdateGridSettings("RAID_PET") end, optionsList = {"ALWAYS", "NEVER", "IN_COMBAT", "OUT_COMBAT"}, optionNames = {ALWAYS, NEVER, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Out of combat"]}, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
     p:AddOptionDropdown(COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT, nil, { getterSetter = "RAID_UNIT_HEALTH_PET", callback = function() GW.UpdateGridSettings("RAID_PET") end, optionsList = {"NONE", "PREC", "HEALTH", "LOSTHEALTH"}, optionNames = {COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_NONE, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_PERC, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_HEALTH, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_LOSTHEALTH}, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
@@ -474,7 +475,7 @@ local function LoadRaidPetProfile(panel)
     -- retail only filter
     CreateAuraFilterSection(p, "RAID_PET", "RAID_PET_BUFF_FILTER", "RAID_PET_DEBUFF_FILTER", "RAID_PET_SHOW_BUFFS", "RAID_SHOW_DEBUFFS_PET", "RAID_PET_FRAMES")
     -- none retail debuff filter
-    p:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispell."], {getterSetter = "RAID_ONLY_DISPELL_DEBUFFS_PET", callback = function() GW.UpdateGridSettings("RAID_PET") end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true, ["RAID_SHOW_DEBUFFS_PET"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
+    p:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispel."], {getterSetter = "RAID_ONLY_DISPELL_DEBUFFS_PET", callback = function() GW.UpdateGridSettings("RAID_PET") end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true, ["RAID_SHOW_DEBUFFS_PET"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
     p:AddOption(L["Dungeon & Raid Debuffs"], L["Show important Dungeon & Raid debuffs"], {getterSetter = "RAID_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF_PET", callback = function() GW.UpdateGridSettings("RAID_PET") end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
 
     --fader
@@ -548,7 +549,7 @@ local function LoadPartyProfile(panel)
     party:AddOption(L["Start Near Center"], L["The initial group will start near the center and grow out."], {getterSetter = "UNITFRAME_ANCHOR_FROM_CENTER_PARTY", callback = function() GW.UpdateGridSettings("PARTY", true) end, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
     party:AddOption(L["Shorten health values"], nil, {getterSetter = "RAID_SHORT_HEALTH_VALUES_PARTY", callback = function() GW.UpdateGridSettings("PARTY") end, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}, hidden = not GW.Retail})
     party:AddOption(L["Player frame in group"], L["Show your player frame as part of the group"], {getterSetter = "RAID_SHOW_PLAYER_PARTY", callback = function() GW.UpdateGridSettings("PARTY", true) end, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
-    party:AddOption(L["Show absorb bar"], nil, {getterSetter = "RAID_SHOW_ABSORB_BAR_PARTY", callback = function() GW.UpdateGridSettings("PARTY") end, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}, hidden = GW.Classic or GW.TBC})
+    party:AddOption(L["Show absorb bar"], nil, {getterSetter = "RAID_SHOW_ABSORB_BAR_PARTY", callback = function() GW.UpdateGridSettings("PARTY") end, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}, hidden = GW.Classic or GW.TBC or GW.Wrath})
 
     party:AddOptionDropdown(L["Show Aura Tooltips"], L["Show tooltips of buffs and debuffs."], { getterSetter = "RAID_AURA_TOOLTIP_INCOMBAT_PARTY", callback = function() GW.UpdateGridSettings("PARTY") end, optionsList = {"ALWAYS", "NEVER", "IN_COMBAT", "OUT_COMBAT"}, optionNames = {ALWAYS, NEVER, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Out of combat"]}, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
     party:AddOptionDropdown(COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT, nil, { getterSetter = "RAID_UNIT_HEALTH_PARTY", callback = function() GW.UpdateGridSettings("PARTY") end, optionsList = {"NONE", "PREC", "HEALTH", "LOSTHEALTH"}, optionNames = {COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_NONE, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_PERC, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_HEALTH, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_LOSTHEALTH}, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
@@ -565,9 +566,9 @@ local function LoadPartyProfile(panel)
     end
 
     -- retail only filter
-    CreateAuraFilterSection(party, "PARTY", "RAID_PARTY_BUFF_FILTER", "RAID_PARTY_DEBUFF_FILTER", "RAID_PARTY_SHOW_BUFFS", "RAID_SHOW_DEBUFFS_PARTY", "RAID_STYLE_PARTY", "RAID_PARTY_SHOW_PRIVATE_AURAS")
+    CreateAuraFilterSection(party, "PARTY", "RAID_PARTY_BUFF_FILTER", "RAID_PARTY_DEBUFF_FILTER", "RAID_PARTY_SHOW_BUFFS", "RAID_SHOW_DEBUFFS_PARTY", "RAID_STYLE_PARTY", "RAID_PARTY_SHOW_PRIVATE_AURAS", "RAID_PARTY_PRIVATE_AURA_SIZE")
     -- none retail debuff filter
-    party:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispell."], {getterSetter = "RAID_ONLY_DISPELL_DEBUFFS_PARTY", callback = function() GW.UpdateGridSettings("PARTY") end, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true, ["RAID_SHOW_DEBUFFS_PARTY"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
+    party:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispel."], {getterSetter = "RAID_ONLY_DISPELL_DEBUFFS_PARTY", callback = function() GW.UpdateGridSettings("PARTY") end, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true, ["RAID_SHOW_DEBUFFS_PARTY"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
     party:AddOption(L["Dungeon & Raid Debuffs"], L["Show important Dungeon & Raid debuffs"], {getterSetter = "RAID_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF_PARTY", callback = function() GW.UpdateGridSettings("PARTY") end, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
 
 
@@ -635,7 +636,7 @@ local function LoadPartyPetProfile(panel)
     p:AddOption(RAID_TARGET_ICON, L["Displays the Target Markers on the Raid Unit Frames"], {getterSetter = "PARTY_UNIT_MARKERS_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true, ["RAID_STYLE_PARTY"] = true}})
     p:AddOption(L["Start Near Center"], L["The initial group will start near the center and grow out."], {getterSetter = "PARTY_PET_UNITFRAME_ANCHOR_FROM_CENTER", callback = function() GW.UpdateGridSettings("PARTY_PET", true) end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true, ["RAID_STYLE_PARTY"] = true}})
     p:AddOption(L["Shorten health values"], nil, {getterSetter = "PARTY_SHORT_HEALTH_VALUES_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true, ["RAID_STYLE_PARTY"] = true}, hidden = not GW.Retail})
-    p:AddOption(L["Show absorb bar"], nil, {getterSetter = "PARTY_SHOW_ABSORB_BAR_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true, ["RAID_STYLE_PARTY"] = true}, hidden = GW.Classic or GW.TBC})
+    p:AddOption(L["Show absorb bar"], nil, {getterSetter = "PARTY_SHOW_ABSORB_BAR_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true, ["RAID_STYLE_PARTY"] = true}, hidden = GW.Classic or GW.TBC or GW.Wrath})
 
     p:AddOptionDropdown(L["Show Aura Tooltips"], L["Show tooltips of buffs and debuffs."], { getterSetter = "PARTY_AURA_TOOLTIP_INCOMBAT_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, optionsList = {"ALWAYS", "NEVER", "IN_COMBAT", "OUT_COMBAT"}, optionNames = {ALWAYS, NEVER, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Out of combat"]}, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
     p:AddOptionDropdown(COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT, nil, { getterSetter = "PARTY_UNIT_HEALTH_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, optionsList = {"NONE", "PREC", "HEALTH", "LOSTHEALTH"}, optionNames = {COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_NONE, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_PERC, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_HEALTH, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_LOSTHEALTH}, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
@@ -652,7 +653,7 @@ local function LoadPartyPetProfile(panel)
     -- retail only filter
     CreateAuraFilterSection(p, "PARTY_PET", "PARTY_PET_BUFF_FILTER", "PARTY_PET_DEBUFF_FILTER", "PARTY_PET_SHOW_BUFFS", "PARTY_SHOW_DEBUFFS_PET", "PARTY_PET_FRAMES_ENABLED")
     -- none retail debuff filter
-    p:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispell."], {getterSetter = "PARTY_ONLY_DISPELL_DEBUFFS_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true, ["PARTY_SHOW_DEBUFFS_PET"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
+    p:AddOption(DISPLAY_ONLY_DISPELLABLE_DEBUFFS, L["Only displays the debuffs that you are able to dispel."], {getterSetter = "PARTY_ONLY_DISPELL_DEBUFFS_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true, ["PARTY_SHOW_DEBUFFS_PET"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
     p:AddOption(L["Dungeon & Raid Debuffs"], L["Show important Dungeon & Raid debuffs"], {getterSetter = "PARTY_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}, groupHeaderName = L["Debuffs"], hidden = GW.Retail})
 
     --fader
