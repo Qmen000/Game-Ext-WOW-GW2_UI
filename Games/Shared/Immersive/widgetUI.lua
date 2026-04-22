@@ -73,11 +73,11 @@ local function UIWidgetTemplateStatusBar(self)
         bar:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true)
 
         if self.Label then -- title
-            self.Label:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal, "SHADOW")
+            self.Label:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal, "")
         end
 
         if bar.Label then -- percent text
-            bar.Label:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal, "SHADOW")
+            bar.Label:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal, "")
         end
 
         if self.Text then

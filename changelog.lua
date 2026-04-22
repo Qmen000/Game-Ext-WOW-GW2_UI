@@ -13,6 +13,10 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("10.8.1", {
+    {GW.Enum.ChangelogType.bug, [=[More 12.0.5 secrets]=]},
+})
+
 addChange("10.8.0", {
     {GW.Enum.ChangelogType.change, [=[Added per-grid Private Auras size settings for Raid, Raid 10, Raid 25, Maintank and Party grids]=]},
     {GW.Enum.ChangelogType.change, [=[Added Narcissus Achievement Frame support for achievements opened from the Objectives Tracker]=]},

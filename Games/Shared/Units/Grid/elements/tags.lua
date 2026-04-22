@@ -57,6 +57,7 @@ local function Create_Tags()
         if not setting then return "" end
 
         local name, server = UnitName(unit)
+        if GW.IsSecretValue(name) then return "" end
         if server and server ~= "" then
             name = string.format('%s-%s', name, server)
         end
