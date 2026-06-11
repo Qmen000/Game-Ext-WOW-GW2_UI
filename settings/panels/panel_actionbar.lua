@@ -57,19 +57,6 @@ local function LoadActionbarPanel(sWindow)
     extraBars.breadcrumb:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
     extraBars.breadcrumb:SetText(BINDING_HEADER_MULTIACTIONBAR)
 
-    local totemBar = CreateFrame("Frame", nil, p, "GwSettingsPanelTmpl")
-    totemBar.panelId = "actionbar_totem"
-    totemBar.header:SetFont(DAMAGE_TEXT_FONT, 20)
-    totemBar.header:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
-    totemBar.header:SetText(BINDING_HEADER_ACTIONBAR)
-    totemBar.sub:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
-    totemBar.sub:SetTextColor(181 / 255, 160 / 255, 128 / 255)
-    totemBar.sub:SetText("")
-    totemBar.header:SetWidth(totemBar.header:GetStringWidth())
-    totemBar.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
-    totemBar.breadcrumb:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
-    totemBar.breadcrumb:SetText(L["Totem Bar"])
-
 
     local stanceBar = CreateFrame("Frame", nil, p, "GwSettingsPanelTmpl")
     stanceBar.panelId = "actionbar_stance"
@@ -82,10 +69,11 @@ local function LoadActionbarPanel(sWindow)
     stanceBar.header:SetWidth(stanceBar.header:GetStringWidth())
     stanceBar.breadcrumb:SetFont(DAMAGE_TEXT_FONT, 12)
     stanceBar.breadcrumb:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
-    stanceBar.breadcrumb:SetText(HUD_EDIT_MODE_STANCE_BAR_LABEL or L["Stance bar"])
+    stanceBar.breadcrumb:SetText(HUD_EDIT_MODE_STANCE_BAR_LABEL or L["Stance Bar"])
 
     -- GENERAL
-    general:AddOption(L["Hide Empty Slots"], L["Hide the empty action bar slots."], { getterSetter = "HIDEACTIONBAR_BACKGROUND_ENABLED", callback = function() GW.ShowRlPopup = true end, dependence = {["ACTIONBARS_ENABLED"] = true}, incompatibleAddons = "Actionbars", hidden = GW.Retail or GW.TBC or GW.Wrath})
+    general:AddOption(ENABLE, L["Use the GW2 UI improved action bars."], {getterSetter = "ACTIONBARS_ENABLED", callback = function() GW.ShowRlPopup = true end, incompatibleAddons = "Actionbars", isMasterToggle = true})
+    general:AddOption(L["Hide Empty Slots"], L["Hide the empty action bar slots."], { getterSetter = "HIDEACTIONBAR_BACKGROUND_ENABLED", callback = function() GW.ShowRlPopup = true end, dependence = {["ACTIONBARS_ENABLED"] = true}, incompatibleAddons = "Actionbars", hidden = GW.Retail or GW.TBC or GW.Wrath or GW.Mists})
     general:AddOption(L["Automatic Bar Layout"], L["Enable or disable the automatic layout management of the primary action bars and associated frames (pet, buffs); required for auto bar fading and some other features"], { getterSetter = "BAR_LAYOUT_ENABLED", callback = function() GW.ShowRlPopup = true end, dependence = {["ACTIONBARS_ENABLED"] = true}, incompatibleAddons = "Actionbars", hidden = not GW.Retail})
     general:AddOption(L["Add space for Healthglobe"], nil, { getterSetter = "ActionbarHealthglobeSpace", callback = function() GW.ShowRlPopup = true end, dependence = {["ACTIONBARS_ENABLED"] = true, ["BAR_LAYOUT_ENABLED"] = false}, incompatibleAddons = "Actionbars", hidden = not GW.Retail})
     general:AddOptionSlider(L["Empty slots alpha"], L["Set the empty action bar slots alpha value."], { getterSetter = "ACTIONBAR_BACKGROUND_ALPHA", callback = function() GW.UpdateMainBarHot(); GW.UpdateMultibarButtons() end, min = 0, max = 1, decimalNumbers = 1, step = 0.1, dependence = {["ACTIONBARS_ENABLED"] = true}})
@@ -93,7 +81,7 @@ local function LoadActionbarPanel(sWindow)
     general:AddOption(GW.NewSign .. L["Action Button Labels only on used slots"], L["Shows the assignments only on used slots"], { getterSetter = "BUTTON_ASSIGNMENTS_USED_ONLY", callback = function() GW.UpdateMainBarHot(); GW.UpdateMultibarButtons() end, dependence = {["ACTIONBARS_ENABLED"] = true, ["BUTTON_ASSIGNMENTS"] = true}, incompatibleAddons = "Actionbars"})
     general:AddOption(L["Show Macro Name"], L["Show Macro Name on Action Button"], { getterSetter = "SHOWACTIONBAR_MACRO_NAME_ENABLED", callback = function() GW.UpdateMainBarHot(); GW.UpdateMultibarButtons(); if GwPlayerPetFrame then GwPlayerPetFrame:UpdatePetBarButtons() end end, dependence = {["ACTIONBARS_ENABLED"] = true}, incompatibleAddons = "Actionbars"})
 
-    general:AddOptionButton(L["Fix: Restore empty action bar slots"], L["Restores empty slots across all 8 action bars when they were hidden in Blizzard Edit Mode."], {callback = GW.MakeActionbuttonsVisible, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(),  hidden = GW.Mists or GW.Classic})
+    general:AddOptionButton(L["Fix: Restore empty action bar slots"], L["Restores empty slots across all 8 action bars when they were hidden in Blizzard Edit Mode."], {callback = GW.MakeActionbuttonsVisible, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), hidden = GW.Classic})
 
     -- MAINBAR
     mainBar:AddOptionSlider(L["Button Spacing"], nil, { getterSetter = "MAINBAR_MARGIIN", callback = function() GW.UpdateMainBarHot() end, min = 0, max = 10, decimalNumbers = 1, step = 0.1, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)()})
@@ -128,7 +116,17 @@ local function LoadActionbarPanel(sWindow)
                 SetActionBarToggles(GW.settings.GW_SHOW_MULTI_ACTIONBAR_1, GW.settings.GW_SHOW_MULTI_ACTIONBAR_2, GW.settings.GW_SHOW_MULTI_ACTIONBAR_3, GW.settings.GW_SHOW_MULTI_ACTIONBAR_4, GW.settings.HIDEACTIONBAR_BACKGROUND_ENABLED)
                 MultiActionBar_Update() end, dependence = {["ACTIONBARS_ENABLED"] = true}, incompatibleAddons = "Actionbars", groupHeaderName = OPTION_SHOW_ACTION_BAR:format(4), hidden = GW.Retail or GW.TBC or GW.Wrath})
     extraBars:AddOptionDropdown(SHOW, nil, { getterSetter = "FADE_MULTIACTIONBAR_3", groupHeaderName = OPTION_SHOW_ACTION_BAR:format(4), optionsList = {"ALWAYS", "INCOMBAT", "MOUSE_OVER"}, optionNames = {ALWAYS, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Only on Mouse Over"]}, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars"})
-    extraBars:AddOptionDropdown(L["Width"], L["Number of columns in the two extra right-hand action bars."], { getterSetter = "MULTIBAR_RIGHT_COLS", groupHeaderName = OPTION_SHOW_ACTION_BAR:format(4), callback = function() setMultibarCols("MultiBarRight", "MULTIBAR_RIGHT_COLS") end, optionsList = {1, 2, 3, 4, 6, 12}, optionNames = {"1", "2", "3", "4", "6", "12"}, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars"})
+    extraBars:AddOptionDropdown(L["Width"], L["Number of columns in the two extra right-hand action bars."], {
+        getterSetter = "MULTIBAR_RIGHT_COLS",
+        groupHeaderName = OPTION_SHOW_ACTION_BAR:format(4),
+        callback = function()
+            setMultibarCols("MultiBarRight", "MULTIBAR_RIGHT_COLS")
+        end,
+        optionsList = {1, 2, 3, 4, 6, 12},
+        optionNames = {"1", "2", "3", "4", "6", "12"},
+        dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(),
+        incompatibleAddons = "Actionbars"
+    })
     extraBars:AddOption(L["Invert"], nil, { getterSetter = "MultiBarRight.invert", callback = GW.UpdateMultibarButtons, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), groupHeaderName = OPTION_SHOW_ACTION_BAR:format(4), incompatibleAddons = "Actionbars"})
 
 
@@ -138,35 +136,79 @@ local function LoadActionbarPanel(sWindow)
                 SetActionBarToggles(GW.settings.GW_SHOW_MULTI_ACTIONBAR_1, GW.settings.GW_SHOW_MULTI_ACTIONBAR_2, GW.settings.GW_SHOW_MULTI_ACTIONBAR_3, GW.settings.GW_SHOW_MULTI_ACTIONBAR_4, GW.settings.HIDEACTIONBAR_BACKGROUND_ENABLED)
                 MultiActionBar_Update() end, dependence = {["ACTIONBARS_ENABLED"] = true}, groupHeaderName = OPTION_SHOW_ACTION_BAR:format(5), incompatibleAddons = "Actionbars", hidden = GW.Retail or GW.TBC or GW.Wrath})
     extraBars:AddOptionDropdown(SHOW, nil, { getterSetter = "FADE_MULTIACTIONBAR_4", groupHeaderName = OPTION_SHOW_ACTION_BAR:format(5), optionsList = {"ALWAYS", "INCOMBAT", "MOUSE_OVER"}, optionNames = {ALWAYS, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Only on Mouse Over"]}, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars"})
-    extraBars:AddOptionDropdown(L["Width"], L["Number of columns in the two extra right-hand action bars."], { getterSetter = "MULTIBAR_RIGHT_COLS_2", groupHeaderName = OPTION_SHOW_ACTION_BAR:format(5), callback = function() setMultibarCols("MultiBarLeft", "MULTIBAR_RIGHT_COLS_2") end, optionsList = {1, 2, 3, 4, 6, 12}, optionNames = {"1", "2", "3", "4", "6", "12"}, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars"})
+    extraBars:AddOptionDropdown(L["Width"], L["Number of columns in the two extra right-hand action bars."], {
+        getterSetter = "MULTIBAR_RIGHT_COLS_2",
+        groupHeaderName = OPTION_SHOW_ACTION_BAR:format(5),
+        callback = function()
+            setMultibarCols("MultiBarLeft", "MULTIBAR_RIGHT_COLS_2")
+        end,
+        optionsList = {1, 2, 3, 4, 6, 12},
+        optionNames = {"1", "2", "3", "4", "6", "12"},
+        dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(),
+        incompatibleAddons = "Actionbars"
+    })
     extraBars:AddOption(L["Invert"], nil, { getterSetter = "MultiBarLeft.invert", callback = GW.UpdateMultibarButtons, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), groupHeaderName = OPTION_SHOW_ACTION_BAR:format(5), incompatibleAddons = "Actionbars"})
 
 
     extraBars:AddGroupHeader(OPTION_SHOW_ACTION_BAR:format(6))
     extraBars:AddOptionDropdown(SHOW, nil, { getterSetter = "FADE_MULTIACTIONBAR_5", optionsList = {"ALWAYS", "INCOMBAT", "MOUSE_OVER"}, groupHeaderName = OPTION_SHOW_ACTION_BAR:format(6), optionNames = {ALWAYS, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Only on Mouse Over"]}, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars", hidden = GW.Classic})
-    extraBars:AddOptionDropdown(L["Width"], L["Number of columns in the two extra right-hand action bars."], { getterSetter = "MULTIBAR_RIGHT_COLS_3", groupHeaderName = OPTION_SHOW_ACTION_BAR:format(6), callback = function() setMultibarCols("MultiBar5", "MULTIBAR_RIGHT_COLS_3") end, optionsList = {1, 2, 3, 4, 6, 12}, optionNames = {"1", "2", "3", "4", "6", "12"}, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars", hidden = GW.Classic})
+    extraBars:AddOptionDropdown(L["Width"], L["Number of columns in the two extra right-hand action bars."], {
+        getterSetter = "MULTIBAR_RIGHT_COLS_3",
+        groupHeaderName = OPTION_SHOW_ACTION_BAR:format(6),
+        callback = function()
+            setMultibarCols("MultiBar5", "MULTIBAR_RIGHT_COLS_3")
+        end,
+        optionsList = {1, 2, 3, 4, 6, 12},
+        optionNames = {"1", "2", "3", "4", "6", "12"},
+        dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(),
+        incompatibleAddons = "Actionbars",
+        hidden = GW.Classic
+    })
     extraBars:AddOption(L["Invert"], nil, { getterSetter = "MultiBar5.invert", callback = GW.UpdateMultibarButtons, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), groupHeaderName = OPTION_SHOW_ACTION_BAR:format(6), incompatibleAddons = "Actionbars"})
 
 
     extraBars:AddGroupHeader(OPTION_SHOW_ACTION_BAR:format(7))
     extraBars:AddOptionDropdown(SHOW, nil, { getterSetter = "FADE_MULTIACTIONBAR_6", groupHeaderName = OPTION_SHOW_ACTION_BAR:format(7), optionsList = {"ALWAYS", "INCOMBAT", "MOUSE_OVER"}, optionNames = {ALWAYS, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Only on Mouse Over"]}, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars", hidden = GW.Classic})
-    extraBars:AddOptionDropdown(L["Width"], L["Number of columns in the two extra right-hand action bars."], { getterSetter = "MULTIBAR_RIGHT_COLS_4", groupHeaderName = OPTION_SHOW_ACTION_BAR:format(7), callback = function() setMultibarCols("MultiBar6", "MULTIBAR_RIGHT_COLS_4") end, optionsList = {1, 2, 3, 4, 6, 12}, optionNames = {"1", "2", "3", "4", "6", "12"}, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars", hidden = GW.Classic})
+    extraBars:AddOptionDropdown(L["Width"], L["Number of columns in the two extra right-hand action bars."], {
+        getterSetter = "MULTIBAR_RIGHT_COLS_4",
+        groupHeaderName = OPTION_SHOW_ACTION_BAR:format(7),
+        callback = function()
+            setMultibarCols("MultiBar6", "MULTIBAR_RIGHT_COLS_4")
+        end,
+        optionsList = {1, 2, 3, 4, 6, 12},
+        optionNames = {"1", "2", "3", "4", "6", "12"},
+        dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(),
+        incompatibleAddons = "Actionbars",
+        hidden = GW.Classic
+    })
     extraBars:AddOption(L["Invert"], nil, { getterSetter = "MultiBar6.invert", callback = GW.UpdateMultibarButtons, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), groupHeaderName = OPTION_SHOW_ACTION_BAR:format(7), incompatibleAddons = "Actionbars"})
 
 
     extraBars:AddGroupHeader(OPTION_SHOW_ACTION_BAR:format(8))
     extraBars:AddOptionDropdown(SHOW, nil, { getterSetter = "FADE_MULTIACTIONBAR_7", groupHeaderName = OPTION_SHOW_ACTION_BAR:format(8), optionsList = {"ALWAYS", "INCOMBAT", "MOUSE_OVER"}, optionNames = {ALWAYS, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Only on Mouse Over"]}, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars", hidden = GW.Classic})
-    extraBars:AddOptionDropdown(L["Width"], L["Number of columns in the two extra right-hand action bars."], { getterSetter = "MULTIBAR_RIGHT_COLS_5", groupHeaderName = OPTION_SHOW_ACTION_BAR:format(8), callback = function() setMultibarCols("MultiBar7", "MULTIBAR_RIGHT_COLS_5") end, optionsList = {1, 2, 3, 4, 6, 12}, optionNames = {"1", "2", "3", "4", "6", "12"}, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars", hidden = GW.Classic})
+    extraBars:AddOptionDropdown(L["Width"], L["Number of columns in the two extra right-hand action bars."], {
+        getterSetter = "MULTIBAR_RIGHT_COLS_5",
+        groupHeaderName = OPTION_SHOW_ACTION_BAR:format(8),
+        callback = function()
+            setMultibarCols("MultiBar7", "MULTIBAR_RIGHT_COLS_5")
+        end,
+        optionsList = {1, 2, 3, 4, 6, 12},
+        optionNames = {"1", "2", "3", "4", "6", "12"},
+        dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(),
+        incompatibleAddons = "Actionbars",
+        hidden = GW.Classic
+    })
     extraBars:AddOption(L["Invert"], nil, { getterSetter = "MultiBar7.invert", callback = GW.UpdateMultibarButtons, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), groupHeaderName = OPTION_SHOW_ACTION_BAR:format(8), incompatibleAddons = "Actionbars"})
 
-    --TOTEMBAR
-    totemBar:AddOptionDropdown(L["Class Totems Sorting"], nil, { getterSetter = "TotemBar_SortDirection", callback = function() GW.UpdateTotembar(GW_TotemBar) end, optionsList = {"ASC", "DSC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["HEALTHGLOBE_ENABLED"] = true}})
-    totemBar:AddOptionDropdown(L["Class Totems Growth Direction"], nil, { getterSetter = "TotemBar_GrowDirection", callback = function() GW.UpdateTotembar(GW_TotemBar) end, optionsList = {"HORIZONTAL", "VERTICAL"}, optionNames = {L["Horizontal"], L["Vertical"]}, dependence = {["HEALTHGLOBE_ENABLED"] = true}})
-
     -- STANCEBAR
-    stanceBar:AddOption(ENABLE, nil, { getterSetter = "StanceBarEnabled", callback = function() if GwStanceBar then GwStanceBar:UpdateVisibility() end end, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars"})
-    stanceBar:AddOptionDropdown(L["Class Totems Growth Direction"], L["Set the growth direction of the stance bar"], { getterSetter = "StanceBar_GrowDirection", callback = function() if GwStanceBar then GwStanceBar:AdjustMaxStanceButtons() end end, optionsList = {"UP", "DOWN", "LEFT", "RIGHT"}, optionNames = {StrUpper(L["Up"], 1, 1), StrUpper(L["Down"], 1, 1), L["Left"], L["Right"]}, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true, ["StanceBarEnabled"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars"})
+    local stanceBarDependence = (function() local t = {["ACTIONBARS_ENABLED"] = true, ["StanceBar.enabled"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)()
+    stanceBar:AddOption(ENABLE, nil, { getterSetter = "StanceBar.enabled", isMasterToggle = true ,callback = function() if GwStanceBar then GwStanceBar:UpdateVisibility(); GwStanceBar:UpdateAlpha() end end, dependence = (function() local t = {["ACTIONBARS_ENABLED"] = true} if GW.Retail then t["BAR_LAYOUT_ENABLED"] = true end return t end)(), incompatibleAddons = "Actionbars"})
+    stanceBar:AddOptionDropdown(L["Growth Direction"], L["Set the growth direction of the stance bar."], {getterSetter = "StanceBar.growDirection", callback = function() if GwStanceBar then GwStanceBar:AdjustMaxStanceButtons() end end, optionsList = {"UP", "DOWN", "LEFT", "RIGHT"}, optionNames = {L["Up"], L["Down"], L["Left"], L["Right"]}, dependence = stanceBarDependence, incompatibleAddons = "Actionbars"})
+    stanceBar:AddOptionSlider(L["Button Size"], nil, {getterSetter = "StanceBar.buttonSize", callback = function() if GwStanceBar then GwStanceBar:AdjustMaxStanceButtons() end end, min = 20, max = 60, decimalNumbers = 0, step = 1, dependence = stanceBarDependence, incompatibleAddons = "Actionbars"})
+    stanceBar:AddOptionSlider(L["Button Spacing"], nil, {getterSetter = "StanceBar.spacing", callback = function() if GwStanceBar then GwStanceBar:AdjustMaxStanceButtons() end end, min = 0, max = 10, decimalNumbers = 0, step = 1, dependence = stanceBarDependence, incompatibleAddons = "Actionbars"})
+    stanceBar:AddOptionSlider(L["Alpha"], nil, {getterSetter = "StanceBar.alpha", callback = function() if GwStanceBar then GwStanceBar:UpdateAlpha() end end, min = 0, max = 1, decimalNumbers = 2, step = 0.05, dependence = stanceBarDependence, incompatibleAddons = "Actionbars"})
+    stanceBar:AddOption(L["Only on Mouse Over"], nil, {getterSetter = "StanceBar.mouseOver", callback = function() if GwStanceBar then GwStanceBar:UpdateAlpha() end end, dependence = stanceBarDependence, incompatibleAddons = "Actionbars"})
 
-    sWindow:AddSettingsPanel(p, BINDING_HEADER_ACTIONBAR, ACTIONBARS_SUBTEXT, {{name = GENERAL, frame = general}, {name = L["Main Action Bar"], frame = mainBar}, {name = BINDING_HEADER_MULTIACTIONBAR, frame = extraBars}, {name = TUTORIAL_TITLE47, frame = totemBar}, {name = HUD_EDIT_MODE_STANCE_BAR_LABEL or L["Stance bar"], frame = stanceBar}})
+    sWindow:AddSettingsPanel(p, BINDING_HEADER_ACTIONBAR, ACTIONBARS_SUBTEXT, {{name = GENERAL, frame = general}, {name = L["Main Action Bar"], frame = mainBar}, {name = BINDING_HEADER_MULTIACTIONBAR, frame = extraBars},  {name = HUD_EDIT_MODE_STANCE_BAR_LABEL or L["Stance Bar"], frame = stanceBar}})
 end
 GW.LoadActionbarPanel = LoadActionbarPanel

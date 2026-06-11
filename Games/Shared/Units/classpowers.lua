@@ -1335,7 +1335,7 @@ local function setShaman(f)
             f:RegisterUnitEvent("UNIT_AURA", "player")
             return true
         end
-    else
+    elseif GW.Wrath then
         if not InCombatLockdown() then
             if UIPARENT_MANAGED_FRAME_POSITIONS then
                 UIPARENT_MANAGED_FRAME_POSITIONS.MultiCastActionBarFrame = nil
@@ -1590,7 +1590,7 @@ local function setWarlock(f)
         f:RegisterEvent("UNIT_DISPLAYPOWER")
     end
     -- Register "LEARNED_SPELL_IN_TAB" so we can check for the green fire spell and check an login
-    if GW.Retail or GW.TBC or GW.Wrath then
+    if GW.Retail or GW.TBC or GW.Wrath or GW.Mists then
         f:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
     else
         f:RegisterEvent("LEARNED_SPELL_IN_TAB")
@@ -2137,7 +2137,7 @@ local function LoadClassPowers()
     cpf.customResourceBar.label:SetShadowColor(0, 0, 0, 1)
     cpf.customResourceBar.label:SetShadowOffset(1, -1)
 
-    GW.RegisterMovableFrame(cpf, GW.L["Class Power"], "ClasspowerBar_pos", ALL .. ",Unitframe,Power", { 312, 32 },
+    GW.RegisterMovableFrame(cpf, GW.L["Class Power"], "ClasspowerBar_pos", "Unitframe,Power", { 312, 32 },
         { "default", "scaleable" }, true)
 
     -- position mover

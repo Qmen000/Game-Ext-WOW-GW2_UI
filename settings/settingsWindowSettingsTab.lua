@@ -8,11 +8,15 @@ local settingsMenuFrame
 local currentPanelIndex
 local searchPanel
 local searchEdit
+local DEFAULT_SETTINGS_PANEL_ID = "interface_features"
 
 local ROW_PAD_X = 8
 local ROW_PAD_Y = 8
 local COL_GAP   = 8
 local CONTENT_W = 550
+local DEFAULT_ROW_EXTENT = 40
+local MASTER_TOGGLE_SEPARATOR_EXTENT = 5
+local SEARCH_HIGHLIGHT_ALPHA = 0.08
 
 local SEARCH_ACTIVE = false
 
@@ -29,10 +33,12 @@ local optionTypes = {
     boolean     = {template = "GwOptionBoxTmpl", frame = "Button", newLine = false},
     slider      = {template = "GwOptionBoxSliderTmpl", frame = "Button", newLine = true},
     dropdown    = {template = "GwOptionBoxDropDownTmpl", frame = "Button", newLine = true},
+    list        = {template = "GwOptionBoxListTmpl", frame = "Button", newLine = true},
     text        = {template = "GwOptionBoxTextTmpl", frame = "Button", newLine = true},
     button      = {template = "GwButtonTextTmpl", frame = "Button", newLine = true},
     colorPicker = {template = "GwOptionBoxColorPickerTmpl", frame = "Button", newLine = true},
     header      = {template = "GwOptionBoxHeader", frame = "Frame", newLine = true},
+    subHeader   = {template = "GwOptionBoxSubHeader", frame = "Frame", newLine = true},
 }
 
 GwSettingsWindowSettingsTabMixin = {}
@@ -54,6 +60,40 @@ local function ResolveForceNewLine(opt)
         fnl = not opt.noNewLine
     end
     return fnl and true or false
+end
+
+local function IsMasterToggle(opt)
+    return opt and opt.isMasterToggle == true
+end
+
+local function GetOptionRowExtent(opt)
+    if opt and opt.optionType == "list" then
+        local optionsList = type(opt.optionsList) == "table" and opt.optionsList or {}
+        local entryCount = math.max(#optionsList, 1)
+        local entryHeight = opt.entryHeight or 24
+        local maxVisibleRows = tonumber(opt.maxVisibleRows)
+
+        if maxVisibleRows and maxVisibleRows > 0 then
+            entryCount = math.min(entryCount, maxVisibleRows)
+        end
+
+        return math.max(DEFAULT_ROW_EXTENT, ROW_PAD_Y * 2 + (entryCount * entryHeight))
+    end
+
+    return DEFAULT_ROW_EXTENT
+end
+
+local function GetPackedRowExtent(row)
+    if row and row.kind == "masterToggleSeparator" then
+        return MASTER_TOGGLE_SEPARATOR_EXTENT
+    end
+
+    local extent = DEFAULT_ROW_EXTENT
+    for _, opt in ipairs((row and row.cols) or {}) do
+        extent = math.max(extent, GetOptionRowExtent(opt))
+    end
+
+    return extent
 end
 
 local function StashWidget(w, panel)
@@ -95,6 +135,96 @@ local function AnchorFullWidth(row, w)
     w:SetPoint("BOTTOMLEFT", ROW_PAD_X, ROW_PAD_Y)
     w:SetWidth(CONTENT_W)
     w:Show()
+end
+
+local function SetRowSearchHighlightShown(row, show)
+    if show then
+        if not row.searchHighlight then
+            row.searchHighlight = row:CreateTexture(nil, "BACKGROUND")
+            row.searchHighlight:SetColorTexture(GW.Colors.TextColors.LightHeader:GetRGB())
+        end
+
+        row.searchHighlight:SetAlpha(SEARCH_HIGHLIGHT_ALPHA)
+        row.searchHighlight:ClearAllPoints()
+        row.searchHighlight:SetPoint("TOPLEFT", ROW_PAD_X, -4)
+        row.searchHighlight:SetPoint("BOTTOMRIGHT", row, "BOTTOMLEFT", ROW_PAD_X + CONTENT_W, 4)
+        row.searchHighlight:Show()
+    elseif row.searchHighlight then
+        row.searchHighlight:Hide()
+    end
+end
+
+local function SetRowMasterToggleSeparatorShown(row, show)
+    if show then
+        if not row.masterToggleSeparator then
+            row.masterToggleSeparator = row:CreateTexture(nil, "ARTWORK")
+            row.masterToggleSeparator:SetTexture("Interface/AddOns/GW2_UI/textures/hud/levelreward-sep.png")
+            row.masterToggleSeparator:SetTexCoord(0.5, 1, 0, 1)
+            row.masterToggleSeparator:SetSize(floor(CONTENT_W / 2), 2)
+        end
+
+        row.masterToggleSeparator:ClearAllPoints()
+        row.masterToggleSeparator:SetPoint("TOPLEFT", ROW_PAD_X, 5)
+        row.masterToggleSeparator:Show()
+    elseif row.masterToggleSeparator then
+        row.masterToggleSeparator:Hide()
+    end
+end
+
+local function UpdateMasterToggleStyle(of, hovered)
+    if not of or not of.isMasterToggle then return end
+
+    local checked = of.checkbutton and of.checkbutton:GetChecked()
+    local r, g, b = GW.Colors.TextColors.LightHeader:GetRGB()
+
+    if of.masterToggleBg then
+        local textWidth = of.title:GetStringWidth()
+        of.masterToggleBg:SetWidth(math.max(80, math.min(textWidth + 22, of:GetWidth() - 36)))
+        of.masterToggleBg:SetColorTexture(r, g, b, hovered and 0.16 or (checked and 0.08 or 0))
+    end
+
+    of.masterToggleAccent:SetColorTexture(r, g, b, checked and 0.75 or (hovered and 0.35 or 0))
+end
+
+local function SetupMasterToggleStyle(of)
+    if not of or not of.isMasterToggle or of.masterToggleStyleHooked then return end
+
+    of.masterToggleStyleHooked = true
+    of.masterToggleBg = of:CreateTexture(nil, "BACKGROUND")
+    of.masterToggleBg:SetPoint("LEFT", of.title, "LEFT", -9, 0)
+    of.masterToggleBg:SetHeight(24)
+
+    of.masterToggleAccent = of:CreateTexture(nil, "ARTWORK")
+    of.masterToggleAccent:SetPoint("TOPLEFT", -2, -3)
+    of.masterToggleAccent:SetPoint("BOTTOMLEFT", -2, 3)
+    of.masterToggleAccent:SetWidth(2)
+
+    of:HookScript("OnEnter", function(self)
+        UpdateMasterToggleStyle(self, true)
+    end)
+    of:HookScript("OnLeave", function(self)
+        UpdateMasterToggleStyle(self, false)
+    end)
+    of:HookScript("OnClick", function(self)
+        UpdateMasterToggleStyle(self, self:IsMouseOver())
+    end)
+
+    if of.checkbutton then
+        of.checkbutton:HookScript("OnEnter", function()
+            UpdateMasterToggleStyle(of, true)
+        end)
+        of.checkbutton:HookScript("OnLeave", function()
+            UpdateMasterToggleStyle(of, false)
+        end)
+        of.checkbutton:HookScript("OnClick", function()
+            UpdateMasterToggleStyle(of, of:IsMouseOver())
+        end)
+        hooksecurefunc(of.checkbutton, "SetChecked", function()
+            UpdateMasterToggleStyle(of, of:IsMouseOver())
+        end)
+    end
+
+    UpdateMasterToggleStyle(of)
 end
 
 -- =========================
@@ -234,12 +364,16 @@ local function CreateOrGetOptionWidget(panel, opt)
 
     -- Basistitle (falls vorhanden im Template)
     of.title:SetFont(DAMAGE_TEXT_FONT, 12)
-    of.title:SetTextColor(1, 1, 1)
     of.title:SetShadowColor(0, 0, 0, 1)
     of.title:SetText(of.displayName or "")
-
+    if of.isMasterToggle then
+        of.title:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
+    else
+        of.title:SetTextColor(1, 1, 1)
+    end
     -- Deine vorhandene Typ-spezifische Logik hier hinein:
     GW.SettingsInitOptionWidget(of, opt, panel)
+    SetupMasterToggleStyle(of)
 
     opt.__widget = of
 
@@ -250,18 +384,28 @@ end
 
 local function PackOptionsIntoRows(options)
     local rows, i = {}, 1
+
+    local function AddMasterToggleSeparatorIfNeeded(lastIndex)
+        if IsMasterToggle(options[lastIndex]) and options[lastIndex + 1] and not IsMasterToggle(options[lastIndex + 1]) then
+            rows[#rows+1] = { kind = "masterToggleSeparator" }
+        end
+    end
+
     while i <= #options do
         local a = options[i]; if not a then break end
         if ResolveForceNewLine(a) then
             rows[#rows+1] = { cols = {a} }
+            AddMasterToggleSeparatorIfNeeded(i)
             i = i + 1
         else
             local b = options[i + 1]
-            if b and not ResolveForceNewLine(b) then
+            if b and not ResolveForceNewLine(b) and IsMasterToggle(a) == IsMasterToggle(b) then
                 rows[#rows+1] = { cols = {a, b} }
+                AddMasterToggleSeparatorIfNeeded(i + 1)
                 i = i + 2
             else
                 rows[#rows+1] = { cols = {a} }
+                AddMasterToggleSeparatorIfNeeded(i)
                 i = i + 1
             end
         end
@@ -275,14 +419,14 @@ local function BuildOptionsDataProvider(panel)
 
     for _, row in ipairs(rows) do
         for k=1,2 do
-            local opt = row.cols[k]
+            local opt = row.cols and row.cols[k]
             if opt then CreateOrGetOptionWidget(panel, opt) end
         end
     end
 
     local dp = CreateDataProvider()
     for i, row in ipairs(rows) do
-        dp:Insert({ index = i, cols = row.cols, panel = panel })
+        dp:Insert({ index = i, kind = row.kind, cols = row.cols, panel = panel })
     end
     return dp
 end
@@ -292,6 +436,14 @@ local function InitRow(row, elementData)
     local panel = elementData.panel
 
     row:SetWidth(ROW_PAD_X * 2 + CONTENT_W)
+
+    if elementData.kind == "masterToggleSeparator" then
+        if row.leftAssigned  then StashWidget(row.leftAssigned,  panel); row.leftAssigned  = nil end
+        if row.rightAssigned then StashWidget(row.rightAssigned, panel); row.rightAssigned = nil end
+        SetRowMasterToggleSeparatorShown(row, true)
+        return
+    end
+    SetRowMasterToggleSeparatorShown(row, false)
 
     if SEARCH_ACTIVE then
         if row.leftAssigned  then StashWidget(row.leftAssigned,  panel); row.leftAssigned  = nil end
@@ -331,11 +483,14 @@ local function InitOptionPanel(panel)
     panel._stash = panel._stash or CreateFrame("Frame", nil, panel)
     panel._stash:Hide()
 
-    view:SetElementExtent(40)
+    view:SetElementExtentCalculator(function(_, elementData)
+        return GetPackedRowExtent(elementData)
+    end)
     view:SetElementInitializer("GwFrameTemplate", InitRow)
     view:SetElementResetter(function(row)
         if row.leftAssigned  then StashWidget(row.leftAssigned,  row.__panel); row.leftAssigned  = nil end
         if row.rightAssigned then StashWidget(row.rightAssigned, row.__panel); row.rightAssigned = nil end
+        SetRowMasterToggleSeparatorShown(row, false)
     end)
 
     ScrollUtil.InitScrollBoxListWithScrollBar(panel.scroll.ScrollBox, panel.scroll.ScrollBar, view)
@@ -389,6 +544,29 @@ local function SwitchPanel(panelIndex)
     settingsMenuFrame.ScrollBox:Rebuild(ScrollBoxConstants.RetainScrollPosition)
 end
 
+local function FindMenuItemByPanelId(panelId)
+    local foundItem
+    settingsMenuFrame.ScrollBox:GetDataProvider():ForEach(function(ed)
+        if (ed.isSubCat and ed.itemData.frame.panelId == panelId) or (not ed.isSubCat and ed.itemData.basePanel.panelId == panelId) then
+            foundItem = ed
+            return true
+        end
+    end)
+
+    return foundItem
+end
+
+local function SelectMenuItem(menuItem)
+    if not menuItem then return end
+
+    SwitchPanel(menuItem.index)
+    settingsMenuFrame.ScrollBox:ScrollToElementDataByPredicate(function(ed) return ed == menuItem end)
+    C_Timer.After(0, function()
+        local btn = settingsMenuFrame.ScrollBox:FindFrame(menuItem)
+        if btn and not menuItemSelectionBehavior:IsSelected(btn) then menuItemSelectionBehavior:Select(btn) end
+    end)
+end
+
 -- =========================
 -- API for adding panels
 -- =========================
@@ -422,21 +600,7 @@ function GwSettingsWindowSettingsTabMixin:AddSettingsPanel(basePanel, name, desc
 end
 
 function GwSettingsWindowSettingsTabMixin:OpenSettingsToPanel(panelId)
-    local foundItem
-    settingsMenuFrame.ScrollBox:GetDataProvider():ForEach(function(ed)
-        if (ed.isSubCat and ed.itemData.frame.panelId == panelId) or (not ed.isSubCat and ed.itemData.basePanel.panelId == panelId) then
-            foundItem = ed
-            return true
-        end
-    end)
-    if foundItem then
-        SwitchPanel(foundItem.index)
-        settingsMenuFrame.ScrollBox:ScrollToElementDataByPredicate(function(ed) return ed == foundItem end)
-        C_Timer.After(0, function()
-            local btn = settingsMenuFrame.ScrollBox:FindFrame(foundItem)
-            if btn and not menuItemSelectionBehavior:IsSelected(btn) then menuItemSelectionBehavior:Select(btn) end
-        end)
-    end
+    SelectMenuItem(FindMenuItemByPanelId(panelId))
     if not GwSettingsWindow:IsShown() then
         ShowUIPanel(GwSettingsWindow)
     end
@@ -468,6 +632,7 @@ local function ResetSearchRow(row)
     if row.crumbFS  then row.crumbFS:SetText("") end
     if row.leftAssigned  then row.leftAssigned:Hide();  row.leftAssigned  = nil end
     if row.rightAssigned then row.rightAssigned:Hide(); row.rightAssigned = nil end
+    SetRowSearchHighlightShown(row, false)
 end
 
 local function WipeKeys(t)
@@ -524,6 +689,7 @@ local function InitSearchRow(row, item)
     row:SetWidth(ROW_PAD_X * 2 + CONTENT_W)
 
     if item.kind == "breadcrumb" then
+        SetRowSearchHighlightShown(row, false)
         if not row.headerFS then
             row.headerFS = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
             row.headerFS:SetFont(DAMAGE_TEXT_FONT, 20)
@@ -544,6 +710,7 @@ local function InitSearchRow(row, item)
         if row.rightAssigned then row.rightAssigned:Hide(); row.rightAssigned = nil end
         return
     end
+    SetRowSearchHighlightShown(row, true)
 
     local leftE, rightE = item.left, item.right
     local leftW  = leftE  and leftE.widget  or nil
@@ -766,25 +933,24 @@ local function LoadSettingsTab(container)
 
     settingsTab.name = "GwSettingsSettings"
     settingsTab.headerBreadcrumbText = SETTINGS
-    settingsTab.hasSearch = false
     settingsTab.callbackOnClose = CloseSearch
     container:AddTab("Interface/AddOns/GW2_UI/textures/uistuff/tabicon_settings.png", settingsTab)
 
     --load settings panels
-    GW.LoadModulesPanel(settingsTab)
+    GW.LoadInterfaceFeaturesPanel(settingsTab)
     GW.LoadGeneralPanel(settingsTab)
+    GW.LoadHudPanel(settingsTab)
+    GW.LoadActionbarPanel(settingsTab)
+    GW.LoadObjectivesPanel(settingsTab)
     GW.LoadPlayerPanel(settingsTab)
     GW.LoadTargetPanel(settingsTab)
     GW.LoadRaidPanel(settingsTab)
     GW.LoadAurasPanel(settingsTab)
-    GW.LoadActionbarPanel(settingsTab)
-    GW.LoadHudPanel(settingsTab)
-    GW.LoadObjectivesPanel(settingsTab)
-    GW.LoadFontsPanel(settingsTab)
     GW.LoadChatPanel(settingsTab)
     GW.LoadTooltipPanel(settingsTab)
     GW.LoadNotificationsPanel(settingsTab)
     GW.LoadSkinsPanel(settingsTab)
+    GW.LoadFontsPanel(settingsTab)
 
     -- Menü ScrollBox
     local view = CreateScrollBoxListLinearView()
@@ -823,17 +989,12 @@ local function LoadSettingsTab(container)
     GW.HandleScrollControls(settingsTab.menu)
     settingsTab.menu.ScrollBar:SetHideIfUnscrollable(true)
 
-    --select first Panel
-    local firstMenuItem
-    settingsTab.menu.ScrollBox:GetDataProvider():ForEach(function(ed) if ed.index == 1 then firstMenuItem = ed; return true end end)
-    if firstMenuItem then
-        SwitchPanel(firstMenuItem.index)
-        settingsTab.menu.ScrollBox:ScrollToElementDataByPredicate(function(ed) return ed == firstMenuItem end)
-        C_Timer.After(0, function()
-            local btn = settingsTab.menu.ScrollBox:FindFrame(firstMenuItem)
-            if btn and not menuItemSelectionBehavior:IsSelected(btn) then menuItemSelectionBehavior:Select(btn) end
-        end)
+    --select default panel
+    local defaultMenuItem = FindMenuItemByPanelId(DEFAULT_SETTINGS_PANEL_ID)
+    if not defaultMenuItem then
+        settingsTab.menu.ScrollBox:GetDataProvider():ForEach(function(ed) if ed.index == 1 then defaultMenuItem = ed; return true end end)
     end
+    SelectMenuItem(defaultMenuItem)
 
     -- Setup search
     searchPanel = CreateFrame("Frame", nil, container, "GwSettingsPanelTmpl")
@@ -849,7 +1010,21 @@ local function LoadSettingsTab(container)
     searchPanel:SetPoint("BOTTOMRIGHT", settingsTab, "BOTTOMRIGHT", 0, 0)
 
     local searchView = CreateScrollBoxListLinearView()
-    searchView:SetElementExtent(40)
+    searchView:SetElementExtentCalculator(function(_, item)
+        if not item or item.kind == "breadcrumb" then
+            return DEFAULT_ROW_EXTENT
+        end
+
+        local extent = DEFAULT_ROW_EXTENT
+        if item.left and item.left.widget then
+            extent = math.max(extent, GetOptionRowExtent(item.left.widget))
+        end
+        if item.right and item.right.widget then
+            extent = math.max(extent, GetOptionRowExtent(item.right.widget))
+        end
+
+        return extent
+    end)
     searchView:SetElementInitializer("GwFrameTemplate", function(row, item)
         row.__searchPanel = searchPanel
         InitSearchRow(row, item)

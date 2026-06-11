@@ -603,9 +603,9 @@ local function newHeader(filter)
         h:SetAttribute("consolidateTo", 0)
         h:SetAttribute("includeWeapons", 1)
 
-        RegisterMovableFrame(h, SHOW_BUFFS, "PlayerBuffFrame", ALL .. ",Blizzard,Aura", {316, 100}, {"default", "scaleable"}, true)
+        RegisterMovableFrame(h, SHOW_BUFFS, "PlayerBuffFrame", "Blizzard,Aura", {316, 100}, {"default", "scaleable"}, true)
     else
-        RegisterMovableFrame(h, SHOW_DEBUFFS, "PlayerDebuffFrame", ALL .. ",Blizzard,Aura", {316, 60}, {"default", "scaleable"}, true)
+        RegisterMovableFrame(h, SHOW_DEBUFFS, "PlayerDebuffFrame", "Blizzard,Aura", {316, 60}, {"default", "scaleable"}, true)
     end
 
     UpdateAuraHeader(h)
@@ -644,14 +644,16 @@ local function loadAuras(lm)
         end
     end)
 
-    if GW.Retail then
-        -- Raise PetBattleFrame
+    -- Raise PetBattleFrame
+    if PetBattleFrame then
         PetBattleFrame:SetFrameLevel(hb:GetFrameLevel() + 5)
+    end
 
+    if GW.Retail then
         -- creating a mover for private auras (2 atm) -- TODO: Maybe in a future update there is a skinning way
         local privateAurasheader = CreateFrame("Frame", nil, UIParent)
-        privateAurasheader:SetSize(80, 40)
-        RegisterMovableFrame(privateAurasheader, GW.L["Private Auras"], "PlayerPrivateAuras", ALL .. ",Blizzard,Aura", nil, {"default", "scaleable"}, true)
+        privateAurasheader:SetSize(240, 40)
+        RegisterMovableFrame(privateAurasheader, GW.L["Private Auras"], "PlayerPrivateAuras", "Blizzard,Aura", nil, {"default", "scaleable"}, true)
         privateAurasheader:ClearAllPoints()
         privateAurasheader:SetPoint("TOPLEFT", privateAurasheader.gwMover)
 
@@ -659,11 +661,7 @@ local function loadAuras(lm)
             local aura = privateAurasheader["privateAuraAnchor" .. i]
             aura = CreateFrame("Frame", nil, privateAurasheader, "GwPrivateAuraTmpl")
             aura.auraIndex = i
-            if i == 1 then
-                aura:SetPoint("TOPRIGHT")
-            else
-                aura:SetPoint("TOPLEFT")
-            end
+            aura:SetPoint("BOTTOMRIGHT", privateAurasheader, (28 * (i - 1)), 28 * 2)
             local auraAnchor = {
                 isContainer = false,
                 unitToken = "player",

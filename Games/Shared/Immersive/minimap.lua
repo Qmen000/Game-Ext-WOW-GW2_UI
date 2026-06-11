@@ -5,10 +5,9 @@ local L = GW.L
 local effectiveHeight
 local MAP_FRAMES_HIDE = {}
 MAP_FRAMES_HIDE[1] = MiniMapMailIcon
-MAP_FRAMES_HIDE[2] = MiniMapTrackingButton
-MAP_FRAMES_HIDE[3] = MiniMapTracking
-MAP_FRAMES_HIDE[4] = MinimapToggleButton
-MAP_FRAMES_HIDE[5] = not GW.Retail and GameTimeFrame
+MAP_FRAMES_HIDE[2] = MiniMapTracking
+MAP_FRAMES_HIDE[3] = MinimapToggleButton
+MAP_FRAMES_HIDE[4] = not GW.Retail and GameTimeFrame
 
 local M = CreateFrame("Frame")
 
@@ -629,7 +628,7 @@ function GW.LoadMinimap()
     -- https://wowwiki.wikia.com/wiki/USERAPI_GetMinimapShape
     GetMinimapShape = GetMinimapShape
 
-    GW.RegisterMovableFrame(Minimap, MINIMAP_LABEL, "MinimapPos", ALL .. ",Blizzard,Map", {Minimap:GetSize()}, {"default"}, nil, MinimapPostDrag)
+    GW.RegisterMovableFrame(Minimap, MINIMAP_LABEL, "MinimapPos", "Blizzard,Map", {Minimap:GetSize()}, {"default"}, nil, MinimapPostDrag)
     Minimap:ClearAllPoints()
     Minimap:SetPoint("CENTER", Minimap.gwMover)
 
@@ -686,6 +685,14 @@ function GW.LoadMinimap()
     clickHandler:SetAllPoints()
     clickHandler:SetScript("OnMouseWheel", Minimap_OnMouseWheel)
     clickHandler:SetScript("OnMouseDown", Minimap_OnMouseDown)
+
+    if MiniMapTrackingButton then
+        MiniMapTrackingButton:SetParent(Minimap)
+        MiniMapTrackingButton:EnableMouse(false)
+        MiniMapTrackingButton:SetAlpha(0)
+        MiniMapTrackingButtonBorder:Hide()
+    end
+
 
     -- Minimap Tracking Button
     if GW.Retail then
@@ -760,7 +767,7 @@ function GW.LoadMinimap()
                 FeedbackUIButton:GwKill()
             elseif addon == "Blizzard_HybridMinimap" then
                 SetupHybridMinimap()
-            elseif addon == "Blizzard_EncounterJournal" then
+            elseif addon == "Blizzard_EncounterJournal" and EJ_HideNonInstancePanels then
                 -- Since the default non-quest map is full screen, it overrides the showing of the encounter journal
                 hooksecurefunc("EJ_HideNonInstancePanels", function()
                     if InCombatLockdown() or not WorldMapFrame:IsShown() then return end
@@ -873,7 +880,7 @@ function GW.LoadMinimap()
                 setMinimapButtons("right")
             end
         end)
-    elseif GW.TBC or GW.Wrath then
+    elseif GW.TBC or GW.Wrath or GW.Mists then
         MiniMapBattlefieldFrame:ClearAllPoints()
 
         GwAddonToggle:SetPoint("TOP", MiniMapBattlefieldFrame, "BOTTOM", 0, -20)

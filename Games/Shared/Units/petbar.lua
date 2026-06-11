@@ -236,6 +236,18 @@ function GwPlayerPetFrameMixin:UpdateSettings()
     self.showHealthValue = GW.settings.PET_HEALTH_VALUE_RAW
     self.showHealthPrecentage = GW.settings.PET_HEALTH_VALUE_PERCENT
 
+    self.displayBuffs = GW.settings.PET_Buff_Filter == "none" and 0 or 32
+    self.auras.buffFilter = GW.settings.PET_Buff_Filter
+    self.auras.buffAdvancedFilters = GW.settings.PET_Buff_Filter_advanced
+
+    self.displayDebuffs = GW.settings.PET_Debuff_Filter == "none" and 0 or 40
+    self.auras.debuffFilter = GW.settings.PET_Debuff_Filter
+    self.auras.debuffAdvancedFilters = GW.settings.PET_Debuff_Filter_advanced
+    GW.UpdateFilters(self.auras)
+
+    self.auras.smallSize = 20
+    self.auras.bigSize = 24
+
     -- statusbar texture
     local texture = GW.Libs.LSM:Fetch("statusbar", GW.settings.playerPetFrameHealthBarTexture)
     self.health:SetStatusBarTexture(texture)
@@ -276,7 +288,7 @@ local function LoadPetFrame(lm)
     RegisterStateDriver(playerPetFrame, "visibility",
         "[overridebar] hide; [vehicleui] hide; [petbattle] hide; [target=pet,exists] show; hide")
 
-    playerPetFrame.health:SetStatusBarColor(GW.Colors.FriendlyColors[2]:GetRGB())
+    playerPetFrame.health:SetStatusBarColor(GW.globalDefault.profile.UnitFrameReactionColors.Hostile.r, GW.globalDefault.profile.UnitFrameReactionColors.Hostile.g, GW.globalDefault.profile.UnitFrameReactionColors.Hostile.b)
     playerPetFrame.health.text:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small, nil, -1)
 
     playerPetFrame:SetScript("OnEnter", function(self)
@@ -286,18 +298,10 @@ local function LoadPetFrame(lm)
         GameTooltip:Show()
     end)
 
-    playerPetFrame.debuffFilter = "PLAYER|HARMFUL"
-    playerPetFrame.displayBuffs = 32
-    playerPetFrame.displayDebuffs = 40
-    playerPetFrame.auras.smallSize = 20
-    playerPetFrame.auras.bigSize = 24
-    playerPetFrame.auras.buffFilter = "all"
-    playerPetFrame.auras.debuffFilter = "all"
-
     playerPetFrame.happiness:SetScript("OnEnter", function(self)
         if self.tooltip then
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText(self.tooltip)
+            GameTooltip:SetText(self.tooltip, 1, 1, 1)
             if self.tooltipDamage then
                 GameTooltip:AddLine(self.tooltipDamage, 1, 1, 1, true)
             end
@@ -344,7 +348,7 @@ local function LoadPetFrame(lm)
         playerPetFrame:RegisterEvent("UNIT_HAPPINESS")
     end
 
-    RegisterMovableFrame(playerPetFrame, PET, "pet_pos", ALL .. ",Unitframe", nil, { "default" }, true)
+    RegisterMovableFrame(playerPetFrame, PET, "pet_pos", "Unitframe", nil, { "default" }, true)
     lm:RegisterPetFrame(playerPetFrame)
 
     playerPetFrame:ClearAllPoints()
@@ -358,7 +362,7 @@ local function LoadPetFrame(lm)
     end
     playerPetFrame:SetActionButtonPositionAndStyle()
 
-    if GW.Retail or GW.TBC or GW.Wrath then
+    if GW.Retail or GW.TBC or GW.Wrath or GW.Mists then
         PetActionBar.ignoreFramePositionManager = true
         PetActionBar:GwKillEditMode()
         PetActionBar:SetParent(GW.HiddenFrame)

@@ -526,7 +526,7 @@ local function updateStats(self)
 
     local primaryStat = select(6, C_SpecializationInfo.GetSpecializationInfo(GW.myspec, nil, nil, nil, GW.mysex))
 
-    if InCombatLockdown() then
+    if InCombatLockdown() or GW.IsPaperDollStatsRestricted() then
         GW.CombatQueue:Queue("update character stats", updateStats, {self})
         return
     end
@@ -936,20 +936,6 @@ local function GwPaperDollBagItemList_OnShow()
     updateBagItemListAll()
     for _, slot in pairs(slotButtons) do
         slot.overlayButton:Show()
-    end
-end
-
-local function EquipCursorItem()
-    if InCombatLockdown() then return end
-    local cursorItem = C_Cursor.GetCursorItem()
-    if cursorItem and cursorItem.bagID and cursorItem.slotIndex then
-        local itemID = C_Container.GetContainerItemID(cursorItem.bagID, cursorItem.slotIndex)
-        if itemID then
-            if C_Item.IsEquippableItem(itemID) and not  C_Item.IsEquippedItem(itemID) then
-                C_Timer.After(1.1, function() C_Item.EquipItemByName(itemID) end)
-            end
-        end
-        ClearCursor()
     end
 end
 

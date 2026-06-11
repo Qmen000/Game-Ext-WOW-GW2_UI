@@ -65,6 +65,9 @@ local function UpdateGridPartyFrame(frame)
     end
     frame.showRaidIndicatorIcon = GW.settings.INDICATORS_ICON
     frame.showRaidIndicatorTimer = GW.settings.INDICATORS_TIME
+    frame.showRaidIndicatorStacks = GW.settings.INDICATORS_STACKS
+    frame.raidIndicatorSize = GW.settings.INDICATORS_SIZE
+    frame.raidIndicatorBarWidth = GW.settings.INDICATORS_BAR_WIDTH
     frame.raidDebuffScale = GW.settings.RAIDDEBUFFS_Scale
     frame.raidDispelDebuffScale = GW.settings.DISPELL_DEBUFFS_Scale
     frame.showRoleIcon = GW.settings.RAID_SHOW_ROLE_ICON_PARTY
@@ -78,7 +81,9 @@ local function UpdateGridPartyFrame(frame)
 
     if not InCombatLockdown() then
         frame:SetSize(frame.unitWidth, frame.unitHeight)
-        frame:ClearAllPoints()
+        if not frame.isForced then
+            frame:ClearAllPoints()
+        end
 
         if GW.settings.RAID_STYLE_PARTY and not frame:IsEnabled() then
             frame:Enable()

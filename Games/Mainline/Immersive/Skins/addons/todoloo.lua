@@ -205,7 +205,8 @@ function GwTodolooContainerMixin:UpdateLayout()
     end
 
     local foundTodo = false
-    if self.collapsed then
+    if self.collapsed or not Todoloo.TaskManager then
+    --if self.collapsed then
         self:SetHeight(20)
     else
         local groups = TodolooObjectiveTracker:BuildGroupInfos()
@@ -222,7 +223,7 @@ function GwTodolooContainerMixin:UpdateLayout()
         self:SetHeight(containerHeight)
     end
 
-    self:SetShown(foundTodo or self.collapsed)
+    self:SetShown(foundTodo or (self.collapsed and foundTodo))
 
     GwQuestTracker:LayoutChanged()
 end
@@ -239,7 +240,7 @@ function GwTodolooContainerMixin:InitModule()
     self.header:Show()
 
     self.collapsed = false
-    self.header:SetScript("OnMouseDown", function() self:CollapseHeader() end) -- this way, otherwiese we have a wrong self at the function
+    self.header:SetScript("OnMouseDown", function() self:ToggleCollapsed() end) -- this way, otherwiese we have a wrong self at the function
 
     self.blockMixInTemplate = GwTodolooBlockMixin
 

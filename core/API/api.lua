@@ -41,7 +41,7 @@ end
 CompatibleTooltip(GameTooltip)
 CompatibleTooltip(GW.ScanTooltip)
 
-function GW.IsSpellKnownOrOverridesKnown(spellID, isPet)
+function GW.IsSpellInSpellBook(spellID, isPet)
     if C_SpellBook and C_SpellBook.IsSpellInSpellBook then
         local spellBank = isPet and Enum.SpellBookSpellBank.Pet or Enum.SpellBookSpellBank.Player
         local includeOverrides = true
@@ -384,8 +384,12 @@ function GW.CheckRestrictionState(which)
     return state
 end
 
+function GW.IsPaperDollStatsRestricted()
+    return GW.CheckRestrictionState("ChallengeMode") > 1 or GW.CheckRestrictionState("Encounter") > 1 or GW.CheckRestrictionState("Combat") > 1 or GW.CheckRestrictionState("PvPMatch") > 1
+end
+
 function GW.IsChatRestricted()
-    return C_CVar.GetCVarBool("addonChatRestrictionsForced") or GW.CheckRestrictionState("ChallengeMode") > 1 or GW.CheckRestrictionState("Encounter") > 1
+    return C_CVar.GetCVarBool("addonChatRestrictionsForced") or GW.CheckRestrictionState("ChallengeMode") > 1 or GW.CheckRestrictionState("Encounter") > 1 or GW.CheckRestrictionState("PvPMatch") > 1
 end
 
 function GW.GetWowheadLinkForLanguage()

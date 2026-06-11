@@ -230,19 +230,57 @@ end
 GW.GetScaledCursorDistance = GetScaledCursorDistance
 
 GW.ShortPrefixValues = {}
+GW.ShortValueAbbreviationOptions = nil
+
+local RETAIL_SHORT_DECIMAL_MAX = 3
+
+local function BuildRetailShortValueOptions()
+    if not (GW.Retail and CreateAbbreviateConfig) then
+        GW.ShortValueAbbreviationOptions = nil
+        return
+    end
+
+    local decimal = GW.settings.ShortHealthValuesDecimalLength
+    decimal = min(decimal, RETAIL_SHORT_DECIMAL_MAX)
+
+    local fractionDivisor = 10 ^ decimal
+    local breakpointData = {}
+
+    for i, style in ipairs(GW.ShortPrefixValues) do
+        local breakpoint, abbreviation = style[1], style[2]
+
+        breakpointData[i] = {
+            breakpoint = breakpoint,
+            abbreviation = abbreviation,
+            significandDivisor = breakpoint / fractionDivisor,
+            fractionDivisor = fractionDivisor,
+            abbreviationIsGlobal = false
+        }
+    end
+
+    GW.ShortValueAbbreviationOptions = {config = CreateAbbreviateConfig(breakpointData)}
+end
+
 local function BuildPrefixValues()
     if next(GW.ShortPrefixValues) then wipe(GW.ShortPrefixValues) end
 
-    GW.ShortPrefixValues = GW.CopyTable(GW.ShortPrefixStyles[GW.settings.ShortHealthValuePrefixStyle])
+    local prefixStyle = GW.ShortPrefixStyles[GW.settings.ShortHealthValuePrefixStyle] or GW.ShortPrefixStyles.ENGLISH
+    GW.ShortPrefixValues = GW.CopyTable(prefixStyle)
     local shortValueDec = format("%%.%df", GW.settings.ShortHealthValuesDecimalLength or 1)
 
     for _, style in ipairs(GW.ShortPrefixValues) do
         style[3] = shortValueDec
     end
+
+    BuildRetailShortValueOptions()
 end
 GW.BuildPrefixValues = BuildPrefixValues
 
 local function ShortValue(value)
+    if GW.Retail then
+        return AbbreviateNumbers(value, GW.ShortValueAbbreviationOptions)
+    end
+
     local abs_value = value<0 and -value or value
     local values = GW.ShortPrefixValues
 
@@ -1371,6 +1409,12 @@ end
 GW.GetInstanceImages = GetInstanceImages
 
 local function BlizzardDropdownRadioButtonInitializer(button, description, menu, isSelected, data)
+    if not isSelected and description.isSelected and type(description.isSelected) == "function" then
+        isSelected = description.isSelected
+    end
+    if not data and description.data then
+        data = description.data
+    end
     button.highlight:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/button_hover.png")
     button.highlight:SetDrawLayer("BACKGROUND")
     button.highlight:SetBlendMode("BLEND")
@@ -1403,6 +1447,12 @@ end
 GW.BlizzardDropdownRadioButtonInitializer = BlizzardDropdownRadioButtonInitializer
 
 local function BlizzardDropdownCheckButtonInitializer(button, description, menu, isSelected, data)
+    if not isSelected and description.isSelected and type(description.isSelected) == "function" then
+        isSelected = description.isSelected
+    end
+    if not data and description.data then
+        data = description.data
+    end
     button.highlight:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/button_hover.png")
     button.highlight:SetDrawLayer("BACKGROUND")
     button.highlight:SetBlendMode("BLEND")

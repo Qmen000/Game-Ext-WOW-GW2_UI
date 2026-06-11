@@ -13,6 +13,50 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("10.12.2", {
+    {GW.Enum.ChangelogType.bug, [=[Auras can be cancelled again (Mists)]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed experience bar Lua error when tracking reputation with a classic pet active]=]},
+})
+
+addChange("10.12.1", {
+    {GW.Enum.ChangelogType.bug, [=[Fixed issue with Mists support]=]},
+})
+
+addChange("10.12.0", {
+    {GW.Enum.ChangelogType.feature, [=[Add support for Mists new patch]=]},
+})
+
+addChange("10.11.0", {
+    {GW.Enum.ChangelogType.feature, [=[Add aura options to player pet frame]=]},
+    {GW.Enum.ChangelogType.feature, [=[Add aura size settings to target and focus frame]=]},
+    {GW.Enum.ChangelogType.change, [=[Ready Check reskin]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fix lua error in experience bar]=]},
+})
+
+addChange("10.10.0", {
+    {GW.Enum.ChangelogType.feature, [=[Added option to change unitframe reaction colors]=]},
+    {GW.Enum.ChangelogType.feature, [=[Re-enabled short value prefix style and decimal length settings for Retail health values]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added Class Totems settings for enabling/disabling the bar, button size and button spacing]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added Stance Bar settings for button size, button spacing, alpha and mouseover fade]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fix Todooloo itegration]=]},
+})
+
+
+addChange("10.9.1", {
+    {GW.Enum.ChangelogType.change, [=[Codex Addon support added]=]},
+})
+
+addChange("10.9.0", {
+    {GW.Enum.ChangelogType.feature, [=[Added movable party frames with new spacing and horizontal/vertical layout options]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added automatic Objectives Tracker collapsing with separate options for Mythic+/Challenge Mode, Raid, Party, Delve and Combat]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added Objectives Tracker options for Supertracked Quest to Top, Show Completed Objectives and Compact Mode]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added option to change Objectives Tracker container order]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added option to change grid class order sorting]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added raid aura indicator settings for size, bar width and stack count visibility]=]},
+    {GW.Enum.ChangelogType.feature, [=[Added titles to TBC]=]},
+    {GW.Enum.ChangelogType.change, [=[Update Damage Meter skin]=]},
+})
+
 addChange("10.8.2", {
     {GW.Enum.ChangelogType.bug, [=[More secrets]=]},
     {GW.Enum.ChangelogType.bug, [=[Classic hero panel works again]=]},

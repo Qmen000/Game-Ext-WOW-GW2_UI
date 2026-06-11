@@ -66,7 +66,7 @@ function GwCastingBarMixin:CheckForTicks()
     if talentTicks then
         for auraId, tickCount in next, talentTicks do
             if GW.IsSpellKnown(auraId) then
-                if GW.IsSpellKnownOrOverridesKnown(auraId) or GW.IsSpellKnown(auraId) then
+                if GW.IsSpellInSpellBook(auraId) or GW.IsSpellKnown(auraId) then
 					baseTicks = tickCount
 					break
 				end
@@ -527,7 +527,7 @@ local function LoadCastingBar(name, unit, showTradeSkills)
     GwCastingBar:Init(unit, showTradeSkills)
 
     if name == "GwCastingBarPlayer" then
-        RegisterMovableFrame(GwCastingBar, SHOW_ARENA_ENEMY_CASTBAR_TEXT, "castingbar_pos", ALL .. ",Blizzard", nil, {"default", "scaleable"})
+        RegisterMovableFrame(GwCastingBar, SHOW_ARENA_ENEMY_CASTBAR_TEXT, "castingbar_pos", "Blizzard", nil, {"default", "scaleable"})
         GwCastingBar:ClearAllPoints()
         GwCastingBar:SetPoint("CENTER", GwCastingBar.gwMover)
     else

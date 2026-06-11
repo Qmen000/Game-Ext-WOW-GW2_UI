@@ -77,7 +77,7 @@ local function DatabaseMigration(globalDb, privateDb)
                     end
 
                     local profileName = profileTbl.profilename
-                    if not profileName == nil then
+                    if profileName ~= nil then
                         local skipProfile = false
                         if GW.globalSettings.profiles[profileName] then
                             local counter = 0
@@ -112,7 +112,7 @@ local function DatabaseMigration(globalDb, privateDb)
                         if not GW.globalSettings.global.layouts then GW.globalSettings.global.layouts = {} end
 
                         GW.globalSettings.global.layouts[profileTbl.name] = profileTbl
-                        if GW.globalSettings.global.layouts[profileTbl.name].profileLayout and GW.globalSettings.global.layouts[profileTbl.name].profileLayout == true and profileTbl.profileId 
+                        if GW.globalSettings.global.layouts[profileTbl.name].profileLayout and GW.globalSettings.global.layouts[profileTbl.name].profileLayout == true and profileTbl.profileId
                             and GW2UI_SETTINGS_PROFILES[profileTbl.profileId] and GW2UI_SETTINGS_PROFILES[profileTbl.profileId].profilename then
                             GW.globalSettings.global.layouts[profileTbl.name].profileName = GW2UI_SETTINGS_PROFILES[profileTbl.profileId].profilename
                         end
@@ -313,6 +313,31 @@ local function DatabaseValueMigration()
         GW.settings.immersiveQuesting.enabled = GW.settings.QUESTVIEW_ENABLED
         GW.settings.QUESTVIEW_ENABLED = nil
     end
+
+    if GW.settings.OBJECTIVES_COLLAPSE_IN_M_PLUS ~= nil then
+        GW.settings.ObjectivesAutoCollapse.MythicPlus = GW.settings.OBJECTIVES_COLLAPSE_IN_M_PLUS == true
+        GW.settings.OBJECTIVES_COLLAPSE_IN_M_PLUS = nil
+    end
+
+    if GW.settings.TotemBar_GrowDirection ~= nil then
+        GW.settings.TotemBar.growDirection = GW.settings.TotemBar_GrowDirection
+        GW.settings.TotemBar_GrowDirection = nil
+    end
+    if GW.settings.TotemBar_SortDirection ~= nil then
+        GW.settings.TotemBar.sortDirection = GW.settings.TotemBar_SortDirection
+        GW.settings.TotemBar_SortDirection = nil
+    end
+
+    if GW.settings.StanceBar_GrowDirection ~= nil then
+        GW.settings.StanceBar.growDirection = GW.settings.StanceBar_GrowDirection
+        GW.settings.StanceBar_GrowDirection = nil
+
+        GW.settings.StanceBar.containerState = GW.settings.StanceBarContainerState
+        GW.settings.StanceBarContainerState = nil
+
+        GW.settings.StanceBar.enabled = GW.settings.StanceBarEnabled
+        GW.settings.StanceBarEnabled = nil
+    end
 end
 GW.DatabaseValueMigration = DatabaseValueMigration
 
@@ -338,8 +363,8 @@ local function Migration()
         end
 
         if GW.MoveHudScaleableFrame then
+            GW.MoveHudScaleableFrame.layoutManager:SetAttribute("inMoveHudMode", false)
             GW.MoveHudScaleableFrame.layoutManager:GetScript("OnEvent")(GW.MoveHudScaleableFrame.layoutManager)
-            GW.MoveHudScaleableFrame.layoutManager:SetAttribute("InMoveHudMode", false)
         end
 
         GW.InMoveHudMode = false

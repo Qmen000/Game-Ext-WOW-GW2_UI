@@ -19,6 +19,50 @@ for i = 1, #auraOptionsOther do
     tinsert(auraOptionsNames, auraOptionsNamesOther[i])
 end
 
+local classOrderValues, classOrderNames = {}, {}
+local pendingGridSettingUpdates = {}
+local pendingGridSettingTimers = {}
+
+for _, classFile in ipairs({"DEATHKNIGHT","DEMONHUNTER","DRUID","EVOKER","HUNTER","MAGE","PALADIN","PRIEST","ROGUE","SHAMAN","WARLOCK","WARRIOR","MONK"}) do
+    local maleName = LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[classFile]
+    local femaleName = LOCALIZED_CLASS_NAMES_FEMALE and LOCALIZED_CLASS_NAMES_FEMALE[classFile]
+    local className = maleName or femaleName
+    if className then
+        local index = #classOrderValues + 1
+        local color = RAID_CLASS_COLORS[classFile]
+
+        classOrderValues[index] = classFile
+        classOrderNames[index] =  color:WrapTextInColorCode(className)
+    end
+end
+
+local function IsGridPreviewActive(profile)
+    local header = GW.GridGroupHeaders[profile]
+    return header and header.forceShow
+end
+
+local function UpdateGridSettingsThrottled(profile, onlyHeaderUpdate, updateHeaderAndFrames)
+    if not IsGridPreviewActive(profile) then
+        GW.UpdateGridSettings(profile, onlyHeaderUpdate, updateHeaderAndFrames)
+        return
+    end
+
+    pendingGridSettingUpdates[profile] = true
+
+    if pendingGridSettingTimers[profile] then return end
+
+    pendingGridSettingTimers[profile] = C_Timer.NewTimer(0.1, function()
+        pendingGridSettingTimers[profile] = nil
+
+        local hasPendingUpdate = pendingGridSettingUpdates[profile]
+        pendingGridSettingUpdates[profile] = nil
+        if hasPendingUpdate then
+            GW.UpdateGridSettings(profile, true)
+            GW.RefreshGridConfigurationMode(profile, nil, true)
+        end
+    end)
+end
+
 --general Grid Settings
 local function LoadGeneralGridSettings(panel)
     local general = CreateFrame("Frame", nil, panel, "GwSettingsPanelTmpl")
@@ -50,7 +94,30 @@ local function CreateAuraFilterSection(panel, profile, buffDb, debuffDb, showBuf
     panel:AddOption(SHOW_DEBUFFS, OPTION_TOOLTIP_SHOW_ALL_ENEMY_DEBUFFS, {getterSetter = showDebuffs, callback = function() GW.UpdateGridSettings(profile) end, dependence = {["RAID_FRAMES"] = true, [dependence] = true}, groupHeaderName = L["Debuffs"]})
     panel:AddOptionDropdown(L["Debuffs"], nil, {getterSetter = debuffDb, callback = function() GW.UpdateGridSettings(profile) end, optionsList = auraOptions, optionNames = auraOptionsNames, checkbox = true, dependence = {["RAID_FRAMES"] = true, [dependence] = true, [showDebuffs] = true}, groupHeaderName = L["Debuffs"], hidden = not GW.Retail})
     panel:AddOption(L["Private Auras"], nil, {getterSetter = showPrivateAuras, callback = function() GW.UpdateGridSettings(profile) end, dependence = {["RAID_FRAMES"] = true, [dependence] = true}, groupHeaderName = L["Debuffs"], hidden = not GW.Retail or not showPrivateAuras})
-    panel:AddOptionSlider(L["Private Auras size"], L["Set the size of Private Auras on this grid."], {getterSetter = privateAuraSize, callback = function() GW.UpdateGridSettings(profile) end, min = 8, max = 40, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, [dependence] = true}, groupHeaderName = L["Debuffs"], hidden = not GW.Retail or not showPrivateAuras})
+    panel:AddOptionSlider(L["Private Auras size"], L["Set the size of Private Auras on this grid."], {getterSetter = privateAuraSize, callback = function() UpdateGridSettingsThrottled(profile) end, min = 8, max = 40, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, [dependence] = true}, groupHeaderName = L["Debuffs"], hidden = not GW.Retail or not showPrivateAuras})
+end
+
+local function CreateClassSortebalList(panel, setting, dependence)
+    panel:AddOptionSortableList(L["Class Order"], L["Set the order of classes."], {
+        getterSetter = setting,
+        callback = nil,
+        optionsList = classOrderValues,
+        optionNames = classOrderNames,
+        maxVisibleRows = 6,
+        dependence = {[dependence] = {"CLASS"}}
+    })
+end
+
+local function UpdateGridSettingsAndRefreshPreview(profile, onlyHeaderUpdate, updateHeaderAndFrames)
+    if IsGridPreviewActive(profile) then
+        GW.UpdateGridSettings(profile, true)
+        if GW.RefreshGridConfigurationMode then
+            GW.RefreshGridConfigurationMode(profile, true)
+        end
+        return
+    end
+
+    GW.UpdateGridSettings(profile, onlyHeaderUpdate, updateHeaderAndFrames)
 end
 
 -- Profiles
@@ -82,7 +149,7 @@ local function LoadRaid10Profile(panel)
     raid10.preview:SetScript("OnLeave", GameTooltip_Hide)
     raid10.preview:SetEnabled(GW.settings.RAID10_ENABLED)
 
-    raid10:AddOption(L["Enable Raid 10 grid"], L["Display a separate raid grid for groups from 1 to 10 players"], {getterSetter = "RAID10_ENABLED", callback = function(value) raid10.preview:SetEnabled(value) GW.UpdateGridSettings("RAID10", nil, true) GW.UpdateGridSettings("RAID25", nil, true) GW.UpdateGridSettings("RAID40", nil, true) end, dependence = {["RAID_FRAMES"] = true}})
+    raid10:AddOption(ENABLE, L["Display a separate raid grid for groups from 1 to 10 players"], {getterSetter = "RAID10_ENABLED", isMasterToggle = true, callback = function(value) raid10.preview:SetEnabled(value) GW.UpdateGridSettings("RAID10", nil, true) GW.UpdateGridSettings("RAID25", nil, true) GW.UpdateGridSettings("RAID40", nil, true) end, dependence = {["RAID_FRAMES"] = true}})
     raid10:AddOption(RAID_USE_CLASS_COLORS, L["Use the class color instead of class icons."], {getterSetter = "RAID_CLASS_COLOR_RAID10", callback = function() GW.UpdateGridSettings("RAID10") end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
     raid10:AddOption(L["Hide class icon"], nil, {getterSetter = "RAID_HIDE_CLASS_ICON_RAID10", callback = function() GW.UpdateGridSettings("RAID10") end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true, ["RAID_CLASS_COLOR_RAID10"] = false}})
     raid10:AddOption(RAID_TARGET_ICON, L["Displays the Target Markers on the Raid Unit Frames"], {getterSetter = "RAID_UNIT_MARKERS_RAID10", callback = function() GW.UpdateGridSettings("RAID10") end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
@@ -120,9 +187,9 @@ local function LoadRaid10Profile(panel)
     raid10:AddOption(L["Range"], nil, {getterSetter = "grid10FrameFaderRange", callback = function() GW.UpdateGridSettings("RAID10") end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}, groupHeaderName = L["Fader"]})
     raid10:AddOptionDropdown(L["Fader"], nil, { getterSetter = "grid10FrameFader", callback = function() GW.UpdateGridSettings("RAID10") end, optionsList = {"casting", "combat", "hover", "dynamicflight", "vehicle", "unittarget", "playertarget"}, optionNames = {L["Casting"], COMBAT, L["Hover"], DYNAMIC_FLIGHT, L["Vehicle"], L["Unit Target"], L["Player Target"]}, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true, ["grid10FrameFaderRange"] = false}, checkbox = true, groupHeaderName = L["Fader"]})
 
-    raid10:AddOptionSlider(L["Smooth"], nil, { getterSetter = "grid10FrameFader.smooth", callback = function() GW.UpdateGridSettings("RAID10") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
-    raid10:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "grid10FrameFader.minAlpha", callback = function() GW.UpdateGridSettings("RAID10") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
-    raid10:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "grid10FrameFader.maxAlpha", callback = function() GW.UpdateGridSettings("RAID10") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
+    raid10:AddOptionSlider(L["Smooth"], nil, { getterSetter = "grid10FrameFader.smooth", callback = function() UpdateGridSettingsThrottled("RAID10") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
+    raid10:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "grid10FrameFader.minAlpha", callback = function() UpdateGridSettingsThrottled("RAID10") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
+    raid10:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "grid10FrameFader.maxAlpha", callback = function() UpdateGridSettingsThrottled("RAID10") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
 
     -- Size and Positions
     raid10:AddGroupHeader( L["Size and Positions"])
@@ -134,20 +201,21 @@ local function LoadRaid10Profile(panel)
             end
        ), dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
 
-    raid10:AddOptionSlider(L["Groups Per Row/Column"], nil, { getterSetter = "RAID_GROUPS_PER_COLUMN_RAID10", callback = function() GW.UpdateGridSettings("RAID10", true) end, min = 1, max = 2, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
-    raid10:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "RAID_WIDTH_RAID10", callback = function() GW.UpdateGridSettings("RAID10", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
-    raid10:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "RAID_HEIGHT_RAID10", callback = function() GW.UpdateGridSettings("RAID10", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
-    raid10:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "RAID_UNITS_HORIZONTAL_SPACING_RAID10", callback = function() GW.UpdateGridSettings("RAID10", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
-    raid10:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "RAID_UNITS_VERTICAL_SPACING_RAID10", callback = function() GW.UpdateGridSettings("RAID10", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
-    raid10:AddOptionSlider(L["Group Spacing"], L["Additional spacing between each individual group."], { getterSetter = "RAID_UNITS_GROUP_SPACING_RAID10", callback = function() GW.UpdateGridSettings("RAID10", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
+    raid10:AddOptionSlider(L["Groups Per Row/Column"], nil, { getterSetter = "RAID_GROUPS_PER_COLUMN_RAID10", callback = function() UpdateGridSettingsThrottled("RAID10", true) end, min = 1, max = 2, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
+    raid10:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "RAID_WIDTH_RAID10", callback = function() UpdateGridSettingsThrottled("RAID10", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
+    raid10:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "RAID_HEIGHT_RAID10", callback = function() UpdateGridSettingsThrottled("RAID10", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
+    raid10:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "RAID_UNITS_HORIZONTAL_SPACING_RAID10", callback = function() UpdateGridSettingsThrottled("RAID10", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
+    raid10:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "RAID_UNITS_VERTICAL_SPACING_RAID10", callback = function() UpdateGridSettingsThrottled("RAID10", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
+    raid10:AddOptionSlider(L["Group Spacing"], L["Additional spacing between each individual group."], { getterSetter = "RAID_UNITS_GROUP_SPACING_RAID10", callback = function() UpdateGridSettingsThrottled("RAID10", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
 
     -- Sorting
     raid10:AddGroupHeader(L["Grouping & Sorting"])
-    raid10:AddOption(L["Raid-Wide Sorting"], L["Enabling this allows raid-wide sorting however you will not be able to distinguish between groups."], {getterSetter = "RAID_WIDE_SORTING_RAID10", callback = function() GW.UpdateGridSettings("RAID10", false, true) end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
-    raid10:AddOptionDropdown(L["Group By"], L["Set the order that the group will sort."], { getterSetter = "RAID_GROUP_BY_RAID10", callback = function() GW.UpdateGridSettings("RAID10", true) end, optionsList = {"CLASS", "GROUP", "INDEX", "NAME", "ROLE"}, optionNames = {CLASS, GROUP, "Index", NAME, ROLE}, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
-    raid10:AddOptionDropdown(L["Sort Direction"], nil, { getterSetter = "RAID_SORT_DIRECTION_RAID10", callback = function() GW.UpdateGridSettings("RAID10", true) end, optionsList = {"ASC", "DESC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
-    raid10:AddOptionDropdown(L["Sort Method"], nil, { getterSetter = "RAID_RAID_SORT_METHOD_RAID10", callback = function() GW.UpdateGridSettings("RAID10", true) end, optionsList = {"INDEX", "NAME"}, optionNames = {L["Index"], NAME}, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true, ["RAID_GROUP_BY_RAID10"] = {"CLASS", "GROUP", "NAME", "ROLE"}}})
+    raid10:AddOption(L["Raid-Wide Sorting"], L["Enabling this allows raid-wide sorting however you will not be able to distinguish between groups."], {getterSetter = "RAID_WIDE_SORTING_RAID10", callback = function() UpdateGridSettingsAndRefreshPreview("RAID10", false, true) end, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
+    raid10:AddOptionDropdown(L["Group By"], L["Set the order that the group will sort."], { getterSetter = "RAID_GROUP_BY_RAID10", callback = function() UpdateGridSettingsAndRefreshPreview("RAID10", true) end, optionsList = {"CLASS", "GROUP", "INDEX", "NAME", "ROLE"}, optionNames = {CLASS, GROUP, "Index", NAME, ROLE}, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
+    raid10:AddOptionDropdown(L["Sort Direction"], nil, { getterSetter = "RAID_SORT_DIRECTION_RAID10", callback = function() UpdateGridSettingsAndRefreshPreview("RAID10", true) end, optionsList = {"ASC", "DESC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true}})
+    raid10:AddOptionDropdown(L["Sort Method"], nil, { getterSetter = "RAID_RAID_SORT_METHOD_RAID10", callback = function() UpdateGridSettingsAndRefreshPreview("RAID10", true) end, optionsList = {"INDEX", "NAME"}, optionNames = {L["Index"], NAME}, dependence = {["RAID_FRAMES"] = true, ["RAID10_ENABLED"] = true, ["RAID_GROUP_BY_RAID10"] = {"CLASS", "GROUP", "NAME", "ROLE"}}})
 
+    CreateClassSortebalList(raid10, "Raid10GroupByClassOrder", "RAID_GROUP_BY_RAID10")
     return raid10
 end
 
@@ -179,7 +247,7 @@ local function LoadRaid25Profile(panel)
     raid25.preview:SetScript("OnLeave", GameTooltip_Hide)
     raid25.preview:SetEnabled(GW.settings.RAID25_ENABLED)
 
-    raid25:AddOption(L["Enable Raid 25 grid"], L["Display a separate raid grid for groups from 11 to 25 players"], {getterSetter = "RAID25_ENABLED", callback = function(value) raid25.preview:SetEnabled(value); GW.UpdateGridSettings("RAID10", nil, true); GW.UpdateGridSettings("RAID25", nil, true); GW.UpdateGridSettings("RAID40", nil, true) end, dependence = {["RAID_FRAMES"] = true}})
+    raid25:AddOption(ENABLE, L["Display a separate raid grid for groups from 11 to 25 players"], {getterSetter = "RAID25_ENABLED", isMasterToggle = true, callback = function(value) raid25.preview:SetEnabled(value); GW.UpdateGridSettings("RAID10", nil, true); GW.UpdateGridSettings("RAID25", nil, true); GW.UpdateGridSettings("RAID40", nil, true) end, dependence = {["RAID_FRAMES"] = true}})
     raid25:AddOption(RAID_USE_CLASS_COLORS, L["Use the class color instead of class icons."], {getterSetter = "RAID_CLASS_COLOR_RAID25", callback = function() GW.UpdateGridSettings("RAID25") end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
     raid25:AddOption(L["Hide class icon"], nil, {getterSetter = "RAID_HIDE_CLASS_ICON_RAID25", callback = function() GW.UpdateGridSettings("RAID25") end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true, ["RAID_CLASS_COLOR_RAID25"] = false}})
     raid25:AddOption(RAID_TARGET_ICON, L["Displays the Target Markers on the Raid Unit Frames"], {getterSetter = "RAID_UNIT_MARKERS_RAID25", callback = function() GW.UpdateGridSettings("RAID25") end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
@@ -217,9 +285,9 @@ local function LoadRaid25Profile(panel)
     raid25:AddOption(L["Range"], nil, {getterSetter = "grid25FrameFaderRange", callback = function() GW.UpdateGridSettings("RAID25") end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}, groupHeaderName = L["Fader"]})
 
     raid25:AddOptionDropdown(L["Fader"], nil, { getterSetter = "grid25FrameFader", callback = function() GW.UpdateGridSettings("RAID25") end, optionsList = {"casting", "combat", "hover", "dynamicflight", "vehicle", "unittarget", "playertarget"}, optionNames = {L["Casting"], COMBAT, L["Hover"], DYNAMIC_FLIGHT, L["Vehicle"], L["Unit Target"], L["Player Target"]}, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true, ["grid25FrameFaderRange"] = false}, checkbox = true, groupHeaderName = L["Fader"]})
-    raid25:AddOptionSlider(L["Smooth"], nil, { getterSetter = "grid25FrameFader.smooth", callback = function() GW.UpdateGridSettings("RAID25") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
-    raid25:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "grid25FrameFader.minAlpha", callback = function() GW.UpdateGridSettings("RAID25") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
-    raid25:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "grid25FrameFader.maxAlpha", callback = function() GW.UpdateGridSettings("RAID25") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
+    raid25:AddOptionSlider(L["Smooth"], nil, { getterSetter = "grid25FrameFader.smooth", callback = function() UpdateGridSettingsThrottled("RAID25") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
+    raid25:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "grid25FrameFader.minAlpha", callback = function() UpdateGridSettingsThrottled("RAID25") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
+    raid25:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "grid25FrameFader.maxAlpha", callback = function() UpdateGridSettingsThrottled("RAID25") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
 
     -- Size and Positions
     raid25:AddGroupHeader( L["Size and Positions"])
@@ -231,20 +299,21 @@ local function LoadRaid25Profile(panel)
         end
    ), dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
 
-    raid25:AddOptionSlider(L["Groups Per Row/Column"], nil, { getterSetter = "RAID_GROUPS_PER_COLUMN_RAID25", callback = function() GW.UpdateGridSettings("RAID25", true) end, min = 1, max = 5, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
-    raid25:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "RAID_WIDTH_RAID25", callback = function() GW.UpdateGridSettings("RAID25", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
-    raid25:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "RAID_HEIGHT_RAID25", callback = function() GW.UpdateGridSettings("RAID25", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
-    raid25:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "RAID_UNITS_HORIZONTAL_SPACING_RAID25", callback = function() GW.UpdateGridSettings("RAID25", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
-    raid25:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "RAID_UNITS_VERTICAL_SPACING_RAID25", callback = function() GW.UpdateGridSettings("RAID25", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
-    raid25:AddOptionSlider(L["Group Spacing"], L["Additional spacing between each individual group."], { getterSetter = "RAID_UNITS_GROUP_SPACING_RAID25", callback = function() GW.UpdateGridSettings("RAID25", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
+    raid25:AddOptionSlider(L["Groups Per Row/Column"], nil, { getterSetter = "RAID_GROUPS_PER_COLUMN_RAID25", callback = function() UpdateGridSettingsThrottled("RAID25", true) end, min = 1, max = 5, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
+    raid25:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "RAID_WIDTH_RAID25", callback = function() UpdateGridSettingsThrottled("RAID25", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
+    raid25:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "RAID_HEIGHT_RAID25", callback = function() UpdateGridSettingsThrottled("RAID25", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
+    raid25:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "RAID_UNITS_HORIZONTAL_SPACING_RAID25", callback = function() UpdateGridSettingsThrottled("RAID25", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
+    raid25:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "RAID_UNITS_VERTICAL_SPACING_RAID25", callback = function() UpdateGridSettingsThrottled("RAID25", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
+    raid25:AddOptionSlider(L["Group Spacing"], L["Additional spacing between each individual group."], { getterSetter = "RAID_UNITS_GROUP_SPACING_RAID25", callback = function() UpdateGridSettingsThrottled("RAID25", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
 
     -- Sorting
     raid25:AddGroupHeader(L["Grouping & Sorting"])
-    raid25:AddOption(L["Raid-Wide Sorting"], L["Enabling this allows raid-wide sorting however you will not be able to distinguish between groups."], {getterSetter = "RAID_WIDE_SORTING_RAID25", callback = function() GW.UpdateGridSettings("RAID25", false, true) end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
-    raid25:AddOptionDropdown(L["Group By"], L["Set the order that the group will sort."], { getterSetter = "RAID_GROUP_BY_RAID25", callback = function() GW.UpdateGridSettings("RAID25", true) end, optionsList = {"CLASS", "GROUP", "INDEX", "NAME", "ROLE"}, optionNames = {CLASS, GROUP, "Index", NAME, ROLE}, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
-    raid25:AddOptionDropdown(L["Sort Direction"], nil, { getterSetter = "RAID_SORT_DIRECTION_RAID25", callback = function() GW.UpdateGridSettings("RAID25", true) end, optionsList = {"ASC", "DESC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
-    raid25:AddOptionDropdown(L["Sort Method"], nil, { getterSetter = "RAID_RAID_SORT_METHOD_RAID25", callback = function() GW.UpdateGridSettings("RAID25", true) end, optionsList = {"INDEX", "NAME"}, optionNames = {L["Index"], NAME}, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true, ["RAID_GROUP_BY_RAID25"] = {"CLASS", "GROUP", "NAME", "ROLE"}}})
+    raid25:AddOption(L["Raid-Wide Sorting"], L["Enabling this allows raid-wide sorting however you will not be able to distinguish between groups."], {getterSetter = "RAID_WIDE_SORTING_RAID25", callback = function() UpdateGridSettingsAndRefreshPreview("RAID25", false, true) end, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
+    raid25:AddOptionDropdown(L["Group By"], L["Set the order that the group will sort."], { getterSetter = "RAID_GROUP_BY_RAID25", callback = function() UpdateGridSettingsAndRefreshPreview("RAID25", true) end, optionsList = {"CLASS", "GROUP", "INDEX", "NAME", "ROLE"}, optionNames = {CLASS, GROUP, "Index", NAME, ROLE}, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
+    raid25:AddOptionDropdown(L["Sort Direction"], nil, { getterSetter = "RAID_SORT_DIRECTION_RAID25", callback = function() UpdateGridSettingsAndRefreshPreview("RAID25", true) end, optionsList = {"ASC", "DESC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true}})
+    raid25:AddOptionDropdown(L["Sort Method"], nil, { getterSetter = "RAID_RAID_SORT_METHOD_RAID25", callback = function() UpdateGridSettingsAndRefreshPreview("RAID25", true) end, optionsList = {"INDEX", "NAME"}, optionNames = {L["Index"], NAME}, dependence = {["RAID_FRAMES"] = true, ["RAID25_ENABLED"] = true, ["RAID_GROUP_BY_RAID25"] = {"CLASS", "GROUP", "NAME", "ROLE"}}})
 
+    CreateClassSortebalList(raid25, "Raid25GroupByClassOrder", "RAID_GROUP_BY_RAID25")
     return raid25
 end
 
@@ -276,6 +345,7 @@ local function LoadRaid40Profile(panel)
     raid40.preview:SetScript("OnLeave", GameTooltip_Hide)
     raid40.preview:SetEnabled(GW.settings.RAID_FRAMES)
 
+    raid40:AddOption(ENABLE, RAID_FRAMES_SUBTEXT, {getterSetter = "RAID_FRAMES", callback = function() GW.ShowRlPopup = true end, isMasterToggle = true})
     raid40:AddOption(RAID_USE_CLASS_COLORS, L["Use the class color instead of class icons."], {getterSetter = "RAID_CLASS_COLOR", callback = function(value) raid40.preview:SetEnabled(value); GW.UpdateGridSettings("RAID40") end, dependence = {["RAID_FRAMES"] = true}})
     raid40:AddOption(L["Hide class icon"], nil, {getterSetter = "RAID_HIDE_CLASS_ICON", callback = function() GW.UpdateGridSettings("RAID40") end, dependence = {["RAID_FRAMES"] = true, ["RAID_CLASS_COLOR"] = false}})
     raid40:AddOption(RAID_TARGET_ICON, L["Displays the Target Markers on the Raid Unit Frames"], {getterSetter = "RAID_UNIT_MARKERS", callback = function() GW.UpdateGridSettings("RAID40") end, dependence = {["RAID_FRAMES"] = true}})
@@ -310,9 +380,9 @@ local function LoadRaid40Profile(panel)
     raid40:AddGroupHeader(L["Fader"])
     raid40:AddOption(L["Range"], nil, {getterSetter = "grid40FrameFaderRange", callback = function() GW.UpdateGridSettings("RAID40") end, dependence = {["RAID_FRAMES"] = true}, groupHeaderName = L["Fader"]})
     raid40:AddOptionDropdown(L["Fader"], nil, { getterSetter = "grid40FrameFader", callback = function() GW.UpdateGridSettings("RAID40") end, optionsList = {"casting", "combat", "hover", "dynamicflight", "vehicle", "unittarget", "playertarget"}, optionNames = {L["Casting"], COMBAT, L["Hover"], DYNAMIC_FLIGHT, L["Vehicle"], L["Unit Target"], L["Player Target"]}, dependence = {["RAID_FRAMES"] = true, ["grid40FrameFaderRange"] = false}, checkbox = true, groupHeaderName = L["Fader"]})
-    raid40:AddOptionSlider(L["Smooth"], nil, { getterSetter = "grid40FrameFader.smooth", callback = function() GW.UpdateGridSettings("RAID40") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true}})
-    raid40:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "grid40FrameFader.minAlpha", callback = function() GW.UpdateGridSettings("RAID40") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true}})
-    raid40:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "grid40FrameFader.maxAlpha", callback = function() GW.UpdateGridSettings("RAID40") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true}})
+    raid40:AddOptionSlider(L["Smooth"], nil, { getterSetter = "grid40FrameFader.smooth", callback = function() UpdateGridSettingsThrottled("RAID40") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true}})
+    raid40:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "grid40FrameFader.minAlpha", callback = function() UpdateGridSettingsThrottled("RAID40") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true}})
+    raid40:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "grid40FrameFader.maxAlpha", callback = function() UpdateGridSettingsThrottled("RAID40") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true}})
 
     -- Size and Positions
     raid40:AddGroupHeader(L["Size and Positions"])
@@ -324,20 +394,20 @@ local function LoadRaid40Profile(panel)
         end
    ), dependence = {["RAID_FRAMES"] = true}})
 
-    raid40:AddOptionSlider(L["Groups Per Row/Column"], nil, { getterSetter = "RAID_GROUPS_PER_COLUMN", callback = function() GW.UpdateGridSettings("RAID40", true) end, min = 1, max = 8, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true}})
-    raid40:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "RAID_WIDTH", callback = function() GW.UpdateGridSettings("RAID40", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true}})
-    raid40:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "RAID_HEIGHT", callback = function() GW.UpdateGridSettings("RAID40", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true}})
-    raid40:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "RAID_UNITS_HORIZONTAL_SPACING", callback = function() GW.UpdateGridSettings("RAID40", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true}})
-    raid40:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "RAID_UNITS_VERTICAL_SPACING", callback = function() GW.UpdateGridSettings("RAID40", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true}})
-    raid40:AddOptionSlider(L["Group Spacing"], L["Additional spacing between each individual group."], { getterSetter = "RAID_UNITS_GROUP_SPACING", callback = function() GW.UpdateGridSettings("RAID40", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence ={["RAID_FRAMES"] = true}})
+    raid40:AddOptionSlider(L["Groups Per Row/Column"], nil, { getterSetter = "RAID_GROUPS_PER_COLUMN", callback = function() UpdateGridSettingsThrottled("RAID40", true) end, min = 1, max = 8, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true}})
+    raid40:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "RAID_WIDTH", callback = function() UpdateGridSettingsThrottled("RAID40", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true}})
+    raid40:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "RAID_HEIGHT", callback = function() UpdateGridSettingsThrottled("RAID40", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true}})
+    raid40:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "RAID_UNITS_HORIZONTAL_SPACING", callback = function() UpdateGridSettingsThrottled("RAID40", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true}})
+    raid40:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "RAID_UNITS_VERTICAL_SPACING", callback = function() UpdateGridSettingsThrottled("RAID40", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true}})
+    raid40:AddOptionSlider(L["Group Spacing"], L["Additional spacing between each individual group."], { getterSetter = "RAID_UNITS_GROUP_SPACING", callback = function() UpdateGridSettingsThrottled("RAID40", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence ={["RAID_FRAMES"] = true}})
 
     -- Sorting
     raid40:AddGroupHeader(L["Grouping & Sorting"])
-    raid40:AddOption(L["Raid-Wide Sorting"], L["Enabling this allows raid-wide sorting however you will not be able to distinguish between groups."], {getterSetter = "RAID_WIDE_SORTING", callback = function() GW.UpdateGridSettings("RAID40", false, true) end, dependence = {["RAID_FRAMES"] = true}})
-    raid40:AddOptionDropdown(L["Group By"], L["Set the order that the group will sort."], { getterSetter = "RAID_GROUP_BY", callback = function() GW.UpdateGridSettings("RAID40", true) end, optionsList = {"CLASS", "GROUP", "INDEX", "NAME", "ROLE"}, optionNames = {CLASS, GROUP, "Index", NAME, ROLE}, dependence = {["RAID_FRAMES"] = true}})
-    raid40:AddOptionDropdown(L["Sort Direction"], nil, { getterSetter = "RAID_SORT_DIRECTION", callback = function() GW.UpdateGridSettings("RAID40", true) end, optionsList = {"ASC", "DESC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["RAID_FRAMES"] = true}})
-    raid40:AddOptionDropdown(L["Sort Method"], nil, { getterSetter = "T", callback = function() GW.UpdateGridSettings("RAID40", true) end, optionsList = {"INDEX", "NAME"}, optionNames = {L["Index"], NAME}, dependence = {["RAID_FRAMES"] = true, ["RAID_GROUP_BY"] = {"CLASS", "GROUP", "NAME", "ROLE"}}})
-
+    raid40:AddOption(L["Raid-Wide Sorting"], L["Enabling this allows raid-wide sorting however you will not be able to distinguish between groups."], {getterSetter = "RAID_WIDE_SORTING", callback = function() UpdateGridSettingsAndRefreshPreview("RAID40", false, true) end, dependence = {["RAID_FRAMES"] = true}})
+    raid40:AddOptionDropdown(L["Group By"], L["Set the order that the group will sort."], { getterSetter = "RAID_GROUP_BY", callback = function() UpdateGridSettingsAndRefreshPreview("RAID40", true) end, optionsList = {"CLASS", "GROUP", "INDEX", "NAME", "ROLE"}, optionNames = {CLASS, GROUP, "Index", NAME, ROLE}, dependence = {["RAID_FRAMES"] = true}})
+    raid40:AddOptionDropdown(L["Sort Direction"], nil, { getterSetter = "RAID_SORT_DIRECTION", callback = function() UpdateGridSettingsAndRefreshPreview("RAID40", true) end, optionsList = {"ASC", "DESC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["RAID_FRAMES"] = true}})
+    raid40:AddOptionDropdown(L["Sort Method"], nil, { getterSetter = "T", callback = function() UpdateGridSettingsAndRefreshPreview("RAID40", true) end, optionsList = {"INDEX", "NAME"}, optionNames = {L["Index"], NAME}, dependence = {["RAID_FRAMES"] = true, ["RAID_GROUP_BY"] = {"CLASS", "GROUP", "NAME", "ROLE"}}})
+    CreateClassSortebalList(raid40, "Raid40GroupByClassOrder", "RAID_GROUP_BY")
     return raid40
 end
 
@@ -369,7 +439,7 @@ local function LoadMaintankProfile(panel)
     tank.preview:SetScript("OnLeave", GameTooltip_Hide)
     tank.preview:SetEnabled(GW.settings.RAID_MAINTANK_FRAMES_ENABLED)
 
-    tank:AddOption(L["Enable Maintank grid"], nil, {getterSetter = "RAID_MAINTANK_FRAMES_ENABLED", callback = function(value) tank.preview:SetEnabled(value); GW.UpdateGridSettings("TANK", nil, true) end, dependence = {["RAID_FRAMES"] = true}})
+    tank:AddOption(ENABLE, L["Enable Maintank grid"], {getterSetter = "RAID_MAINTANK_FRAMES_ENABLED", isMasterToggle = true, callback = function(value) tank.preview:SetEnabled(value); GW.UpdateGridSettings("TANK", nil, true) end, dependence = {["RAID_FRAMES"] = true}})
     tank:AddOption(RAID_USE_CLASS_COLORS, L["Use the class color instead of class icons."], {getterSetter = "RAID_CLASS_COLOR_TANK", callback = function() GW.UpdateGridSettings("TANK") end, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
     tank:AddOption(L["Hide class icon"], nil, {getterSetter = "RAID_HIDE_CLASS_ICON_TANK", callback = function() GW.UpdateGridSettings("TANK") end, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true, ["RAID_CLASS_COLOR_TANK"] = false}})
     tank:AddOption(RAID_TARGET_ICON, L["Displays the Target Markers on the Raid Unit Frames"], {getterSetter = "RAID_UNIT_MARKERS_TANK", callback = function() GW.UpdateGridSettings("TANK") end, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
@@ -403,10 +473,18 @@ local function LoadMaintankProfile(panel)
     --fader
     tank:AddGroupHeader(L["Fader"])
     tank:AddOption(L["Range"], nil, {getterSetter = "gridTankFrameFaderRange", callback = function() GW.UpdateGridSettings("TANK") end, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}, groupHeaderName = L["Fader"]})
-    tank:AddOptionDropdown(L["Fader"], nil, { getterSetter = "gridTankFrameFader", callback = function() GW.UpdateGridSettings("TANK") end, optionsList = {"casting", "combat", "hover", "dynamicflight", "vehicle", "unittarget", "playertarget"}, optionNames = {L["Casting"], COMBAT, L["Hover"], DYNAMIC_FLIGHT, L["Vehicle"], L["Unit Target"], L["Player Target"]}, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true, ["gridTankFrameFaderRange"] = false}, checkbox = true, groupHeaderName = L["Fader"]})
-    tank:AddOptionSlider(L["Smooth"], nil, { getterSetter = "gridTankFrameFader.smooth", callback = function() GW.UpdateGridSettings("TANK") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
-    tank:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "gridTankFrameFader.minAlpha", callback = function() GW.UpdateGridSettings("TANK") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
-    tank:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "gridTankFrameFader.maxAlpha", callback = function() GW.UpdateGridSettings("TANK") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
+    tank:AddOptionDropdown(L["Fader"], nil, {
+        getterSetter = "gridTankFrameFader",
+        callback = function() GW.UpdateGridSettings("TANK") end,
+        optionsList = {"casting", "combat", "hover", "dynamicflight", "vehicle", "unittarget", "playertarget"},
+        optionNames = {L["Casting"], COMBAT, L["Hover"], DYNAMIC_FLIGHT, L["Vehicle"], L["Unit Target"], L["Player Target"]},
+        dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true, ["gridTankFrameFaderRange"] = false},
+        checkbox = true,
+        groupHeaderName = L["Fader"]
+    })
+    tank:AddOptionSlider(L["Smooth"], nil, { getterSetter = "gridTankFrameFader.smooth", callback = function() UpdateGridSettingsThrottled("TANK") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
+    tank:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "gridTankFrameFader.minAlpha", callback = function() UpdateGridSettingsThrottled("TANK") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
+    tank:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "gridTankFrameFader.maxAlpha", callback = function() UpdateGridSettingsThrottled("TANK") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
 
     -- Size and Positions
     tank:AddGroupHeader( L["Size and Positions"])
@@ -418,10 +496,10 @@ local function LoadMaintankProfile(panel)
         end
    ), dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
 
-    tank:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "RAID_WIDTH_TANK", callback = function() GW.UpdateGridSettings("TANK", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
-    tank:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "RAID_HEIGHT_TANK", callback = function() GW.UpdateGridSettings("TANK", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
-    tank:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "RAID_UNITS_HORIZONTAL_SPACING_TANK", callback = function() GW.UpdateGridSettings("TANK", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
-    tank:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "RAID_UNITS_VERTICAL_SPACING_TANK", callback = function() GW.UpdateGridSettings("TANK", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
+    tank:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "RAID_WIDTH_TANK", callback = function() UpdateGridSettingsThrottled("TANK", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
+    tank:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "RAID_HEIGHT_TANK", callback = function() UpdateGridSettingsThrottled("TANK", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
+    tank:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "RAID_UNITS_HORIZONTAL_SPACING_TANK", callback = function() UpdateGridSettingsThrottled("TANK", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
+    tank:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "RAID_UNITS_VERTICAL_SPACING_TANK", callback = function() UpdateGridSettingsThrottled("TANK", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_MAINTANK_FRAMES_ENABLED"] = true}})
 
     return tank
 end
@@ -454,7 +532,7 @@ local function LoadRaidPetProfile(panel)
     p.preview:SetScript("OnLeave", GameTooltip_Hide)
     p.preview:SetEnabled(GW.settings.RAID_PET_FRAMES)
 
-    p:AddOption(L["Enable Raid pet grid"], L["Show a separate grid for raid pets"], {getterSetter = "RAID_PET_FRAMES", callback = function(value) p.preview:SetEnabled(value); GW.UpdateGridSettings("RAID_PET", nil, true) end, dependence = {["RAID_FRAMES"] = true}})
+    p:AddOption(ENABLE, L["Show a separate grid for raid pets"], {getterSetter = "RAID_PET_FRAMES", isMasterToggle = true, callback = function(value) p.preview:SetEnabled(value); GW.UpdateGridSettings("RAID_PET", nil, true) end, dependence = {["RAID_FRAMES"] = true}})
     p:AddOption(RAID_TARGET_ICON, L["Displays the Target Markers on the Raid Unit Frames"], {getterSetter = "RAID_UNIT_MARKERS_PET", callback = function() GW.UpdateGridSettings("RAID_PET") end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
     p:AddOption(L["Start Near Center"], L["The initial group will start near the center and grow out."], {getterSetter = "UNITFRAME_ANCHOR_FROM_CENTER_PET", callback = function() GW.UpdateGridSettings("RAID_PET", true) end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
     p:AddOption(L["Shorten health values"], nil, {getterSetter = "RAID_SHORT_HEALTH_VALUES_PET", callback = function() GW.UpdateGridSettings("RAID_PET") end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}, hidden = not GW.Retail})
@@ -482,9 +560,9 @@ local function LoadRaidPetProfile(panel)
     p:AddGroupHeader(L["Fader"])
     p:AddOption(L["Range"], nil, {getterSetter = "gridPetFrameFaderRange", callback = function() GW.UpdateGridSettings("RAID_PET") end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}, groupHeaderName = L["Fader"]})
     p:AddOptionDropdown(L["Fader"], nil, { getterSetter = "gridPetFrameFader", callback = function() GW.UpdateGridSettings("RAID_PET") end, optionsList = {"casting", "combat", "hover", "dynamicflight", "vehicle", "unittarget", "playertarget"}, optionNames = {L["Casting"], COMBAT, L["Hover"], DYNAMIC_FLIGHT, L["Vehicle"], L["Unit Target"], L["Player Target"]}, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true, ["gridPetFrameFaderRange"] = false}, checkbox = true, groupHeaderName = L["Fader"]})
-    p:AddOptionSlider(L["Smooth"], nil, { getterSetter = "gridPetFrameFader.smooth", callback = function() GW.UpdateGridSettings("RAID_PET") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
-    p:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "gridPetFrameFader.minAlpha", callback = function() GW.UpdateGridSettings("RAID_PET") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
-    p:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "gridPetFrameFader.maxAlpha", callback = function() GW.UpdateGridSettings("RAID_PET") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
+    p:AddOptionSlider(L["Smooth"], nil, { getterSetter = "gridPetFrameFader.smooth", callback = function() UpdateGridSettingsThrottled("RAID_PET") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
+    p:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "gridPetFrameFader.minAlpha", callback = function() UpdateGridSettingsThrottled("RAID_PET") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
+    p:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "gridPetFrameFader.maxAlpha", callback = function() UpdateGridSettingsThrottled("RAID_PET") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
 
     -- Size and Positions
     p:AddGroupHeader( L["Size and Positions"])
@@ -496,18 +574,18 @@ local function LoadRaidPetProfile(panel)
         end
    ), dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
 
-    p:AddOptionSlider(L["Groups Per Row/Column"], nil, { getterSetter = "RAID_GROUPS_PER_COLUMN_PET", callback = function() GW.UpdateGridSettings("RAID_PET", true) end, min = 1, max = 8, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
-    p:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "RAID_WIDTH_PET", callback = function() GW.UpdateGridSettings("RAID_PET", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
-    p:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "RAID_HEIGHT_PET", callback = function() GW.UpdateGridSettings("RAID_PET", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
-    p:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "RAID_UNITS_HORIZONTAL_SPACING_PET", callback = function() GW.UpdateGridSettings("RAID_PET", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
-    p:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "RAID_UNITS_VERTICAL_SPACING_PET", callback = function() GW.UpdateGridSettings("RAID_PET", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
-    p:AddOptionSlider(L["Group Spacing"], L["Additional spacing between each individual group."], { getterSetter = "RAID_UNITS_GROUP_SPACING_PET", callback = function() GW.UpdateGridSettings("RAID_PET", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
+    p:AddOptionSlider(L["Groups Per Row/Column"], nil, { getterSetter = "RAID_GROUPS_PER_COLUMN_PET", callback = function() UpdateGridSettingsThrottled("RAID_PET", true) end, min = 1, max = 8, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
+    p:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "RAID_WIDTH_PET", callback = function() UpdateGridSettingsThrottled("RAID_PET", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
+    p:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "RAID_HEIGHT_PET", callback = function() UpdateGridSettingsThrottled("RAID_PET", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
+    p:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "RAID_UNITS_HORIZONTAL_SPACING_PET", callback = function() UpdateGridSettingsThrottled("RAID_PET", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
+    p:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "RAID_UNITS_VERTICAL_SPACING_PET", callback = function() UpdateGridSettingsThrottled("RAID_PET", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
+    p:AddOptionSlider(L["Group Spacing"], L["Additional spacing between each individual group."], { getterSetter = "RAID_UNITS_GROUP_SPACING_PET", callback = function() UpdateGridSettingsThrottled("RAID_PET", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
 
     -- Sorting
     p:AddGroupHeader(L["Grouping & Sorting"])
-    p:AddOption(L["Raid-Wide Sorting"], L["Enabling this allows raid-wide sorting however you will not be able to distinguish between groups."], {getterSetter = "RAID_WIDE_SORTING_PET", callback = function() GW.UpdateGridSettings("RAID_PET", false, true) end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
-    p:AddOptionDropdown(L["Sort Direction"], nil, { getterSetter = "RAID_SORT_DIRECTION_PET", callback = function() GW.UpdateGridSettings("RAID_PET", true) end, optionsList = {"ASC", "DESC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
-    p:AddOptionDropdown(L["Sort Method"], nil, { getterSetter = "RAID_RAID_SORT_METHOD_PET", callback = function() GW.UpdateGridSettings("RAID_PET", true) end, optionsList = {"INDEX", "NAME"}, optionNames = {L["Index"], NAME}, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
+    p:AddOption(L["Raid-Wide Sorting"], L["Enabling this allows raid-wide sorting however you will not be able to distinguish between groups."], {getterSetter = "RAID_WIDE_SORTING_PET", callback = function() UpdateGridSettingsAndRefreshPreview("RAID_PET", false, true) end, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
+    p:AddOptionDropdown(L["Sort Direction"], nil, { getterSetter = "RAID_SORT_DIRECTION_PET", callback = function() UpdateGridSettingsAndRefreshPreview("RAID_PET", true) end, optionsList = {"ASC", "DESC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
+    p:AddOptionDropdown(L["Sort Method"], nil, { getterSetter = "RAID_RAID_SORT_METHOD_PET", callback = function() UpdateGridSettingsAndRefreshPreview("RAID_PET", true) end, optionsList = {"INDEX", "NAME"}, optionNames = {L["Index"], NAME}, dependence = {["RAID_FRAMES"] = true, ["RAID_PET_FRAMES"] = true}})
 
     return p
 end
@@ -539,7 +617,7 @@ local function LoadPartyProfile(panel)
     party.preview:SetScript("OnLeave", GameTooltip_Hide)
     party.preview:SetEnabled(GW.settings.RAID_STYLE_PARTY)
 
-    party:AddOption(USE_RAID_STYLE_PARTY_FRAMES, OPTION_TOOLTIP_USE_RAID_STYLE_PARTY_FRAMES, {getterSetter = "RAID_STYLE_PARTY", callback = function(value) party.preview:SetEnabled(value); GW.UpdateGridSettings("PARTY", false, true); GW.UpdatePlayerInPartySetting(value) end, dependence = {["RAID_FRAMES"] = true}})
+    party:AddOption(USE_RAID_STYLE_PARTY_FRAMES, OPTION_TOOLTIP_USE_RAID_STYLE_PARTY_FRAMES, {getterSetter = "RAID_STYLE_PARTY", callback = function(value) party.preview:SetEnabled(value); GW.UpdateGridSettings("PARTY", false, true); GW.UpdatePlayerInPartySetting(value) end, isMasterToggle = true, dependence = {["RAID_FRAMES"] = true}})
     party:AddOption(RAID_USE_CLASS_COLORS, L["Use the class color instead of class icons."], {getterSetter = "RAID_CLASS_COLOR_PARTY", callback = function() GW.UpdateGridSettings("PARTY") end, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
     party:AddOption(L["Hide class icon"], nil, {getterSetter = "RAID_HIDE_CLASS_ICON_PARTY", callback = function() GW.UpdateGridSettings("PARTY") end, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true, ["RAID_CLASS_COLOR_PARTY"] = false}})
     party:AddOption(RAID_TARGET_ICON, L["Displays the Target Markers on the Raid Unit Frames"], {getterSetter = "RAID_UNIT_MARKERS_PARTY", callback = function() GW.UpdateGridSettings("PARTY") end, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
@@ -575,10 +653,18 @@ local function LoadPartyProfile(panel)
     --fader
     party:AddGroupHeader(L["Fader"])
     party:AddOption(L["Range"], nil, {getterSetter = "gridPartyFrameFaderRange", callback = function() GW.UpdateGridSettings("PARTY") end, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}, groupHeaderName = L["Fader"]})
-    party:AddOptionDropdown(L["Fader"], nil, { getterSetter = "gridPartyFrameFader", callback = function() GW.UpdateGridSettings("PARTY") end, optionsList = {"casting", "combat", "hover", "dynamicflight", "vehicle", "unittarget", "playertarget"}, optionNames = {L["Casting"], COMBAT, L["Hover"], DYNAMIC_FLIGHT, L["Vehicle"], L["Unit Target"], L["Player Target"]}, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true, ["gridPartyFrameFaderRange"] = false}, checkbox = true, groupHeaderName = L["Fader"]})
-    party:AddOptionSlider(L["Smooth"], nil, { getterSetter = "gridPartyFrameFader.smooth", callback = function() GW.UpdateGridSettings("PARTY") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
-    party:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "gridPartyFrameFader.minAlpha", callback = function() GW.UpdateGridSettings("PARTY") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
-    party:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "gridPartyFrameFader.maxAlpha", callback = function() GW.UpdateGridSettings("PARTY") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
+    party:AddOptionDropdown(L["Fader"], nil, {
+        getterSetter = "gridPartyFrameFader",
+        callback = function() GW.UpdateGridSettings("PARTY") end,
+        optionsList = {"casting", "combat", "hover", "dynamicflight", "vehicle", "unittarget", "playertarget"},
+        optionNames = {L["Casting"], COMBAT, L["Hover"], DYNAMIC_FLIGHT, L["Vehicle"], L["Unit Target"], L["Player Target"]},
+        dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true, ["gridPartyFrameFaderRange"] = false},
+        checkbox = true,
+        groupHeaderName = L["Fader"]
+    })
+    party:AddOptionSlider(L["Smooth"], nil, { getterSetter = "gridPartyFrameFader.smooth", callback = function() UpdateGridSettingsThrottled("PARTY") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
+    party:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "gridPartyFrameFader.minAlpha", callback = function() UpdateGridSettingsThrottled("PARTY") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
+    party:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "gridPartyFrameFader.maxAlpha", callback = function() UpdateGridSettingsThrottled("PARTY") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence =  {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
 
     -- Size and Positions
     party:AddGroupHeader(L["Size and Positions"])
@@ -591,16 +677,16 @@ local function LoadPartyProfile(panel)
    ), dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
 
 
-    party:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "RAID_WIDTH_PARTY", callback = function() GW.UpdateGridSettings("PARTY", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
-    party:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "RAID_HEIGHT_PARTY", callback = function() GW.UpdateGridSettings("PARTY", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
-    party:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "RAID_UNITS_HORIZONTAL_SPACING_PARTY", callback = function() GW.UpdateGridSettings("PARTY", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
-    party:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "RAID_UNITS_VERTICAL_SPACING_PARTY", callback = function() GW.UpdateGridSettings("PARTY", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
+    party:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "RAID_WIDTH_PARTY", callback = function() UpdateGridSettingsThrottled("PARTY", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
+    party:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "RAID_HEIGHT_PARTY", callback = function() UpdateGridSettingsThrottled("PARTY", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
+    party:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "RAID_UNITS_HORIZONTAL_SPACING_PARTY", callback = function() UpdateGridSettingsThrottled("PARTY", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
+    party:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "RAID_UNITS_VERTICAL_SPACING_PARTY", callback = function() UpdateGridSettingsThrottled("PARTY", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
     -- Sorting
     party:AddGroupHeader(L["Grouping & Sorting"])
-    party:AddOptionDropdown(L["Group By"], L["Set the order that the group will sort."], { getterSetter = "RAID_GROUP_BY_PARTY", callback = function() GW.UpdateGridSettings("PARTY", true) end, optionsList = {"CLASS", "GROUP", "INDEX", "NAME", "ROLE"}, optionNames = {CLASS, GROUP, "Index", NAME, ROLE}, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
-    party:AddOptionDropdown(L["Sort Direction"], nil, { getterSetter = "RAID_SORT_DIRECTION_PARTY", callback = function() GW.UpdateGridSettings("PARTY", true) end, optionsList = {"ASC", "DESC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
-    party:AddOptionDropdown(L["Sort Method"], nil, { getterSetter = "RAID_RAID_SORT_METHOD_PARTY", callback = function() GW.UpdateGridSettings("PARTY", true) end, optionsList = {"INDEX", "NAME"}, optionNames = {L["Index"], NAME}, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true, ["RAID_GROUP_BY_PARTY"] = {"CLASS", "GROUP", "NAME", "ROLE"}}})
-
+    party:AddOptionDropdown(L["Group By"], L["Set the order that the group will sort."], { getterSetter = "RAID_GROUP_BY_PARTY", callback = function() UpdateGridSettingsAndRefreshPreview("PARTY", true) end, optionsList = {"CLASS", "GROUP", "INDEX", "NAME", "ROLE"}, optionNames = {CLASS, GROUP, "Index", NAME, ROLE}, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
+    party:AddOptionDropdown(L["Sort Direction"], nil, { getterSetter = "RAID_SORT_DIRECTION_PARTY", callback = function() UpdateGridSettingsAndRefreshPreview("PARTY", true) end, optionsList = {"ASC", "DESC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true}})
+    party:AddOptionDropdown(L["Sort Method"], nil, { getterSetter = "RAID_RAID_SORT_METHOD_PARTY", callback = function() UpdateGridSettingsAndRefreshPreview("PARTY", true) end, optionsList = {"INDEX", "NAME"}, optionNames = {L["Index"], NAME}, dependence = {["RAID_FRAMES"] = true, ["RAID_STYLE_PARTY"] = true, ["RAID_GROUP_BY_PARTY"] = {"CLASS", "GROUP", "NAME", "ROLE"}}})
+    CreateClassSortebalList(party, "PartyGroupByClassOrder", "RAID_GROUP_BY_PARTY")
     return party
 end
 
@@ -632,14 +718,20 @@ local function LoadPartyPetProfile(panel)
     p.preview:SetScript("OnLeave", GameTooltip_Hide)
     p.preview:SetEnabled(GW.settings.PARTY_PET_FRAMES_ENABLED)
 
-    p:AddOption(L["Enable Party pet grid"], L["Show a separate grid for party pets"], {getterSetter = "PARTY_PET_FRAMES_ENABLED", callback = function(value) p.preview:SetEnabled(value); GW.UpdateGridSettings("PARTY_PET", nil, true) end, dependence = {["RAID_FRAMES"] = true}})
+    p:AddOption(ENABLE, L["Show a separate grid for party pets"], {getterSetter = "PARTY_PET_FRAMES_ENABLED", isMasterToggle = true, callback = function(value) p.preview:SetEnabled(value); GW.UpdateGridSettings("PARTY_PET", nil, true) end, dependence = {["RAID_FRAMES"] = true}})
     p:AddOption(RAID_TARGET_ICON, L["Displays the Target Markers on the Raid Unit Frames"], {getterSetter = "PARTY_UNIT_MARKERS_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true, ["RAID_STYLE_PARTY"] = true}})
     p:AddOption(L["Start Near Center"], L["The initial group will start near the center and grow out."], {getterSetter = "PARTY_PET_UNITFRAME_ANCHOR_FROM_CENTER", callback = function() GW.UpdateGridSettings("PARTY_PET", true) end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true, ["RAID_STYLE_PARTY"] = true}})
     p:AddOption(L["Shorten health values"], nil, {getterSetter = "PARTY_SHORT_HEALTH_VALUES_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true, ["RAID_STYLE_PARTY"] = true}, hidden = not GW.Retail})
     p:AddOption(L["Show absorb bar"], nil, {getterSetter = "PARTY_SHOW_ABSORB_BAR_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true, ["RAID_STYLE_PARTY"] = true}, hidden = GW.Classic or GW.TBC or GW.Wrath})
 
     p:AddOptionDropdown(L["Show Aura Tooltips"], L["Show tooltips of buffs and debuffs."], { getterSetter = "PARTY_AURA_TOOLTIP_INCOMBAT_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, optionsList = {"ALWAYS", "NEVER", "IN_COMBAT", "OUT_COMBAT"}, optionNames = {ALWAYS, NEVER, GARRISON_LANDING_STATUS_MISSION_COMBAT, L["Out of combat"]}, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
-    p:AddOptionDropdown(COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT, nil, { getterSetter = "PARTY_UNIT_HEALTH_PET", callback = function() GW.UpdateGridSettings("PARTY_PET") end, optionsList = {"NONE", "PREC", "HEALTH", "LOSTHEALTH"}, optionNames = {COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_NONE, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_PERC, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_HEALTH, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_LOSTHEALTH}, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
+    p:AddOptionDropdown(COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT, nil, {
+        getterSetter = "PARTY_UNIT_HEALTH_PET",
+        callback = function() GW.UpdateGridSettings("PARTY_PET") end,
+        optionsList = {"NONE", "PREC", "HEALTH", "LOSTHEALTH"},
+        optionNames = {COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_NONE, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_PERC, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_HEALTH, COMPACT_UNIT_FRAME_PROFILE_HEALTHTEXT_LOSTHEALTH},
+        dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}
+    })
     p:AddOptionDropdown(L["Healthbar texture"], nil, { getterSetter = "party_pet_FrameHealthBarTexture", callback = function() GW.UpdateGridSettings("PARTY_PET") end, optionsList = statusBarTexturesOptions, optionNames = statusBarTexturesLables, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true, ["RAID_STYLE_PARTY"] = true}})
 
     local dirs, grow = {"Down", "Up", "Right", "Left"}, {}
@@ -659,10 +751,18 @@ local function LoadPartyPetProfile(panel)
     --fader
     p:AddGroupHeader(L["Fader"])
     p:AddOption(L["Range"], nil, {getterSetter = "gridPartyPetFrameFaderRange", callback = function() GW.UpdateGridSettings("PARTY_PET") end, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}, groupHeaderName = L["Fader"]})
-    p:AddOptionDropdown(L["Fader"], nil, { getterSetter = "gridPartyPetFrameFader", callback = function() GW.UpdateGridSettings("PARTY_PET") end, optionsList = {"casting", "combat", "hover", "dynamicflight", "vehicle", "unittarget", "playertarget"}, optionNames = {L["Casting"], COMBAT, L["Hover"], DYNAMIC_FLIGHT, L["Vehicle"], L["Unit Target"], L["Player Target"]}, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true, ["gridPartyPetFrameFaderRange"] = false}, checkbox = true, groupHeaderName = L["Fader"]})
-    p:AddOptionSlider(L["Smooth"], nil, { getterSetter = "gridPartyPetFrameFader.smooth", callback = function() GW.UpdateGridSettings("PARTY_PET") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
-    p:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "gridPartyPetFrameFader.minAlpha", callback = function() GW.UpdateGridSettings("PARTY_PET") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
-    p:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "gridPartyPetFrameFader.maxAlpha", callback = function() GW.UpdateGridSettings("PARTY_PET") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
+    p:AddOptionDropdown(L["Fader"], nil, {
+        getterSetter = "gridPartyPetFrameFader",
+        callback = function() GW.UpdateGridSettings("PARTY_PET") end,
+        optionsList = {"casting", "combat", "hover", "dynamicflight", "vehicle", "unittarget", "playertarget"},
+        optionNames = {L["Casting"], COMBAT, L["Hover"], DYNAMIC_FLIGHT, L["Vehicle"], L["Unit Target"], L["Player Target"]},
+        dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true, ["gridPartyPetFrameFaderRange"] = false},
+        checkbox = true,
+        groupHeaderName = L["Fader"]
+    })
+    p:AddOptionSlider(L["Smooth"], nil, { getterSetter = "gridPartyPetFrameFader.smooth", callback = function() UpdateGridSettingsThrottled("PARTY_PET") end, min = 0, max = 3, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
+    p:AddOptionSlider(L["Min Alpha"], nil, { getterSetter = "gridPartyPetFrameFader.minAlpha", callback = function() UpdateGridSettingsThrottled("PARTY_PET") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
+    p:AddOptionSlider(L["Max Alpha"], nil, { getterSetter = "gridPartyPetFrameFader.maxAlpha", callback = function() UpdateGridSettingsThrottled("PARTY_PET") end, min = 0, max = 1, decimalNumbers = 2, step = 0.01, groupHeaderName = L["Fader"], dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
 
     -- Size and Positions
     p:AddGroupHeader( L["Size and Positions"])
@@ -674,15 +774,15 @@ local function LoadPartyPetProfile(panel)
         end
    ), dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
 
-    p:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "PARTY_WIDTH_PET", callback = function() GW.UpdateGridSettings("PARTY_PET", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
-    p:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "PARTY_HEIGHT_PET", callback = function() GW.UpdateGridSettings("PARTY_PET", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
-    p:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "PARTY_UNITS_HORIZONTAL_SPACING_PET", callback = function() GW.UpdateGridSettings("PARTY_PET", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
-    p:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "PARTY_UNITS_VERTICAL_SPACING_PET", callback = function() GW.UpdateGridSettings("PARTY_PET", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
+    p:AddOptionSlider(L["Set Raid Unit Width"], L["Set the width of the raid units."], { getterSetter = "PARTY_WIDTH_PET", callback = function() UpdateGridSettingsThrottled("PARTY_PET", false, true) end, min = 45, max = 300, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
+    p:AddOptionSlider(L["Set Raid Unit Height"], L["Set the height of the raid units."], { getterSetter = "PARTY_HEIGHT_PET", callback = function() UpdateGridSettingsThrottled("PARTY_PET", false, true) end, min = 15, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
+    p:AddOptionSlider(L["Horizontal Spacing"], nil, { getterSetter = "PARTY_UNITS_HORIZONTAL_SPACING_PET", callback = function() UpdateGridSettingsThrottled("PARTY_PET", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
+    p:AddOptionSlider(L["Vertical Spacing"], nil, { getterSetter = "PARTY_UNITS_VERTICAL_SPACING_PET", callback = function() UpdateGridSettingsThrottled("PARTY_PET", true) end, min = -1, max = 100, decimalNumbers = 0, step = 1, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
 
     -- Sorting
     p:AddGroupHeader(L["Grouping & Sorting"])
-    p:AddOptionDropdown(L["Sort Direction"], nil, { getterSetter = "PARTY_SORT_DIRECTION_PET", callback = function() GW.UpdateGridSettings("PARTY_PET", true) end, optionsList = {"ASC", "DESC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
-    p:AddOptionDropdown(L["Sort Method"], nil, { getterSetter = "PARTY_RAID_SORT_METHOD_PET", callback = function() GW.UpdateGridSettings("PARTY_PET", true) end, optionsList = {"INDEX", "NAME"}, optionNames = {L["Index"], NAME}, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
+    p:AddOptionDropdown(L["Sort Direction"], nil, { getterSetter = "PARTY_SORT_DIRECTION_PET", callback = function() UpdateGridSettingsAndRefreshPreview("PARTY_PET", true) end, optionsList = {"ASC", "DESC"}, optionNames = {L["Ascending"], L["Descending"]}, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
+    p:AddOptionDropdown(L["Sort Method"], nil, { getterSetter = "PARTY_RAID_SORT_METHOD_PET", callback = function() UpdateGridSettingsAndRefreshPreview("PARTY_PET", true) end, optionsList = {"INDEX", "NAME"}, optionNames = {L["Index"], NAME}, dependence = {["RAID_FRAMES"] = true, ["PARTY_PET_FRAMES_ENABLED"] = true,  ["RAID_STYLE_PARTY"] = true}})
 
     return p
 end

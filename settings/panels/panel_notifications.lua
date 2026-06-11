@@ -24,6 +24,7 @@ local function LoadNotificationsPanel(sWindow)
         tinsert(soundKeys, sound)
     end
 
+    p:AddOption(ENABLE, L["Alert Frames"], {getterSetter = "ALERTFRAME_ENABLED", callback = function() GW.ShowRlPopup = true end, isMasterToggle = true})
     p:AddOption(PLAYER_LEVEL_UP, nil, {getterSetter = "ALERTFRAME_NOTIFICATION_LEVEL_UP", dependence = {["ALERTFRAME_ENABLED"] = true}})
     p:AddOptionDropdown(nil, nil, {getterSetter = "ALERTFRAME_NOTIFICATION_LEVEL_UP_SOUND", optionsList = soundKeys, optionNames = soundKeys, dependence = {["ALERTFRAME_ENABLED"] = true, ["ALERTFRAME_NOTIFICATION_LEVEL_UP"] = true}, hasSound = true, noNewLine = true})
 
@@ -48,7 +49,7 @@ local function LoadNotificationsPanel(sWindow)
     p:AddOption(BATTLEGROUND_HOLIDAY, nil, {getterSetter = "ALERTFRAME_NOTIFICATION_CALL_TO_ARMS", dependence = {["ALERTFRAME_ENABLED"] = true}})
     p:AddOptionDropdown(nil, nil, {getterSetter = "ALERTFRAME_NOTIFICATION_CALL_TO_ARMS_SOUND", optionsList = soundKeys, optionNames = soundKeys, dependence = {["ALERTFRAME_ENABLED"] = true, ["ALERTFRAME_NOTIFICATION_CALL_TO_ARMS"] = true}, hasSound = true, noNewLine = true})
 
-    p:AddOption(L["Mage table"], nil, {getterSetter = "ALERTFRAME_NOTIFICATION_MAGE_TABLE", dependence = {["ALERTFRAME_ENABLED"] = true}, hidden = GW.Retail})
+    p:AddOption(L["Mage Table"], nil, {getterSetter = "ALERTFRAME_NOTIFICATION_MAGE_TABLE", dependence = {["ALERTFRAME_ENABLED"] = true}, hidden = GW.Retail})
     p:AddOptionDropdown(nil, nil, {getterSetter = "ALERTFRAME_NOTIFICATION_MAGE_TABLE_SOUND", optionsList = soundKeys, optionNames = soundKeys, dependence = {["ALERTFRAME_ENABLED"] = true, ["ALERTFRAME_NOTIFICATION_MAGE_TABLE"] = true}, hasSound = true, noNewLine = true, hidden = GW.Retail})
 
     p:AddOption(L["Ritual of Summoning"], nil, {getterSetter = "ALERTFRAME_NOTIFICATION_RITUAL_OF_SUMMONING", dependence = {["ALERTFRAME_ENABLED"] = true}, hidden = GW.Retail})

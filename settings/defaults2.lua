@@ -87,7 +87,13 @@ GW.globalDefault = {
     profile = {
         -- reset settings
         Reset_Container_Loot_Order = false,
-        OBJECTIVES_COLLAPSE_IN_M_PLUS = false,
+        ObjectivesAutoCollapse = {
+            MythicPlus = false,
+            Raid = false,
+            Party = false,
+            Delve = false,
+            Combat = false,
+        },
 
         profileCreatedCharacter = "GW2_UI",
         profileCreatedDate = date(GW.L["TimeStamp m/d/y h:m:s"]),
@@ -111,13 +117,16 @@ GW.globalDefault = {
         BAR_LAYOUT_ENABLED = true,
         ActionbarHealthglobeSpace = false,
         BAGS_ENABLED = true,
-        NPC_CAM_ENABLED = false,
         CASTINGBAR_ENABLED = true,
         SHOWACTIONBAR_MACRO_NAME_ENABLED = false,
         ACTIONBAR_BACKGROUND_ALPHA = 0.3,
         HIDEACTIONBAR_BACKGROUND_ENABLED = false,
         SHOW_QUESTTRACKER_COMPASS = true,
         QUESTTRACKER_STATUSBARS_ENABLED = true,
+        OBJECTIVES_SUPERTRACKED_QUEST_TOP = false,
+        OBJECTIVES_SHOW_COMPLETED_OBJECTIVES = false,
+        OBJECTIVES_TRACKER_COMPACT_MODE = false,
+        OBJECTIVES_TRACKER_MODULE_ORDER = {"Achievement", "Campaign", "Quests", "Bonus", "Recipe", "MonthlyActivity", "Collection", "HousingInitiative", "WQT", "PetTracker", "Todoloo"},
         MINIMAP_ALWAYS_SHOW_HOVER_DETAILS = {CLOCK = false, ZONE = false, COORDS = false,},
         CLASS_POWER = true,
         RAID_FRAMES = true,
@@ -125,6 +134,12 @@ GW.globalDefault = {
         ARENA_FRAMES = true,
         PETBAR_ENABLED = true,
         BORDER_ENABLED = true,
+
+        UnitFrameReactionColors = {
+            Friendly = {r = 88 / 255, g = 170 / 255, b = 68 / 255},
+            Hostile = {r = 159 / 255, g = 36 / 255, b = 20 / 255},
+            TappedDenied = {r = 159 / 255, g = 159 / 255, b = 159 / 255},
+        },
 
         micromenu = {
             enabled = true,
@@ -214,6 +229,10 @@ GW.globalDefault = {
         PET_SHOW_ABSORB_BAR = true,
         PET_HEALTH_VALUE_RAW = true,
         PET_HEALTH_VALUE_PERCENT = false,
+        PET_Buff_Filter = "all",
+        PET_Buff_Filter_advanced = CopyTable(GridAuraFilter),
+        PET_Debuff_Filter = "player",
+        PET_Debuff_Filter_advanced = CopyTable(GridAuraFilter),
 
 
         BUTTON_ASSIGNMENTS= true,
@@ -397,6 +416,8 @@ GW.globalDefault = {
         target_ILVL = "PVP_LEVEL",
         target_SHORT_VALUES = false,
         targetFrameHealthBarTexture = "GW2_UI_2_DEFAULT",
+        targetAuraSmallSize = 20,
+        targetAuraBigSize = 26,
 
         focus_TARGET_ENABLED= true,
         focus_TARGET_SHOW_CASTBAR= true,
@@ -420,6 +441,8 @@ GW.globalDefault = {
         focus_FRAME_ALT_BACKGROUND= false,
         focus_SHORT_VALUES = false,
         focusFrameHealthBarTexture = "GW2_UI_2_DEFAULT",
+        focusAuraSmallSize = 20,
+        focusAuraBigSize = 26,
 
         target_pos= {
             point= "TOP",
@@ -667,8 +690,13 @@ GW.globalDefault = {
             hasMoved= false,
         },
         TotemBar_pos_scale= 1,
-        TotemBar_GrowDirection= "HORIZONTAL",
-        TotemBar_SortDirection= "ASC",
+        TotemBar = {
+            enabled = true,
+            growDirection = "HORIZONTAL",
+            sortDirection= "ASC",
+            spacing = 3,
+            buttonSize = 48,
+        },
 
         StanceBar_pos= {
             point= "BOTTOMLEFT",
@@ -678,9 +706,16 @@ GW.globalDefault = {
             hasMoved= false,
         },
         StanceBar_pos_scale= 1,
-        StanceBar_GrowDirection= "UP",
-        StanceBarContainerState= "close",
-        StanceBarEnabled = true,
+        StanceBar = {
+            enabled = true,
+            growDirection = "UP",
+            buttonSize = 30,
+            spacing = 2,
+            alpha = 1,
+            mouseOver = false,
+            visibility = "show",
+            containerState = "close",
+        },
 
         PowerBar_pos= {
             point= "BOTTOMLEFT",
@@ -908,6 +943,7 @@ GW.globalDefault = {
         RAID_MAINTANK_PRIVATE_AURA_SIZE = 14,
         maintank_show_powerbar = "NONE", -- always
         maintank_FrameHealthBarTexture = "GW2_UI_2_DEFAULT",
+        MaintankGroupByClassOrder = {"DEATHKNIGHT,DEMONHUNTER,DRUID,EVOKER,HUNTER,MAGE,PALADIN,PRIEST,ROGUE,SHAMAN,WARLOCK,WARRIOR,MONK"},
         raidMaintank_pos= {
             point= "TOPLEFT",
             relativePoint= "TOPLEFT",
@@ -950,6 +986,7 @@ GW.globalDefault = {
         RAID_PET_SHOW_BUFFS = false,
         pet_show_powerbar = "NONE", -- always
         pet_FrameHealthBarTexture = "GW2_UI_2_DEFAULT",
+        PetGroupByClassOrder = {"DEATHKNIGHT,DEMONHUNTER,DRUID,EVOKER,HUNTER,MAGE,PALADIN,PRIEST,ROGUE,SHAMAN,WARLOCK,WARRIOR,MONK"},
 
         raid_pet_pos= {
             point= "TOPLEFT",
@@ -992,6 +1029,7 @@ GW.globalDefault = {
         PARTY_PET_SHOW_BUFFS = false,
         party_pet_show_powerbar = "NONE", -- always
         party_pet_FrameHealthBarTexture = "GW2_UI_2_DEFAULT",
+        PartyPetGroupByClassOrder = {"DEATHKNIGHT,DEMONHUNTER,DRUID,EVOKER,HUNTER,MAGE,PALADIN,PRIEST,ROGUE,SHAMAN,WARLOCK,WARRIOR,MONK"},
 
         party_pet_pos= {
             point= "TOPLEFT",
@@ -1035,6 +1073,7 @@ GW.globalDefault = {
         RAID_SHOW_BUFFS = false,
         raid40_show_powerbar = "ALL",
         raid40_FrameHealthBarTexture = "GW2_UI_2_DEFAULT",
+        Raid40GroupByClassOrder = {"DEATHKNIGHT,DEMONHUNTER,DRUID,EVOKER,HUNTER,MAGE,PALADIN,PRIEST,ROGUE,SHAMAN,WARLOCK,WARRIOR,MONK"},
 
         raid_pos= {
             point= "TOPLEFT",
@@ -1079,6 +1118,7 @@ GW.globalDefault = {
         RAID_25_SHOW_BUFFS = false,
         raid25_show_powerbar = "ALL",
         raid25_FrameHealthBarTexture = "GW2_UI_2_DEFAULT",
+        Raid25GroupByClassOrder = {"DEATHKNIGHT,DEMONHUNTER,DRUID,EVOKER,HUNTER,MAGE,PALADIN,PRIEST,ROGUE,SHAMAN,WARLOCK,WARRIOR,MONK"},
 
         raid25_pos= {
             point= "TOPLEFT",
@@ -1108,6 +1148,7 @@ GW.globalDefault = {
         UNITFRAME_ANCHOR_FROM_CENTER_RAID10= false,
         RAID_WIDE_SORTING_RAID10= false,
         RAID_GROUP_BY_RAID10= "ROLE",
+        Raid10GroupByClassOrder = {"DEATHKNIGHT,DEMONHUNTER,DRUID,EVOKER,HUNTER,MAGE,PALADIN,PRIEST,ROGUE,SHAMAN,WARLOCK,WARRIOR,MONK"},
         RAID_SORT_DIRECTION_RAID10= "ASC",
         RAID_RAID_SORT_METHOD_RAID10= "NAME",
         RAID_UNITS_HORIZONTAL_SPACING_RAID10= 2,
@@ -1167,6 +1208,7 @@ GW.globalDefault = {
         RAID_PARTY_SHOW_BUFFS = false,
         party_grid_show_powerbar = "ALL",
         party_grid_FrameHealthBarTexture = "GW2_UI_2_DEFAULT",
+        PartyGroupByClassOrder = {"DEATHKNIGHT,DEMONHUNTER,DRUID,EVOKER,HUNTER,MAGE,PALADIN,PRIEST,ROGUE,SHAMAN,WARLOCK,WARRIOR,MONK"},
 
         raid_party_pos= {
             point= "TOPLEFT",
@@ -1178,6 +1220,8 @@ GW.globalDefault = {
 
         RAID_STYLE_PARTY= false,
         RAID_STYLE_PARTY_AND_FRAMES= false,
+        PARTY_FRAME_ORIENTATION = "VERTICAL",
+        PARTY_FRAME_SPACING = 5,
         PARTY_UNIT_HEALTH= "NONE",
         PARTY_SHOW_BUFFS = true,
         PARTY_SHOW_AURA_ICON_SIZE = 20,
@@ -1231,6 +1275,9 @@ GW.globalDefault = {
         AURAS_MISSING= strjoin(", ", unpack(GW.MapTable(GW.AURAS_MISSING, GetSpellInfo, nil, "name"))),
         INDICATORS_ICON= false,
         INDICATORS_TIME= true,
+        INDICATORS_SIZE= 13,
+        INDICATORS_BAR_WIDTH= 2,
+        INDICATORS_STACKS= true,
         INDICATOR_BAR= {
             [0] = 0,
             [256] = 194384  -- Discipline: Atonement
@@ -1420,6 +1467,13 @@ GW.globalDefault = {
             hasMoved= false,
         },
         player_pos_scale= 1,
+        party_pos= {
+            point= "TOPLEFT",
+            relativePoint= "TOPLEFT",
+            xOfs= 20,
+            yOfs= -104,
+            hasMoved= false,
+        },
         playerFrameHealthBarSize = {
             height = 13,
             width = 213,
@@ -1652,3 +1706,13 @@ GW.globalDefault.profile.RAID_10_BUFF_FILTER.isAuraRaidInCombatPlayer = true
 GW.globalDefault.profile.RAID_10_DEBUFF_FILTER.isAuraImportant = true
 GW.globalDefault.profile.RAID_10_DEBUFF_FILTER.isAuraImportantPlayer = true
 GW.globalDefault.profile.RAID_10_DEBUFF_FILTER.isAuraRaidPlayerDispellable = true
+
+-- game default:
+if GW.Retail or GW.Mists then
+    GW.globalDefault.profile.StanceBar.visibility = "[vehicleui][petbattle] hide; show"
+elseif GW.Wrath then
+    GW.globalDefault.profile.StanceBar.visibility = "[vehicleui] hide; show"
+else
+    GW.globalDefault.profile.StanceBar.visibility = "show"
+end
+

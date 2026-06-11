@@ -1,4 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Script file ="scenarioWidgets\tieredEntranceTraits.lua"/>
+
     <Include file ="questtracker.xml"/>
     <Include file ="notifications.xml"/>
 
@@ -12,6 +14,7 @@
     <Script file ="minimapButtons.lua"/>
     <Script file ="notifications.lua"/>
     <Script file ="achievement.lua"/>
+    <Script file ="autoCollapse.lua"/>
     <Script file ="ObjectivesTracker.lua"/>
     <Script file ="bossFrames.lua"/>
     <Script file ="arenaFrames.lua"/>

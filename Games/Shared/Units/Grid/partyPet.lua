@@ -63,6 +63,9 @@ local function UpdateGridPartyPetFrame(frame)
     end
     frame.showRaidIndicatorIcon = GW.settings.INDICATORS_ICON
     frame.showRaidIndicatorTimer = GW.settings.INDICATORS_TIME
+    frame.showRaidIndicatorStacks = GW.settings.INDICATORS_STACKS
+    frame.raidIndicatorSize = GW.settings.INDICATORS_SIZE
+    frame.raidIndicatorBarWidth = GW.settings.INDICATORS_BAR_WIDTH
     frame.raidDebuffScale = GW.settings.RAIDDEBUFFS_Scale
     frame.raidDispelDebuffScale = GW.settings.DISPELL_DEBUFFS_Scale
     frame.showRoleIcon = GW.settings.PARTY_SHOW_ROLE_ICON_PET
@@ -76,7 +79,9 @@ local function UpdateGridPartyPetFrame(frame)
     if not InCombatLockdown() then
         frame:DisableElement("MiddleIcon")
         frame:SetSize(frame.unitWidth, frame.unitHeight)
-        frame:ClearAllPoints()
+        if not frame.isForced then
+            frame:ClearAllPoints()
+        end
 
         if GW.settings.PARTY_PET_FRAMES_ENABLED and not frame:IsEnabled() then
             frame:Enable()

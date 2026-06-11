@@ -333,14 +333,14 @@ function GwUnitFrameMixin:UpdateHealthbarColor()
         local nameColor = unitReaction and GW.Colors.FactionBarColors[unitReaction] or RAID_CLASS_COLORS.PRIEST
         if unitReaction then
             if unitReaction <= 3 then
-                nameColor = GW.Colors.FriendlyColors[2]
+                nameColor = GW.Colors.UnitFrameReactionColors.Hostile
             elseif unitReaction >= 5 then
-                nameColor = GW.Colors.FriendlyColors[1]
+                nameColor = GW.Colors.UnitFrameReactionColors.Friendly
             end
         end
 
         if UnitIsTapDenied(unit) then
-            nameColor = GW.Colors.TabDenied
+            nameColor = GW.Colors.UnitFrameReactionColors.TappedDenied
         end
 
         healthBar:SetStatusBarColor(nameColor:GetRGB())
@@ -361,7 +361,7 @@ function GwUnitFrameMixin:SetUnitPortraitFrame()
     local txt
     local unitLevel = UnitLevel(unit)
     local unitClassification = UnitClassification(unit)
-    local canInspect = UnitIsPlayer(unit) and (not GW.Mists or (not InCombatLockdown() and CheckInteractDistance(unit, 4))) and CanInspect(unit)
+    local canInspect = UnitIsPlayer(unit) and (not (GW.Mists or GW.Wrath) or (not InCombatLockdown() and CheckInteractDistance(unit, 4)) and CanInspect(unit))
 
     if TARGET_FRAME_ART[unitClassification] then
         border = unitClassification
@@ -860,7 +860,7 @@ function GwUnitFrameMixin:OnEvent(event, unit, ...)
     end
 end
 
-local function UpdateFilters(frame)
+function GW.UpdateFilters(frame)
     for i = 1, 2 do
         local db = i == 1 and frame.buffAdvancedFilters or frame.debuffAdvancedFilters
         local isPlayer = db.isAuraPlayer
@@ -928,10 +928,10 @@ function GwUnitFrameMixin:ToggleSettings()
     self.displayDebuffs = GW.settings[unit .. "_Debuff_Filter"] == "none" and 0 or 40
     self.auras.debuffFilter = GW.settings[unit .. "_Debuff_Filter"]
     self.auras.debuffAdvancedFilters = GW.settings[unit .. "_Debuff_Filter_advanced"]
-    UpdateFilters(self.auras)
+    GW.UpdateFilters(self.auras)
 
-    self.auras.smallSize = 20
-    self.auras.bigSize = 26
+    self.auras.smallSize = GW.settings[unit .. "AuraSmallSize"]
+    self.auras.bigSize = GW.settings[unit .. "AuraBigSize"]
 
     self.shortendHealthValues = GW.settings[unit .. "_SHORT_VALUES"]
 
@@ -1060,7 +1060,7 @@ local function LoadUnitFrame(unit, frameInvert)
 
     LoadAuras(unitframe)
 
-    RegisterMovableFrame(unitframe, unit == "target" and TARGET or FOCUS, unit .. "_pos", ALL .. ",Unitframe", nil, {"default"})
+    RegisterMovableFrame(unitframe, unit == "target" and TARGET or FOCUS, unit .. "_pos", "Unitframe", nil, {"default"})
 
     unitframe:ClearAllPoints()
     unitframe:SetPoint("CENTER", unitframe.gwMover, "CENTER")
@@ -1271,7 +1271,7 @@ local function LoadTargetOfUnit(unit, parentUnitFrame)
 
     f.castingbarNormal.Pips = {}
 
-    RegisterMovableFrame(f, unit == "Focus" and MINIMAP_TRACKING_FOCUS or SHOW_TARGET_OF_TARGET_TEXT, unitID .. "_pos", ALL .. ",Unitframe", nil, {"default"})
+    RegisterMovableFrame(f, unit == "Focus" and MINIMAP_TRACKING_FOCUS or SHOW_TARGET_OF_TARGET_TEXT, unitID .. "_pos", "Unitframe", nil, {"default"})
 
     f:ClearAllPoints()
     f:SetPoint("LEFT", f.gwMover)

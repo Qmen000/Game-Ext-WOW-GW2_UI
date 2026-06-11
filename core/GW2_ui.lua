@@ -39,7 +39,7 @@ if GW.Retail then
         GameTooltip:Show()
     end
 
-    function GW2_ADDON_OnAddonCompartmentLeave(addonName, button)
+    function GW2_ADDON_OnAddonCompartmentLeave(_, _)
         GameTooltip:Hide()
     end
 end
@@ -307,7 +307,7 @@ end
 GW.RegisterScaleFrame = RegisterScaleFrame
 
 -- Functions to run when various addons load. Registering these
--- works on the honor system for now; don't blow away a prior hook :)
+-- keeps all callbacks registered for the same addon name.
 -- Primarily for on-demand addons; if the addon has already loaded
 -- (based on the cond arg), the hook will run immediately.
 local function errorhandler(err)
@@ -322,7 +322,10 @@ local function RegisterLoadHook(func, name, cond)
     if cond then
         func(l)
     else
-        addonLoadHooks[name] = func
+        if not addonLoadHooks[name] then
+            addonLoadHooks[name] = {}
+        end
+        addonLoadHooks[name][#addonLoadHooks[name] + 1] = func
     end
 end
 GW.RegisterLoadHook = RegisterLoadHook
@@ -331,14 +334,17 @@ local function UpdateDb()
     GW.settings = GW.globalSettings.profile
     GW.Migration()
     GW.DatabaseValueMigration()
+    GW.UpdateUnitFrameReactionColors()
 end
 
 local function evAddonLoaded(self, loadedAddonName)
     if loadedAddonName ~= "GW2_UI" then
-        local loadHook = addonLoadHooks[loadedAddonName]
-        if loadHook and type(loadHook) == "function" then
+        local loadHooks = addonLoadHooks[loadedAddonName]
+        if loadHooks then
             Debug("run load hook for addon", loadedAddonName)
-            xpcall(loadHook, errorhandler)
+            for _, loadHook in ipairs(loadHooks) do
+                xpcall(loadHook, errorhandler)
+            end
             addonLoadHooks[loadedAddonName] = nil
         end
         return
@@ -376,6 +382,7 @@ local function evAddonLoaded(self, loadedAddonName)
 
         GW.DatabaseValueMigration()
         GW.ApplyMissingIncompatibleAddonsDefaults()
+        GW.UpdateUnitFrameReactionColors()
         GW.UpdateGw2ClassColors()
 
         -- setup default values on load, which are required for same skins
@@ -548,9 +555,7 @@ local function evPlayerLogin(self)
 
     --Create Settings window
     GW.SetUpDatabaseForProfileSpecSwitch()
-    if GW.Retail then
-        GW.BuildPrefixValues()
-    end
+    GW.BuildPrefixValues()
     GW.LoadMovers(lm.layoutFrame)
     GW.BuildSettingsWindow()
     --GW.LoadSettings()
@@ -582,10 +587,10 @@ local function evPlayerLogin(self)
     if GW.settings.MAINMENU_SKIN_ENABLED then
         GW.SkinMainMenu()
     else
-        if GW.Retail or GW.TBC or GW.Wrath then
-            hooksecurefunc(GameMenuFrame, 'InitButtons', function(self)
-                self:AddSection()
-                self:AddButton(format(("*%s|r"):gsub("*", GW.Gw2Color), GW.addonName), GW.ToggleGw2Settings)
+        if GW.Retail or GW.TBC or GW.Wrath or GW.Mists then
+            hooksecurefunc(GameMenuFrame, 'InitButtons', function(menuFrame)
+                menuFrame:AddSection()
+                menuFrame:AddButton(format(("*%s|r"):gsub("*", GW.Gw2Color), GW.addonName), GW.ToggleGw2Settings)
             end)
         else
             --Setup addon button
@@ -637,10 +642,6 @@ local function evPlayerLogin(self)
         GW.MakeAltPowerBarMovable()
         GW.LoadLFGSkins()
         GW.LoadMailSkin()
-    end
-
-    if GW.Mists then
-        GW.SetUpVehicleFrameMover()
     end
 
     if GW.Mists or GW.Retail or GW.TBC or GW.Wrath then
@@ -892,7 +893,7 @@ local function evPlayerLogin(self)
         GW.SetupSingingSockets()
     end
 
-    if GW.Retail or GW.TBC or GW.Wrath then
+    if GW.Retail or GW.TBC or GW.Wrath or GW.Mists then
         GW.HandleBlizzardEditMode()
     end
 end

@@ -1196,7 +1196,7 @@ end
 
 local function GW2_UIAlertFrame_SetUp(frame, name, delay, toptext, onClick, icon, levelup, spellID, targetName)
     -- An alert flagged as alreadyEarned has more space for the text to display since there's no shield+points icon.
-    AchievementAlertFrame_SetUp(frame, 5208, true)
+    AchievementAlertFrame_SetUp(frame, 2416, true)
     frame:HookScript("OnClick", GW2_UIAlertFrame_OnClick)
     frame.Name:SetFormattedText(name)
     frame.Name:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
@@ -1323,7 +1323,7 @@ local function alertGuildEvents()
     local showAlert = false
     local num = GetGuildInvites()
     if num > 0 then
-        -- /run GW.AlertSystem:AddAlert("tt", nil, CALENDAR_STATUS_INVITED, function() if not CalendarFrame then C_AddOns.LoadAddOn("Blizzard_Calendar") end ShowUIPanel(CalendarFrame) end , "Interface/AddOns/GW2_UI/textures/icons/clock.png", false)
+        -- /run GW2_ADDON.AlertSystem:AddAlert("tt", nil, CALENDAR_STATUS_INVITED, function() if not CalendarFrame then C_AddOns.LoadAddOn("Blizzard_Calendar") end ShowUIPanel(CalendarFrame) end , "Interface/AddOns/GW2_UI/textures/icons/clock.png", false)
         GW.AlertSystem:AddAlert(GW.L["You have %s pending guild event(s)."]:format(num), nil, CALENDAR_STATUS_INVITED, toggleCalendar, "Interface/AddOns/GW2_UI/textures/icons/clock.png", false)
         showAlert = true
     end
@@ -1387,12 +1387,12 @@ local function AlertContainerFrameOnEvent(self, event, ...)
 
         -- if we learn a spell here we should show the new spell so we remove the event from the toastQueue list
         for _, v in pairs(toastQueue) do
-            if v ~= nil and v.event == "LEARNED_SPELL_IN_TAB" then
+            if v ~= nil and (v.event == "LEARNED_SPELL_IN_TAB" or v.event == "LEARNED_SPELL_IN_SKILL_LINE") then
                 v.event = ""
             end
         end
         PlaySoundFile(GW.Libs.LSM:Fetch("sound", GW.settings.ALERTFRAME_NOTIFICATION_LEVEL_UP_SOUND), "Master")
-    elseif event == "LEARNED_SPELL_IN_TAB" and GW.settings.ALERTFRAME_NOTIFICATION_NEW_SPELL and not self.ignoreNewSpells then
+    elseif (event == "LEARNED_SPELL_IN_TAB" or event == "LEARNED_SPELL_IN_SKILL_LINE") and GW.settings.ALERTFRAME_NOTIFICATION_NEW_SPELL and not self.ignoreNewSpells then
         local spellID = ...
         if ignoreDragonRidingSpells[spellID] then return end
         local spellInfo = C_Spell.GetSpellInfo(spellID)
@@ -1410,7 +1410,7 @@ local function AlertContainerFrameOnEvent(self, event, ...)
     elseif event == "PLAYER_SPECIALIZATION_CHANGED" and GW.settings.ALERTFRAME_NOTIFICATION_NEW_SPELL then
         C_Timer.After(0.5, function()
             for k, v in pairs(toastQueue) do
-                if v ~= nil and v.event == "LEARNED_SPELL_IN_TAB" then
+                if v ~= nil and (v.event == "LEARNED_SPELL_IN_TAB" or v.event == "LEARNED_SPELL_IN_SKILL_LINE") then
                     toastQueue[k] = nil
                 end
             end
@@ -1634,11 +1634,15 @@ local function LoadAlertSystem()
             end
         end
 
-        GW.RegisterMovableFrame(GW.AlertContainerFrame, GW.L["Alert Frames"], "AlertPos", ALL .. ",Blizzard,Widgets", {300, 5}, {"default"}, nil, postDragFunction)
+        GW.RegisterMovableFrame(GW.AlertContainerFrame, GW.L["Alert Frames"], "AlertPos", "Blizzard,Widgets", {300, 5}, {"default"}, nil, postDragFunction)
 
         GW.AlertContainerFrame:RegisterEvent("PLAYER_LEVEL_UP")
         if not GW.Retail and not GW.Wrath then
-            GW.AlertContainerFrame:RegisterEvent("LEARNED_SPELL_IN_TAB")
+            if GW.Mists then
+                GW.AlertContainerFrame:RegisterEvent("LEARNED_SPELL_IN_SKILL_LINE")
+            else
+                GW.AlertContainerFrame:RegisterEvent("LEARNED_SPELL_IN_TAB")
+            end
             GW.Libs.GW2Lib:RegisterCombatEvent(GW.AlertContainerFrame, "SPELL_CAST_SUCCESS", CLEUHandling)
             GW.Libs.GW2Lib:RegisterCombatEvent(GW.AlertContainerFrame, "SPELL_CREATE", CLEUHandling)
         end

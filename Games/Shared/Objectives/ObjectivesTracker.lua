@@ -3,6 +3,178 @@ local GW = select(2, ...)
 
 local addonContainerWaitingQueue = {}
 
+local function GetObjectivesTrackerModuleName(module)
+    local moduleType = type(module)
+    if moduleType == "string" then
+        return module
+    end
+
+    if moduleType == "number" then
+        return GW.GetEnumName(GW.Enum.ObjectivesBlockType, module)
+    end
+
+    if moduleType == "table" then
+        if module.gwObjectivesModuleName then
+            return module.gwObjectivesModuleName
+        end
+
+        if module.type then
+            return GW.GetEnumName(GW.Enum.ObjectivesBlockType, module.type)
+        end
+    end
+
+    return nil
+end
+
+local function BuildObjectivesTrackerModuleOrderIndex()
+    local orderIndex = {}
+    local nextOrder = 1
+
+    local function AddModule(module)
+        local moduleName = GetObjectivesTrackerModuleName(module)
+        if not moduleName then return end
+
+        if not orderIndex[moduleName] then
+            orderIndex[moduleName] = nextOrder
+            nextOrder = nextOrder + 1
+        end
+    end
+
+    local function AddOrderList(list)
+        if not list or type(list) ~= "table" then return end
+
+        for _, module in ipairs(list) do
+            AddModule(module)
+        end
+    end
+
+    AddOrderList(GW.settings.OBJECTIVES_TRACKER_MODULE_ORDER)
+    AddOrderList(GW.globalDefault.profile.OBJECTIVES_TRACKER_MODULE_ORDER)
+
+    return orderIndex
+end
+
+
+local function SortObjectivesTrackerScrollableContainers()
+    local containers = GW.QuestTrackerScrollableContainer
+    if not containers then return end
+
+    local orderIndex = BuildObjectivesTrackerModuleOrderIndex()
+
+    local originalIndex = {}
+    for i, frame in ipairs(containers) do
+        originalIndex[frame] = i
+    end
+
+    table.sort(containers, function(a, b)
+        local aName = GetObjectivesTrackerModuleName(a)
+        local bName = GetObjectivesTrackerModuleName(b)
+
+        local aOrder = aName and orderIndex[aName] or nil
+        local bOrder = bName and orderIndex[bName] or nil
+
+        if aOrder and bOrder then
+            if aOrder ~= bOrder then
+                return aOrder < bOrder
+            end
+        elseif aOrder then
+            return true
+        elseif bOrder then
+            return false
+        end
+
+        local aFallback = a.gwScrollableContainerCreationIndex or originalIndex[a] or 0
+        local bFallback = b.gwScrollableContainerCreationIndex or originalIndex[b] or 0
+
+        if aFallback ~= bFallback then
+            return aFallback < bFallback
+        end
+
+        return (originalIndex[a] or 0) < (originalIndex[b] or 0)
+    end)
+end
+
+local function AnchorObjectivesTrackerScrollableContainers()
+    if not GwQuestTracker or not GwQuestTracker.ScrollFrame or not GwQuestTracker.ScrollFrame.Child then return end
+    if not GW.QuestTrackerScrollableContainer then return end
+
+    for i, frame in ipairs(GW.QuestTrackerScrollableContainer) do
+        frame:ClearAllPoints()
+        if i == 1 then
+            frame:SetPoint("TOPRIGHT", GwQuestTracker.ScrollFrame.Child, "TOPRIGHT")
+        else
+            frame:SetPoint("TOPRIGHT", GW.QuestTrackerScrollableContainer[i - 1], "BOTTOMRIGHT")
+        end
+    end
+end
+
+function GW.ApplyObjectivesTrackerModuleOrder()
+    SortObjectivesTrackerScrollableContainers()
+    AnchorObjectivesTrackerScrollableContainers()
+    GW.RefreshObjectivesTrackerLayout()
+end
+
+function GW.IsObjectivesTrackerCompactMode()
+    return GW.settings.OBJECTIVES_TRACKER_COMPACT_MODE
+end
+
+function GW.GetObjectivesHeaderHeight()
+    return GW.IsObjectivesTrackerCompactMode() and 16 or 20
+end
+
+function GW.GetObjectivesBlockBaseHeight()
+    return GW.IsObjectivesTrackerCompactMode() and 20 or 25
+end
+
+function GW.GetObjectivesWideBlockBaseHeight()
+    return GW.IsObjectivesTrackerCompactMode() and 28 or 35
+end
+
+function GW.GetObjectivesBottomPadding()
+    return GW.IsObjectivesTrackerCompactMode() and 4 or 5
+end
+
+function GW.GetObjectivesEntrySpacing()
+    return GW.IsObjectivesTrackerCompactMode() and 4 or 10
+end
+
+function GW.GetObjectivesStatusBarGap()
+    return GW.IsObjectivesTrackerCompactMode() and 1 or 0
+end
+
+function GW.GetObjectivesTextPadding()
+    return GW.IsObjectivesTrackerCompactMode() and 3 or 15
+end
+
+function GW.GetObjectivesFirstObjectiveOffset()
+    return GW.IsObjectivesTrackerCompactMode() and -14 or -25
+end
+
+function GW.GetObjectivesTimerSpacing()
+    return GW.IsObjectivesTrackerCompactMode() and 12 or 15
+end
+
+function GW.ApplyObjectivesHeaderStyle(header)
+    if not header then return end
+
+    local compact = GW.IsObjectivesTrackerCompactMode()
+    local headerHeight = GW.GetObjectivesHeaderHeight()
+
+    header:SetHeight(headerHeight)
+    if header.title then
+        header.title:SetHeight(headerHeight)
+        header.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, compact and GW.Enum.TextSizeType.Normal or GW.Enum.TextSizeType.Header)
+        header.title:SetShadowOffset(1, -1)
+    end
+
+    if header.icon then
+        local iconSize = compact and 22 or 26
+        header.icon:SetSize(iconSize, iconSize)
+        header.icon:ClearAllPoints()
+        header.icon:SetPoint("CENTER", header, "LEFT", compact and -18 or -20, 0)
+    end
+end
+
 -- Helper functions
 local function ParseObjectiveString(block, text, numItems, numNeeded, overrideShowStatusbarSetting)
     block.StatusBar.precentage = false
@@ -123,7 +295,7 @@ function GwObjectivesTrackerMixin:AdjustItemButtonPositions()
     end
 
     if GW.ObjectiveTrackerContainer.Scenario and GW.ObjectiveTrackerContainer.Scenario.block.hasItem then
-        GW.CombatQueue:Queue("UpdateTrackerItemButtonPositionForBlock: " .. GW.ObjectiveTrackerContainer:GetDebugName(), GW.ObjectiveTrackerContainer.Scenario.block.UpdateObjectiveActionButtonPosition, {GW.ObjectiveTrackerContainer.Scenario.block})
+        GW.CombatQueue:Queue("UpdateTrackerItemButtonPositionForBlock: " .. GW.ObjectiveTrackerContainer.Scenario:GetDebugName(), GW.ObjectiveTrackerContainer.Scenario.block.UpdateObjectiveActionButtonPosition, {GW.ObjectiveTrackerContainer.Scenario.block})
     end
 end
 
@@ -141,16 +313,10 @@ local function DisableBlizzardsObjevtiveTracker()
             end
         end)
         EventRegistry:UnregisterFrameEventAndCallback("PLAYER_ENTERING_WORLD", ObjectiveTrackerManager)
-    elseif GW.Mists then
+    elseif GW.Mists or GW.Wrath then
         WatchFrame:SetMovable(1)
         WatchFrame:SetUserPlaced(true)
         WatchFrame:Hide()
-        WatchFrame:SetScript("OnShow",function() WatchFrame:Hide() end)
-        SetCVar("autoQuestWatch", "1")
-    elseif GW.Wrath then
-        WatchFrame:SetMovable(1)
-        WatchFrame:SetUserPlaced(true)
-        WatchFrame:GwKill()
         WatchFrame:SetScript("OnShow",function() WatchFrame:Hide() end)
         SetCVar("autoQuestWatch", "1")
     elseif GW.Classic or GW.TBC then
@@ -181,6 +347,7 @@ function GwObjectivesTrackerMixin:CreateTrackerContainer(name, parent, mixin, te
     local frame = CreateFrame("Frame", name, parent, template or "GwQuesttrackerContainer")
     frame:SetParent(parent)
     frame.type = enum
+    frame.gwObjectivesModuleName = GW.GetEnumName(GW.Enum.ObjectivesBlockType, enum)
     if mixin then
         Mixin(frame, mixin)
     end
@@ -196,20 +363,22 @@ function GwObjectivesTrackerMixin:OnEvent(_, ...)
             local frame = self:CreateTrackerContainer(config.name, self.ScrollFrame.Child, config.mixin, config.template, config.enum)
 
             GW.ObjectiveTrackerContainer[GW.GetEnumName(GW.Enum.ObjectivesBlockType, config.enum)] = frame
-            frame:SetPoint("TOPRIGHT", GW.QuestTrackerScrollableContainer[#GW.QuestTrackerScrollableContainer], "BOTTOMRIGHT")
 
             table.insert(GW.QuestTrackerScrollableContainer, frame)
 
             if frame.InitModule then frame:InitModule() end
 
-            GW.ToggleCollapseObjectivesInChallangeMode()
+            GW.ApplyObjectivesHeaderStyle(frame.header)
+            GW.ApplyObjectivesTrackerModuleOrder()
+            GW.ToggleObjectivesAutoCollapse()
+
             table.remove(addonContainerWaitingQueue, id)
             break
         end
     end
 
     if #addonContainerWaitingQueue == 0 then
-        self:UnregisterAllEvents()
+        self:UnregisterEvent("ADDON_LOADED")
     end
 end
 
@@ -220,6 +389,35 @@ function GwObjectivesTrackerMixin:AddAddonContainerLoadingToQueue(config)
         self:RegisterEvent("ADDON_LOADED")
         self:SetScript("OnEvent", self.OnEvent)
     end
+end
+
+function GW.RefreshObjectivesTrackerLayout()
+    if not GwQuestTracker or not GW.ObjectiveTrackerContainer then
+        return
+    end
+
+    local function RefreshObjectivesFrame(frame)
+        GW.ApplyObjectivesHeaderStyle(frame.header)
+
+        if frame == GW.ObjectiveTrackerContainer.Scenario then
+            frame.timerBlock:TimerBlockOnEvent(nil)
+        end
+
+        if frame.UpdateLayout then
+            frame:UpdateLayout()
+        end
+    end
+
+    for _, frame in ipairs(GW.QuestTrackerFixedContainer or {}) do
+        RefreshObjectivesFrame(frame)
+    end
+
+    for _, frame in ipairs(GW.QuestTrackerScrollableContainer or {}) do
+        RefreshObjectivesFrame(frame)
+    end
+
+    GwQuestTracker:LayoutChanged()
+    GwQuestTracker:AdjustItemButtonPositions()
 end
 
 local function LoadObjectivesTracker()
@@ -294,13 +492,8 @@ local function LoadObjectivesTracker()
     objectivesTracker.ScrollFrame:SetScrollChild(objectivesTracker.ScrollFrame.Child)
 
     -- position of scrollable container
-    for i, frame in ipairs(GW.QuestTrackerScrollableContainer) do
-        if i == 1 then
-            frame:SetPoint("TOPRIGHT", objectivesTracker.ScrollFrame.Child, "TOPRIGHT")
-        else
-            frame:SetPoint("TOPRIGHT", GW.QuestTrackerScrollableContainer[i - 1], "BOTTOMRIGHT")
-        end
-    end
+    SortObjectivesTrackerScrollableContainers()
+    AnchorObjectivesTrackerScrollableContainers()
 
     -- init container
     for _, frame in ipairs(GW.QuestTrackerFixedContainer) do
@@ -310,9 +503,9 @@ local function LoadObjectivesTracker()
         if frame.InitModule then frame:InitModule() end
     end
 
-    if GW.Retail then
-        GW.ToggleCollapseObjectivesInChallangeMode()
-    end
+    GW.ToggleObjectivesAutoCollapse()
+
+    GW.RefreshObjectivesTrackerLayout()
 
      -- some hooks to set the itembuttons correct
     local UpdateItemButtonPositionAndAdjustScrollFrame = function()
@@ -321,20 +514,39 @@ local function LoadObjectivesTracker()
         objectivesTracker:AdjustItemButtonPositions()
     end
 
+    local itemButtonUpdateQueued = false
+    local function QueueItemButtonPositionUpdate(delay)
+        if itemButtonUpdateQueued then return end
+
+        itemButtonUpdateQueued = true
+
+        C_Timer.After(delay or 0.1, function()
+            itemButtonUpdateQueued = false
+            UpdateItemButtonPositionAndAdjustScrollFrame()
+        end)
+    end
     -- for correct itembutton position
-    for _, container in next, { GW.ObjectiveTrackerContainer.BossFrames, GW.ObjectiveTrackerContainer.AreanFrames, GW.ObjectiveTrackerContainer.Scenario, GW.ObjectiveTrackerContainer.Achievement, GW.ObjectiveTrackerContainer.Quests, GW.ObjectiveTrackerContainer.Campaign } do
-        container.oldHeight = 1
+    for _, container in next, {
+        GW.ObjectiveTrackerContainer.BossFrames,
+        GW.ObjectiveTrackerContainer.ArenaFrames,
+        GW.ObjectiveTrackerContainer.Scenario,
+        GW.ObjectiveTrackerContainer.Achievement,
+        GW.ObjectiveTrackerContainer.Quests,
+        GW.ObjectiveTrackerContainer.Campaign
+    } do
+        container.oldHeight = GW.RoundInt(container:GetHeight() or 0.1)
+
         hooksecurefunc(container, "SetHeight", function(_, height)
-            if container.oldHeight ~= GW.RoundInt(height) then
-                C_Timer.After(0.1, function()
-                    UpdateItemButtonPositionAndAdjustScrollFrame()
-                end)
+            local newHeight = GW.RoundInt(height)
+            if container.oldHeight ~= newHeight then
+                container.oldHeight = newHeight
+                QueueItemButtonPositionUpdate(0.1)
             end
         end)
     end
 
-    GW.ObjectiveTrackerContainer.Notification:HookScript("OnShow", function() C_Timer.After(0.25, UpdateItemButtonPositionAndAdjustScrollFrame) end)
-    GW.ObjectiveTrackerContainer.Notification:HookScript("OnHide", function() C_Timer.After(0.25, UpdateItemButtonPositionAndAdjustScrollFrame) end)
+    GW.ObjectiveTrackerContainer.Notification:HookScript("OnShow", function() QueueItemButtonPositionUpdate(0.25) end)
+    GW.ObjectiveTrackerContainer.Notification:HookScript("OnHide", function() QueueItemButtonPositionUpdate(0.25) end)
 
     GW.RegisterMovableFrame(objectivesTracker, OBJECTIVES_TRACKER_LABEL, "QuestTracker_pos", ALL, nil, {"scaleable", "height"})
     objectivesTracker:ClearAllPoints()

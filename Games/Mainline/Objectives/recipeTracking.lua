@@ -17,8 +17,7 @@ GwObjectivesRecipeBlockMixin = {}
 
 function GwObjectivesRecipeBlockMixin:UpdateBlock(recipeSchematic)
     local allCollacted = true
-    local idx = 1
-    self.height = 35
+    self.height = GW.GetObjectivesWideBlockBaseHeight()
     self.numObjectives = 0
 
     for _, reagentSlotSchematic in ipairs(recipeSchematic.reagentSlotSchematics) do
@@ -33,15 +32,14 @@ function GwObjectivesRecipeBlockMixin:UpdateBlock(recipeSchematic)
                     allCollacted = false
                 end
                 if not (quantity >= quantityRequired) and itemName then
-                    self:AddObjective(itemName, idx, {isReceip = true, finished = false, qty = quantity, totalqty = quantityRequired})
-                    idx = idx + 1
+                    self:AddObjective(itemName, {isReceip = true, finished = false, qty = quantity, totalqty = quantityRequired})
                 end
             end
         end
     end
 
     if allCollacted then
-        self:AddObjective(GW.L["Ready to craft"], idx, {isReceip = true, finished = false})
+        self:AddObjective(GW.L["Ready to craft"], {isReceip = true, finished = false})
     end
 
     self:SetHeight(self.height)
@@ -54,7 +52,7 @@ function GwObjectivesRecipeContainerMixin:CreateTrackedBlock(idx, isRecraft, sav
     local recipeSchematic = C_TradeSkillUI.GetRecipeSchematic(recipeID, isRecraft)
 
     if idx == 1 then
-        savedHeight = 20
+        savedHeight = GW.GetObjectivesHeaderHeight()
     end
 
     self.header:Show()
@@ -80,7 +78,7 @@ end
 function GwObjectivesRecipeContainerMixin:ProcessUpdate()
     local numRecipes = #C_TradeSkillUI.GetRecipesTracked(true)
     local numRecipesRecraft = #C_TradeSkillUI.GetRecipesTracked(false)
-    local savedHeight = 1
+    local savedHeight = 0.1
     local shownIndex = 1
 
     self.header:Hide()
@@ -89,7 +87,7 @@ function GwObjectivesRecipeContainerMixin:ProcessUpdate()
         self.header:Show()
         numRecipes = 0
         numRecipesRecraft = 0
-        savedHeight = 20
+        savedHeight = GW.GetObjectivesHeaderHeight()
     end
 
     for i = 1, numRecipes do
@@ -239,7 +237,7 @@ function GwObjectivesRecipeContainerMixin:InitModule()
     end
 
     self.collapsed = false
-    self.header:SetScript("OnMouseDown", function() self:CollapseHeader() end) -- this way, otherwiese we have a wrong self at the function
+    self.header:SetScript("OnMouseDown", function() self:ToggleCollapsed() end) -- this way, otherwiese we have a wrong self at the function
     self.header.title:SetTextColor(GW.Colors.ObjectivesTypeColors[GW.Enum.ObjectivesNotificationType.Recipe]:GetRGB())
 
     self.blockMixInTemplate = GwObjectivesRecipeBlockMixin

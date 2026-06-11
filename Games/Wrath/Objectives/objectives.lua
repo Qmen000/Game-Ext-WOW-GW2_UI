@@ -149,22 +149,22 @@ local function UpdateBlockInternal(self, parent, quest)
     end
 
     if quest.requiredMoney and quest.requiredMoney > GetMoney() and not quest.isComplete then
-        self:AddObjective(GetMoneyString(GetMoney()) .. " / " .. GetMoneyString(quest.requiredMoney), self.numObjectives + 1, {isQuest = true, finished = quest.isComplete, objectiveType = nil})
+        self:AddObjective(GetMoneyString(GetMoney()) .. " / " .. GetMoneyString(quest.requiredMoney), {isQuest = true, finished = quest.isComplete, objectiveType = nil})
     end
 
     if quest.isComplete then
         if quest.isAutoComplete then
-            self:AddObjective(QUEST_WATCH_CLICK_TO_COMPLETE, self.numObjectives + 1, {isQuest = true, finished = false, objectiveType = nil})
+            self:AddObjective(QUEST_WATCH_CLICK_TO_COMPLETE, {isQuest = true, finished = false, objectiveType = nil})
         else
             local completionText = GetQuestLogCompletionText(quest.questLogIndex)
             if completionText then
-                self:AddObjective(completionText, self.numObjectives + 1, {isQuest = true, finished = false, objectiveType = nil})
+                self:AddObjective(completionText, {isQuest = true, finished = false, objectiveType = nil})
             else
-                self:AddObjective(QUEST_WATCH_QUEST_READY, self.numObjectives + 1, {isQuest = true, finished = false, objectiveType = nil})
+                self:AddObjective(QUEST_WATCH_QUEST_READY, {isQuest = true, finished = false, objectiveType = nil})
             end
         end
     elseif quest.isFailed then
-        self:AddObjective(FAILED, self.numObjectives + 1, {isQuest = true, finished = false, objectiveType = nil})
+        self:AddObjective(FAILED, {isQuest = true, finished = false, objectiveType = nil})
     end
 
     self.height = self.height + 5
@@ -174,15 +174,14 @@ end
 GwQuestLogBlockMixin = {}
 
 function GwQuestLogBlockMixin:UpdateBlockObjectives(numObjectives)
-    local addedObjectives = 1
+    local showCompletedObjectives = GW.settings.OBJECTIVES_SHOW_COMPLETED_OBJECTIVES
     local infos = C_QuestLog.GetQuestObjectives(self.questID)
     for objectiveIndex = 1, numObjectives do
         local text = infos[objectiveIndex].text
         local objectiveType = infos[objectiveIndex].type
         local finished = infos[objectiveIndex].finished
-        if not finished or not text then
-            self:AddObjective(text, addedObjectives, {isQuest = true, finished = finished, objectiveType = objectiveType})
-            addedObjectives = addedObjectives + 1
+        if text and (showCompletedObjectives or not finished) then
+            self:AddObjective(text, {isQuest = true, finished = finished, objectiveType = objectiveType, useCompletedLine = showCompletedObjectives})
         end
     end
 end
@@ -237,7 +236,7 @@ function GwQuestLogMixin:UpdateLayout()
     self.isUpdating = true
 
     local counterQuest = 0
-    local savedContainerHeight = self.collapsed and 20 or 1
+    local savedContainerHeight = self.collapsed and 20 or 0.1
     local shouldShowHeader = not self.collapsed
     local frameName = self:GetName()
 
@@ -342,8 +341,7 @@ function GwQuestLogMixin:UpdateLayout()
         end
     end
 
-    self.oldHeight = GW.RoundInt(self:GetHeight())
-    self:SetHeight(counterQuest > 0 and savedContainerHeight or 1)
+    self:SetHeight(counterQuest > 0 and savedContainerHeight or 0.1)
     self.numQuests = counterQuest
 
     -- hide other quests
@@ -541,7 +539,7 @@ function GwObjectivesQuestContainerMixin:InitModule()
     self.header.title:SetShadowOffset(1, -1)
 
     self.collapsed = false
-    self.header:SetScript("OnMouseDown", function() self:CollapseHeader() end) -- this way, otherwiese we have a wrong self at the function
+    self.header:SetScript("OnMouseDown", function() self:ToggleCollapsed() end) -- this way, otherwiese we have a wrong self at the function
     self.header.title:SetTextColor(GW.Colors.ObjectivesTypeColors[GW.Enum.ObjectivesNotificationType.Quest]:GetRGB())
     self.header.icon:SetTexCoord(0, 0.5, 0.25, 0.5)
     self.header.title:SetText(TRACKER_HEADER_QUESTS)

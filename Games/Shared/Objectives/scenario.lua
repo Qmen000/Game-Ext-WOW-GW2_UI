@@ -3,6 +3,9 @@ local GW = select(2, ...)
 
 local TIME_FOR_3 = 0.6
 local TIME_FOR_2 = 0.8
+local UI_WIDGET_TYPE_STATUS_BAR = 2
+local UI_WIDGET_TYPE_DOUBLE_STATUS_BAR = 3
+local UI_WIDGET_TYPE_SCENARIO_CURRENCIES = 11
 
 GwObjectivesScenarioContainerWidgetMixin = {}
 GwObjectivesScenarioContainerMixin = {}
@@ -249,7 +252,14 @@ function GwObjectivesScenarioContainerWidgetMixin:ProcessWidget(widgetID, widget
     end
     if widgetFrame.isRealTimer or widgetFrame.isFakeTimer then
         self:HandleTimer(self.timerBlock, widgetInfo)
-    elseif widgetInfo then
+    elseif widgetInfo and self.handlesCurrencyWidgets and widgetType == UI_WIDGET_TYPE_SCENARIO_CURRENCIES then
+        wipe(self.widgetInfoForCurrency)
+        tinsert(self.widgetInfoForCurrency, widgetInfo)
+        if self.layoutFunc then
+            self.layoutFunc(self.container)
+        end
+        return
+    elseif widgetInfo and self.handlesStatusBarWidgets and (widgetType == UI_WIDGET_TYPE_STATUS_BAR or widgetType == UI_WIDGET_TYPE_DOUBLE_STATUS_BAR) then
         wipe(self.widgetInfoForStatusBar)
         tinsert(self.widgetInfoForStatusBar, widgetInfo)
         if self.layoutFunc then
@@ -288,6 +298,7 @@ function GwObjectivesScenarioContainerWidgetMixin:UnregisterForWidgetSet()
     self.widgetID = nil
     self.layoutFunc = nil
     wipe(self.widgetInfoForStatusBar)
+    wipe(self.widgetInfoForCurrency)
 
     self:UnregisterEvent("UPDATE_ALL_UI_WIDGETS")
     self:UnregisterEvent("UPDATE_UI_WIDGET")
@@ -314,12 +325,26 @@ function GwObjectivesScenarioContainerWidgetMixin:RegisterForWidgetSet(widgetSet
     self.widgetFrames = {}
     self.timerWidgets = {}
     self.widgetInfoForStatusBar = {}
+    self.widgetInfoForCurrency = {}
     self.numTimers = 0
 
     self:ProcessAllWidgets()
 
     self:RegisterEvent("UPDATE_ALL_UI_WIDGETS")
     self:RegisterEvent("UPDATE_UI_WIDGET")
+end
+
+local function CreateScenarioWidgetManager(container, handlesStatusBarWidgets, handlesCurrencyWidgets)
+    local widgetManager = CreateFrame("Frame")
+    Mixin(widgetManager, GwObjectivesScenarioContainerWidgetMixin)
+    widgetManager.widgetPools = CreateFramePool("Frame")
+    widgetManager:SetScript("OnEvent", widgetManager.OnEvent)
+    widgetManager.timerBlock = container.timerBlock
+    widgetManager.container = container
+    widgetManager.handlesStatusBarWidgets = handlesStatusBarWidgets
+    widgetManager.handlesCurrencyWidgets = handlesCurrencyWidgets
+
+    return widgetManager
 end
 
 function GwObjectivesScenarioContainerMixin:ClearWidgetSet()
@@ -333,6 +358,78 @@ function GwObjectivesScenarioContainerMixin:UpdateWidgetRegistration(widgetSetID
     else
         self.statusBarWidgetManager:RegisterForWidgetSet()
     end
+end
+
+local function PrepareScenarioCustomObjectiveBlock(objectiveBlock, height)
+    objectiveBlock:SetHeight(height)
+    objectiveBlock.ObjectiveText:SetText("")
+    objectiveBlock.StatusBar:Hide()
+    objectiveBlock.TimerBar:Hide()
+    objectiveBlock.TimerBar:SetScript("OnUpdate", nil)
+    objectiveBlock:SetCompletedLineState(false)
+    objectiveBlock:Show()
+end
+
+local function AddScenarioCurrencyObjective(block, widgetInfo)
+    if not widgetInfo or widgetInfo.shownState == Enum.WidgetShownState.Hidden or not widgetInfo.currencies or #widgetInfo.currencies == 0 then
+        return false
+    end
+
+    block.numObjectives = block.numObjectives + 1
+    local objectiveBlock = block:GetObjectiveBlock(block.numObjectives, -5)
+
+    PrepareScenarioCustomObjectiveBlock(objectiveBlock, block.currenciesFrame:GetHeight())
+
+    block.currenciesFrame:SetParent(objectiveBlock)
+    block.currenciesFrame:ClearAllPoints()
+    block.currenciesFrame:SetPoint("TOPRIGHT", objectiveBlock, "TOPRIGHT", 0, 0)
+    block.currenciesFrame:Show()
+
+    for idx, currency in ipairs(widgetInfo.currencies) do
+        if idx == 6 then break end
+
+        local currencyFrame = block.currenciesFrame.currency[idx]
+        currencyFrame.counter:SetText(currency.text)
+        currencyFrame.icon:SetTexture(currency.iconFileID)
+        if not currencyFrame.mask then
+            currencyFrame.mask = currencyFrame:CreateMaskTexture()
+            currencyFrame.mask:SetAllPoints(currencyFrame.icon)
+            currencyFrame.mask:SetTexture("Interface/CHARACTERFRAME/TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+            currencyFrame.icon:AddMaskTexture(currencyFrame.mask)
+        end
+        currencyFrame.tooltip = currency.tooltip
+        currencyFrame:Show()
+    end
+
+    block.height = block.height + objectiveBlock:GetHeight()
+
+    return true
+end
+
+local function AddScenarioTieredEntranceTraitsObjective(block)
+    if not (GW.Retail and C_ScenarioInfo.IsTieredEntranceScenario()) then
+        return false
+    end
+
+    local spells = C_ScenarioInfo.GetTieredEntranceActiveSpells()
+    if not spells then
+        return false
+    end
+
+    block.numObjectives = block.numObjectives + 1
+    local objectiveBlock = block:GetObjectiveBlock(block.numObjectives, nil, -5)
+
+    block.tieredEntranceTraitsFrame:SetSpells(spells)
+    PrepareScenarioCustomObjectiveBlock(objectiveBlock, block.tieredEntranceTraitsFrame:GetHeight() + GW.GetObjectivesEntrySpacing())
+
+    block.tieredEntranceTraitsFrame:SetParent(objectiveBlock)
+    block.tieredEntranceTraitsFrame:ClearAllPoints()
+    block.tieredEntranceTraitsFrame:SetPoint("TOPRIGHT", objectiveBlock, "TOPRIGHT", -10, 0)
+    block.tieredEntranceTraitsFrame:Show()
+
+    block.height = block.height + objectiveBlock:GetHeight()
+
+    return true
 end
 
 local function ScenarioContainerLayoutRunnerOnUpdate(frame)
@@ -380,7 +477,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
     local name, instanceType, difficultyID, difficultyName = GetInstanceInfo()
     local isDelveScenario = GW.Retail and difficultyID == 208
 
-    block.height = 1
+    block.height = 0.1
 
     if timerBlock.timer:IsShown() then
         block.height = timerBlock.height
@@ -390,6 +487,12 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
     block.questLogIndex = 0
     block.groupButton:Hide()
     block.delvesFrame:Hide()
+    block.currenciesFrame:Hide()
+    for i = 1, 5 do
+        block.currenciesFrame.currency[i]:Hide()
+    end
+    block.tieredEntranceTraitsFrame:Hide()
+
     if not isDelveScenario then
         GW.StopNemesisCounter()
     end
@@ -416,7 +519,6 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
         end
 
         block:SetHeight(block.height)
-        self.oldHeight = GW.RoundInt(self:GetHeight())
         self:SetHeight(block.height)
         if not timerBlock.needToShowTimer then
             timerBlock.timer:Hide()
@@ -459,7 +561,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
             compassData.TITLE = difficultyName .. " |cFFFFFFFF " .. floor .. "|r"
         end
 
-        compassData.COLOR =GW.Colors.ObjectivesTypeColors[GW.Enum.ObjectivesNotificationType.Torghast]
+        compassData.COLOR = GW.Colors.ObjectivesTypeColors[GW.Enum.ObjectivesNotificationType.Torghast]
         compassData.TYPE = GW.Enum.ObjectivesNotificationType.Torghast
     end
 
@@ -555,6 +657,13 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
         firstObjectivesYValue = -5,
     }
 
+    for _, widgetInfo in ipairs( self.timerWidgetManager.widgetInfoForCurrency or {} ) do
+        if AddScenarioCurrencyObjective(block, widgetInfo) then
+            break
+        end
+    end
+    AddScenarioTieredEntranceTraitsObjective(block)
+
     for criteriaIndex = 1, numCriteria do
         local scenarioCriteriaInfo = C_ScenarioInfo.GetCriteriaInfo(criteriaIndex)
         if scenarioCriteriaInfo then
@@ -572,21 +681,19 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
             objectiveOptions.objectiveType = objectiveType
             objectiveOptions.qty = scenarioCriteriaInfo.quantity
             objectiveOptions.isMythicKeystone = isMythicKeystone
-            block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description, isMythicKeystone, mythicKeystoneCurrentValue, scenarioCriteriaInfo.isWeightedProgress), criteriaIndex, objectiveOptions)
+            block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description, isMythicKeystone, mythicKeystoneCurrentValue, scenarioCriteriaInfo.isWeightedProgress), objectiveOptions)
             if scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration then
-                block:AddObjective(TIME_REMAINING, numCriteria + 1, {isQuest = false, qty = nil, totalqty = nil, timerShown = true, duration = scenarioCriteriaInfo.duration, startTime = GetTime() - scenarioCriteriaInfo.elapsed})
+                block:AddObjective(TIME_REMAINING, {isQuest = false, qty = nil, totalqty = nil, timerShown = true, duration = scenarioCriteriaInfo.duration, startTime = GetTime() - scenarioCriteriaInfo.elapsed})
             end
         end
     end
     -- add special widgets here
-    numCriteria = GW.addWarfrontData(block, numCriteria)
-    numCriteria = GW.addHeroicVisionsData(block, numCriteria)
-    numCriteria = GW.addJailersTowerData(block, numCriteria)
-    numCriteria = GW.addEmberCourtData(self, numCriteria)
+    GW.addWarfrontData(block)
+    GW.addHeroicVisionsData(block)
+    GW.addJailersTowerData(block)
+    GW.addEmberCourtData(self)
 
     local bonusSteps = C_Scenario.GetBonusSteps() or {}
-    local numCriteriaPrev = numCriteria
-
     for _, v in ipairs(bonusSteps) do
         local bonusStepIndex = v
         local _, _, numCriteriaForStep = C_Scenario.GetStepInfo(bonusStepIndex)
@@ -597,14 +704,13 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
 
             -- timer bar
             if scenarioCriteriaInfo.duration > 0 and scenarioCriteriaInfo.elapsed <= scenarioCriteriaInfo.duration and not (scenarioCriteriaInfo.failed or scenarioCriteriaInfo.completed) then
-                block:AddObjective(TIME_REMAINING, numCriteriaPrev + 1, {isQuest = false, qty = nil, totalqty = nil, timerShown = true, duration = scenarioCriteriaInfo.duration, startTime = GetTime() - scenarioCriteriaInfo.elapsed})
+                block:AddObjective(TIME_REMAINING, {isQuest = false, qty = nil, totalqty = nil, timerShown = true, duration = scenarioCriteriaInfo.duration, startTime = GetTime() - scenarioCriteriaInfo.elapsed})
             else
                 objectiveOptions.finished = IsScenarioCriteriaComplete(scenarioCriteriaInfo)
                 objectiveOptions.objectiveType = objectiveType
                 objectiveOptions.qty = scenarioCriteriaInfo.quantity
                 objectiveOptions.isMythicKeystone = false
-                block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description), numCriteriaPrev + 1, objectiveOptions)
-                numCriteriaPrev = numCriteriaPrev + 1
+                block:AddObjective(GW.ParseCriteria(scenarioCriteriaInfo.quantity, scenarioCriteriaInfo.totalQuantity, scenarioCriteriaInfo.description), objectiveOptions)
             end
         end
     end
@@ -624,8 +730,7 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
                 text = (widgetInfo.text or "") .. " " .. FormatPercentage(quantity)
                 quantity = quantity * 100
             end
-            block:AddObjective(text, numCriteriaPrev + 1, { finished = false, objectiveType = objectiveType, qty = quantity, firstObjectivesYValue = -5 })
-            numCriteriaPrev = numCriteriaPrev + 1
+            block:AddObjective(text, { finished = false, objectiveType = objectiveType, qty = quantity, firstObjectivesYValue = -5 })
         end
     end
     if hasVisibleStatusBarWidget and not self.timerWidgetManager:IsTimerRunning() then
@@ -652,7 +757,6 @@ function GwObjectivesScenarioContainerMixin:UpdateLayout()
 
     timerBlock:SetHeight(timerBlock.height)
     block:SetHeight(block.height - intGWQuestTrackerHeight)
-    self.oldHeight = GW.RoundInt(self:GetHeight())
     self:SetHeight(block.height)
 end
 
@@ -1047,21 +1151,14 @@ function GwObjectivesScenarioContainerMixin:InitModule()
     self.block.delvesFrame.deathCounter:SetScript("OnLeave", function() UIWidgetTemplateTooltipFrameMixin:OnLeave() end)
     self.block.delvesFrame.deathCounter.counter:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
 
-    local timerWidgetManager = CreateFrame("Frame")
-    Mixin(timerWidgetManager, GwObjectivesScenarioContainerWidgetMixin)
-    timerWidgetManager.widgetPools = CreateFramePool("Frame")
-    timerWidgetManager:SetScript("OnEvent", timerWidgetManager.OnEvent)
-    timerWidgetManager.timerBlock = self.timerBlock
-    timerWidgetManager.container = self
-    self.timerWidgetManager = timerWidgetManager
+    for i = 1, 5 do
+        self.block.currenciesFrame.currency[i]:SetScript("OnEnter", UIWidgetTemplateTooltipFrameOnEnter)
+        self.block.currenciesFrame.currency[i]:SetScript("OnLeave", function() UIWidgetTemplateTooltipFrameMixin:OnLeave() end)
+        self.block.currenciesFrame.currency[i].counter:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
+    end
 
-    local statusBarWidgetManager = CreateFrame("Frame")
-    Mixin(statusBarWidgetManager, GwObjectivesScenarioContainerWidgetMixin)
-    statusBarWidgetManager.widgetPools = CreateFramePool("Frame")
-    statusBarWidgetManager:SetScript("OnEvent", statusBarWidgetManager.OnEvent)
-    statusBarWidgetManager.timerBlock = self.timerBlock
-    statusBarWidgetManager.container = self
-    self.statusBarWidgetManager = statusBarWidgetManager
+    self.timerWidgetManager = CreateScenarioWidgetManager(self, false, true)
+    self.statusBarWidgetManager = CreateScenarioWidgetManager(self, true, false)
 
     C_Timer.After(0.8, function() self:QueueUpdateLayout() end)
 

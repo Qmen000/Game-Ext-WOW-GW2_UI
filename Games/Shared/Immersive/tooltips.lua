@@ -522,13 +522,13 @@ local function SetUnitText(self, unit, isPlayerUnit)
 
         local unitReaction = UnitReaction(unit, "player")
         local nameColor = unitReaction and GW.settings.ADVANCED_TOOLTIP_SHOW_CLASS_COLOR and GW.Colors.FactionBarColors[unitReaction] or RAID_CLASS_COLORS.PRIEST
-        if unitReaction and unitReaction >= 5 then nameColor = GW.Colors.FriendlyColors[1] end --Friend
+        if unitReaction and unitReaction >= 5 then nameColor = GW.Colors.UnitFrameReactionColors.Friendly end --Friend
 
         if not isPetCompanion then
             GameTooltipTextLeft1:SetText(nameColor:WrapTextInColorCode(name or UNKNOWN))
         end
 
-        return (UnitIsTapDenied(unit) and GW.Colors.TabDenied) or nameColor
+        return (UnitIsTapDenied(unit) and GW.Colors.UnitFrameReactionColors.TappedDenied) or nameColor
     end
 end
 
@@ -830,7 +830,7 @@ local function GameTooltipStatusBar_UpdateUnitHealth(bar)
     if not tt then return end
     local unit = GetUnitToken(tt)
     if unit then
-        local formatFunction = GW.settings.TooltipHealthBarValuesShortend and AbbreviateNumbers or BreakUpLargeNumbers
+        local formatFunction = GW.settings.TooltipHealthBarValuesShortend and GW.ShortValue or BreakUpLargeNumbers
         if GW.settings.TooltipHealthBarValues == "RAW" then
             bar.Text:SetFormattedText("%s", formatFunction(UnitHealth(unit)))
         elseif GW.settings.TooltipHealthBarValues == "PERCENTAGE" then
@@ -857,7 +857,7 @@ local function GameTooltipStatusBar_OnValueChanged(bar, value)
     if value == 0 or (unit and UnitIsDeadOrGhost(unit)) then
         bar.Text:SetText(DEAD)
     else
-        local formatFunction = GW.settings.TooltipHealthBarValuesShortend and AbbreviateNumbers or BreakUpLargeNumbers
+        local formatFunction = GW.settings.TooltipHealthBarValuesShortend and GW.ShortValue or BreakUpLargeNumbers
         local maximum, _
         if unit then -- try to get the real health values if possible
             value, maximum = UnitHealth(unit), UnitHealthMax(unit)
@@ -1243,7 +1243,7 @@ local function LoadTooltips()
         end
     end
 
-    RegisterMovableFrame(GameTooltip, "Tooltip", "GameTooltipPos", ALL .. ",Blizzard", {230, 80}, {"default"})
+    RegisterMovableFrame(GameTooltip, "Tooltip", "GameTooltipPos", "Blizzard", {230, 80}, {"default"})
 
     hooksecurefunc("GameTooltip_SetDefaultAnchor", GameTooltip_SetDefaultAnchor)
 
