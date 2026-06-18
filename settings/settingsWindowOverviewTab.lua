@@ -70,6 +70,16 @@ local CHANGELOG_COLLAPSED_GROUPS = {}
 local CHANGELOG_COLLAPSE_INIT = false
 local OVERVIEW_SCROLL_RELEASE_ANIM_DURATION = 0.18
 local OVERVIEW_SCROLL_RELEASE_ANIM_NAME = "SETTINGS_OVERVIEW_SCROLL_RELEASE"
+local SETTINGS_SPLASH_ART_PATH = "Interface/AddOns/GW2_UI/textures/uistuff/splashscreen/"
+local SETTINGS_SPLASH_ART_FILES = {
+    {enabled = "TWW", file = "settingartwork-tww.png", darkFile = "settingartwork-tww-dark.png", init = GW.InitBeledarsSplashScreen},
+    {enabled = "Retail", file = "settingartwork-retail.png"},
+    {enabled = "Mists", file = "settingartwork-cata.png"},
+    {enabled = "Cata", file = "settingartwork-cata.png"},
+    {enabled = "Wrath", file = "settingartwork-wrath.png"},
+    {enabled = "TBC", file = "settingartwork-classic.png"},
+    {enabled = "Classic", file = "settingartwork-classic.png"},
+}
 
 local function GetChangeLogGroupLabel(changeType)
     if changeType == GW.Enum.ChangelogType.feature then
@@ -79,6 +89,17 @@ local function GetChangeLogGroupLabel(changeType)
     end
 
     return L["Fixes"]
+end
+
+local function GetSettingsSplashArt()
+    for _, splashArt in ipairs(SETTINGS_SPLASH_ART_FILES) do
+        if GW[splashArt.enabled] then
+            return SETTINGS_SPLASH_ART_PATH .. splashArt.file, SETTINGS_SPLASH_ART_PATH .. (splashArt.darkFile or splashArt.file), splashArt.init
+        end
+    end
+
+    local fallback = SETTINGS_SPLASH_ART_PATH .. "settingartwork-retail.png"
+    return fallback, fallback, nil
 end
 
 local function GetGroupCollapseKey(version, changeType)
@@ -586,31 +607,27 @@ function GW.LoadSettingsOverview(container)
     settingsOverview.splashart2:AddMaskTexture(container.backgroundMask)
     settingsOverview.basePageBlockHeight = settingsOverview.pageblock:GetHeight()
 
-    if GW.Retail then
-        settingsOverview.splashart:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/splashscreen/settingartwork-retail.png")
-        settingsOverview.splashart2:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/splashscreen/settingartwork-retail-dark.png")
-    elseif GW.Classic or GW.TBC or GW.Wrath then
-        settingsOverview.splashart:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/splashscreen/settingartwork-classic.png")
-        settingsOverview.splashart2:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/splashscreen/settingartwork-classic.png")
-    elseif GW.Mists then
-        settingsOverview.splashart:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/splashscreen/settingartwork-cata.png")
-        settingsOverview.splashart2:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/splashscreen/settingartwork-cata.png")
+    local splashArt, splashArtDark, initSplashArt = GetSettingsSplashArt()
+    settingsOverview.splashart:SetTexture(splashArt)
+    settingsOverview.splashart2:SetTexture(splashArtDark)
+    if initSplashArt then
+        initSplashArt(settingsOverview)
     end
 
     local buttons = {
-        {settingsOverview.menu.welcomebtn, L["Setup"], welcome_OnClick},
-        {settingsOverview.menu.reportbtn, L["System info"], statusReport_OnClick},
-        {settingsOverview.menu.changelog, L["Changelog"], function() ShowChangelog(settingsOverview.ScrollBox) end},
-        {settingsOverview.menu.creditsbtn, L["Credits"], function() ShowCredits(settingsOverview.ScrollBox) end},
-        {settingsOverview.menu.movehudbtn, L["Move HUD"], function()
+        {button = settingsOverview.menu.welcomebtn, text = L["Setup"], onClick = welcome_OnClick},
+        {button = settingsOverview.menu.reportbtn, text = L["System info"], onClick = statusReport_OnClick},
+        {button = settingsOverview.menu.changelog, text = L["Changelog"], onClick = function() ShowChangelog(settingsOverview.ScrollBox) end},
+        {button = settingsOverview.menu.creditsbtn, text = L["Credits"], onClick = function() ShowCredits(settingsOverview.ScrollBox) end},
+        {button = settingsOverview.menu.movehudbtn, text = L["Move HUD"], onClick = function()
             if InCombatLockdown() then
                 GW.Notice(L["You cannot move elements during combat!"])
                 return
             end
             GW.moveHudObjects(GW.MoveHudScaleableFrame)
         end},
-        {settingsOverview.menu.keybindingsbtn, KEY_BINDING, function() container:Hide() GW.DisplayHoverBinding() end},
-        {settingsOverview.menu.discordbtn, L["Join Discord"], function()
+        {button = settingsOverview.menu.keybindingsbtn, text = KEY_BINDING, onClick = function() container:Hide() GW.DisplayHoverBinding() end},
+        {button = settingsOverview.menu.discordbtn, text = L["Join Discord"], onClick = function()
             GW.ShowPopup({text = L["Join Discord"],
             hasEditBox = true,
             inputText = "https://discord.gg/MZZtRWt",
@@ -623,9 +640,9 @@ function GW.LoadSettingsOverview(container)
 
     local odd = true
     for _, button in ipairs(buttons) do
-        GW.SettingsMenuButtonSetUp(button[1], odd)
-        button[1]:SetText(button[2])
-        button[1]:SetScript("OnClick", button[3])
+        GW.SettingsMenuButtonSetUp(button.button, odd)
+        button.button:SetText(button.text)
+        button.button:SetScript("OnClick", button.onClick)
         odd = not odd
     end
 
@@ -702,10 +719,6 @@ function GW.LoadSettingsOverview(container)
 
     UpdateScrollBox(settingsOverview.ScrollBox, "changelog")
     UpdateOverviewScrollFx(settingsOverview.ScrollBar)
-
-    if GW.Retail then
-        GW.InitBeledarsSplashScreen(settingsOverview)
-    end
 
     return settingsOverview
 end

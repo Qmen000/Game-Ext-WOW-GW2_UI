@@ -13,6 +13,12 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("10.13.0", {
+    {GW.Enum.ChangelogType.feature, [=[Added column-based player aura growth directions and clearer row/column layout labels]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fix some more Mists errors]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fix for 12.0.7]=]},
+})
+
 addChange("10.12.2", {
     {GW.Enum.ChangelogType.bug, [=[Auras can be cancelled again (Mists)]=]},
     {GW.Enum.ChangelogType.bug, [=[Fixed experience bar Lua error when tracking reputation with a classic pet active]=]},
