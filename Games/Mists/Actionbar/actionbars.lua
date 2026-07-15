@@ -92,12 +92,12 @@ end
 
 GW.HookActionBarStateChanges()
 
+local out_R, out_G, out_B, out_A = RED_FONT_COLOR:GetRGBA()
 local function changeVertexColorActionbars(btn)
     if btn and btn.changedColor then
         local valid = C_ActionBar.IsActionInRange(btn.action)
         local checksRange = (valid ~= nil)
         local inRange = checksRange and valid
-        local out_R, out_G, out_B = RED_FONT_COLOR:GetRGB()
         if checksRange and not inRange then
             btn.icon:SetVertexColor(out_R, out_G, out_B)
         end
@@ -628,7 +628,6 @@ local function setActionButtonStyle(buttonName, noBackDrop, isStanceButton, isPe
 end
 GW.setActionButtonStyle = setActionButtonStyle
 
-local red_R, red_G, red_B = RED_FONT_COLOR:GetRGB()
 local function helper_RangeUpdate(slot, inRange, checkRange)
     local btn = nil
     local indicator = "RED_OVERLAY"
@@ -665,7 +664,7 @@ local function helper_RangeUpdate(slot, inRange, checkRange)
             btn.gw_RangeIndicator:Show()
         end
         if indicator == "RED_OVERLAY" or indicator == "BOTH" then
-            btn.icon:SetVertexColor(red_R, red_G, red_B, 1, true)
+            btn.icon:SetVertexColor(out_R, out_G, out_B, 1, true)
         end
     else
         btn.isOutOfRange = false
@@ -691,7 +690,7 @@ local function saveVertexColor(self, r, g, b, a, bypass)
 
     -- keep out of range active
     if self:GetParent().isOutOfRange then
-        r, g, b, a = RED_FONT_COLOR:GetRGBA()
+        r, g, b, a = out_R, out_G, out_B, out_A
         self:SetVertexColor(r, g, b, a, true)
     end
 end
@@ -1144,50 +1143,9 @@ actionBarEquipUpdate = function()
 end
 
 
-local function actionButtonFlashing(btn, elapsed)
-    local flashtime = btn.flashtime
-    flashtime = flashtime - elapsed
-
-    if (flashtime <= 0) then
-        local overtime = -flashtime
-        if (overtime >= ATTACK_BUTTON_FLASH_TIME) then
-            overtime = 0
-        end
-        flashtime = ATTACK_BUTTON_FLASH_TIME - overtime
-
-        local flashTexture = btn.Flash
-        if (flashTexture:IsShown()) then
-            flashTexture:Hide()
-        else
-            flashTexture:Show()
-        end
-    end
-
-    btn.flashtime = flashtime
-end
-
-
-local function actionButtons_OnUpdate(self, elapsed)
-    for i = 1, 12 do
-        local btn = self.gw_Buttons[i]
-        -- override of /Interface/FrameXML/ActionButton.lua ActionButton_OnUpdate
-        if (btn:IsFlashing()) then
-            actionButtonFlashing(btn, elapsed)
-        end
-    end
-end
-
-
-local function multiButtons_OnUpdate(self, elapsed)
-    for i = 1, 12 do
-        local btn = self.gw_Buttons[i]
-        -- override of /Interface/FrameXML/ActionButton.lua ActionButton_OnUpdate
-        if (btn:IsFlashing()) then
-            actionButtonFlashing(btn, elapsed)
-        end
-    end
-end
-
+-- NOTE: button flashing (auto-attack) is driven by Blizzard's secure
+-- ActionBarButtonUpdateFrame; writing btn.flashtime from addon code taints
+-- the action bar controller and breaks the override bar transition in combat
 
 local updateCap = 1 / 60 -- cap updates to 60 FPS
 actionBar_OnUpdate = function(self, elapsed)
@@ -1213,34 +1171,6 @@ actionBar_OnUpdate = function(self, elapsed)
     -- fade bars in/out as required
     if testFade then
         fadeCheck(self)
-    end
-
-    -- update action bar buttons
-    if self.gw_FadeShowing then
-        actionButtons_OnUpdate(self, elapsedToProcess)
-    end
-
-    -- update multibar buttons
-    if self.gw_Bar1.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar1, elapsedToProcess)
-    end
-    if self.gw_Bar2.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar2, elapsedToProcess)
-    end
-    if self.gw_Bar3.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar3, elapsedToProcess)
-    end
-    if self.gw_Bar4.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar4, elapsedToProcess)
-    end
-    if self.gw_Bar5.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar5, elapsedToProcess)
-    end
-    if self.gw_Bar6.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar6, elapsedToProcess)
-    end
-    if self.gw_Bar7.gw_FadeShowing then
-        multiButtons_OnUpdate(self.gw_Bar7, elapsedToProcess)
     end
 end
 
@@ -1274,8 +1204,6 @@ local function UpdateMainBarHot()
         fmActionbar:SetSize(btn_padding, used_height)
         fmActionbar.gw_Width = btn_padding
     end
-
-    actionButtons_OnUpdate(MainActionBar, 0)
 end
 GW.UpdateMainBarHot = UpdateMainBarHot
 
