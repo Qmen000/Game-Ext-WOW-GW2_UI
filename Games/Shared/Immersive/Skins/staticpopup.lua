@@ -29,7 +29,7 @@ local BUTTON_SCHEMES = {
         pushed = {0.8, 0.8, 0.8},
         hover = {1, 1, 1},
         text = {0.9, 0.92, 0.94},
-        hoverText = {1, 1, 1},
+        hoverText = {0, 0, 0}, -- the neutral hover overlay is white, so the text flips to dark
     },
 }
 
@@ -46,7 +46,7 @@ do
         end
     end
     register("cancel", CANCEL, NO, DECLINE)
-    register("confirm", YES, OKAY, ACCEPT, ACCEPT_ALT)
+    register("confirm", YES, OKAY, ACCEPT, ACCEPT_ALT, QUIT_NOW)
 end
 
 local function SetButtonFontStringColor(button, r, g, b, a)
@@ -260,9 +260,8 @@ local function LoadStaticPopupSkin()
         -- message text in the ready check look
         local text = StaticPopup.text or _G["StaticPopup" .. i .. "Text"]
         if text then
-            text:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
+            text:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal, "SHADOW")
             text:SetTextColor(0.92, 0.88, 0.78, 1)
-            text:SetShadowOffset(1, -1)
         end
 
         --Style Buttons (ready check style; confirm/cancel coloring is applied on show)

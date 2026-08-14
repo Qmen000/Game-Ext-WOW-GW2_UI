@@ -226,7 +226,7 @@ local function updateOverview(fmOverview)
             fm.skillName = name
             fm.profId = profId
             fm.icon:SetTexture(icon)
-            SetDesaturation(fm.icon, false)
+            fm.icon:SetDesaturated(false)
             fm.title:SetText(name)
 
             if not skillDesc then
@@ -280,7 +280,7 @@ local function updateOverview(fmOverview)
                 fm.background:SetTexCoord(0, 1, 1, 0)
                 fm.background:SetAlpha(1.0)
             end
-            SetDesaturation(fm.background, false)
+            fm.background:SetDesaturated(false)
             if i > 2 then
                 fm.unlearn:Hide()
             else
@@ -315,14 +315,14 @@ local function updateOverview(fmOverview)
             fm.desc:SetWidth(450)
             fm.skillName = nil
             fm.profId = nil
-            SetDesaturation(fm.icon, true)
+            fm.icon:SetDesaturated(true)
             fm.StatusBar:Hide()
             fm.btn1:Hide()
             fm.btn2:Hide()
             fm.background:SetTexture("Interface/AddOns/GW2_UI/textures/character/paperdollbg.png")
             fm.background:SetTexCoord(0, 1, 1, 0)
             fm.background:SetAlpha(1.0)
-            SetDesaturation(fm.background, true)
+            fm.background:SetDesaturated(true)
             fm.unlearn:Hide()
         end
     end
@@ -426,36 +426,26 @@ local function loadOverview(parent)
             fm.unspendedKnowledgePointsFrame:Hide()
         end
 
-        fm.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.BigHeader)
+        fm.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.BigHeader, "SHADOW")
         fm.title:SetTextColor(1, 1, 1, 1)
-        fm.title:SetShadowColor(0, 0, 0, 1)
-        fm.title:SetShadowOffset(1, -1)
-        fm.desc:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
+        fm.desc:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal, "SHADOW")
         fm.desc:SetTextColor(0.8, 0.8, 0.8, 1)
-        fm.desc:SetShadowColor(0, 0, 0, 1)
-        fm.desc:SetShadowOffset(1, -1)
 
-        fm.StatusBar.currentValue:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
-        fm.StatusBar.currentValue:SetShadowColor(0, 0, 0, 1)
-        fm.StatusBar.currentValue:SetShadowOffset(1, -1)
+        fm.StatusBar.currentValue:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small, "SHADOW")
 
         fm.StatusBar:SetMinMaxValues(0, 1)
         fm.StatusBar:SetValue(0)
         fm.StatusBar:SetStatusBarColor(GW.Colors.FactionBarColors[5]:GetRGB())
 
-        fm.btn1.name:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
+        fm.btn1.name:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal, "SHADOW")
         fm.btn1.name:SetTextColor(1, 1, 1, 1)
-        fm.btn1.name:SetShadowColor(0, 0, 0, 1)
-        fm.btn1.name:SetShadowOffset(1, -1)
         fm.btn1:SetScript("OnEnter", profButton_OnEnter)
         fm.btn1:SetScript("OnLeave", GameTooltip_Hide)
         fm.btn1:EnableMouse(true)
         fm.btn1:RegisterForDrag("LeftButton")
 
-        fm.btn2.name:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
+        fm.btn2.name:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal, "SHADOW")
         fm.btn2.name:SetTextColor(1, 1, 1, 1)
-        fm.btn2.name:SetShadowColor(0, 0, 0, 1)
-        fm.btn2.name:SetShadowOffset(1, -1)
         fm.btn2:SetScript("OnEnter", profButton_OnEnter)
         fm.btn2:SetScript("OnLeave", GameTooltip_Hide)
         fm.btn2:EnableMouse(true)

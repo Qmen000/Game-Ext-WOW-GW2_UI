@@ -203,7 +203,8 @@ function GwObjectivesCollectionContainerMixin:BlockOnClick(button)
             elseif (self.trackableType == Enum.ContentTrackingType.Appearance) and IsModifiedClick("DRESSUP") then
                 DressUpVisual(self.trackableID);
             elseif self.targetType == Enum.ContentTrackingTargetType.Achievement then
-                OpenAchievementFrameToAchievement(self.targetID)
+                AchievementFrame_ToggleAchievementFrame()
+                AchievementFrame_SelectAchievement(targetID)
             elseif self.targetType == Enum.ContentTrackingTargetType.Profession then
                 AdventureObjectiveTrackerMixin:ClickProfessionTarget(self.targetID)
             else
@@ -232,8 +233,7 @@ function GwObjectivesCollectionContainerMixin:InitModule()
 
     self.header = CreateFrame("Button", nil, self, "GwQuestTrackerHeader")
     self.header.icon:SetTexCoord(0.5, 1, 0.75, 1)
-    self.header.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header)
-    self.header.title:SetShadowOffset(1, -1)
+    self.header.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header, "SHADOW")
     self.header.title:SetText(ADVENTURE_TRACKING_MODULE_HEADER_TEXT)
 
     self.collapsed = false

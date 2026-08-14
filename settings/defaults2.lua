@@ -18,8 +18,7 @@ local UnitFrameFader = {
 
 local PlayerAuraSettings = {
     Seperate = 0,
-    SortDir = "+",
-    SortMethod = "INDEX",
+    Sort = "DEFAULT",
     IconSize = 32,
     IconHeight = 32,
     KeepSizeRatio = true,
@@ -31,6 +30,12 @@ local PlayerAuraSettings = {
     NewAuraAnimation = true,
 }
 
+-- per grid ignore list default, seeded from the always-ignored spell ids
+local GridIgnoredAuras = {}
+for _, spellId in ipairs(GW.AURAS_IGNORED) do
+    GridIgnoredAuras[spellId] = true
+end
+
 local GridAuraFilter = {
     isAuraPlayer = false,
     isAuraRaid = false,
@@ -38,8 +43,8 @@ local GridAuraFilter = {
     isAuraRaidPlayerDispellable = false,
     isAuraExternalDefensive = false,
     isAuraExternalDefensivePlayer = false,
-    --isAuraImportant = false,
-    --isAuraImportantPlayer = false,
+    isAuraImportant = false,
+    isAuraImportantPlayer = false,
     isAuraCrowdControl = false,
     isAuraCrowdControlPlayer = false,
     isAuraBigDefensive = false,
@@ -57,7 +62,6 @@ GW.privateDefaults = {
     profile = {
         GW2_UI_VERSION = "WELCOME",
         Layouts = {},
-        PLAYER_TRACKED_DODGEBAR_SPELL = "",
         PLAYER_TRACKED_DODGEBAR_SPELL_ID = 0,
         CHAT_KEYWORDS_ALERT_COLOR = {r = .5, g = .5, b = .5},
         ChatHistoryLog = {},
@@ -120,7 +124,6 @@ GW.globalDefault = {
         CASTINGBAR_ENABLED = true,
         SHOWACTIONBAR_MACRO_NAME_ENABLED = false,
         ACTIONBAR_BACKGROUND_ALPHA = 0.3,
-        HIDEACTIONBAR_BACKGROUND_ENABLED = false,
         SHOW_QUESTTRACKER_COMPASS = true,
         QUESTTRACKER_STATUSBARS_ENABLED = true,
         OBJECTIVES_SUPERTRACKED_QUEST_TOP = false,
@@ -131,7 +134,6 @@ GW.globalDefault = {
         CLASS_POWER = true,
         RAID_FRAMES = true,
         PARTY_FRAMES = true,
-        ARENA_FRAMES = true,
         PETBAR_ENABLED = true,
         BORDER_ENABLED = true,
 
@@ -148,6 +150,7 @@ GW.globalDefault = {
         NumberFormat = "POINT",
 
         showDodgebar = true,
+        DODGEBAR_COOLDOWN_TEXT = true,
         showSkyridingbar = true,
 
         FONT_STYLE_TEMPLATE = "GW2",
@@ -233,6 +236,10 @@ GW.globalDefault = {
         PET_Buff_Filter_advanced = CopyTable(GridAuraFilter),
         PET_Debuff_Filter = "player",
         PET_Debuff_Filter_advanced = CopyTable(GridAuraFilter),
+        PET_IGNORED_AURAS = {},
+        PET_PANDEMIC_HIGHLIGHT = true,
+        PET_DISPEL_ICON = "DISPELLABLE",
+        PET_AURA_SORT = "DEFAULT",
 
 
         BUTTON_ASSIGNMENTS= true,
@@ -246,6 +253,10 @@ GW.globalDefault = {
         BAG_ITEM_SIZE= 40,
         BAG_ITEM_SPACING_X= 5,
         BAG_ITEM_SPACING_Y= 5,
+        BANK_ITEM_SIZE= 40,
+        BANK_ITEM_SPACING_X= 5,
+        BANK_ITEM_SPACING_Y= 5,
+        BANK_ITEM_SETTINGS_SPLIT= false,
 
         PLAYER_UNIT_HEALTH= "VALUE",
         PLAYER_UNIT_ABSORB= "VALUE",
@@ -261,10 +272,15 @@ GW.globalDefault = {
         BAG_ITEM_SCRAP_ICON_SHOW= false,
         BAG_ITEM_UPGRADE_ICON_SHOW= false,
         BAG_PROFESSION_BAG_COLOR= true,
+        BAG_PROFESSION_BAG_QUALITY_COLOR= false,
         BAG_VENDOR_GRAYS= false,
+        BAG_ITEM_LEVEL_THRESHOLD= 0,
+        BAG_ITEM_NEW_ITEM_SHOW= false,
+        BAG_COMPACT_EMPTY_SLOTS= false,
         BAG_SHOW_ILVL= false,
         BAG_SEPARATE_BAGS= false,
-        BAG_SEPARATE_REAGENT_BAGS= false,
+        BAG_SEPARATE_KEYRING= false,
+        BAG_SEPARATE_REAGENT_BAG= false,
         BAG_SHOW_EQUIPMENT_SET_NAME = false,
         BAG_HEADER_NAME0= "",
         BAG_HEADER_NAME1= "",
@@ -293,6 +309,15 @@ GW.globalDefault = {
 
         BANK_WIDTH= 720,
         BANK_REVERSE_SORT= false,
+        BANK_SEPARATE_BAGS= false,
+        BANK_HEADER_NAME0= "",
+        BANK_HEADER_NAME1= "",
+        BANK_HEADER_NAME2= "",
+        BANK_HEADER_NAME3= "",
+        BANK_HEADER_NAME4= "",
+        BANK_HEADER_NAME5= "",
+        BANK_HEADER_NAME6= "",
+        BANK_HEADER_NAME7= "",
 
         BANK_POSITION= {
             point= "TOPLEFT",
@@ -372,10 +397,6 @@ GW.globalDefault = {
         FADE_MULTIACTIONBAR_6= "ALWAYS",
         FADE_MULTIACTIONBAR_7= "ALWAYS",
         FADE_MULTIACTIONBAR_8= "ALWAYS",
-        GW_SHOW_MULTI_ACTIONBAR_1 = false,
-        GW_SHOW_MULTI_ACTIONBAR_2 = false,
-        GW_SHOW_MULTI_ACTIONBAR_3 = false,
-        GW_SHOW_MULTI_ACTIONBAR_4 = false,
         HIDE_CHATSHADOW= false,
         HIDE_QUESTVIEW= false,
         USE_CHAT_BUBBLES= false,
@@ -384,6 +405,7 @@ GW.globalDefault = {
         DISABLE_CHATFRAME= false,
         CHATFRAME_FADE= true,
         CHATFRAME_EDITBOX_HIDE= true,
+        CHAT_BUTTONS_POSITION= "LEFT",
         FADE_MICROMENU= false,
         MICROMENU_EVENT_TIMER_ICON= false,
         MICROMENU_NOTIFICATION_ICON_ANIMATION= true,
@@ -408,7 +430,8 @@ GW.globalDefault = {
         target_HEALTH_VALUE_ENABLED= false,
         target_HEALTH_VALUE_TYPE= false,
         target_CLASS_COLOR= true,
-        target_CASTINGBAR_DATA= false,
+        target_CASTINGBAR_SHOW_NAME= true,
+        target_CASTINGBAR_SHOW_TIMER= false,
         target_AURAS_ON_TOP= false,
         target_FLOATING_COMBAT_TEXT= true,
         target_FRAME_INVERT= false,
@@ -418,6 +441,10 @@ GW.globalDefault = {
         targetFrameHealthBarTexture = "GW2_UI_2_DEFAULT",
         targetAuraSmallSize = 20,
         targetAuraBigSize = 26,
+        target_IGNORED_AURAS = {},
+        target_PANDEMIC_HIGHLIGHT = true,
+        target_DISPEL_ICON = "DISPELLABLE",
+        target_AURA_SORT = "DEFAULT",
 
         focus_TARGET_ENABLED= true,
         focus_TARGET_SHOW_CASTBAR= true,
@@ -436,13 +463,18 @@ GW.globalDefault = {
         focus_HEALTH_VALUE_ENABLED= false,
         focus_HEALTH_VALUE_TYPE= false,
         focus_CLASS_COLOR= true,
-        focus_CASTINGBAR_DATA= false,
+        focus_CASTINGBAR_SHOW_NAME= true,
+        focus_CASTINGBAR_SHOW_TIMER= false,
         focus_FRAME_INVERT= false,
         focus_FRAME_ALT_BACKGROUND= false,
         focus_SHORT_VALUES = false,
         focusFrameHealthBarTexture = "GW2_UI_2_DEFAULT",
         focusAuraSmallSize = 20,
         focusAuraBigSize = 26,
+        focus_IGNORED_AURAS = {},
+        focus_PANDEMIC_HIGHLIGHT = true,
+        focus_DISPEL_ICON = "DISPELLABLE",
+        focus_AURA_SORT = "DEFAULT",
 
         target_pos= {
             point= "TOP",
@@ -736,21 +768,6 @@ GW.globalDefault = {
         ROLE_BAR_pos_scale= 1,
         ROLE_BAR= "IN_RAID",
 
-        MISSING_RAID_BUFF_pos= {
-            point= "TOPLEFT",
-            relativePoint= "TOPLEFT",
-            xOfs= 2,
-            yOfs= -30,
-            hasMoved= false,
-        },
-        MISSING_RAID_BUFF_pos_scale= 1,
-        MISSING_RAID_BUFF= "IN_RAID",
-        MISSING_RAID_BUFF_INVERT= false,
-        MISSING_RAID_BUFF_animated= true,
-        MISSING_RAID_BUFF_dimmed= true,
-        MISSING_RAID_BUFF_grayed_out= true,
-        MISSING_RAID_BUFF_custom_id= "",
-
         CHAT_FIND_URL= true,
         CHAT_HYPERLINK_TOOLTIP= true,
         CHAT_SHORT_CHANNEL_NAMES= false,
@@ -938,9 +955,10 @@ GW.globalDefault = {
         RAID_SHOW_ABSORB_BAR_TANK = true,
         RAID_MAINTANK_DEBUFF_FILTER = CopyTable(GridAuraFilter),
         RAID_MAINTANK_BUFF_FILTER = CopyTable(GridAuraFilter),
+        RAID_MAINTANK_IGNORED_AURAS = CopyTable(GridIgnoredAuras),
+        RAID_MAINTANK_PANDEMIC_HIGHLIGHT = true,
+        RAID_MAINTANK_DISPEL_ICON = "DISPELLABLE",
         RAID_SHOW_BUFFS_TANK = false,
-        RAID_MAINTANK_SHOW_PRIVATE_AURAS = true,
-        RAID_MAINTANK_PRIVATE_AURA_SIZE = 14,
         maintank_show_powerbar = "NONE", -- always
         maintank_FrameHealthBarTexture = "GW2_UI_2_DEFAULT",
         MaintankGroupByClassOrder = {"DEATHKNIGHT,DEMONHUNTER,DRUID,EVOKER,HUNTER,MAGE,PALADIN,PRIEST,ROGUE,SHAMAN,WARLOCK,WARRIOR,MONK"},
@@ -983,6 +1001,9 @@ GW.globalDefault = {
         RAID_SHOW_ABSORB_BAR_PET = true,
         RAID_PET_DEBUFF_FILTER = CopyTable(GridAuraFilter),
         RAID_PET_BUFF_FILTER = CopyTable(GridAuraFilter),
+        RAID_PET_IGNORED_AURAS = CopyTable(GridIgnoredAuras),
+        RAID_PET_PANDEMIC_HIGHLIGHT = true,
+        RAID_PET_DISPEL_ICON = "DISPELLABLE",
         RAID_PET_SHOW_BUFFS = false,
         pet_show_powerbar = "NONE", -- always
         pet_FrameHealthBarTexture = "GW2_UI_2_DEFAULT",
@@ -1026,6 +1047,9 @@ GW.globalDefault = {
         PARTY_SHOW_ABSORB_BAR_PET = true,
         PARTY_PET_DEBUFF_FILTER = CopyTable(GridAuraFilter),
         PARTY_PET_BUFF_FILTER = CopyTable(GridAuraFilter),
+        PARTY_PET_IGNORED_AURAS = CopyTable(GridIgnoredAuras),
+        PARTY_PET_PANDEMIC_HIGHLIGHT = true,
+        PARTY_PET_DISPEL_ICON = "DISPELLABLE",
         PARTY_PET_SHOW_BUFFS = false,
         party_pet_show_powerbar = "NONE", -- always
         party_pet_FrameHealthBarTexture = "GW2_UI_2_DEFAULT",
@@ -1051,8 +1075,6 @@ GW.globalDefault = {
         RAID_SHOW_DEBUFFS= true,
         RAID_ONLY_DISPELL_DEBUFFS= false,
         RAID_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF= false,
-        RAID_SHOW_PRIVATE_AURAS = true,
-        RAID_PRIVATE_AURA_SIZE = 14,
         RAID_AURA_TOOLTIP_INCOMBAT= "IN_COMBAT",
         RAID_UNIT_HEALTH= "NONE",
         UNITFRAME_ANCHOR_FROM_CENTER= false,
@@ -1069,6 +1091,9 @@ GW.globalDefault = {
         RAID_SHORT_HEALTH_VALUES = false,
         RAID_SHOW_ABSORB_BAR = true,
         RAID_BUFF_FILTER = CopyTable(GridAuraFilter),
+        RAID_IGNORED_AURAS = CopyTable(GridIgnoredAuras),
+        RAID_PANDEMIC_HIGHLIGHT = true,
+        RAID_DISPEL_ICON = "DISPELLABLE",
         RAID_DEBUFF_FILTER = CopyTable(GridAuraFilter),
         RAID_SHOW_BUFFS = false,
         raid40_show_powerbar = "ALL",
@@ -1096,8 +1121,6 @@ GW.globalDefault = {
         RAID_SHOW_DEBUFFS_RAID25= true,
         RAID_ONLY_DISPELL_DEBUFFS_RAID25= false,
         RAID_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF_RAID25= false,
-        RAID_25_SHOW_PRIVATE_AURAS = true,
-        RAID_25_PRIVATE_AURA_SIZE = 14,
         RAID_AURA_TOOLTIP_INCOMBAT_RAID25= "IN_COMBAT",
         RAID_UNIT_HEALTH_RAID25= "NONE",
         UNITFRAME_ANCHOR_FROM_CENTER_RAID25= false,
@@ -1115,6 +1138,9 @@ GW.globalDefault = {
         RAID_SHOW_ABSORB_BAR_RAID25 = true,
         RAID_25_DEBUFF_FILTER = CopyTable(GridAuraFilter),
         RAID_25_BUFF_FILTER = CopyTable(GridAuraFilter),
+        RAID_25_IGNORED_AURAS = CopyTable(GridIgnoredAuras),
+        RAID_25_PANDEMIC_HIGHLIGHT = true,
+        RAID_25_DISPEL_ICON = "DISPELLABLE",
         RAID_25_SHOW_BUFFS = false,
         raid25_show_powerbar = "ALL",
         raid25_FrameHealthBarTexture = "GW2_UI_2_DEFAULT",
@@ -1141,8 +1167,6 @@ GW.globalDefault = {
         RAID_SHOW_DEBUFFS_RAID10= true,
         RAID_ONLY_DISPELL_DEBUFFS_RAID10= false,
         RAID_SHOW_IMPORTEND_RAID_INSTANCE_DEBUFF_RAID10= false,
-        RAID_10_SHOW_PRIVATE_AURAS = true,
-        RAID_10_PRIVATE_AURA_SIZE = 14,
         RAID_AURA_TOOLTIP_INCOMBAT_RAID10= "IN_COMBAT",
         RAID_UNIT_HEALTH_RAID10= "NONE",
         UNITFRAME_ANCHOR_FROM_CENTER_RAID10= false,
@@ -1161,6 +1185,9 @@ GW.globalDefault = {
         RAID_SHOW_ABSORB_BAR_RAID10 = true,
         RAID_10_DEBUFF_FILTER = CopyTable(GridAuraFilter),
         RAID_10_BUFF_FILTER = CopyTable(GridAuraFilter),
+        RAID_10_IGNORED_AURAS = CopyTable(GridIgnoredAuras),
+        RAID_10_PANDEMIC_HIGHLIGHT = true,
+        RAID_10_DISPEL_ICON = "DISPELLABLE",
         RAID_10_SHOW_BUFFS = false,
         raid10_show_powerbar = "ALL",
         raid10_FrameHealthBarTexture = "GW2_UI_2_DEFAULT",
@@ -1203,8 +1230,9 @@ GW.globalDefault = {
         RAID_SHOW_ABSORB_BAR_PARTY = true,
         RAID_PARTY_DEBUFF_FILTER = CopyTable(GridAuraFilter),
         RAID_PARTY_BUFF_FILTER = CopyTable(GridAuraFilter),
-        RAID_PARTY_SHOW_PRIVATE_AURAS = true,
-        RAID_PARTY_PRIVATE_AURA_SIZE = 14,
+        RAID_PARTY_IGNORED_AURAS = CopyTable(GridIgnoredAuras),
+        RAID_PARTY_PANDEMIC_HIGHLIGHT = true,
+        RAID_PARTY_DISPEL_ICON = "DISPELLABLE",
         RAID_PARTY_SHOW_BUFFS = false,
         party_grid_show_powerbar = "ALL",
         party_grid_FrameHealthBarTexture = "GW2_UI_2_DEFAULT",
@@ -1225,6 +1253,9 @@ GW.globalDefault = {
         PARTY_UNIT_HEALTH= "NONE",
         PARTY_SHOW_BUFFS = true,
         PARTY_SHOW_AURA_ICON_SIZE = 20,
+        PARTY_IGNORED_AURAS = {},
+        PARTY_PANDEMIC_HIGHLIGHT = true,
+        PARTY_DISPEL_ICON = "DISPELLABLE",
         partyFrameHealthBarTexture = "GW2_UI_2_DEFAULT",
         PARTY_SHOW_DEBUFFS= true,
         PARTY_ONLY_DISPELL_DEBUFFS= false,
@@ -1261,7 +1292,24 @@ GW.globalDefault = {
         WORLDMAP_COORDS_Y_OFFSET= 0,
 
         showPlayerCastBarTicks = true,
-        CASTINGBAR_DATA= false,
+        CASTINGBAR_WIDTH= 176,
+        CASTINGBAR_HEIGHT= 15,
+        -- what the old "Advanced Casting Bar" toggle switched as a block, one setting each.
+        -- The defaults match that toggle being off, existing profiles are migrated
+        CASTINGBAR_SHOW_NAME= false,
+        CASTINGBAR_SHOW_TIMER= false,
+        CASTINGBAR_SHOW_LATENCY= false,
+        CASTINGBAR_ICON_POSITION= "HIDE",
+        -- the default colors match the flavored bar textures, so switching custom colors on
+        -- does not change the look until one of them is edited
+        CASTINGBAR_CUSTOM_COLORS= false,
+        CASTINGBAR_COLOR_CAST= {r = 0.93, g = 0.65, b = 0.15},
+        CASTINGBAR_COLOR_CHANNEL= {r = 0.55, g = 0.8, b = 0.2},
+        CASTINGBAR_COLOR_EMPOWER= {r = 1, g = 0.72, b = 0.2},
+        CASTINGBAR_COLOR_INTERRUPTED= {r = 0.8, g = 0.16, b = 0.11},
+        CASTINGBAR_EMPOWER_STAGE_COLORS= true,
+        CASTINGBAR_INTERRUPT_SHAKE= true,
+        CASTINGBAR_INTERRUPT_SOUND= false,
         USE_CHARACTER_WINDOW= true,
         USE_TALENT_WINDOW= true,
         USE_SPELLBOOK_WINDOW = true,
@@ -1271,7 +1319,6 @@ GW.globalDefault = {
 
         QUESTTRACKER_SORTING = "DEFAULT",
 
-        AURAS_IGNORED= strjoin(", ", unpack(GW.MapTable(GW.AURAS_IGNORED, GetSpellInfo, nil, "name"))),
         AURAS_MISSING= strjoin(", ", unpack(GW.MapTable(GW.AURAS_MISSING, GetSpellInfo, nil, "name"))),
         INDICATORS_ICON= false,
         INDICATORS_TIME= true,
@@ -1408,15 +1455,6 @@ GW.globalDefault = {
         },
         PlayerDebuffFrame_scale= 1,
 
-        PlayerPrivateAuras= {
-            point= "TOPRIGHT",
-            relativePoint= "TOPRIGHT",
-            xOfs= -500,
-            yOfs= -173,
-            hasMoved= false,
-        },
-        PlayerPrivateAuras_scale= 1,
-
         AchievementWindow= {
             point= "TOPLEFT",
             relativePoint= "TOPLEFT",
@@ -1440,6 +1478,9 @@ GW.globalDefault = {
 
         PlayerBuffs = CopyTable(PlayerAuraSettings),
         PlayerDebuffs = CopyTable(PlayerAuraSettings),
+        PLAYER_IGNORED_AURAS = {},
+        PLAYER_PANDEMIC_HIGHLIGHT = true,
+        PLAYER_DISPEL_ICON = "DISPELLABLE",
 
         PLAYER_AS_TARGET_FRAME= false,
         PLAYER_AS_TARGET_FRAME_SHOW_RESSOURCEBAR= false,
@@ -1685,26 +1726,26 @@ GW.globalDefault = {
 -- aura filter defaults:
 GW.globalDefault.profile.RAID_PARTY_BUFF_FILTER.isAuraBigDefensive = true
 GW.globalDefault.profile.RAID_PARTY_BUFF_FILTER.isAuraRaidInCombatPlayer = true
---GW.globalDefault.profile.RAID_PARTY_DEBUFF_FILTER.isAuraImportant = true
---GW.globalDefault.profile.RAID_PARTY_DEBUFF_FILTER.isAuraImportantPlayer = true
+GW.globalDefault.profile.RAID_PARTY_DEBUFF_FILTER.isAuraImportant = true
+GW.globalDefault.profile.RAID_PARTY_DEBUFF_FILTER.isAuraImportantPlayer = true
 GW.globalDefault.profile.RAID_PARTY_DEBUFF_FILTER.isAuraRaidPlayerDispellable = true
 
 GW.globalDefault.profile.RAID_BUFF_FILTER.isAuraBigDefensive = true
 GW.globalDefault.profile.RAID_BUFF_FILTER.isAuraRaidInCombatPlayer = true
---GW.globalDefault.profile.RAID_DEBUFF_FILTER.isAuraImportant = true
---GW.globalDefault.profile.RAID_DEBUFF_FILTER.isAuraImportantPlayer = true
+GW.globalDefault.profile.RAID_DEBUFF_FILTER.isAuraImportant = true
+GW.globalDefault.profile.RAID_DEBUFF_FILTER.isAuraImportantPlayer = true
 GW.globalDefault.profile.RAID_DEBUFF_FILTER.isAuraRaidPlayerDispellable = true
 
 GW.globalDefault.profile.RAID_25_BUFF_FILTER.isAuraBigDefensive = true
 GW.globalDefault.profile.RAID_25_BUFF_FILTER.isAuraRaidInCombatPlayer = true
---GW.globalDefault.profile.RAID_25_DEBUFF_FILTER.isAuraImportant = true
---GW.globalDefault.profile.RAID_25_DEBUFF_FILTER.isAuraImportantPlayer = true
+GW.globalDefault.profile.RAID_25_DEBUFF_FILTER.isAuraImportant = true
+GW.globalDefault.profile.RAID_25_DEBUFF_FILTER.isAuraImportantPlayer = true
 GW.globalDefault.profile.RAID_25_DEBUFF_FILTER.isAuraRaidPlayerDispellable = true
 
 GW.globalDefault.profile.RAID_10_BUFF_FILTER.isAuraBigDefensive = true
 GW.globalDefault.profile.RAID_10_BUFF_FILTER.isAuraRaidInCombatPlayer = true
---GW.globalDefault.profile.RAID_10_DEBUFF_FILTER.isAuraImportant = true
---GW.globalDefault.profile.RAID_10_DEBUFF_FILTER.isAuraImportantPlayer = true
+GW.globalDefault.profile.RAID_10_DEBUFF_FILTER.isAuraImportant = true
+GW.globalDefault.profile.RAID_10_DEBUFF_FILTER.isAuraImportantPlayer = true
 GW.globalDefault.profile.RAID_10_DEBUFF_FILTER.isAuraRaidPlayerDispellable = true
 
 -- game default:

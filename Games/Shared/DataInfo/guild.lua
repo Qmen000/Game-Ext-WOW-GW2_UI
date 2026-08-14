@@ -65,7 +65,13 @@ local function SortGuildTable(shift)
 end
 
 local function inGroup(name)
-    return (UnitInParty(name) or UnitInRaid(name)) and "|cffaaaaaa*|r" or ""
+    local nameRaid = UnitInRaid(name)
+    local nameParty = UnitInParty(name)
+    if GW.IsSecretValue(nameRaid) or GW.IsSecretValue(nameParty) then
+        return ""
+    end
+
+    return (nameParty or nameRaid) and "|cffaaaaaa*|r" or ""
 end
 
 local function FetchGuildMembers_Internal()
@@ -228,7 +234,7 @@ local function Guild_OnEnter(self)
 
         local faction = info.faction == 1 and FACTION_ALLIANCE or info.faction == 0 and FACTION_HORDE or ""
 
-        local classc, levelc = GW.GWGetClassColor(info.class, true, true), GetQuestDifficultyColor(info.level)
+        local classc, levelc = GW.GWGetClassColor(info.class, true), GetQuestDifficultyColor(info.level)
         if not classc then classc = levelc end
 
         if shiftDown then
@@ -277,7 +283,7 @@ local function Guild_OnClick(self, button)
 
             for _, info in ipairs(guildTable) do
                 if (info.online or info.isMobile) and strmatch(info.name, "([^%-]+).*") ~= GW.myname then
-                    local classc, levelc = GW.GWGetClassColor(info.class, true, true), GetQuestDifficultyColor(info.level)
+                    local classc, levelc = GW.GWGetClassColor(info.class, true), GetQuestDifficultyColor(info.level)
                     if not classc then classc = levelc end
 
                     local name = format(levelNameString, levelc.r * 255, levelc.g * 255, levelc.b * 255, info.level, classc.r * 255, classc.g * 255, classc.b * 255, strmatch(info.name, "([^%-]+).*"))

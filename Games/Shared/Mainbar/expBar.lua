@@ -243,11 +243,11 @@ local function UpdateReputation(self, data, lockLevelTextUnderMaxLevel)
         level = isMajor and repuLevel or
             isFriend and friendReputationInfo.reaction or
             isParagon and L["Paragon"] or
-            isNormal and getglobal("FACTION_STANDING_LABEL" .. (data.reaction or 1))
+            isNormal and _G["FACTION_STANDING_LABEL" .. (data.reaction or 1)]
         nextLevel = isParagon and L["Paragon"] or
             isFriend and "" or
             isMajor and repuNextLevel or
-            isNormal and getglobal("FACTION_STANDING_LABEL" .. math.min(8, nextId))
+            isNormal and _G["FACTION_STANDING_LABEL" .. math.min(8, nextId)]
     end
 
     return showRepu, valPrecRepu, level, nextLevel
@@ -664,9 +664,7 @@ local function LoadXPBar()
         PetBattleFrame.BottomFrame:SetFrameLevel(PetBattleFrame.BottomFrame:GetFrameLevel() + 5)
     end
 
-    if GW.Retail or GW.TBC or GW.Wrath or GW.Mists then
-        StatusTrackingBarManager:GwKill()
-    end
+    StatusTrackingBarManager:GwKill()
 
     if GW.Retail then
         PetBattleFrameXPBar:GwKill()
@@ -797,7 +795,7 @@ local function LoadXPBar()
         if C_AddOns.IsAddOnLoaded("Blizzard_PVPUI") then
             hookHonor()
         else
-            hooksecurefunc("UIParentLoadAddOn", function(addOnName)
+            hooksecurefunc("LoadAddOnWithErrorHandling", function(addOnName)
                 if addOnName == "Blizzard_PVPUI" then
                     hookHonor()
                 end

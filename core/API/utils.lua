@@ -17,8 +17,38 @@ local function SetDeadIcon(self)
 end
 GW.SetDeadIcon = SetDeadIcon
 
+-- 12.1: declares the frame's roleset so the UI mode system gates its visibility
+-- like Blizzard's own frames ("unitFrames", "arenaFrames", ...). No-op on clients
+-- without the API.
+local function SetFrameRoleset(frame, roleset)
+    if frame.SetRolesets then
+        frame:SetRolesets(roleset or "unitFrames")
+    end
+end
+GW.SetFrameRoleset = SetFrameRoleset
+
+-- Scales a buttons hotkey text down when it would render wider than the button —
+-- the auto-sized hotkey strings would otherwise overlap the neighboring buttons,
+-- the anchored ones (main bar) would ellipsize. The scale is clamped so extreme
+-- bindings shrink to readable instead of to pixel mush
+local function FitHotKeyText(button)
+    local hotkey = button.HotKey
+    hotkey:SetTextScale(1)
+
+    local maxWidth = button:GetWidth() - 2
+    if maxWidth <= 0 then
+        return
+    end
+
+    local textWidth = hotkey:GetUnboundedStringWidth()
+    if textWidth and textWidth > maxWidth then
+        hotkey:SetTextScale(math.max(0.6, maxWidth / textWidth))
+    end
+end
+GW.FitHotKeyText = FitHotKeyText
+
 local function SetClassIcon(self, class)
-    if class == nil then
+    if GW.IsSecretValue(class) or class == nil then
         class = 0
     end
     local tex = GW.CLASS_ICONS[class]
@@ -162,6 +192,78 @@ local function StoreGameMenuButton()
     end)
 end
 GW.StoreGameMenuButton = StoreGameMenuButton
+
+-- since 1.15.9 Logout()/Quit() are hard protected on classic clients. our edit mode layout apply
+-- inevitably taints EditModeManagerFrame.accountSettings (C_EditMode.SaveLayouts() dispatches
+-- EDIT_MODE_LAYOUTS_UPDATED synchronously in our tainted execution and blizzards handler rewrites
+-- the field), the game menus InitButtons reads that field through CanEnterEditMode() and wires every
+-- button after it tainted, so clicking logout/exit fires ADDON_ACTION_FORBIDDEN. route both buttons
+-- through invisible secure macro overlays instead, those always run secure
+local function SecureGameMenuLogoutButtons()
+    local overlays = {}
+
+    local function getOverlay(key, macroText, clickSound)
+        if overlays[key] then
+            return overlays[key]
+        end
+
+        local overlay = CreateFrame("Button", "GwGameMenuSecure" .. key .. "Button", GameMenuFrame, "SecureActionButtonTemplate")
+        overlay:SetAttribute("type", "macro")
+        overlay:SetAttribute("macrotext", macroText)
+        overlay:RegisterForClicks("AnyUp", "AnyDown") -- the secure handler picks the one matching the ActionButtonUseKeyDown cvar
+        overlay.clickSound = clickSound
+
+        overlay:SetScript("OnEnter", function(self)
+            if self.menuButton then
+                self.menuButton:LockHighlight()
+                local onEnter = self.menuButton:GetScript("OnEnter")
+                if onEnter then onEnter(self.menuButton) end
+            end
+        end)
+        overlay:SetScript("OnLeave", function(self)
+            if self.menuButton then
+                self.menuButton:UnlockHighlight()
+                local onLeave = self.menuButton:GetScript("OnLeave")
+                if onLeave then onLeave(self.menuButton) end
+            end
+        end)
+        overlay:SetScript("PostClick", function(self, _, down)
+            if down then return end
+            PlaySound(self.clickSound)
+            HideUIPanel(GameMenuFrame)
+        end)
+        overlay:Hide()
+
+        overlays[key] = overlay
+        return overlay
+    end
+
+    hooksecurefunc(GameMenuFrame, "InitButtons", function(self)
+        if not self.buttonPool or InCombatLockdown() then -- secure frames can not be moved in combat, overlays keep their last position
+            return
+        end
+
+        local logoutText = self.GetLogoutText and self:GetLogoutText() or LOGOUT
+        for button in self.buttonPool:EnumerateActive() do
+            local text = button:GetText()
+            local overlay
+            if text == logoutText then
+                overlay = getOverlay("Logout", "/logout", SOUNDKIT.IG_MAINMENU_LOGOUT)
+            elseif text == EXIT_GAME then
+                overlay = getOverlay("Quit", "/quit", SOUNDKIT.IG_MAINMENU_QUIT)
+            end
+
+            if overlay then
+                overlay.menuButton = button
+                overlay:ClearAllPoints()
+                overlay:SetAllPoints(button)
+                overlay:SetFrameLevel(button:GetFrameLevel() + 1)
+                overlay:SetShown(button:IsEnabled())
+            end
+        end
+    end)
+end
+GW.SecureGameMenuLogoutButtons = SecureGameMenuLogoutButtons
 
 if UnitIsTapDenied == nil then
     function UnitIsTapDenied()
@@ -332,49 +434,31 @@ local function GetDefaultClassColor(class)
         color = GW.privateDefaults.profile.Gw2ClassColor[class]
     end
     if type(color) ~= "table" then return end
-    if not color.colorStr then
-        color.colorStr = GW.RGBToHex(color.r, color.g, color.b, "ff")
-    elseif strlen(color.colorStr) == 6 then
-        color.colorStr = "ff" .. color.colorStr
-    end
 
     return color
 end
 GW.GetDefaultClassColor = GetDefaultClassColor
 
-do
-    function GW.GWGetClassColor(class, useClassColor, forNameString, alwaysUseBlizzardColors)
-        local fallbackColor = RAID_CLASS_COLORS.PRIEST
-        local useBlizzardClassColor = alwaysUseBlizzardColors or GW.settings.BLIZZARDCLASSCOLOR_ENABLED
-        local color = fallbackColor
+-- Returns a ColorMixin, never a color string: both sources hold mixins, so callers use
+-- :GetRGB() for widgets and :WrapTextInColorCode() for text. Nothing is written back into the
+-- color tables, which is why the class color settings no longer have to invalidate cached fields
+function GW.GWGetClassColor(class, useClassColor, alwaysUseBlizzardColors)
+    if GW.IsSecretValue(class) then
+        -- a secret class cannot be used as a table key, so the engine has to resolve the color
+        local ok, secretColor = pcall(C_ClassColor.GetClassColor, class)
+        return (ok and secretColor) or RAID_CLASS_COLORS.PRIEST
+    end
 
-        if class and useClassColor then
-            color = useBlizzardClassColor and RAID_CLASS_COLORS[class] or GW.Colors.ClassColors[class]
-        end
-
-        if type(color) ~= "table" or not color.r or not color.g or not color.b then
-            color = fallbackColor
-        end
-
-        if not color.colorStr then
-            color.colorStr = GW.RGBToHex(color.r, color.g, color.b, "ff")
-        elseif strlen(color.colorStr) == 6 then
-            color.colorStr = "ff" .. color.colorStr
-        end
-
-        if not color.forNameString then
-            color.forNameString = CreateColor(
-                    min(1, color.r + 0.3),
-                    min(1, color.g + 0.3),
-                    min(1, color.b + 0.3)
-                )
-        end
-        if forNameString and not useBlizzardClassColor then
-            return color.forNameString
+    local color
+    if class and useClassColor then
+        if alwaysUseBlizzardColors or GW.settings.BLIZZARDCLASSCOLOR_ENABLED then
+            color = RAID_CLASS_COLORS[class]
         else
-            return color
+            color = GW.Colors.ClassColors[class]
         end
     end
+
+    return color or RAID_CLASS_COLORS.PRIEST
 end
 
 
@@ -939,7 +1023,8 @@ local function IsItemEligibleForItemLevelDisplay(itemInput)
 end
 GW.IsItemEligibleForItemLevelDisplay = IsItemEligibleForItemLevelDisplay
 
-local function SetItemLevel(button, quality, itemInput, slot)
+-- minItemLevel hides the number below that value, the bags offer it as a setting
+local function SetItemLevel(button, quality, itemInput, slot, minItemLevel)
     if not itemInput or itemInput == "" then
         button.itemlevel:SetText("")
         button.__gwLastItemLink = nil
@@ -949,7 +1034,7 @@ local function SetItemLevel(button, quality, itemInput, slot)
     if button.__gwLastItemLink == itemInput then return end
 
     local function applyItemLevel(ilvl, color, usedLink)
-        if not ilvl or ilvl <= 0 then
+        if not ilvl or ilvl <= 0 or (minItemLevel and ilvl < minItemLevel) then
             button.itemlevel:SetText("")
             button.__gwLastItemLink = nil
             return
@@ -968,8 +1053,10 @@ local function SetItemLevel(button, quality, itemInput, slot)
         local item = Item:CreateFromItemLink(itemLink)
 
         item:ContinueOnItemLoad(function()
-            if button.bagID and button:GetID() or button.itemLocation then
-                local itemLoc = button.itemLocation or ItemLocation:CreateFromBagAndSlot(button.bagID, button:GetID())
+            -- our own bag buttons carry the id as gwBagID, foreign buttons still as bagID
+            local buttonBagID = button.gwBagID or button.bagID
+            if buttonBagID and button:GetID() or button.itemLocation then
+                local itemLoc = button.itemLocation or ItemLocation:CreateFromBagAndSlot(buttonBagID, button:GetID())
                 if itemLoc and itemLoc:IsValid() then
                     local ilvl = C_Item.GetCurrentItemLevel(itemLoc)
                     if ilvl and ilvl > 0 then
@@ -1292,9 +1379,12 @@ GW.GetClassIconStringWithStyle = GetClassIconStringWithStyle
 
 local function IsGroupMember(name)
     if name then
-        if UnitInParty(name) then
+        local nameRaid = UnitInRaid(name)
+        local nameParty = UnitInParty(name)
+
+        if GW.NotSecretValue(nameParty) and nameParty then
             return 1
-        elseif UnitInRaid(name) then
+        elseif GW.NotSecretValue(nameRaid) and nameRaid then
             return 2
         elseif name == GW.myname then
             return 3
@@ -1589,6 +1679,11 @@ end
 GW.DoesAncestryIncludeAny = DoesAncestryIncludeAny
 
 
+-- NOTE: no skip-when-unchanged shortcut here! An earlier optimization compared the saved
+-- layout values and skipped ApplyChanges when they matched — but the saved values say
+-- nothing about what the client actually APPLIED this session, and skipping the apply
+-- left some users with fully invisible action bars (only tooltips worked). The layout
+-- has to be applied unconditionally on every login.
 local function AddGw2Layout(init)
     if not GW.Libs.LEMO:IsReady() then
         C_Timer.After(0, function() AddGw2Layout(init) end)

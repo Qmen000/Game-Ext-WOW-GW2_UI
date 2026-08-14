@@ -185,6 +185,9 @@ end
 
 local function SetAlphaRecursive(frame, alpha)
     if not frame or not frame.SetAlpha then return end
+    -- skip forbidden subtrees (e.g. AuraContainer buttons) — SetAlpha would error
+    -- there; their effective alpha follows the accessible parent anyway
+    if frame.IsForbidden and frame:IsForbidden() then return end
     frame:SetAlpha(alpha)
 
     local numChildren = frame:GetNumChildren()
@@ -234,7 +237,7 @@ do
             return
         end
         lastRefresh = now
-        ContainerFrame_UpdateAll()
+        GW.UpdateAllOwnBagItemButtons()
     end
 
     local function OnEvent(self, event, ...)

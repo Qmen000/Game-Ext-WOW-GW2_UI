@@ -19,6 +19,10 @@ local GetChannelShortcutForChannelID = C_ChatInfo.GetChannelShortcutForChannelID
 local C_GuildInfo_GetMOTD = C_GuildInfo and C_GuildInfo.GetMOTD or GetGuildRosterMOTD
 local GetGroupMembers = C_SocialQueue and C_SocialQueue.GetGroupMembers
 local GetGroupQueues = C_SocialQueue and C_SocialQueue.GetGroupQueues
+local TimeUtil_BetterDate = TimeUtil and TimeUtil.BetterDate or BetterDate
+local DiscordDisplayNameType = Enum.DiscordDisplayNameType
+local FormatDiscordMessage = ChatFrameUtil and ChatFrameUtil.FormatDiscordMessage
+
 
 local FindURL_Events = {
     "CHAT_MSG_WHISPER",
@@ -125,6 +129,7 @@ local historyTypes = {
     CHAT_MSG_EMOTE			= "EMOTE"
 }
 
+local chatModuleInit = false
 local throttle = {}
 local lfgRoles = {}
 local GuidCache = {}
@@ -162,6 +167,270 @@ local gw_fade_frames = {
     ChatFrameToggleVoiceDeafenButton,
     ChatFrameToggleVoiceMuteButton
 }
+-- pull the chat content into the strip of the hidden button column - the same
+-- left anchor the edit box already uses - so text and tabs are flush with the
+-- left edge of the chat background while the frame itself stays untouched
+-- (its position is owned by edit mode).
+-- The scrolling message frame anchors its first visible line to the frame
+-- itself and sizes every line to the frame width (SharedXML RefreshLayout), so
+-- the lines are shifted into the strip and widened after every relayout;
+-- with position LEFT the offset is 0, which restores the default layout
+local function AdjustChatLines(frame)
+    local buttonFrame = _G[frame:GetName() .. "ButtonFrame"]
+    local visibleLines = frame.visibleLines
+    if not buttonFrame or not visibleLines then return end
+
+    local offset = GW.settings.CHAT_BUTTONS_POSITION == "LEFT" and 0 or (buttonFrame:GetWidth() + 2)
+    local width = frame:GetWidth() + offset
+    for index, fontString in ipairs(visibleLines) do
+        if index == 1 then
+            local point, relativeTo, relativePoint, _, yOfs = fontString:GetPoint(1)
+            -- only rebuild the anchor when GetPoint handed back a complete one: a line
+            -- that the engine has not anchored yet (fresh out of the pool while the dock
+            -- switches tabs) reports no relative point, and passing that nil on to
+            -- SetPoint makes it reject the whole argument list
+            if point and relativePoint and (relativeTo or fontString:GetParent() ~= nil) then
+                -- an explicit parent is what a nil relativeTo means anyway, and it keeps
+                -- SetPoint from having to guess at a nil in the middle of the arguments
+                fontString:SetPoint(point, relativeTo or fontString:GetParent(), relativePoint, -offset, yOfs or 0)
+            end
+        end
+        fontString:SetWidth(width)
+    end
+end
+
+local function AdjustChatContent(frame)
+    local buttonFrame = _G[frame:GetName() .. "ButtonFrame"]
+    if not buttonFrame then return end
+
+    -- the container clips the lines, so it has to cover the strip as well
+    if frame.FontStringContainer then
+        frame.FontStringContainer:ClearAllPoints()
+        if GW.settings.CHAT_BUTTONS_POSITION == "LEFT" then
+            frame.FontStringContainer:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+        else
+            frame.FontStringContainer:SetPoint("TOPLEFT", buttonFrame, "TOPLEFT", 2, 0)
+        end
+        frame.FontStringContainer:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+    end
+
+    if frame.RefreshLayout and not frame.gwLineLayoutHooked then
+        hooksecurefunc(frame, "RefreshLayout", AdjustChatLines)
+        frame.gwLineLayoutHooked = true
+    end
+    AdjustChatLines(frame)
+end
+
+local function AdjustChatDock()
+    if not GeneralDockManager or not ChatFrame1ButtonFrame then return end
+
+    GeneralDockManager:ClearAllPoints()
+    if GW.settings.CHAT_BUTTONS_POSITION == "LEFT" then
+        GeneralDockManager:SetPoint("BOTTOMLEFT", ChatFrame1, "TOPLEFT", 0, 3)
+    else
+        GeneralDockManager:SetPoint("BOTTOMLEFT", ChatFrame1ButtonFrame, "TOPLEFT", 0, 3)
+    end
+    GeneralDockManager:SetPoint("BOTTOMRIGHT", ChatFrame1, "TOPRIGHT", 0, 3)
+end
+
+-- chat controls hover bar --------------------------------------------------
+local controlsBar
+local controlsButtons
+
+local function ChatControlsFadeIn()
+    FCF_FadeInChatFrame(ChatFrame1)
+end
+
+local function ChatControlsFadeOut()
+    if GW.settings.CHATFRAME_FADE then
+        FCF_FadeOutChatFrame(ChatFrame1)
+    end
+end
+
+local function ControlButtonOnEnter(self)
+    if self.gwInChatControlsBar then
+        ChatControlsFadeIn()
+    end
+end
+
+local function ControlButtonOnLeave(self)
+    if self.gwInChatControlsBar then
+        ChatControlsFadeOut()
+    end
+end
+
+local function CollectControlsButtons()
+    if controlsButtons then return controlsButtons end
+
+    controlsButtons = {}
+    local function addButton(button)
+        if button then
+            -- snapshot the original anchoring, so switching back to LEFT can restore it
+            button.gwOrigParent = button:GetParent()
+            button.gwOrigPoints = {}
+            for i = 1, button:GetNumPoints() do
+                local point, relativeTo, relativePoint, xOfs, yOfs = button:GetPoint(i)
+                button.gwOrigPoints[i] = {point, relativeTo or button:GetParent(), relativePoint, xOfs, yOfs}
+            end
+            tinsert(controlsButtons, button)
+        end
+    end
+    addButton(QuickJoinToastButton)
+    addButton(not GW.Retail and FriendsMicroButton or nil)
+    addButton(ChatFrameMenuButton)
+    addButton(ChatFrameChannelButton)
+    addButton(GW.Retail and ChatFrameToggleVoiceMuteButton or nil)
+    addButton(GW.Retail and ChatFrameToggleVoiceDeafenButton or nil)
+
+    return controlsButtons
+end
+
+local function EnsureControlsBar()
+    if controlsBar then return controlsBar end
+
+    controlsBar = CreateFrame("Frame", "GwChatButtonsFrame", UIParent)
+    controlsBar:SetFrameStrata("MEDIUM")
+    controlsBar:EnableMouse(true)
+    controlsBar:GwCreateBackdrop(GW.BackdropTemplates.Default, true)
+    controlsBar:SetScript("OnEnter", ChatControlsFadeIn)
+    controlsBar:SetScript("OnLeave", ChatControlsFadeOut)
+
+    return controlsBar
+end
+
+local function RebuildChatFadeFrames(position)
+    wipe(gw_fade_frames)
+    tinsert(gw_fade_frames, GeneralDockManager)
+    if position == "LEFT" then
+        if QuickJoinToastButton then tinsert(gw_fade_frames, QuickJoinToastButton) end
+        if ChatFrameChannelButton then tinsert(gw_fade_frames, ChatFrameChannelButton) end
+        if ChatFrameToggleVoiceDeafenButton then tinsert(gw_fade_frames, ChatFrameToggleVoiceDeafenButton) end
+        if ChatFrameToggleVoiceMuteButton then tinsert(gw_fade_frames, ChatFrameToggleVoiceMuteButton) end
+    else
+        tinsert(gw_fade_frames, controlsBar)
+    end
+end
+
+-- applies the configured controls position (LEFT column / TOP or RIGHT hover
+-- bar) at runtime; also used as the hot setting callback
+function GW.UpdateChatButtonsPosition()
+    if not chatModuleInit then return end
+
+    local position = GW.settings.CHAT_BUTTONS_POSITION
+    local buttons = CollectControlsButtons()
+
+    if position == "LEFT" then
+        if controlsBar then controlsBar:Hide() end
+
+        -- first break the bar anchor chain on ALL buttons, then restore the
+        -- original points in a second pass - the original anchors can reference
+        -- each other (e.g. mute anchors to deafen), which errors with a circular
+        -- dependency while the other button still hangs in the bar chain
+        for _, button in ipairs(buttons) do
+            if button.gwInChatControlsBar then
+                button.ClearAllPoints = nil
+                button.SetPoint = nil
+                UIFrameFadeRemoveFrame(button)
+                button:SetAlpha(1)
+                button:SetParent(button.gwOrigParent)
+                button:ClearAllPoints()
+            end
+        end
+        for _, button in ipairs(buttons) do
+            if button.gwInChatControlsBar then
+                for _, pointInfo in ipairs(button.gwOrigPoints) do
+                    button:SetPoint(pointInfo[1], pointInfo[2], pointInfo[3], pointInfo[4], pointInfo[5])
+                end
+                button.gwInChatControlsBar = nil
+            end
+        end
+
+        -- the classic gw anchor for the social button next to the dock
+        local social = QuickJoinToastButton or FriendsMicroButton
+        if social then
+            social.ClearAllPoints = nil
+            social.SetPoint = nil
+            social:ClearAllPoints()
+            social:SetPoint("RIGHT", GeneralDockManager, "LEFT", -6, 4)
+            social.ClearAllPoints = GW.NoOp
+            social.SetPoint = GW.NoOp
+        end
+    else
+        local bar = EnsureControlsBar()
+        bar:Show()
+        bar:ClearAllPoints()
+        if position == "TOP" then
+            bar:SetPoint("BOTTOMLEFT", GeneralDockManager, "TOPLEFT", 0, 2)
+        else
+            bar:SetPoint("TOPLEFT", ChatFrame1, "TOPRIGHT", 8, 0)
+        end
+
+        local PADDING, SPACING = 6, 4
+        local length = PADDING * 2 - SPACING
+        local thickness = 0
+        local previous
+        for _, button in ipairs(buttons) do
+            button.ClearAllPoints = nil
+            button.SetPoint = nil
+            button:SetParent(bar)
+            button:ClearAllPoints()
+            if position == "TOP" then
+                if previous then
+                    button:SetPoint("LEFT", previous, "RIGHT", SPACING, 0)
+                else
+                    button:SetPoint("LEFT", bar, "LEFT", PADDING, 0)
+                end
+                length = length + button:GetWidth() + SPACING
+                thickness = max(thickness, button:GetHeight())
+            else
+                if previous then
+                    button:SetPoint("TOP", previous, "BOTTOM", 0, -SPACING)
+                else
+                    button:SetPoint("TOP", bar, "TOP", 0, -PADDING)
+                end
+                length = length + button:GetHeight() + SPACING
+                thickness = max(thickness, button:GetWidth())
+            end
+
+            -- keep blizzard from moving the buttons out of the bar
+            button.ClearAllPoints = GW.NoOp
+            button.SetPoint = GW.NoOp
+            button.gwInChatControlsBar = true
+            if not button.gwControlsHoverHooked then
+                button:HookScript("OnEnter", ControlButtonOnEnter)
+                button:HookScript("OnLeave", ControlButtonOnLeave)
+                button.gwControlsHoverHooked = true
+            end
+
+            -- the buttons may have been faded individually; from now on only the bar fades
+            UIFrameFadeRemoveFrame(button)
+            button:SetAlpha(1)
+            previous = button
+        end
+
+        thickness = thickness + 10
+        if position == "TOP" then
+            bar:SetSize(length, thickness)
+        else
+            bar:SetSize(thickness, length)
+        end
+    end
+
+    RebuildChatFadeFrames(position)
+    AdjustChatDock()
+
+    for _, frameName in ipairs(CHAT_FRAMES) do
+        local frame = _G[frameName]
+        if frame then
+            AdjustChatContent(frame)
+            if frame.MarkLayoutDirty then
+                frame:MarkLayoutDirty()
+            end
+        end
+    end
+
+    GW.UpdateChatSettings()
+end
 
 local gw2StaffIcon = "|TInterface/AddOns/GW2_UI/Textures/chat/dev_label.png:14:14|t"
 local gw2StaffList = {
@@ -194,8 +463,6 @@ local gw2StaffList = {
     --Belazor
     ["Ilyxiana-Ravencrest"] = gw2StaffIcon,
 }
-
-local chatModuleInit = false
 
 do
     local accessIndex = 1
@@ -278,12 +545,12 @@ local function GW_GetPlayerInfoByGUID(guid)
         GuidCache[guid] = data
     end
 
-    if data then data.classColor = GW.GWGetClassColor(data.englishClass, true, true, true) end
+    if data then data.classColor = GW.GWGetClassColor(data.englishClass, true, true) end
 
     return data
 end
 
-function GW.ChatFunctions:GetColoredName(event, _, arg2, _, _, _, _, _, arg8, _, _, _, arg12)
+function GW.ChatFunctions:GetColoredName(event, _, arg2, _, _, _, _, _, arg8, _, _, _, arg12, _, _, arg18)
     if GW.IsSecretValue(arg12) then
         local ok, _, englishClass = pcall(GetPlayerInfoByGUID, arg12)
         local classColor
@@ -311,6 +578,18 @@ function GW.ChatFunctions:GetColoredName(event, _, arg2, _, _, _, _, _, arg8, _,
 
     -- ambiguate guild chat names
     local name = Ambiguate(arg2, (chatType == "GUILD" and "guild") or "none")
+
+    -- handle discord colors
+    local discordInfo, isFromDiscord = GW.ChatFunctions:GetDiscordInfo(arg18)
+    if isFromDiscord then
+        local shouldShowGlobalName = discordInfo.type == DiscordDisplayNameType.GlobalName
+        if discordInfo.globalName and shouldShowGlobalName then
+            return _G.ChatFrameUtil.DiscordNameColorize(discordInfo.globalName)
+        end
+
+        name = discordInfo.lastOnlineName
+        arg12 = discordInfo.lastOnlineGUID
+    end
 
     -- handle the class color
 
@@ -347,6 +626,14 @@ do
     function GW.ChatFunctions:GetBNPlayerLink(name, displayText, bnetIDAccount, lineID, chatType, chatTarget)
         return GetLink(LinkTypes.BNPlayer, displayText, name, bnetIDAccount, lineID or 0, chatType, chatTarget)
     end
+
+    function GW.ChatFunctions:GetBNPGetDiscordLinklayerLink(linkDisplayText, bnetIDAccount, discordUserID, lineID, chatGroup, chatTarget)
+        return GetLink(LinkTypes.DiscordUser, linkDisplayText, bnetIDAccount, discordUserID, lineID or 0, chatGroup, chatTarget or '')
+    end
+
+    function GW.ChatFunctions:GetDiscordInfo(info)
+        return info, info and GW.NotSecretValue(info.userID) and info.userID and info.userID ~= 0
+    end
 end
 
 local function colorizeLine(text, r, g, b)
@@ -378,7 +665,14 @@ do
     local hyperLinkFunc = function(w, x, y)
         if w ~= "" then return end
         local emoji = (x~="" and x) and strmatch(x, "gwuimoji:%%(.+)")
-        return (emoji and GW.Libs.Deflate:DecodeForPrint(emoji)) or y
+        if emoji then
+            -- pcall: DecodeBase64 errors on malformed payloads instead of returning nil
+            local ok, decoded = pcall(C_EncodingUtil.DecodeBase64, emoji)
+            if ok and decoded then
+                return decoded
+            end
+        end
+        return y
     end
     local fourString = function(v, w, x, y)
         return format("%s%s%s", v, w, (v and v == "1" and x) or y)
@@ -465,7 +759,7 @@ local function setButtonPosition(frame)
         editbox:SetPoint("TOPLEFT", frame.Background, "BOTTOMLEFT", 0, 0)
         editbox:SetPoint("TOPRIGHT", _G[name .. "ButtonFrame"], "BOTTOMRIGHT", 0, 0)
 
-        if QuickJoinToastButton and frame.isDocked ~= nil then
+        if QuickJoinToastButton and GW.settings.CHAT_BUTTONS_POSITION == "LEFT" and frame.isDocked ~= nil then
             QuickJoinToastButton.ClearAllPoints = nil
             QuickJoinToastButton.SetPoint = nil
             QuickJoinToastButton:ClearAllPoints()
@@ -488,7 +782,7 @@ local function setButtonPosition(frame)
         editbox:SetPoint("TOPLEFT", _G[name .. "ButtonFrame"], "BOTTOMLEFT", 0, -6)
         editbox:SetPoint("TOPRIGHT", frame.Background, "BOTTOMRIGHT", 0, -6)
 
-        if QuickJoinToastButton and frame.isDocked ~= nil then
+        if QuickJoinToastButton and GW.settings.CHAT_BUTTONS_POSITION == "LEFT" and frame.isDocked ~= nil then
             QuickJoinToastButton.ClearAllPoints = nil
             QuickJoinToastButton.SetPoint = nil
             QuickJoinToastButton:ClearAllPoints()
@@ -544,7 +838,9 @@ local function handleChatFrameFadeIn(chatFrame, force)
         end
 
         UIFrameFadeIn(ChatFrame1.Container, 0.5, ChatFrame1.Container:GetAlpha(), 1)
-        UIFrameFadeIn(ChatFrameMenuButton, 0.5, ChatFrameMenuButton:GetAlpha(), 1)
+        if not ChatFrameMenuButton.gwInChatControlsBar then
+            UIFrameFadeIn(ChatFrameMenuButton, 0.5, ChatFrameMenuButton:GetAlpha(), 1)
+        end
     elseif chatFrame.isDocked == nil then
         if chatFrame.Container then
             UIFrameFadeIn(chatFrame.Container, 0.5, chatFrame.Container:GetAlpha(), 1)
@@ -622,7 +918,9 @@ local function handleChatFrameFadeOut(chatFrame, force)
     UIFrameFadeOut(chatTab, 2, chatTab:GetAlpha(), 0)
 
     UIFrameFadeOut(chatFrame.buttonFrame, 2, chatFrame.buttonFrame:GetAlpha(), 0)
-    UIFrameFadeOut(ChatFrameMenuButton, 2, ChatFrameMenuButton:GetAlpha(), 0)
+    if not ChatFrameMenuButton.gwInChatControlsBar then
+        UIFrameFadeOut(ChatFrameMenuButton, 2, ChatFrameMenuButton:GetAlpha(), 0)
+    end
 
     --check if other Tabs has Containers, which need to fade out
     for i = 1, FCF_GetNumActiveChatFrames() do
@@ -833,7 +1131,7 @@ local function CheckKeyword(message, author)
                 local wordMatch = classMatch and lowerCaseWord
 
                 if wordMatch then
-                    local classColorTable = GW.GWGetClassColor(classMatch, true, true, true)
+                    local classColorTable = GW.GWGetClassColor(classMatch, true, true)
                     local classColoredName = classColorTable and classColorTable:WrapTextInColorCode(tempWord)
                     if classColoredName then
                         local tempstr = gsub(tempWord, "%-", "%%-")
@@ -867,7 +1165,7 @@ local function InsertEmotions(msg)
         local pattern = GW.EscapeString(word)
         local emoji = Smileys[pattern]
         if emoji and strmatch(msg, "[%s%p]-" .. pattern .. "[%s%p]*") then
-            local encode = GW.Libs.Deflate:EncodeForPrint(word)
+            local encode = C_EncodingUtil.EncodeBase64(word)
             msg = gsub(msg, "([%s%p]-)" .. pattern .. "([%s%p]*)", (encode and ("%1|Hgwuimoji:%%" .. encode .. "|h|cFFffffff|r|h") or "%1") .. emoji .. "%2")
         end
     end
@@ -1041,8 +1339,8 @@ local function GetBNFriendColor(name, id, useBTag)
         end
     end
 
-    local Color = Class and GW.GWGetClassColor(Class, true, true, true)
-    return (Color and format("|c%s%s|r", Color.colorStr, TAG or name)) or TAG or name, BNET_TAG
+    local Color = Class and GW.GWGetClassColor(Class, true, true)
+    return (Color and Color:WrapTextInColorCode(TAG or name)) or TAG or name, BNET_TAG
 end
 GW.GetBNFriendColor = GetBNFriendColor
 
@@ -1068,7 +1366,7 @@ local function DisplayChatHistory()
                     end
                     if not skip and gsub(strsub(d[50],10),"_INFORM","") == messageType then
                         if d[1] and not GW.ChatFunctions:IsMessageProtected(d[1]) then
-                            GW.ChatFrame_MessageEventHandler(_G[chat],d[50],d[1],d[2],d[3],d[4],d[5],d[6],d[7],d[8],d[9],d[10],d[11],d[12],d[13],d[14],d[15],d[16],d[17],"GW2UI_ChatHistory",d[51],d[52],d[53])
+                            GW.ChatFrame_MessageEventHandler(_G[chat],d[50],d[1],d[2],d[3],d[4],d[5],d[6],d[7],d[8],d[9],d[10],d[11],d[12],d[13],d[14],d[15],d[16],d[17], d[18],"GW2UI_ChatHistory",d[51],d[52],d[53])
                         end
                     end
                 end
@@ -1187,7 +1485,7 @@ local function AddMessageEdits(frame, msg, alwaysAddTimestamp, isHistory, histor
     if isHistory == "GW2UI_ChatHistory" then historyTimestamp = historyTime end
 
     if GW.settings.timeStampFormat and GW.settings.timeStampFormat ~= "NONE" and (GW.settings.CHAT_ADD_TIMESTAMP_TO_ALL or alwaysAddTimestamp) then
-        local timeStamp = BetterDate(GW.settings.timeStampFormat, historyTimestamp or time())
+        local timeStamp = TimeUtil_BetterDate(GW.settings.timeStampFormat, historyTimestamp or time())
         timeStamp = gsub(timeStamp, " ", "")
         timeStamp = gsub(timeStamp, "AM", " AM")
         timeStamp = gsub(timeStamp, "PM", " PM")
@@ -1239,6 +1537,8 @@ local function GetPFlag(specialFlag, zoneChannelID, unitGUID)
             if GetMentorChannelStatus(Enum.PlayerMentorshipStatus.Newcomer, C_ChatInfo.GetChannelRulesetForChannelID(zoneChannelID)) == Enum.PlayerMentorshipStatus.Newcomer then
                 flag = NPEV2_CHAT_USER_TAG_NEWCOMER
             end
+        elseif specialFlag == "DISCORD" then
+            flag = [[|A:UI-ChatIcon-Discord:0:0:0:0|a ]]
         else
             flag = _G["CHAT_FLAG_" .. specialFlag]
         end
@@ -1275,7 +1575,7 @@ local function ChatFrame_ReplaceIconAndGroupExpressions(message, noIconReplaceme
                 for i = 1, GetNumGroupMembers() do
                     local name, _, subgroup, _, _, classFileName = GetRaidRosterInfo(i)
                     if name and subgroup == groupIndex then
-                        local classColorTable = GW.GWGetClassColor(classFileName, true, true)
+                        local classColorTable = GW.GWGetClassColor(classFileName, true)
                         if classColorTable then
                             name = classColorTable:WrapTextInColorCode(name)
                         end
@@ -1320,7 +1620,7 @@ local function FlashTabIfNotShown(frame, info, chatType, chatGroup, chatTarget)
     end
 end
 
-local function MessageFormatter(frame, info, chatType, chatGroup, chatTarget, channelLength, coloredName, historySavedName, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, isHistory, historyTime, historyName, historyBTag)
+local function MessageFormatter(frame, info, chatType, chatGroup, chatTarget, channelLength, coloredName, historySavedName, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, isHistory, historyTime, historyName, historyBTag)
     if chatType == "WHISPER_INFORM" and GMChatFrame_IsGM and GMChatFrame_IsGM(arg2) then
         return
     end
@@ -1373,6 +1673,7 @@ local function MessageFormatter(frame, info, chatType, chatGroup, chatTarget, ch
         playerLinkDisplayText = ("[%s]"):format(coloredName)
     end
 
+    local discordInfo, isFromDiscord = GW.ChatFunctions:GetDiscordInfo(arg18)
     local playerName = (GW.NotSecretValue(arg2) and nameWithRealm ~= arg2 and nameWithRealm) or arg2
     if chatType == "COMMUNITIES_CHANNEL" then
         local messageInfo, clubId, streamId = C_Club.GetInfoFromLastCommunityChatLine()
@@ -1387,12 +1688,18 @@ local function MessageFormatter(frame, info, chatType, chatGroup, chatTarget, ch
         end
     elseif chatType == "BN_WHISPER" or chatType == "BN_WHISPER_INFORM" then
         playerLink = GW.ChatFunctions:GetBNPlayerLink(playerName, playerLinkDisplayText, arg13, arg11, chatGroup, chatTarget)
+    elseif (chatType == "GUILD_DISCORD" or chatType == "GUILD") and isFromDiscord then
+        playerLink = GW.ChatFunctions:GetDiscordLink(playerLinkDisplayText, arg13, discordInfo.userID, arg11, chatGroup, chatTarget)
     else
         playerLink = GW.ChatFunctions:GetPlayerLink(playerName, playerLinkDisplayText, arg11, chatGroup, chatTarget)
     end
 
     local isMobile = arg14 and GetMobileEmbeddedTexture(info.r, info.g, info.b)
     local message = format("%s%s", isMobile or "", arg1)
+
+    if isFromDiscord then
+        message = FormatDiscordMessage(discordInfo, message)
+    end
 
     -- Player Flags
     local pflag = GetPFlag(arg6, arg7, arg12)
@@ -1415,11 +1722,17 @@ local function MessageFormatter(frame, info, chatType, chatGroup, chatTarget, ch
         body = format(header .. "[%s] %s", pflag .. sender, arg3, message) -- arg3 is language header
     elseif chatType == "GUILD_ITEM_LOOTED" then
         body = not isProtected and gsub(message, "$s", sender, 1) or message
+    elseif chatType == "GUILD_DISCORD" and isFromDiscord then
+        body = format(header .. message, pflag .. " " .. playerLink)
     elseif chatType == "TEXT_EMOTE" then
         local classLink = realm and playerLink and not isProtected and (info.colorNameByClass and gsub(playerLink, "(|h|c.-)|r|h$","%1-" .. realm .. "|r|h") or gsub(playerLink, "(|h.-)|h$","%1-" .. realm .. "|h"))
         body = (classLink and gsub(message, arg2 .. "%-" .. realm, pflag .. classLink, 1)) or ((not isProtected and GW.NotSecretValue(arg2) and arg2 ~= sender) and gsub(message, arg2, sender, 1)) or message
     elseif specialType then
-        body = format(header, pflag .. sender) .. message
+        if isProtected then -- keep the secret message out of the format pattern
+            body = format(header, pflag .. sender) .. message
+        else -- monster emotes carry the name placeholder inside the message itself
+            body = format(header .. message, pflag .. sender)
+        end
     else
         body = format(header .. "%s", pflag .. sender, message)
     end
@@ -1452,7 +1765,7 @@ local function ChatFrame_GetZoneChannel(frame, index)
     return frame.zoneChannelList[index]
 end
 
-local function ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, isHistory, historyTime, historyName, historyBTag)
+local function ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, isHistory, historyTime, historyName, historyBTag)
     local notChatHistory, historySavedName
     if isHistory == "GW2UI_ChatHistory" then
         if historyBTag then arg2 = historyBTag end -- swap arg2 (which is a |k string) to btag name
@@ -1500,7 +1813,7 @@ local function ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg
         end
 
         -- fetch the name color to use
-        local coloredName = historySavedName or GW.ChatFunctions:GetColoredName(event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14)
+        local coloredName = historySavedName or GW.ChatFunctions:GetColoredName(event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg18)
 
         local channelLength = strlen(arg4)
         local infoType = chatType
@@ -1719,16 +2032,16 @@ local function ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg
             -- step is the only code that needs these arguments. See ItemRef.lua "censoredmessage".
             local isChatLineCensored, eventArgs, msgFormatter = C_ChatInfo.IsChatLineCensored(arg11) -- arg11: lineID
             if isChatLineCensored then
-                eventArgs = SafePack(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17)
+                eventArgs = SafePack(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18)
                 msgFormatter = function(msg) -- to translate the message on click [Show Message]
-                    local body = MessageFormatter(frame, info, chatType, chatGroup, chatTarget, channelLength, coloredName, historySavedName, msg, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, isHistory, historyTime, historyName, historyBTag)
+                    local body = MessageFormatter(frame, info, chatType, chatGroup, chatTarget, channelLength, coloredName, historySavedName, msg, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, isHistory, historyTime, historyName, historyBTag)
                     return AddMessageEdits(frame, body, not GW.settings.CHAT_ADD_TIMESTAMP_TO_ALL, isHistory, historyTime)
                 end
             end
 
             local accessID = GW.ChatFunctions:GetAccessID(chatGroup, chatTarget)
             local typeID = GW.ChatFunctions:GetAccessID(infoType, chatTarget, arg12 or arg13)
-            local body = isChatLineCensored and arg1 or MessageFormatter(frame, info, chatType, chatGroup, chatTarget, channelLength, coloredName, historySavedName, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, isHistory, historyTime, historyName, historyBTag)
+            local body = isChatLineCensored and arg1 or MessageFormatter(frame, info, chatType, chatGroup, chatTarget, channelLength, coloredName, historySavedName, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, isHistory, historyTime, historyName, historyBTag)
 
             frame:AddMessage(body, info.r, info.g, info.b, info.id, accessID, typeID, event, eventArgs, msgFormatter, isHistory, historyTime)
         end
@@ -1832,6 +2145,29 @@ local function GetTab(chat)
     end
 
     return chat.tab
+end
+
+local CHAT_TAB_SIDES_PADDING = 20 -- local in Blizzards FloatingChatFrame.lua
+local CHAT_TAB_SECRET_WIDTH = 90 -- CHAT_TAB_DOCKED_MAX_WIDTH, local as well
+local function EnforceTabSize(chatFrame)
+    local tab = GetTab(chatFrame)
+    if not tab or not tab.Text then return end
+
+    local padding = tab.sizePadding or 0
+
+    -- FCF_HasSecretName (local in Blizzards code)
+    if chatFrame.chatTarget and (chatFrame.chatType == "WHISPER" or chatFrame.chatType == "BN_WHISPER") then
+        tab.Text:SetWidth(CHAT_TAB_SECRET_WIDTH - CHAT_TAB_SIDES_PADDING - padding)
+        tab:SetWidth(CHAT_TAB_SECRET_WIDTH)
+        return
+    end
+
+    tab.Text:SetWidth(0)
+    local textWidth = tab.Text:GetStringWidth()
+    if GW.IsSecretValue(textWidth) then return end
+
+    tab.Text:SetWidth(textWidth)
+    tab:SetWidth(textWidth + CHAT_TAB_SIDES_PADDING + padding)
 end
 do
     local charCount
@@ -1941,6 +2277,15 @@ local function styleChatWindow(frame)
     local tab = GetTab(frame)
     tab.Text:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Normal)
     tab.Text:SetTextColor(1, 1, 1)
+    if GW.Retail then
+        local fontObject = tab.Text:GetFontObject()
+        if fontObject then
+            tab:SetNormalFontObject(fontObject)
+            tab:SetHighlightFontObject(fontObject)
+            tab:SetDisabledFontObject(fontObject)
+        end
+        EnforceTabSize(frame)
+    end
 
     if frame.styled then return end
 
@@ -2230,6 +2575,9 @@ local function styleChatWindow(frame)
             frame.buttonEmote.tex:SetAlpha(.45)
         end)
     end
+
+    -- pull the message text into the button column strip (TOP/RIGHT button mode)
+    AdjustChatContent(frame)
 
     frame.styled = true
 end
@@ -2622,7 +2970,9 @@ local function SocialQueueEvent(guid, numAddedItems)
 end
 
 local function PetBattleFrame_Display()
-    RemoveFrameLock("PETBATTLES")
+    if RemoveFrameLock then
+        RemoveFrameLock("PETBATTLES")
+    end
 
     -- we want to display the pet battle tab now since it is faded initially without mousing over
     for _, frameName in ipairs(CHAT_FRAMES) do
@@ -2663,8 +3013,10 @@ local function LoadChat()
         QuickJoinToastButton:SetPushedTexture("Interface/AddOns/GW2_UI/textures/chat/socialchatbutton-highlight.png")
         QuickJoinToastButton:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/chat/socialchatbutton-highlight.png")
         QuickJoinToastButton:SetSize(25, 25)
-        QuickJoinToastButton:ClearAllPoints()
-        QuickJoinToastButton:SetPoint("RIGHT", GeneralDockManager, "LEFT", -6, 4)
+        if GW.settings.CHAT_BUTTONS_POSITION == "LEFT" then
+            QuickJoinToastButton:ClearAllPoints()
+            QuickJoinToastButton:SetPoint("RIGHT", GeneralDockManager, "LEFT", -6, 4)
+        end
         QuickJoinToastButton.QueueCount:GwKill()
         local _, _, fontFlags = QuickJoinToastButton.FriendCount:GetFont()
         QuickJoinToastButton.FriendCount:SetFont(_, 14, fontFlags)
@@ -2678,8 +3030,10 @@ local function LoadChat()
             QuickJoinToastButton.Toast2:GwKill()
         end
 
-        QuickJoinToastButton.ClearAllPoints = GW.NoOp
-        QuickJoinToastButton.SetPoint = GW.NoOp
+        if GW.settings.CHAT_BUTTONS_POSITION == "LEFT" then
+            QuickJoinToastButton.ClearAllPoints = GW.NoOp
+            QuickJoinToastButton.SetPoint = GW.NoOp
+        end
     end
 
     if not GW.Retail then
@@ -2688,10 +3042,12 @@ local function LoadChat()
         FriendsMicroButton:SetPushedTexture("Interface/AddOns/GW2_UI/textures/chat/socialchatbutton-highlight.png")
         FriendsMicroButton:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/chat/socialchatbutton-highlight.png")
         FriendsMicroButton:SetSize(25, 25)
-        FriendsMicroButton:ClearAllPoints()
-        FriendsMicroButton:SetPoint("RIGHT", GeneralDockManager, "LEFT", -6, 4)
-        FriendsMicroButton.ClearAllPoints = GW.NoOp
-        FriendsMicroButton.SetPoint = GW.NoOp
+        if GW.settings.CHAT_BUTTONS_POSITION == "LEFT" then
+            FriendsMicroButton:ClearAllPoints()
+            FriendsMicroButton:SetPoint("RIGHT", GeneralDockManager, "LEFT", -6, 4)
+            FriendsMicroButton.ClearAllPoints = GW.NoOp
+            FriendsMicroButton.SetPoint = GW.NoOp
+        end
         local _, _, fontFlags = FriendsMicroButtonCount:GetFont()
         FriendsMicroButtonCount:SetFont(_, 14, fontFlags)
         FriendsMicroButtonCount:SetTextColor(1, 1, 1)
@@ -2735,12 +3091,24 @@ local function LoadChat()
         chatFrame:SetFading(GW.settings.CHATFRAME_FADE)
     end)
 
+    if GW.Retail then
+        hooksecurefunc("FCFDock_UpdateTabs", function(dock)
+            for _, chatFrame in ipairs(dock.DOCKED_CHAT_FRAMES) do
+                EnforceTabSize(chatFrame)
+            end
+        end)
+        hooksecurefunc("FCF_SetWindowName", function(chatFrame)
+            EnforceTabSize(chatFrame)
+        end)
+    end
+
     hooksecurefunc("FCF_DockUpdate", function()
         for _, frameName in ipairs(CHAT_FRAMES) do
             local frame = _G[frameName]
             local _, _, _, _, _, _, _, _, isDocked = GetChatWindowInfo(frame:GetID())
             local editbox = _G[frameName .. "EditBox"]
             styleChatWindow(frame)
+            AdjustChatContent(frame) -- the engine resets the text container on layout updates
             FCFTab_UpdateAlpha(frame)
             frame:SetTimeVisible(100)
             frame:SetFading(GW.settings.CHATFRAME_FADE)
@@ -2881,9 +3249,11 @@ local function LoadChat()
             end)
     end
 
-    CombatLogQuickButtonFrame_CustomProgressBar:SetStatusBarTexture("Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar.png")
+    if CombatLogQuickButtonFrame_CustomProgressBar then
+        CombatLogQuickButtonFrame_CustomProgressBar:SetStatusBarTexture("Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar.png")
+        CombatLogQuickButtonFrame_CustomTexture:Hide()
+    end
 
-    CombatLogQuickButtonFrame_CustomTexture:Hide()
     BuildCopyChatFrame()
     BuildEmoticonTableFrame()
 
@@ -2963,6 +3333,28 @@ local function LoadChat()
                 self:SetHighlightTexture("Interface/AddOns/GW2_UI/textures/chat/channel_vc_sound_on_highlight.png")
             end
         end)
+    end
+
+    -- apply the configured controls position (hover bar / classic column);
+    -- must run after the buttons got their sizes above
+    GW.UpdateChatButtonsPosition()
+
+    -- blizzard re-anchors the dock whenever the primary dock frame changes
+    if FCFDock_SetPrimary then
+        hooksecurefunc("FCFDock_SetPrimary", AdjustChatDock)
+    end
+
+    -- re-apply the text container anchors after all sizing is done and whenever
+    -- a chat frame changes size (the engine resets the container on relayout)
+    for _, frameName in ipairs(CHAT_FRAMES) do
+        local frame = _G[frameName]
+        if frame then
+            AdjustChatContent(frame)
+            if not frame.gwContentSizeHook then
+                frame:HookScript("OnSizeChanged", AdjustChatContent)
+                frame.gwContentSizeHook = true
+            end
+        end
     end
 
     if GW.Mists then -- allow chat to stay shown

@@ -33,17 +33,17 @@ local function GetVersionString()
     local version = C_AddOns.GetAddOnMetadata(addonName, "Version")
     if version:find("@project%-version@") then
         local currentVersion = GW.changelog[1].version
-        return "GW2_UI " .. currentVersion .. " Development Version"
+        return currentVersion .. " Development Version"
     else
-        return "GW2_UI " .. version
+        return version
     end
 end
 GW.GetVersionString = GetVersionString
 
 -- init: store API, to reduce the API usage
 local function GetPlayerRole()
-    local assignedRole = GW.allowRoles and UnitGroupRolesAssigned("player") or "NONE"
-    return (assignedRole ~= "NONE" and assignedRole) or GW.myspecRole or "NONE"
+    local role = GW.allowRoles and UnitGroupRolesAssigned("player") or "NONE"
+    return GW.NotSecretValue(role) and (role ~= "NONE" and role) or GW.myspecRole or "NONE"
 end
 GW.GetPlayerRole = GetPlayerRole
 
@@ -133,12 +133,7 @@ do
     AddLib("AceDB", "AceDB-3.0", true)
     AddLib("LRI", "LibRealmInfo", true)
     AddLib("LSM", "LibSharedMedia-3.0", true)
-    AddLib("Compress", "LibCompress", true)
-    AddLib("Serializer", "AceSerializer-3.0", true)
-    AddLib("Deflate", "LibDeflate", true)
-    AddLib("LibBase64", "LibBase64-1.0_GW2", true)
     AddLib("AceLocale", "AceLocale-3.0", true)
-    AddLib("CustomGlows", "LibCustomGlow-1.0-Gw2", true)
     AddLib("LEMO", "LibEditModeOverride-1.0-GW2", true)
     AddLib("Dispel", "LibDispel-1.0-GW", true)
     AddLib("GW2Lib", "LibGW2-1.0", true)

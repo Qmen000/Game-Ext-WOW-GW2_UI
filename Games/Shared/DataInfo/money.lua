@@ -14,11 +14,15 @@ local Ticker = nil
 local warbandGold = 0
 
 local function UpdateMarketPrice()
-	return C_WowTokenPublic.UpdateMarketPrice()
+    if C_WowTokenPublic and C_WowTokenPublic.UpdateMarketPrice then
+        return C_WowTokenPublic.UpdateMarketPrice()
+    end
 end
 
 local function UpdateWarbandGold()
-	warbandGold = C_Bank.FetchDepositedMoney(Enum.BankType.Account)
+    if C_Bank and C_Bank.FetchDepositedMoney and Enum.BankType and Enum.BankType.Account then
+        warbandGold = C_Bank.FetchDepositedMoney(Enum.BankType.Account) or 0
+    end
 end
 
 local function GetGraysValue()
@@ -69,7 +73,7 @@ local function OnEvent(self, event)
 
     UpdateWarbandGold()
 
-    if not Ticker then
+    if not Ticker and C_WowTokenPublic and C_WowTokenPublic.UpdateMarketPrice then
         C_WowTokenPublic.UpdateMarketPrice()
         Ticker = C_Timer.NewTicker(60, UpdateMarketPrice)
     end
@@ -122,7 +126,7 @@ local function Money_OnEnter(self)
     -- list all players from the realm
     GameTooltip:AddLine(CHARACTER .. ":")
     for _, g in pairs(chars) do
-        local color = GW.GWGetClassColor(g.class, true, true)
+        local color = GW.GWGetClassColor(g.class, true)
         local icon = g.faction == "Alliance" and ALLIANCE_ICON or g.faction == "Horde" and HORDE_ICON or NEUTRAL_ICON
         local label = format("%s%s", icon, g.name)
         if g.name == GW.myname then

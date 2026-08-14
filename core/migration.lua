@@ -155,10 +155,67 @@ local function DatabaseValueMigration()
         GW.settings.FONTS_ENABLED = nil
     end
 
+    -- migration of the player cast bar details: the single "Advanced Casting Bar" toggle was
+    -- split into one setting per element. Only profiles that had it enabled carry the key
+    -- (it is gone from the defaults), so everyone else keeps the plain bar
+    if GW.settings.CASTINGBAR_DATA ~= nil then
+        if GW.settings.CASTINGBAR_DATA then
+            GW.settings.CASTINGBAR_SHOW_NAME = true
+            GW.settings.CASTINGBAR_SHOW_TIMER = true
+            GW.settings.CASTINGBAR_SHOW_LATENCY = true
+            GW.settings.CASTINGBAR_ICON_POSITION = "LEFT"
+        end
+
+        GW.settings.CASTINGBAR_DATA = nil
+    end
+
+    -- same split for the target/focus cast bars: their toggle only ever drove the cast
+    -- timer text, the spell name was always shown (and stays on by default)
+    for _, unit in next, { "target", "focus" } do
+        local key = unit .. "_CASTINGBAR_DATA"
+        if GW.settings[key] ~= nil then
+            if GW.settings[key] then
+                GW.settings[unit .. "_CASTINGBAR_SHOW_TIMER"] = true
+            end
+            GW.settings[key] = nil
+        end
+    end
+
+    -- migration of the dispel type icon settings: the per-frame checkbox became a three
+    -- state dropdown (OFF/ALL/DISPELLABLE); enabled maps to the new default behavior
+    for _, key in next, {
+        "PLAYER_DISPEL_ICON", "target_DISPEL_ICON", "focus_DISPEL_ICON", "PET_DISPEL_ICON",
+        "PARTY_DISPEL_ICON", "PARTY_PET_DISPEL_ICON", "RAID_DISPEL_ICON", "RAID_25_DISPEL_ICON",
+        "RAID_10_DISPEL_ICON", "RAID_PARTY_DISPEL_ICON", "RAID_PET_DISPEL_ICON", "RAID_MAINTANK_DISPEL_ICON",
+    } do
+        if type(GW.settings[key]) == "boolean" then
+            GW.settings[key] = GW.settings[key] and "DISPELLABLE" or "OFF"
+        end
+    end
+
     -- migration minimap scale setting
     if GW.settings.MINIMAP_SCALE then
         GW.settings.MINIMAP_SIZE = GW.settings.MINIMAP_SCALE
         GW.settings.MINIMAP_SCALE = nil
+    end
+
+    -- migration of the player aura sorting: SortMethod + SortDir were combined into
+    -- a single Sort preset (shared values with the unit frame aura sorting)
+    if not GW.settings.playerAuraSortMigrationDone then
+        for _, barKey in next, { "PlayerBuffs", "PlayerDebuffs" } do
+            local db = GW.settings[barKey]
+            if db then
+                if db.SortMethod == "TIME" then
+                    db.Sort = db.SortDir == "-" and "EXPIRATION_DESC" or "EXPIRATION_ASC"
+                elseif db.SortMethod == "NAME" then
+                    db.Sort = db.SortDir == "-" and "NAME_DESC" or "NAME_ASC"
+                end
+                db.SortMethod = nil
+                db.SortDir = nil
+            end
+        end
+
+        GW.settings.playerAuraSortMigrationDone = true
     end
 
     -- migration for chat timestap
@@ -337,6 +394,14 @@ local function DatabaseValueMigration()
 
         GW.settings.StanceBar.enabled = GW.settings.StanceBarEnabled
         GW.settings.StanceBarEnabled = nil
+    end
+
+    -- one time split of the bank item settings from the previously shared bag values
+    if not GW.settings.BANK_ITEM_SETTINGS_SPLIT then
+        GW.settings.BANK_ITEM_SIZE = GW.settings.BAG_ITEM_SIZE
+        GW.settings.BANK_ITEM_SPACING_X = GW.settings.BAG_ITEM_SPACING_X
+        GW.settings.BANK_ITEM_SPACING_Y = GW.settings.BAG_ITEM_SPACING_Y
+        GW.settings.BANK_ITEM_SETTINGS_SPLIT = true
     end
 end
 GW.DatabaseValueMigration = DatabaseValueMigration

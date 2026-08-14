@@ -74,7 +74,7 @@ function GwPlayerPetFrameMixin:SetActionButtonPositionAndStyle()
             end)
         end
 
-        button.showMacroName = GW.settings.SHOWACTIONBAR_MACRO_NAME_ENABLED
+        button.gw_ShowMacroName = GW.settings.SHOWACTIONBAR_MACRO_NAME_ENABLED
 
         GW.setActionButtonStyle("PetActionButton" .. i, nil, nil, true)
         if not GW.Retail then
@@ -86,7 +86,7 @@ end
 function GwPlayerPetFrameMixin:UpdatePetBarButtons()
     for _, button in ipairs(self.buttons) do
         if button then
-            button.showMacroName = GW.settings.SHOWACTIONBAR_MACRO_NAME_ENABLED
+            button.gw_ShowMacroName = GW.settings.SHOWACTIONBAR_MACRO_NAME_ENABLED
             GW.updateMacroName(button)
         end
     end
@@ -145,7 +145,7 @@ function GwPlayerPetFrameMixin:OnEvent(event, unit, ...)
     local arg1, arg2, arg3, arg4 = ...
 
     if event == "UNIT_COMBAT" then
-        if unit == self.unit then
+        if unit == self.gwUnit then
             CombatFeedback_OnCombatEvent(self, arg1, arg2, arg3, arg4)
         end
     elseif event == "PLAYER_ENTERING_WORLD" then
@@ -173,7 +173,9 @@ function GwPlayerPetFrameMixin:OnEvent(event, unit, ...)
         if event == "UNIT_PET" then
             self:UpdateHealthBar()
             self:UpdatePowerBar(true)
-            self.auras:ForceUpdate()
+            if self.auras.ForceUpdate then -- Classic path; on Retail the container refreshes itself
+                self.auras:ForceUpdate()
+            end
         end
     elseif event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" or event == "UNIT_HEALTH_FREQUENT" then
         self:UpdateHealthBar()
@@ -194,7 +196,37 @@ function GwPlayerPetFrameMixin:ToggleAuraPosition()
         self.auras:SetPoint("TOPRIGHT", self.Background, "BOTTOMRIGHT", -3, 100)
     end
 
-    self.auras:ForceUpdate()
+    if GW.Retail and self.aurasContainer then
+        -- above the frame (default) the rows have to grow UPWARD, away from the
+        -- action buttons — below the powerbar they grow downward (old auraPositon logic)
+        local cfg = self.aurasContainer.gwConfig
+        local debuffCfg = self.debuffsContainer.gwConfig
+        local growUp = not self.auraPositionUnder
+        local anchorPoint = self.auraPositionUnder and "TOPRIGHT" or "BOTTOMRIGHT"
+        cfg.anchorPoint, debuffCfg.anchorPoint = anchorPoint, anchorPoint
+        cfg.growUp, debuffCfg.growUp = growUp, growUp
+
+        self.aurasContainer:ClearAllPoints()
+        -- the auras frame extends DOWNWARD from its anchor — the old engine grew the
+        -- buttons upward from the frame's TOPRIGHT, so the container's bottom sits there
+        self.aurasContainer:SetPoint(anchorPoint, self.auras, "TOPRIGHT")
+
+        -- the debuff block stacks onto the buff container (below when growing down,
+        -- above when growing up); with buffs disabled it takes their place
+        self.debuffsContainer:ClearAllPoints()
+        if GW.settings.PET_Buff_Filter == "none" then
+            self.debuffsContainer:SetPoint(anchorPoint, self.auras, "TOPRIGHT")
+        elseif growUp then
+            self.debuffsContainer:SetPoint("BOTTOMRIGHT", self.aurasContainer, "TOPRIGHT", 0, 4)
+        else
+            self.debuffsContainer:SetPoint("TOPRIGHT", self.aurasContainer, "BOTTOMRIGHT", 0, -4)
+        end
+
+        self.aurasContainer:GwUpdateLayout()
+        self.debuffsContainer:GwUpdateLayout()
+    elseif self.auras.ForceUpdate then -- Classic path
+        self.auras:ForceUpdate()
+    end
 end
 
 function GwPlayerPetFrameMixin:ToggleFaderOptions()
@@ -236,17 +268,35 @@ function GwPlayerPetFrameMixin:UpdateSettings()
     self.showHealthValue = GW.settings.PET_HEALTH_VALUE_RAW
     self.showHealthPrecentage = GW.settings.PET_HEALTH_VALUE_PERCENT
 
-    self.displayBuffs = GW.settings.PET_Buff_Filter == "none" and 0 or 32
-    self.auras.buffFilter = GW.settings.PET_Buff_Filter
-    self.auras.buffAdvancedFilters = GW.settings.PET_Buff_Filter_advanced
+    if GW.Retail and self.aurasContainer then
+        -- filters/sizes/sort/ignore list via the shared factory helper; the pet bar
+        -- uses fixed 20/24 icon sizes (no per-frame size settings)
+        GW.ApplyAuraContainerSettings(self.aurasContainer, self.debuffsContainer, {
+            smallSize = 20,
+            bigSize = 24,
+            buffFilter = GW.settings.PET_Buff_Filter,
+            debuffFilter = GW.settings.PET_Debuff_Filter,
+            buffAdvanced = GW.settings.PET_Buff_Filter_advanced,
+            debuffAdvanced = GW.settings.PET_Debuff_Filter_advanced,
+            sort = GW.settings.PET_AURA_SORT,
+            excludeSpellIDs = GW.settings.PET_IGNORED_AURAS,
+        })
+        -- re-anchor the debuff container: with buffs disabled it takes the buffs' place
+        self:ToggleAuraPosition()
+    else
+        self.displayBuffs = GW.settings.PET_Buff_Filter == "none" and 0 or 32
+        self.auras.buffFilter = GW.settings.PET_Buff_Filter
+        self.auras.buffAdvancedFilters = GW.settings.PET_Buff_Filter_advanced
 
-    self.displayDebuffs = GW.settings.PET_Debuff_Filter == "none" and 0 or 40
-    self.auras.debuffFilter = GW.settings.PET_Debuff_Filter
-    self.auras.debuffAdvancedFilters = GW.settings.PET_Debuff_Filter_advanced
-    GW.UpdateFilters(self.auras)
+        self.displayDebuffs = GW.settings.PET_Debuff_Filter == "none" and 0 or 40
+        self.auras.debuffFilter = GW.settings.PET_Debuff_Filter
+        self.auras.debuffAdvancedFilters = GW.settings.PET_Debuff_Filter_advanced
+        GW.UpdateFilters(self.auras)
 
-    self.auras.smallSize = 20
-    self.auras.bigSize = 24
+        self.auras.smallSize = 20
+        self.auras.bigSize = 24
+        self.auras.ignoredAuraSpellIDs = GW.settings.PET_IGNORED_AURAS
+    end
 
     -- statusbar texture
     local texture = GW.Libs.LSM:Fetch("statusbar", GW.settings.playerPetFrameHealthBarTexture)
@@ -259,6 +309,7 @@ end
 local function LoadPetFrame(lm)
     local playerPetFrame = CreateFrame("Button", "GwPlayerPetFrame", UIParent,
         GW.Retail and "GwPlayerPetFramePingableTemplate" or "GwPlayerPetFrameTemplate")
+    GW.SetFrameRoleset(playerPetFrame, "unitFrames")
 
     if GW.Retail then
         playerPetFrame.hpValues = CreateUnitHealPredictionCalculator()
@@ -277,11 +328,11 @@ local function LoadPetFrame(lm)
     playerPetFrame.powerbar.customMaskSize = 64
 
     playerPetFrame.buttons = {}
-    playerPetFrame.unit = "pet"
+    playerPetFrame.gwUnit = "pet"
 
     playerPetFrame:SetAttribute("*type1", "target")
     playerPetFrame:SetAttribute("*type2", "togglemenu")
-    playerPetFrame:SetAttribute("unit", playerPetFrame.unit)
+    playerPetFrame:SetAttribute("unit", playerPetFrame.gwUnit)
     playerPetFrame:EnableMouse(true)
     playerPetFrame:RegisterForClicks("AnyDown")
     GW.AddToClique(playerPetFrame)
@@ -294,7 +345,7 @@ local function LoadPetFrame(lm)
     playerPetFrame:SetScript("OnEnter", function(self)
         GameTooltip:ClearLines()
         GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
-        GameTooltip:SetUnit(self.unit)
+        GameTooltip:SetUnit(self.gwUnit)
         GameTooltip:Show()
     end)
 
@@ -313,7 +364,61 @@ local function LoadPetFrame(lm)
     end)
     playerPetFrame.happiness:SetScript("OnLeave", GameTooltip_Hide)
 
-    LoadAuras(playerPetFrame)
+    if GW.Retail then
+        -- 12.1: pet auras run through the AuraContainer system (factory) —
+        -- the container is attached to the old auras frame so that ToggleAuraPosition
+        -- (position below the power bar vs. to the right) keeps working unchanged
+        playerPetFrame.aurasContainer = GW.CreateUnitAuraContainer({
+            name = "GwPetAuraContainer",
+            unit = "pet",
+            pandemicEnabled = function() return GW.settings.PET_PANDEMIC_HIGHLIGHT end,
+            dispelIconEnabled = function() return GW.settings.PET_DISPEL_ICON end,
+            parent = playerPetFrame,
+            cancelButtons = "RightButtonDown",
+            tooltipAnchor = { "ANCHOR_BOTTOMLEFT", -5, -5 },
+            refreshEvents = { "UNIT_PET" },
+            refreshUnit = "player",
+            anchorPoint = "TOPRIGHT",
+            growLeft = true,
+            maximumLineSize = playerPetFrame.auras:GetWidth(),
+            elementSpacing = 3,
+            lineSpacing = 4,
+            groups = {
+                -- own buffs large (replaces the old bigBuff logic "own + short");
+                -- split via the PLAYER filter token — the isFromPlayerOrPlayerPet
+                -- aura data field behaves relative to the UNIT, not the player
+                { key = "buffsOwn", filter = "HELPFUL|PLAYER", size = 24, iconInset = 2, bigFont = true, maxFrameCount = 32, showPandemic = true },
+                { key = "buffs", filter = "HELPFUL|!PLAYER", size = 20, maxFrameCount = 32 },
+            },
+        })
+        playerPetFrame.aurasContainer:SetPoint("TOPRIGHT", playerPetFrame.auras, "TOPRIGHT")
+
+        -- Debuffs live in their own container stacked onto the buff container (which
+        -- sizes itself to its content): the debuff block always starts on its own line
+        -- while own and other debuffs flow together like the buffs do — anchoring is
+        -- handled by ToggleAuraPosition
+        playerPetFrame.debuffsContainer = GW.CreateUnitAuraContainer({
+            name = "GwPetDebuffContainer",
+            unit = "pet",
+            pandemicEnabled = function() return GW.settings.PET_PANDEMIC_HIGHLIGHT end,
+            dispelIconEnabled = function() return GW.settings.PET_DISPEL_ICON end,
+            parent = playerPetFrame,
+            tooltipAnchor = { "ANCHOR_BOTTOMLEFT", -5, -5 },
+            refreshEvents = { "UNIT_PET" },
+            refreshUnit = "player",
+            anchorPoint = "TOPRIGHT",
+            growLeft = true,
+            maximumLineSize = playerPetFrame.auras:GetWidth(),
+            elementSpacing = 3,
+            lineSpacing = 4,
+            groups = {
+                { key = "debuffsOwn", filter = "HARMFUL|PLAYER", size = 24, iconInset = 2, bigFont = true, maxFrameCount = 40, isDebuff = true, showPandemic = true, showDispelIcon = true },
+                { key = "debuffs", filter = "HARMFUL|!PLAYER", size = 20, maxFrameCount = 40, isDebuff = true, showDispelIcon = true },
+            },
+        })
+    else
+        LoadAuras(playerPetFrame)
+    end
 
     playerPetFrame:ToggleAuraPosition()
 
@@ -329,7 +434,9 @@ local function LoadPetFrame(lm)
     playerPetFrame:RegisterUnitEvent("UNIT_MAXPOWER", "pet")
     playerPetFrame:RegisterUnitEvent("UNIT_HEALTH", "pet")
     playerPetFrame:RegisterUnitEvent("UNIT_MAXHEALTH", "pet")
-    playerPetFrame:RegisterUnitEvent("UNIT_AURA", "pet")
+    if not GW.Retail then -- on Retail the AuraContainer handles the aura updates itself
+        playerPetFrame:RegisterUnitEvent("UNIT_AURA", "pet")
+    end
     playerPetFrame:RegisterUnitEvent("UNIT_PORTRAIT_UPDATE", "pet")
     playerPetFrame:RegisterUnitEvent("UNIT_MODEL_CHANGED", "pet")
     playerPetFrame:RegisterEvent("PET_UI_UPDATE")
@@ -362,15 +469,11 @@ local function LoadPetFrame(lm)
     end
     playerPetFrame:SetActionButtonPositionAndStyle()
 
-    if GW.Retail or GW.TBC or GW.Wrath or GW.Mists then
-        PetActionBar.ignoreFramePositionManager = true
-        PetActionBar:GwKillEditMode()
-        PetActionBar:SetParent(GW.HiddenFrame)
+    PetActionBar.ignoreFramePositionManager = true
+    PetActionBar:GwKillEditMode()
+    PetActionBar:SetParent(GW.HiddenFrame)
 
-        hooksecurefunc(PetActionBar, "Update", function() playerPetFrame:Update() end)
-    else
-        hooksecurefunc("PetActionBar_Update", function() playerPetFrame:Update() end)
-    end
+    hooksecurefunc(PetActionBar, "Update", function() playerPetFrame:Update() end)
 
     -- hook hotkey update calls so we can override styling changes
     local hotkeyEventTrackerFrame = CreateFrame("Frame")

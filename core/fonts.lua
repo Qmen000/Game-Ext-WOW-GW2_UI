@@ -1,6 +1,5 @@
 ---@class GW2
 local GW = select(2, ...)
-local L = GW.L
 
 local function setFont(fontObject, font, size, style, shadowX, shadowY, shadowA, r, g, b, shadowR, shadowG, shadowB)
     if not fontObject then return end
@@ -245,7 +244,11 @@ local function LoadFonts()
         end
     end
 
-    RaidWarningFrame:SetSize(640, 48)
-    RaidBossEmoteFrame:SetSize(640, 56)
+    if RaidWarningFrame then
+        RaidWarningFrame:SetSize(640, 48)
+    end
+    if RaidBossEmoteFrame then
+        RaidBossEmoteFrame:SetSize(640, 56)
+    end
 end
 GW.LoadFonts = LoadFonts

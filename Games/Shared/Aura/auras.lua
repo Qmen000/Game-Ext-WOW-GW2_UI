@@ -8,7 +8,7 @@ local function UpdateTooltip(self)
     if GameTooltip:IsForbidden() then return end
 
     if self.index then
-        GameTooltip:SetUnitAura(self:GetParent().__owner.unit, self.index, self.isHarmful and "HARMFUL" or "HELPFUL")
+        GameTooltip:SetUnitAura(self:GetParent().__owner.gwUnit, self.index, self.isHarmful and "HARMFUL" or "HELPFUL")
     end
 end
 
@@ -53,8 +53,7 @@ local function CreateAuraFrame(name, parent)
     f.nextUpdate = 0
 
     f.status.stacks:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small, "OUTLINE", -1)
-    f.status.duration:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small, nil, -2)
-    f.status.duration:SetShadowOffset(1, -1)
+    f.status.duration:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small, "SHADOW", -2)
 
     f.duration = f.status.duration
     f.stacks = f.status.stacks
@@ -331,6 +330,17 @@ local function FilterAura(element, unit, data)
 	end
 end
 
+-- central aura filter dispatch: applies the per-frame ignore list ({[spellID] = true},
+-- e.g. target_IGNORED_AURAS) before running the frame's filter. Sits upstream of the
+-- FilterAura overrides (party) on purpose, so they don't have to duplicate the check.
+-- The Retail containers handle the ignore list via excludeSpellIDs instead.
+local function ShouldDisplayAura(auras, unit, data)
+    if auras.ignoredAuraSpellIDs and data.spellId and auras.ignoredAuraSpellIDs[data.spellId] then
+        return false
+    end
+    return (auras.FilterAura or FilterAura)(auras, unit, data)
+end
+
 local function processData(unit, data, filter, newBuffAnimation)
     if not data or not data.name then return end
 
@@ -348,7 +358,7 @@ local function processData(unit, data, filter, newBuffAnimation)
 end
 
 local function UpdateBuffLayout(self, event, unit, updateInfo)
-    if self.unit ~= unit then return end
+    if self.gwUnit ~= unit then return end
 
     local isFullUpdate = not updateInfo or updateInfo.isFullUpdate
 
@@ -378,7 +388,7 @@ local function UpdateBuffLayout(self, event, unit, updateInfo)
             if data then
                 auras.allBuffs[data.auraInstanceID] = data
 
-                if ((auras.FilterAura or FilterAura)(auras, unit, data)) then
+                if ShouldDisplayAura(auras, unit, data) then
                     auras.activeBuffs[data.auraInstanceID] = true
                 end
             end
@@ -394,7 +404,7 @@ local function UpdateBuffLayout(self, event, unit, updateInfo)
             if data then
                 auras.allDebuffs[data.auraInstanceID] = data
 
-                if ((auras.FilterAura or FilterAura)(auras, unit, data)) then
+                if ShouldDisplayAura(auras, unit, data) then
                     auras.activeDebuffs[data.auraInstanceID] = true
                 end
             end
@@ -407,7 +417,7 @@ local function UpdateBuffLayout(self, event, unit, updateInfo)
                     if data then
                         auras.allBuffs[data.auraInstanceID] = data
 
-                        if ((auras.FilterAura or FilterAura)(auras, unit, data)) then
+                        if ShouldDisplayAura(auras, unit, data) then
                             auras.activeBuffs[data.auraInstanceID] = true
                             buffsChanged = true
                         end
@@ -417,7 +427,7 @@ local function UpdateBuffLayout(self, event, unit, updateInfo)
                     if data then
                         auras.allDebuffs[data.auraInstanceID] = data
 
-                        if ((auras.FilterAura or FilterAura)(auras, unit, data)) then
+                        if ShouldDisplayAura(auras, unit, data) then
                             auras.activeDebuffs[data.auraInstanceID] = true
                             debuffsChanged = true
                         end
@@ -541,7 +551,7 @@ GW.UpdateBuffLayout = UpdateBuffLayout
 
 local function ForceUpdate(element)
     local parent = element:GetParent()
-    UpdateBuffLayout(parent, "ForceUpdate", parent.unit)
+    UpdateBuffLayout(parent, "ForceUpdate", parent.gwUnit)
 end
 
 -- No use for player (not secure)

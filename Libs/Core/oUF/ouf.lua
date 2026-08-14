@@ -97,7 +97,7 @@ for k, v in next, {
 		local element = elements[name]
 		if(not element or self:IsElementEnabled(name)) then return end
 
-		if(element.enable(self, unit or self.unit)) then
+		if(element.enable(self, unit or self.__unit)) then
 			activeElements[self][name] = true
 
 			if(element.update) then
@@ -181,7 +181,7 @@ for k, v in next, {
 	* event - event name to pass to the elements' update functions (string)
 	--]]
 	UpdateAllElements = function(self, event)
-		local unit = self.unit
+		local unit = self.__unit
 		if(not unitExists(unit)) then return end
 
 		assert(type(event) == 'string', "Invalid argument 'event' in UpdateAllElements.")
@@ -229,13 +229,13 @@ local function updatePet(self, event, unit)
 		petUnit = unit:gsub('^(%a+)(%d+)', '%1pet%2')
 	end
 
-	if(self.unit ~= petUnit) then return end
+	if(self.__unit ~= petUnit) then return end
 
 	evalUnitAndUpdate(self, event)
 end
 
 local function updateRaid(self, event)
-	local unitGUID = UnitGUID(self.unit)
+	local unitGUID = UnitGUID(self.__unit)
 	if(ns.NotSecretValue(unitGUID) and unitGUID ~= self.unitGUID) then
 		self.unitGUID = unitGUID
 
@@ -658,6 +658,11 @@ do
 		local name = overrideName or generateName(nil, ...)
 		local header = Mixin(CreateFrame('Frame', name, PetBattleFrameHider, template), headerMixin)
 
+		-- 12.1: declare the roleset so the UI mode system gates visibility like Blizzard's own unit frames
+		if(header.SetRolesets) then
+			header:SetRolesets('unitFrames')
+		end
+
 		header:SetAttribute('template', 'SecureUnitButtonTemplate, SecureHandlerStateTemplate, SecureHandlerEnterLeaveTemplate' .. (ns.Retail and ', PingableUnitFrameTemplate' or ''))
 
 		if(...) then
@@ -747,6 +752,15 @@ function oUF:Spawn(unit, overrideName)
 	local name = overrideName or generateName(unit)
 	local object = CreateFrame('Button', name, PetBattleFrameHider, 'SecureUnitButtonTemplate, PingableUnitFrameTemplate')
 	Private.UpdateUnits(object, unit)
+
+	-- 12.1: declare the roleset so the UI mode system gates visibility like Blizzard's own unit frames
+	if(object.SetRolesets) then
+		if(unit:match('arena%d?')) then
+			object:SetRolesets('arenaFrames')
+		else
+			object:SetRolesets('unitFrames')
+		end
+	end
 
 	self:DisableBlizzard(unit)
 	walkObject(object, unit)

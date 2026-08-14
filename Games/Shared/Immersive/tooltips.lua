@@ -90,7 +90,7 @@ local function ShowAuraInfo(self, auraData)
 
         if auraData.sourceUnit and GW.NotSecretValue(auraData.sourceUnit) then
             local _, class = UnitClass(auraData.sourceUnit)
-            local color = GWGetClassColor(class, GW.settings.ADVANCED_TOOLTIP_SHOW_CLASS_COLOR, true)
+            local color = GWGetClassColor(class, GW.settings.ADVANCED_TOOLTIP_SHOW_CLASS_COLOR)
             self:AddDoubleLine(format(IDLine, ID, auraData.spellId), color:WrapTextInColorCode(UnitName(auraData.sourceUnit) or UNKNOWN))
         else
             self:AddLine(format(IDLine, ID, auraData.spellId))
@@ -111,6 +111,9 @@ end
 
 local function SetUnitAuraByAuraInstanceId(self, unit, auraInstanceId)
     if not self or self:IsForbidden() or self:NumLines() < 1 then return end
+    -- callers like the CooldownViewer pass secret instance IDs — reading the aura
+    -- data would be denied for tainted code
+    if GW.IsSecretValue(auraInstanceId) or GW.IsSecretValue(unit) then return end
 
     local auraData = C_UnitAuras.GetAuraDataByAuraInstanceID(unit, auraInstanceId)
     if not auraData then return end
@@ -199,9 +202,9 @@ local function SetHyperlink(self, link)
 
     if select(3, string.find(link, "(%a-):")) == "achievement" then
         local _, _, achievementID = string.find(link, ":(%d+):")
-        local _, _, GUID = string.find(link, ":%d+:(.-):")
+        local _, _, guid = string.find(link, ":%d+:(.-):")
 
-        if GUID == UnitGUID("player") then
+        if guid == GW.myguid then
             self:Show()
             return
         end
@@ -401,7 +404,7 @@ end
 local function SetUnitText(self, unit, isPlayerUnit)
     local name, realm = UnitName(unit)
 
-    if isPlayerUnit and not GW.IsSecretUnit(unit) then
+    if isPlayerUnit and GW.NotSecretUnit(unit) then
         local localeClass, class = UnitClass(unit)
         if not localeClass or not class then return end
 
@@ -411,7 +414,7 @@ local function SetUnitText(self, unit, isPlayerUnit)
         local relationship = UnitRealmRelationship(unit)
         local isShiftKeyDown = IsShiftKeyDown()
 
-        local nameColor = GWGetClassColor(class, GW.settings.ADVANCED_TOOLTIP_SHOW_CLASS_COLOR, true)
+        local nameColor = GWGetClassColor(class, GW.settings.ADVANCED_TOOLTIP_SHOW_CLASS_COLOR)
 
         if GW.settings.ADVANCED_TOOLTIP_SHOW_PLAYER_TITLES and pvpName and pvpName ~= "" then
             name = pvpName
@@ -447,13 +450,16 @@ local function SetUnitText(self, unit, isPlayerUnit)
         if levelLine then
             local diffColor = GetCreatureDifficultyColor(level)
             local race, englishRace = UnitRace(unit)
+            if GW.IsSecretValue(race) or GW.IsSecretValue(englishRace) then
+                race, englishRace = "", ""
+            end
 
             local _, localizedFaction = GW.GetUnitBattlefieldFaction(unit)
             if localizedFaction and (englishRace == "Pandaren" or englishRace == "Dracthyr" or englishRace == "Earthen") then
                 race = localizedFaction .. " " .. race
             end
             local hexColor = GW.RGBToHex(diffColor.r, diffColor.g, diffColor.b)
-            local unitGender = GW.settings.ADVANCED_TOOLTIP_SHOW_GENDER and genderTable[gender]
+            local unitGender = GW.settings.ADVANCED_TOOLTIP_SHOW_GENDER and GW.NotSecretValue(gender) and genderTable[gender]
 
             local levelText
             if level < realLevel then
@@ -505,7 +511,8 @@ local function SetUnitText(self, unit, isPlayerUnit)
                 diffColor = GetCreatureDifficultyColor(level)
             end
 
-            if UnitIsPVP(unit) then
+            local unitPVP = UnitIsPVP(unit)
+            if GW.NotSecretValue(unitPVP) and unitPVP then
                 pvpFlag = format(" (%s)", PVP)
             end
 
@@ -541,7 +548,7 @@ local function AddTargetInfo(self, unit)
             targetColor = C_ClassColor.GetClassColor(class) or RAID_CLASS_COLORS.PRIEST
         elseif UnitIsPlayer(unitTarget) and (not GW.Retail or not UnitHasVehicleUI(unitTarget)) then
             local _, class = UnitClass(unitTarget)
-            targetColor = GWGetClassColor(class, GW.settings.ADVANCED_TOOLTIP_SHOW_CLASS_COLOR, true)
+            targetColor = GWGetClassColor(class, GW.settings.ADVANCED_TOOLTIP_SHOW_CLASS_COLOR)
         else
             targetColor = GW.Colors.FactionBarColors[UnitReaction(unitTarget, "player")]
         end
@@ -565,7 +572,7 @@ local function AddTargetInfo(self, unit)
             if GW.IsSecretUnit(groupUnit) then
                 classColor = C_ClassColor.GetClassColor(class) or RAID_CLASS_COLORS.PRIEST
             else
-                classColor = GWGetClassColor(class, GW.settings.ADVANCED_TOOLTIP_SHOW_CLASS_COLOR, true)
+                classColor = GWGetClassColor(class, GW.settings.ADVANCED_TOOLTIP_SHOW_CLASS_COLOR)
             end
 
             local unitName = UnitName(groupUnit) or UNKNOWN
@@ -614,10 +621,12 @@ local function AddMountInfo(self, unit)
 end
 
 local function AddRoleInfo(self, unit)
-    if not IsInGroup() or not (UnitInParty(unit) or UnitInRaid(unit)) then return end
+    local unitRaid, unitParty = UnitInRaid(unit), UnitInParty(unit)
+	local unitSecret = GW.IsSecretValue(unitRaid) or GW.IsSecretValue(unitParty)
+	if unitSecret or not (unitRaid or unitParty) then return end
 
     local role = UnitGroupRolesAssigned(unit)
-    if not role or role == "NONE" then return end
+    if GW.IsSecretValue(role) or (not role or role == "NONE") then return end
 
     local r, g, b = 1, 1, 1
     if role == "HEALER" then
@@ -630,18 +639,20 @@ local function AddRoleInfo(self, unit)
     -- if in raid add also the assist function here eg: Role:      [] Tank ([] Maintank)
     local isGroupLeader = UnitIsGroupLeader(unit)
     local isGroupAssist = UnitIsGroupAssistant(unit)
-    local raidId = UnitInRaid(unit)
+    local isSecretLeader = GW.IsSecretValue(isGroupLeader)
+    local isSecretAssist = GW.IsSecretValue(isGroupAssist)
+
     local raidRole = ""
-    if raidId then
-        local raidR = select(10, GetRaidRosterInfo(raidId))
+    if unitRaid then
+        local raidR = select(10, GetRaidRosterInfo(unitRaid))
         if raidR == "MAINTANK" then raidRole = " (|TInterface/AddOns/GW2_UI/textures/party/icon-maintank.png:0:0:0:-3:64:64:4:60:4:60|t " .. MAINTANK .. ")" end
         if raidR == "MAINASSIST" then raidRole = " (|TInterface/AddOns/GW2_UI/textures/party/icon-mainassist.png:0:0:0:-1:64:64:4:60:4:60|t " .. MAIN_ASSIST .. ")" end
     end
 
     self:AddDoubleLine(format("%s:", ROLE), role .. raidRole, nil, nil, nil, r, g, b)
-    if isGroupLeader or isGroupAssist then
+    if (not isSecretLeader and isGroupLeader) or (not isSecretAssist and isGroupAssist) then
         local roleString
-        if isGroupLeader then
+        if not isSecretLeader and isGroupLeader then
             roleString = "|TInterface/AddOns/GW2_UI/textures/party/icon-groupleader.png:0:0:0:-2:64:64:4:60:4:60|t " .. (IsInRaid() and RAID_LEADER or PARTY_LEADER)
         else
             roleString = "|TInterface/AddOns/GW2_UI/textures/party/icon-assist.png:0:0:0:-2:64:64:4:60:4:60|t " .. RAID_ASSISTANT
@@ -697,9 +708,9 @@ local function AddInspectInfo(self, unit, numTries, r, g, b)
     if self.ItemLevelShown or (not unit) or (numTries > 3) or not UnitIsPlayer(unit) or not CanInspect(unit) or (GW.Mists and not CheckInteractDistance(unit, 4)) then return end
 
     local unitGUID = UnitGUID(unit)
-    if not unitGUID then return end
+    if not unitGUID or GW.IsSecretValue(unitGUID) then return end
 
-    if unitGUID == UnitGUID("player") then
+    if unitGUID == GW.myguid then
         self.ItemLevelShown = true
         self:AddDoubleLine(STAT_AVERAGE_ITEM_LEVEL .. ":", GW.GetUnitItemLevel(unit), nil, nil, nil, 1, 1, 1)
     elseif GW.unitIlvlsCache[unitGUID] and GW.unitIlvlsCache[unitGUID].time then
@@ -1316,6 +1327,12 @@ local function LoadTooltips()
 
     eventFrame:RegisterEvent("MODIFIER_STATE_CHANGED")
     eventFrame:SetScript("OnEvent", function()
+        -- 12.1: keeps the tooltipShowAuraSpellIDs CVar (secure aura tooltips) in sync
+        -- with the held ID modifier — addons cannot add lines to those tooltips anymore
+        if GW.UpdateAuraTooltipIDCVar then
+            GW.UpdateAuraTooltipIDCVar()
+        end
+
         if not GameTooltip:IsForbidden() and GameTooltip:IsShown() then
             local owner = GameTooltip:GetOwner()
             if (owner == UIParent or (GW2_PlayerFrame and owner == GW2_PlayerFrame) or (GwPlayerUnitFrame and owner == GwPlayerUnitFrame)) and UnitExists("mouseover") then
@@ -1348,5 +1365,16 @@ local function LoadTooltips()
             self:Hide()
         end
     end)
+
+    -- 12.1: the secure aura container tooltips can no longer be scanned or extended by
+    -- addons — Blizzard provides the tooltipShowAuraSpellIDs CVar instead (applies live,
+    -- no reload). Updated from the MODIFIER_STATE_CHANGED handler above, the settings
+    -- dropdown callback and once here on load.
+    if GW.Retail then
+        GW.UpdateAuraTooltipIDCVar = function()
+            C_CVar.SetCVar("tooltipShowAuraSpellIDs", IsModKeyDown() and "1" or "0")
+        end
+        GW.UpdateAuraTooltipIDCVar()
+    end
 end
 GW.LoadTooltips = LoadTooltips

@@ -89,8 +89,16 @@ local function OnProceed()
 end
 
 local function OnSaveProceed()
+    -- SaveLayoutChanges is asynchronous when the active layout is a preset: it only opens
+    -- the "New Layout" dialog and saves after that gets confirmed. Proceeding immediately
+    -- exits the edit mode, which REVERTS all changes before they were ever saved (hit by
+    -- skin-only users on the "Modern" preset — their bar changes always got discarded).
+    -- The unsaved-changes dialog registers EditMode.SavedLayouts -> OnProceed on show, so
+    -- Blizzard proceeds on its own once the new layout is actually saved.
     EditModeManagerFrame:SaveLayoutChanges()
-    OnProceed()
+    if not EditModeManagerFrame.IsActiveLayoutPreset or not EditModeManagerFrame:IsActiveLayoutPreset() then
+        OnProceed()
+    end
 end
 
 local function OnClose()
@@ -102,7 +110,48 @@ local function OnClose()
     end
 end
 
+-- since 1.15.9 ClearTarget()/TargetUnit() are hard protected on classic clients, but blizzards
+-- edit mode enter/exit calls them unconditionally via (Refresh/Reset)TargetAndFocus, which fires
+-- ADDON_ACTION_FORBIDDEN whenever the edit mode is driven from our code path (layout apply on login,
+-- our close callbacks), so skip the target juggling and keep only the frame cleanup
+local function FixTargetAndFocusReset()
+    local accountSettings = EditModeManagerFrame.AccountSettings
+
+    accountSettings.ResetTargetAndFocus = function(self)
+        self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+        self:UnregisterEvent("PLAYER_FOCUS_CHANGED")
+
+        self.oldTargetName = nil
+        self.oldFocusName = nil
+
+        if TargetFrame and TargetFrame.ClearHighlight then
+            TargetFrame:ClearHighlight()
+        end
+        if FocusFrame and FocusFrame.ClearHighlight then
+            FocusFrame:ClearHighlight()
+        end
+    end
+
+    accountSettings.RefreshTargetAndFocus = function(self)
+        local checkButton = self.settingsCheckButtons and self.settingsCheckButtons.TargetAndFocus
+        if checkButton and checkButton:IsControlChecked() then
+            if TargetFrame and TargetFrame.HighlightSystem then
+                TargetFrame:HighlightSystem()
+            end
+            if FocusFrame and FocusFrame.HighlightSystem then
+                FocusFrame:HighlightSystem()
+            end
+        else
+            self:ResetTargetAndFocus()
+        end
+    end
+end
+
 local function HandleBlizzardEditMode()
+    if not GW.Retail then
+        FixTargetAndFocusReset()
+    end
+
     local dialog = EditModeUnsavedChangesDialog
     dialog.ProceedButton:SetScript("OnClick", OnProceed)
     dialog.SaveAndProceedButton:SetScript("OnClick", OnSaveProceed)

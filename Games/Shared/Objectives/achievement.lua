@@ -156,7 +156,8 @@ function GwAchievementTrackerContainerMixin:BlockOnClick(mouseButton)
                     AttemptToOpenAchievement(self.id, true)
                     CloseDefaultWindow()
                 else
-                    OpenAchievementFrameToAchievement(self.id)
+                    AchievementFrame_ToggleAchievementFrame()
+                    AchievementFrame_SelectAchievement(self.id)
                 end
             end)
             rootDescription:CreateButton(OBJECTIVES_STOP_TRACKING, function()
@@ -282,8 +283,7 @@ function GwAchievementTrackerContainerMixin:InitModule()
 
     self.header = CreateFrame("Button", nil, self, "GwQuestTrackerHeader")
     self.header.icon:SetTexCoord(0, 0.5, 0, 0.25)
-    self.header.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header)
-    self.header.title:SetShadowOffset(1, -1)
+    self.header.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header, "SHADOW")
     self.header.title:SetText(TRACKER_HEADER_ACHIEVEMENTS)
 
     self.collapsed = false

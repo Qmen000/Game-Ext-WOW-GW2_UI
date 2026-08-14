@@ -14,6 +14,11 @@ local activeHighlight = "Interface/AddOns/GW2_UI/textures/talents/active_highlig
 local passiveOutline = "Interface/AddOns/GW2_UI/textures/talents/passive_outline.png"
 local activeOutline = "Interface/AddOns/GW2_UI/textures/talents/background_border.png"
 
+
+local function IsActiveSpecSelected()
+    return openSpec == C_SpecializationInfo.GetActiveSpecGroup(false, isPetTalents)
+end
+
 local function drawRouteLine(T, C, sx, sy, ex, ey, w, relPoint)
     if (not relPoint) then
         relPoint = "BOTTOMLEFT"
@@ -174,14 +179,10 @@ local function UpdateTrees(self, currentSpec)
         end
 
         container.icon.texture:SetTexture(icon)
-        container.info.specTitle:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header)
+        container.info.specTitle:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header, "SHADOW")
         container.info.specTitle:SetTextColor(1, 1, 1, 1)
-        container.info.specTitle:SetShadowColor(0, 0, 0, 1)
-        container.info.specTitle:SetShadowOffset(1, -1)
-        container.info.specDesc:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
+        container.info.specDesc:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal, "SHADOW")
         container.info.specDesc:SetTextColor(0.8, 0.8, 0.8, 1)
-        container.info.specDesc:SetShadowColor(0, 0, 0, 1)
-        container.info.specDesc:SetShadowOffset(1, -1)
         container.info.specTitle:SetText(name)
         container.info.specDesc:SetText(description)
         container.tooltip = description
@@ -250,7 +251,7 @@ local function updateActiveSpec(self)
         return
     end
     local spec = C_SpecializationInfo.GetSpecialization(false, isPetTalents, openSpec)
-    local isCurrentSpec = openSpec == C_SpecializationInfo.GetActiveSpecGroup(false, isPetTalents)
+    local isCurrentSpec = IsActiveSpecSelected()
     local talentInfoQuery = {
         groupIndex = openSpec,
         isInspect = false,
@@ -316,7 +317,11 @@ local function updateActiveSpec(self)
                     button.tier = row
                     button.selected = talentInfo.selected
                     button:SetID(talentInfo.talentID)
-                    _G["PlayerTalentFrameTalentsTalentRow" .. row .. "Talent" .. index]:SetID(talentInfo.talentID)
+                    -- cache blizzards talent button, we need it for the secure /click routing
+                    if not button.blizzardTalentButton then
+                        button.blizzardTalentButton = _G["PlayerTalentFrameTalentsTalentRow" .. row .. "Talent" .. index]
+                    end
+                    button.blizzardTalentButton:SetID(talentInfo.talentID)
 
                     button:EnableMouse(isActiveSpec and isCurrentSpec)
 
@@ -419,35 +424,51 @@ local function SpecIconOnEnter(self)
     GameTooltip:Show()
 end
 
-local function TalentButtonOnClick(self, button)
+local function TalentButtonOnClick(self)
     if IsModifiedClick("CHATLINK") then
-        local link = GetSpellLink(self.spellId)
-        ChatEdit_InsertLink(link)
-        return
-    end
-    if button == "LeftButton" and not self.selected then
-        local _, selectedTalentColumn, _ = GetTalentTierInfo(self.row, C_SpecializationInfo.GetActiveSpecGroup(false, isPetTalents))
-        if selectedTalentColumn ~= 0 then
-            local talentInfoQuery = {}
-            talentInfoQuery.tier = self.row
-            talentInfoQuery.column = self.column
-            talentInfoQuery.groupIndex = openSpec
-            talentInfoQuery.isInspect = false
-            talentInfoQuery.target = "player"
-            local talentInfo = C_SpecializationInfo.GetTalentInfo(talentInfoQuery)
-            if talentInfo then
-                StaticPopup_Show("CONFIRM_UNLEARN_AND_SWITCH_TALENT", nil, nil, {tier = self.row, oldID = talentInfo.talentID, id = self.talentID})
+        if MacroFrameText and MacroFrameText:HasFocus() then
+            local _, talentName = GetTalentInfoByID(self.talentID, openSpec)
+            local spellName, subSpellName = GetSpellInfo(talentName)
+            if spellName and not IsPassiveSpell(spellName) then
+                if subSpellName and (strlen(subSpellName) > 0) then
+                    ChatFrameUtil.InsertLink(spellName .. "(" .. subSpellName .. ")")
+                else
+                    ChatFrameUtil.InsertLink(spellName)
+                end
             end
         else
-            LearnTalents(self.talentID)
-        end
-    elseif button == "RightButton" and self.selected then
-        if UnitIsDeadOrGhost("player") then
-            UIErrorsFrame:AddMessage(ERR_PLAYER_DEAD, 1.0, 0.1, 0.1, 1.0)
-        else
-            StaticPopup_Show("CONFIRM_REMOVE_TALENT", nil, nil, {id = self.talentID})
+            local link = GetTalentLink(self.talentID, false, openSpec)
+            if link then
+                ChatFrameUtil.InsertLink(link);
+            end
         end
     end
+    -- learning and unlearning run entirely through the secure "type1"/"type2" macro /clicks on
+    -- Blizzards talent buttons, the actual learn is committed by the PlayerTalentFrame_SelectTalent hook
+end
+
+-- Blizzards left-click flow only stores the clicked talent as the rows selection and waits for the
+-- Learn button, which GW2 UI does not have: commit the selection ourselves as soon as the talent is
+-- learnable. Only RemoveTalent is protected, LearnTalents is callable from addon code.
+local pendingLearnTalentID, pendingLearnTimeout
+
+local function TryLearnPendingTalent()
+    if not pendingLearnTalentID then
+        return
+    end
+    if GetTime() > pendingLearnTimeout then
+        pendingLearnTalentID = nil
+        return
+    end
+    local _, _, _, selected, available = GetTalentInfoByID(pendingLearnTalentID, C_SpecializationInfo.GetActiveSpecGroup(false, isPetTalents))
+    if selected then
+        pendingLearnTalentID = nil
+    elseif available then
+        LearnTalents(pendingLearnTalentID)
+        pendingLearnTalentID = nil
+    end
+    -- not yet available: the RemoveTalent from CONFIRM_UNLEARN_AND_SWITCH_TALENT is still in flight,
+    -- wait for the next PLAYER_TALENT_UPDATE
 end
 
 local function TalentButtonOnEnter(self)
@@ -496,13 +517,22 @@ end
 
 local function LoadTalents(tabContainer)
     TalentFrame_LoadUI()
+
+    hooksecurefunc("PlayerTalentFrame_SelectTalent", function(tier, id)
+        local talentRow = PlayerTalentFrameTalents["tier" .. tier]
+        if not talentRow or talentRow.selectionId ~= id then
+            return -- SelectTalent is a toggle: this call deselected, nothing to learn
+        end
+        talentRow.selectionId = nil -- consume the selection, otherwise the next click on this talent only toggles it off
+        pendingLearnTalentID = id
+        pendingLearnTimeout = GetTime() + 5
+        TryLearnPendingTalent()
+    end)
     local talentWindow = CreateFrame("Frame", "GwTalentFrame", tabContainer, "GwCharacterTabContainerTemplate")
     local talentContainer = CreateFrame('Frame', 'GwTalentSpecFrame', talentWindow, 'SecureHandlerStateTemplate,GwTalentFrame')
 
-    talentContainer.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header)
+    talentContainer.title:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header, "SHADOW")
     talentContainer.title:SetTextColor(1, 1, 1, 1)
-    talentContainer.title:SetShadowColor(0, 0, 0, 1)
-    talentContainer.title:SetShadowOffset(1, -1)
     talentContainer.title:SetText(SPECIALIZATION)
     talentContainer.topBar.activeSpecIndicator:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header, "OUTLINE")
     talentContainer.topBar.activeSpecIndicator:SetTextColor(63 / 255, 205 / 255, 75 / 255)
@@ -567,9 +597,11 @@ local function LoadTalents(tabContainer)
                 talentButton:SetScript("OnDragStart", TalentButtonOnDragStart)
                 talentButton:HookScript("OnClick", TalentButtonOnClick)
 
-                talentButton:RegisterForClicks("AnyUp")
+                talentButton:RegisterForClicks("AnyDown")
                 talentButton:RegisterForDrag("LeftButton")
+                talentButton:SetAttribute("type1", "macro")
                 talentButton:SetAttribute("type2", "macro")
+                talentButton:SetAttribute('macrotext1', '/click PlayerTalentFrameTalentsTalentRow'..row..'Talent'..index .. " LeftButton")
                 talentButton:SetAttribute('macrotext2', '/click PlayerTalentFrameTalentsTalentRow'..row..'Talent'..index .. " RightButton")
                 talentButton:SetPoint("TOPLEFT", container, "TOPLEFT", 110 + ((65 * row) - (38)), -10 + ((-42 * index) + 40))
                 talentButton.mask = talentButton:CreateMaskTexture()
@@ -631,6 +663,9 @@ local function LoadTalents(tabContainer)
             updateActiveSpec(talentContainer)
         elseif event == "BAG_UPDATE_DELAYED" then
             UpdateClearInfo(talentContainer)
+        elseif event == "PLAYER_TALENT_UPDATE" then
+            TryLearnPendingTalent()
+            updateActiveSpec(talentContainer)
         else
             updateActiveSpec(talentContainer)
         end

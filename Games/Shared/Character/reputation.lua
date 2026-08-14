@@ -34,9 +34,7 @@ if GW.Retail then
 end
 
 local function SetFontWithShadow(element, font, size, sizeAddition)
-    element:GwSetFontTemplate(font, size, nil, sizeAddition)
-    element:SetShadowColor(0, 0, 0, 1)
-    element:SetShadowOffset(1, -1)
+    element:GwSetFontTemplate(font, size, "SHADOW", sizeAddition)
 end
 
 local function sortFactionsStatus(tbl)
@@ -177,7 +175,7 @@ local function CollectFactionData(fetchData)
                             if hasRewardPending then hasPendingParagonReward = true end
                         end
                     elseif not data.isHeader then
-                        local standingText = getglobal("FACTION_STANDING_LABEL" .. data.reaction)
+                        local standingText = _G["FACTION_STANDING_LABEL" .. data.reaction]
                         cMax = cMax + 8
                         cCur = cCur + data.reaction
                         addToFactionTable(factionTbl, data.reaction, standingText, false, data.name, hasRewardPending, pendingParagonRewardFactions)

@@ -710,7 +710,9 @@ function GW.LoadMinimap()
     hooksecurefunc(Minimap, "SetZoom", GW.SetupZoomReset)
 
     MinimapCluster.ZoneTextButton:GwKill()
-    TimeManagerClockButton:GwKill()
+    if TimeManagerClockButton then
+        TimeManagerClockButton:GwKill()
+    end
 
     Minimap.gwBorder.gradient.location = Minimap.gwBorder.gradient:CreateFontString(nil, "OVERLAY")
     Minimap.gwBorder.gradient.location:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small, nil, -2)
@@ -798,9 +800,8 @@ function GW.LoadMinimap()
     --Time
     GwMapTime = CreateFrame("Button", "GwMapTime", panel, "GwMapTime")
     GwMapTime:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    GwMapTime.Time:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.Enum.TextSizeType.Normal)
+    GwMapTime.Time:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.Enum.TextSizeType.Normal, "SHADOW")
     GwMapTime.Time:SetTextColor(1, 1, 1)
-    GwMapTime.Time:SetShadowOffset(2, -2)
     GwMapTime.timeTimer = C_Timer.NewTicker(1, function()
         GwMapTime.Time:SetText(GameTime_GetTime(false))
     end)
@@ -812,17 +813,15 @@ function GW.LoadMinimap()
 
     --coords
     GwMapCoords = CreateFrame("Button", "GwMapCoords", panel, "GwMapCoords")
-    GwMapCoords.Coords:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.Enum.TextSizeType.Normal)
+    GwMapCoords.Coords:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.Enum.TextSizeType.Normal, "SHADOW")
     GwMapCoords.Coords:SetTextColor(1, 1, 1)
-    GwMapCoords.Coords:SetShadowOffset(2, -2)
     GwMapCoords.Coords:SetText(NOT_APPLICABLE)
     GW.ToogleMinimapCoordsLable()
 
     --FPS
     GwMapFPS = CreateFrame("Button", "GwMapFPS", panel, "GwMapFPS")
-    GwMapFPS.fps:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.Enum.TextSizeType.Normal)
+    GwMapFPS.fps:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.Enum.TextSizeType.Normal, "SHADOW")
     GwMapFPS.fps:SetTextColor(1, 1, 1)
-    GwMapFPS.fps:SetShadowOffset(2, -2)
     GwMapFPS.fps:SetText(NOT_APPLICABLE)
     GW.ToogleMinimapFpsLable()
 
@@ -880,7 +879,7 @@ function GW.LoadMinimap()
                 setMinimapButtons("right")
             end
         end)
-    elseif GW.TBC or GW.Wrath or GW.Mists then
+    elseif GW.TBC or GW.Wrath or GW.Mists or GW.Classic then
         MiniMapBattlefieldFrame:ClearAllPoints()
 
         GwAddonToggle:SetPoint("TOP", MiniMapBattlefieldFrame, "BOTTOM", 0, -20)
@@ -904,7 +903,7 @@ function GW.LoadMinimap()
     if Minimap.SetPlayerTexture then
         Minimap:SetPlayerTexture("Interface/AddOns/GW2_UI/textures/icons/player_arrow.png")
     end
-    
+
     hideMiniMapIcons()
 
     SetMinimapHover()
@@ -912,7 +911,7 @@ function GW.LoadMinimap()
 
     GW.SkinMinimapInstanceDifficult()
 
-    if GW.TBC or GW.Wrath then
+    if GW.TBC or GW.Wrath or GW.Classic then
         MiniMapBattlefieldBorder:SetTexture(nil)
         BattlegroundShine:SetTexture(nil)
     end

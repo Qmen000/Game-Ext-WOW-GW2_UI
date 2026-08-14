@@ -5,7 +5,7 @@ local bossFrames = {}
 GwBossFrameMixin = CreateFromMixins(GwObjectivesUnitFrameMixin)
 
 function GwBossFrameMixin:UpdateRaidMarkers()
-    local index = GetRaidTargetIndex(self.unit)
+    local index = GetRaidTargetIndex(self.gwUnit)
     if index then
         SetRaidTargetIconTexture(self.marker, index)
         self.marker:Show()
@@ -18,7 +18,7 @@ function GwBossFrameMixin:UpdateRaidMarkers()
 end
 
 function GwBossFrameMixin:UpdateHealthbarColor()
-    local unitReaction = UnitReaction(self.unit, "player")
+    local unitReaction = UnitReaction(self.gwUnit, "player")
     local nameColor = (unitReaction and GW.Colors.FactionBarColors[unitReaction]) or RAID_CLASS_COLORS.PRIEST
 
     if unitReaction then
@@ -26,7 +26,7 @@ function GwBossFrameMixin:UpdateHealthbarColor()
         if unitReaction >= 5 then nameColor = GW.Colors.UnitFrameReactionColors.Friendly end
     end
 
-    if UnitIsTapDenied(self.unit) then
+    if UnitIsTapDenied(self.gwUnit) then
         nameColor = GW.Colors.UnitFrameReactionColors.TappedDenied
     end
     self.health:SetStatusBarColor(nameColor:GetRGB())
@@ -43,7 +43,7 @@ function GwBossFrameMixin:OnShow()
         X       = nil,
         Y       = nil,
         COLOR   = GW.Colors.ObjectivesTypeColors[GW.Enum.ObjectivesNotificationType.Boss],
-        TITLE   = UnitName(self.unit)
+        TITLE   = UnitName(self.gwUnit)
     }
     GwObjectivesNotification:AddNotification(compassData)
 
@@ -64,7 +64,7 @@ end
 
 function GwBossFrameMixin:OnEvent(event, unit)
     if GW.IsIn(event, "UNIT_MAXHEALTH", "UNIT_HEALTH", "UNIT_MAXPOWER", "UNIT_POWER_FREQUENT", "UNIT_NAME_UPDATE", "UNIT_FACTION") then
-        if unit ~= self.unit then return end
+        if unit ~= self.gwUnit then return end
     end
     if not self:IsShown() then return end
 
@@ -132,11 +132,12 @@ end
 
 function GwObjectivesBossContainerMixin:RegisterFrame(i)
     local bossFrame = CreateFrame("Button", "GwBossFrame" .. i, GwQuestTracker, GW.Retail and "GwQuestTrackerBossFramePingableTemplate" or "GwQuestTrackerBossFrameTemplate")
+    GW.SetFrameRoleset(bossFrame, "unitFrames")
     local unit = "boss" .. i
     Mixin(bossFrame, GwBossFrameMixin)
 
     bossFrame.id = i
-    bossFrame.unit = unit
+    bossFrame.gwUnit = unit
     bossFrame.guid = UnitGUID(unit)
     bossFrame.container = self
 
@@ -149,8 +150,7 @@ function GwObjectivesBossContainerMixin:RegisterFrame(i)
     bossFrame:EnableMouse(true)
     bossFrame:RegisterForClicks("AnyDown")
 
-    bossFrame.name:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
-    bossFrame.name:SetShadowOffset(1, -1)
+    bossFrame.name:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small, "SHADOW")
     bossFrame.marker:Hide()
 
     bossFrame.icon:SetVertexColor(GW.Colors.ObjectivesTypeColors[GW.Enum.ObjectivesNotificationType.Boss]:GetRGB())

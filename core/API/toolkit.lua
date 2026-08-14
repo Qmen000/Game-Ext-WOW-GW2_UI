@@ -913,6 +913,129 @@ local function GwKillEditMode(object)
     object.Selection:EnableMouse(false)
 end
 
+do
+    -- Blizzard broke font shadows on FontStrings in 12.0.7; shadows only render when
+    -- defined on font objects, so we generate our own font families and set them there
+    local members, alphabets = {}, { roman = {}, korean = {}, simplifiedchinese = {}, traditionalchinese = {}, russian = {} }
+
+    local function GenerateFontMembers(font, size, style)
+        local index = 0
+        for which, data in next, alphabets do
+            index = index + 1
+
+            data.alphabet = which
+            data.file = font
+            data.height = size
+            data.flags = style
+
+            members[index] = data
+        end
+
+        return members
+    end
+
+    local familyCount = {}
+    local function GenerateFontFamily(prefix, font, size, style)
+        local count = (familyCount[prefix] or 0) + 1
+        familyCount[prefix] = count
+
+        return CreateFontFamily(prefix .. count, GenerateFontMembers(font, size, style))
+    end
+
+    local function SetFontShadow(family, style, shadow)
+        for which in next, alphabets do
+            local fontObject = family:GetFontObjectForAlphabet(which)
+            fontObject:SetShadowColor(0, 0, 0, (shadow and (style == "" and 1 or 0.6)) or 0)
+            fontObject:SetShadowOffset((shadow and 1) or 0, (shadow and -1) or 0)
+        end
+    end
+    GW.SetFontShadow = SetFontShadow
+
+    local objects = {}
+    function GW.GenerateFontObject(prefix, font, size, style, shadow)
+        local sizes = objects[font]
+        if not sizes then sizes = {} objects[font] = sizes end
+
+        local styles = sizes[size]
+        if not styles then styles = {} sizes[size] = styles end
+
+        local key = shadow and ("SHADOW" .. style) or style
+        local family = styles[key]
+        if not family then
+            family = GenerateFontFamily(prefix, font, size, style)
+            SetFontShadow(family, style, shadow)
+            styles[key] = family
+        end
+
+        return family
+    end
+end
+
+-- Gold value fill between track start and thumb; the anchors follow the thumb, so
+-- no update code is needed
+local function AddSliderValueFill(slider)
+    local fill = slider:CreateTexture(nil, "BORDER")
+    fill:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar.png")
+    fill:SetVertexColor(1, 1, 1)
+    fill:SetAlpha(0.9)
+    fill:SetHeight(4)
+    fill:SetPoint("LEFT", slider, "LEFT", 3, 0)
+    fill:SetPoint("RIGHT", slider:GetThumbTexture(), "CENTER", 0, 0)
+    return fill
+end
+GW.AddSliderValueFill = AddSliderValueFill
+
+-- Brand logo stack: the blue dragon with a gently pulsing black outline and a soft
+-- additive glow. Returns the holder frame - anchor it, everything scales with size.
+-- The outline lives on an own child frame and the ANIMATION runs on that frame:
+-- scale animations directly on textures composite the region above its layer
+-- siblings while transforming and snap at the loop turnaround
+local function CreateBrandLogo(parent, size)
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetSize(size, size)
+
+    local glow = holder:CreateTexture(nil, "BACKGROUND")
+    glow:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/glow.png")
+    glow:SetBlendMode("ADD")
+    glow:SetVertexColor(0.25, 0.6, 1)
+    glow:SetAlpha(0.35)
+    glow:SetSize(size * 2, size * 2)
+    glow:SetPoint("CENTER")
+
+    local outlineFrame = CreateFrame("Frame", nil, holder)
+    outlineFrame:SetFrameLevel(holder:GetFrameLevel() + 1)
+    outlineFrame:SetSize(size * 1.26, size * 1.26)
+    outlineFrame:SetPoint("CENTER")
+
+    local outline = outlineFrame:CreateTexture(nil, "ARTWORK")
+    outline:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/gwlogo-outline.png")
+    outline:SetAlpha(0.9)
+    outline:SetAllPoints(outlineFrame)
+
+    local logoFrame = CreateFrame("Frame", nil, holder)
+    logoFrame:SetFrameLevel(holder:GetFrameLevel() + 2)
+    logoFrame:SetAllPoints(holder)
+
+    local logo = logoFrame:CreateTexture(nil, "ARTWORK")
+    logo:SetTexture("Interface/AddOns/GW2_UI/textures/gwlogo.png")
+    logo:SetAllPoints(logoFrame)
+
+    -- endless seamless pulse: a cosine wave has no turnaround point, so unlike a
+    -- BOUNCE animation group there is nothing to snap at. Runs only while shown
+    local PULSE_PERIOD, PULSE_AMOUNT = 4, 0.08
+    local pulseTime = 0
+    outlineFrame:SetScript("OnUpdate", function(self, elapsed)
+        pulseTime = (pulseTime + elapsed) % PULSE_PERIOD
+        self:SetScale(1 + PULSE_AMOUNT * (0.5 - 0.5 * math.cos(pulseTime / PULSE_PERIOD * 2 * math.pi)))
+    end)
+
+    holder.logo = logo
+    holder.outline = outline
+    holder.glow = glow
+    return holder
+end
+GW.CreateBrandLogo = CreateBrandLogo
+
 local function GwSetFontTemplate(object, font, textSizeType, style, textSizeAddition, skip)
     if not object or not font or not object.SetFont or not textSizeType then return end
 
@@ -920,14 +1043,36 @@ local function GwSetFontTemplate(object, font, textSizeType, style, textSizeAddi
         object.gwFont, object.gwTextSizeType, object.gwStyle, object.gwTextSizeAddition = font, textSizeType, style, textSizeAddition
     end
 
+    local size
     if textSizeType == GW.Enum.TextSizeType.BigHeader then
-        object:SetFont(font, (GW.settings.FONTS_BIG_HEADER_SIZE or 18) + (textSizeAddition or 0), style or GW.settings.FONTS_OUTLINE or "")
+        size = GW.settings.FONTS_BIG_HEADER_SIZE or 18
     elseif textSizeType == GW.Enum.TextSizeType.Header then
-        object:SetFont(font, (GW.settings.FONTS_HEADER_SIZE or 16) + (textSizeAddition or 0), style or GW.settings.FONTS_OUTLINE or "")
+        size = GW.settings.FONTS_HEADER_SIZE or 16
     elseif textSizeType == GW.Enum.TextSizeType.Normal then
-        object:SetFont(font, (GW.settings.FONTS_NORMAL_SIZE or 14) + (textSizeAddition or 0), style or GW.settings.FONTS_OUTLINE or "")
+        size = GW.settings.FONTS_NORMAL_SIZE or 14
     elseif textSizeType == GW.Enum.TextSizeType.Small then
-        object:SetFont(font, (GW.settings.FONTS_SMALL_SIZE or 12) + (textSizeAddition or 0), style or GW.settings.FONTS_OUTLINE or "")
+        size = GW.settings.FONTS_SMALL_SIZE or 12
+    end
+    if not size then return end
+    size = size + (textSizeAddition or 0)
+
+    local shadow = style and strsub(style, 0, 6) == "SHADOW"
+    if shadow then
+        style = strsub(style, 7) -- shadow isnt a real style, fall back to the outline setting
+        if style == "" then style = nil end
+    end
+
+    style = style or GW.settings.FONTS_OUTLINE or ""
+    if style == "NONE" then style = "" end
+
+    if CreateFontFamily and object.SetFontObject then
+        object:SetFontObject(GW.GenerateFontObject("GW2_UI_FontTemplate", font, size, style, shadow))
+    else
+        object:SetFont(font, size, style)
+        if shadow then
+            object:SetShadowColor(0, 0, 0, style == "" and 1 or 0.6)
+            object:SetShadowOffset(1, -1)
+        end
     end
 
     -- register font for size changes
@@ -986,6 +1131,13 @@ local function GwNudgePoint(obj, xAxis, yAxis, noScale, pointValue, clearPoints)
     local y = (noScale and yAxis) or GW.Scale(yAxis)
 
     local point, relativeTo, relativePoint, xOfs, yOfs = GrabPoint(obj, pointValue)
+
+    -- anchors of Blizzard-managed frames can be secret in combat (e.g. the
+    -- DamageMeter windows on a combat reload) — neither arithmetic on the offsets
+    -- nor SetPoint with secret components is possible, so skip the nudge
+    if GW.IsSecretValue(point) or GW.IsSecretValue(relativePoint) or GW.IsSecretValue(xOfs) or GW.IsSecretValue(yOfs) then
+        return
+    end
 
     if clearPoints or GW.SetPointsRestricted(obj) then
         obj:ClearAllPoints()

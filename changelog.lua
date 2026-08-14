@@ -13,6 +13,94 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("11.1.2", {
+    {GW.Enum.ChangelogType.bug, [=[Secret more secrets]=]},
+})
+
+
+
+addChange("11.1.1", {
+    {GW.Enum.ChangelogType.bug, [=[Unit frames (Retail): Blizzard reads the .unit field on frames itself since 12.1 (the ping system among others) - an addon-written value there is tainted and trips up Blizzards secure readers. The oUF-based raid grids got the upstream oUF fix (internal state moved to its own field), and every own secure unit frame (player, target, focus, party, pet, boss, arena) keeps its bookkeeping in a gw-prefixed field now; the unit reaches Blizzard exclusively through the secure "unit" attribute]=]},
+    {GW.Enum.ChangelogType.bug, [=[Memory (Retail): the raid grids built a full aura container setup for every one of their ~125 pre-created (hidden) frames right at login - and bound them to the PLAYERS own auras on top, so each of them also built skinned aura buttons for every aura you had. That cost around 90 MB before you ever joined a group. Grid aura containers and indicator trackers are now built lazily, when a frame receives its first real unit (deferred out of combat), and never fall back to tracking the player]=]},
+    {GW.Enum.ChangelogType.change, [=[Performance: the quest tracker no longer rebuilds every tracked quest on every quest log update - unchanged quests are skipped via a content fingerprint, rows only re-apply fonts and anchors when the layout settings actually changed, and the per-line allocation churn is gone. Progress on one quest now only redraws that quest. Applies to ALL game versions]=]},
+    {GW.Enum.ChangelogType.change, [=[Advanced aura filters (Retail): the "Dispellable" option matches its label again - it shows auras your group can dispel (as the old aura engine did), not every aura that merely has a dispel type]=]},
+})
+
+addChange("11.1.0", {
+    {GW.Enum.ChangelogType.feature, [=[Dispel type icon (Retail): debuffs show their dispel type (magic, curse, poison, disease) as a small corner icon on the player, target, focus, pet, party and raid frames. The per-frame "Show Dispel Type Icon" setting is a three state choice now - off, on every debuff with a dispel type, or (the default) only on debuffs your group can actually dispel, matching Blizzards own dispel indicator behavior. Dispellable debuffs render before the rest of a frames debuffs for that]=]},
+    {GW.Enum.ChangelogType.bug, [=[Secret more secrets]=]},
+})
+
+addChange("11.0.0", {
+    {GW.Enum.ChangelogType.change, [=[Patch 12.1 (Retail): full compatibility update - all removed APIs replaced, the Social/Friends frame skin was rebuilt for Blizzards new SocialUI, and the "Advanced Tooltip ID Modifier" setting works again on the new secure auras]=]},
+    {GW.Enum.ChangelogType.change, [=[Auras (Retail): player bars, target, focus, pet, party and the raid grids run on Blizzards new AuraContainer system now, so everything keeps working while aura values are secret in combat - including stack counts, cooldown swipes, the indicator duration bars and the "show aura tooltips out of combat" mode. The GW2 look is unchanged, the other game versions keep the old engine]=]},
+    {GW.Enum.ChangelogType.feature, [=[Auras: new "Ignored Auras" setting - hide an aura by its spell id, with icon, name and tooltip per entry. Available for target, focus, pet and party frames on all game versions, for the player bars on Retail and per grid type on the raid grids (it replaces the old global name based text field there, custom entries have to be re-added once)]=]},
+    {GW.Enum.ChangelogType.feature, [=[Auras: new "Aura Sorting" setting - default, remaining time or name, each ascending or descending. For the player bars on all game versions (old sort settings are migrated) and for target, focus and pet on Retail]=]},
+    {GW.Enum.ChangelogType.feature, [=[Pandemic highlight (Retail): your own auras glow while they are inside their pandemic window (the last 30% of the duration, where refreshing adds the remaining time on top) - on the player, target, focus, pet, party and raid frames including the aura indicators. Can be turned off per frame ("Pandemic Highlight")]=]},
+    {GW.Enum.ChangelogType.feature, [=[Auras (Retail): the "Important" filter is back in the advanced buff/debuff filters (raid grids, target, focus, pet); the grid debuff filters default to important plus dispellable debuffs. Stealable buffs on target and focus get their highlight border back]=]},
+    {GW.Enum.ChangelogType.feature, [=[Raid grids (all game versions): the aura indicator dropdowns accept any spell now - pick "Custom Spell ID..." and enter the id manually; custom spells use a neutral white indicator color]=]},
+    {GW.Enum.ChangelogType.bug, [=[Dungeon & Raid Debuffs (Retail): the list, its scale and the grid emphasis work again on the party frames and the raid grids (was disabled since 12.0)]=]},
+    {GW.Enum.ChangelogType.change, [=[Raid grids: the private aura module was removed - 12.1 merged private auras into the normal debuffs, they show up in the regular debuff display now]=]},
+    {GW.Enum.ChangelogType.feature, [=[Class powers (Retail): the aura driven bars removed in 12.0 are back and secret proof - Shield of the Righteous, Metamorphosis, Barbed Shot, Mongoose Fury, Rend, Enrage and Shield Block (incl. Last Stand with Bolster)]=]},
+    {GW.Enum.ChangelogType.feature, [=[Dynamic HUD (Retail): the aura driven combat HUD backgrounds removed in 12.0 are back, including the model effects (Avenging Wrath, Metamorphosis, Ascendance, Dark Transformation, Dragonrage, Eclipse, ...)]=]},
+    {GW.Enum.ChangelogType.bug, [=[Health globe (Retail): absorb shields and incoming heals sit on top of the current health fill again instead of filling from the bottom]=]},
+    {GW.Enum.ChangelogType.feature, [=[Dodge bar (all game versions): shows the remaining cooldown of the tracked ability as text, plus the available charges for abilities that have them. Can be turned off in the player settings ("Show Dodge Bar Cooldown Text")]=]},
+    {GW.Enum.ChangelogType.bug, [=[Dodge bar (Retail): the bar was empty after a login or reload, abilities without charges (Disengage, Blink, ...) never showed their cooldown, and the fill now spans the whole visible arc so it matches the cooldown exactly]=]},
+    {GW.Enum.ChangelogType.change, [=[Profile export/import runs on Blizzards C_EncodingUtil now, the bundled LibDeflate, LibBase64, LibCompress and AceSerializer libraries were removed. New export strings start with "!GW3!", old "!GW2!" strings stay importable]=]},
+    {GW.Enum.ChangelogType.feature, [=[Move HUD: the mover dialog shows the exact X/Y offsets as editable fields, two buttons center a frame on the screen axes, shift clicking the arrows nudges by 10 pixels, and dragging snaps to the grid while it is shown]=]},
+    {GW.Enum.ChangelogType.change, [=[Settings: sliders show a value fill up to their handle and every option row highlights under the mouse]=]},
+    {GW.Enum.ChangelogType.feature, [=[Bags: three new settings - "Item Level Threshold" (only draw the item level at or above a chosen value), "Hide Empty Slots" (empty slots are left out and a placeholder shows the free slot count; it still accepts dropped items, combined bag view only) and "Mark New Items" (a marker on newly received items until the bags are closed)]=]},
+    {GW.Enum.ChangelogType.change, [=[Bags: the search filter is dropped when the bags close - a forgotten filter no longer hides items on the next open]=]},
+    {GW.Enum.ChangelogType.bug, [=[Action bars: hotkey labels no longer shift or lose their short format when the game detects a gamepad, long bindings like "CTRL+!" no longer ellipsize, and the multi bar/pet/stance hotkeys use a larger font]=]},
+    {GW.Enum.ChangelogType.bug, [=[Bank (Classic): the "buy bank slot" confirmation shows the price again and items in the main bank slots show their tooltip again]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed several errors: opening the game menu in combat ("protected function Button:SetSize()"), reloading during combat (damage meter skin, gossip frame)]=]},
+    {GW.Enum.ChangelogType.change, [=[Known issues on Retail: the "New Aura Animation" is not possible with Blizzards secret aura restrictions and is disabled there; auras matching several advanced filter branches at once can show up twice in rare cases]=]},
+})
+
+addChange("10.15.1", {
+    {GW.Enum.ChangelogType.bug, [=[Bags (Retail): fixed "AddOn 'GW2_UI' tried to call the protected function 'UseContainerItem()'" when using an item from the bags or selling it to a vendor, after which the bags stopped responding until a reload - the bag id was stored on the item buttons under the same field name Blizzards own item button mixin reads, so Blizzard got our value instead of its own and refused the interaction; the item state fields go through Blizzards setters now]=]},
+    {GW.Enum.ChangelogType.bug, [=[Chat: fixed an error when switching chat tabs while a chat frame had lines that Blizzard had not laid out yet]=]},
+})
+
+addChange("10.15.0", {
+    {GW.Enum.ChangelogType.change, [=[Bags & Bank: complete rework on every game version - bags and bank use their own item buttons now instead of taking Blizzards multi purpose buttons, which ends the fights with Blizzards layout and update code (anchor errors, misplaced buttons); Blizzards container and bank frames are made inert at load, so they no longer update in the background or play their own open/close sounds. All behavior, settings and the resize handling stay the same]=]},
+    {GW.Enum.ChangelogType.change, [=[Bags & Bank: the per game version duplicated code moved into one shared implementation - fixes only need to be made once now; the bag bar uses Blizzards real bag slot buttons everywhere, one central item button skin marks quest items with the same golden quest icon on every flavor, and flavor extras (currency display, azerite/corruption/scrap, equipment set names) plug in as small modules]=]},
+    {GW.Enum.ChangelogType.feature, [=[Bank: own icon size and slot spacing settings on every game version, previously shared with the bags; the current bag values are carried over once so nothing changes visually]=]},
+    {GW.Enum.ChangelogType.feature, [=[Bank (Classic/TBC/Wrath/Mists): new "Separate bags" option like the bags already have it - the main bank and each bank bag get their own section with a collapsible header that can be renamed via right click; the "Reverse Bag Order" toggle also applies immediately again]=]},
+    {GW.Enum.ChangelogType.feature, [=[Bags: new "Separate keyring" (Classic/TBC/Wrath) and "Separate reagent bag" (Retail) options - in the combined bag view the keyring or reagent bag starts on its own row with a gap as separation, so it is visible that these slots do not belong to the bags]=]},
+    {GW.Enum.ChangelogType.feature, [=[Bags: the profession bag coloring wins over an items quality color on every flavor by default now; the new option "Show Quality Color for Profession Bags" flips that around]=]},
+    {GW.Enum.ChangelogType.change, [=[Bags: retail niceties for every game version - the retail styled money icons, the localized gold number format, the skinned stack split popup and a uniform minimum frame size; the watched currency displays (Retail/Mists) fill the available bag width instead of showing a fixed number]=]},
+})
+
+addChange("10.14.3", {
+    {GW.Enum.ChangelogType.bug, [=[Bags (Classic/TBC/Wrath/Mists): fixed "SetPoint would result in anchor family connection" errors after opening the bags multiple times; the taken container item buttons are reset to a single clean anchor right away, since Blizzards container code only adds anchor points and the leftover mixed anchors bridged our bag frames with the container frames]=]},
+    {GW.Enum.ChangelogType.bug, [=[Bags (Classic Era): the bag slot buttons sit above the keyring button again; Blizzards new bags bar relayouts the backpack button on login and on edit mode updates and pulled it out of our bag bar]=]},
+})
+
+addChange("10.14.2", {
+    {GW.Enum.ChangelogType.bug, [=[Talents (Classic Era): fixed a login error introduced with the staged loading; the talent trees are now created lazily once the server has delivered the talent data]=]},
+    {GW.Enum.ChangelogType.change, [=[Talents (Classic/TBC/Wrath/Mists): the talent frame no longer uses global frame lookups - trees, buttons and prerequisite arrows are referenced directly now and on Mists the Blizzard talent buttons for the secure click routing are cached; also removed the unused talent branch array and the dead line blocking logic]=]},
+    {GW.Enum.ChangelogType.change, [=[Spellbook (Classic/TBC/Wrath/Mists): the spellbook no longer uses global frame lookups - tab containers, buttons, headers and the future spells tab are referenced directly now; this also fixes a stale spell group header when the spell list shrinks on Classic and the future spells tab not clearing its previous entries on TBC/Wrath]=]},
+})
+
+addChange("10.14.1", {
+    {GW.Enum.ChangelogType.bug, [=[Cast bar: fixed a "table that cannot be accessed while tainted" error from Blizzards overlay casting bar on Retail; the overlay cast bar is now disabled like the other Blizzard cast bars when the GW2 UI cast bar is active, and the cast bar mover is now also killed on Classic Era]=]},
+    {GW.Enum.ChangelogType.bug, [=[Classic Era: fixed "Script ran too long" errors during login on Hardcore realms; the UI setup now runs in stages - on Era the main part right after the addon has loaded, the Blizzard dependent parts (chat, minimap, action bars, edit mode) on PLAYER_LOGIN, and on all clients the Blizzard/addon skins load in their own execution one frame later, so no single execution exceeds the hardcore script watchdog]=]},
+})
+
+addChange("10.14.0", {
+    {GW.Enum.ChangelogType.feature, [=[New chat option "Chat Buttons Position": move the chat control buttons (menu, channel, voice, social) into a small hover bar above or right of the chat; text, tabs and edit box then use the full chat width. Switches live without a reload]=]},
+    {GW.Enum.ChangelogType.feature, [=[The settings window now shows a "Reload required" hint in the header as soon as a reload setting is changed, with a tooltip listing the pending settings; toggling a setting back to its original state removes the reload prompt again]=]},
+    {GW.Enum.ChangelogType.feature, [=[Classic Era: update for patch 1.15.9 - the Era client now uses the modern shared UI, so action bars, stance/pet bar, micro menu, status tracking bars, game menu, addon list and minimap were moved onto the same code path as the other clients, including Edit Mode layout support]=]},
+    {GW.Enum.ChangelogType.change, [=[Runes (Season of Discovery): the rune filter dropdown now uses the modern menu system like Blizzards engraving frame; the old dropdown tainted the shared dropdown globals for the whole session]=]},
+    {GW.Enum.ChangelogType.bug, [=[Classic: fixed an ADDON_ACTION_FORBIDDEN error from the protected ClearTarget() when the GW2 layout is applied on login or the Edit Mode is closed; the Edit Mode target/focus preview reset is skipped on classic clients since 1.15.9 protects the targeting functions]=]},
+    {GW.Enum.ChangelogType.bug, [=[Spellbook (Season of Discovery): the rune tab no longer shows hidden placeholder spells for not yet learned runes, matching the default spellbook]=]},
+    {GW.Enum.ChangelogType.bug, [=[Game menu: fixed logout and exit game failing with an ADDON_ACTION_FORBIDDEN error on classic clients; the edit mode layout apply inevitably taints the menu wiring, so both buttons are now driven by secure /logout and /quit click overlays, and the GW2 UI settings button no longer goes through Blizzards button pool]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fixed font shadows no longer rendering on unit frames, nameplates, objectives, tooltips and other addon texts since 12.0.7 broke shadows set directly on font strings; shadows are now applied via generated font objects instead]=]},
+    {GW.Enum.ChangelogType.bug, [=[Chat: NPC emotes on non-Retail clients showed a literal %s instead of the NPC name; the name placeholder inside the emote text is formatted again]=]},
+    {GW.Enum.ChangelogType.bug, [=[Talents (Mists): fixed ADDON_ACTION_FORBIDDEN errors from the protected RemoveTalent() when unlearning or switching talents; learning and unlearning now run through Blizzards secure talent buttons and a switched talent is learned automatically once the unlearn is confirmed]=]},
+})
+
 addChange("10.13.1", {
     {GW.Enum.ChangelogType.feature, [=[Talents can now be unlearned via right-click in the talent frame (Mists)]=]},
     {GW.Enum.ChangelogType.feature, [=[Static popups and GW2 UI's own popup dialogs restyled in the ready check look: shaded footer band with divider behind the buttons and green confirm / red cancel buttons with check and cross icons]=]},
@@ -22,6 +110,12 @@ addChange("10.13.1", {
     {GW.Enum.ChangelogType.change, [=[Performance: optimized aura processing, cast bar and unit frame events to cut per-frame CPU usage]=]},
     {GW.Enum.ChangelogType.change, [=[Performance: chat bubbles and the world event tracker no longer poll every frame in the background]=]},
     {GW.Enum.ChangelogType.change, [=[Performance: reduced memory churn in damage text, runes, timers, action bars and bag/inventory coloring]=]},
+    {GW.Enum.ChangelogType.feature, [=[Cast bar: the player/pet cast bar can be sized freely now - width and height sliders in the player cast bar settings. Ticks, empower stages and the latency zone follow the new size]=]},
+    {GW.Enum.ChangelogType.feature, [=[Cast bar: the "Advanced Casting Bar" toggle was replaced by one setting per element - spell name, cast timer and latency zone can be turned on individually, and the spell icon can sit left, right or be hidden. Profiles that had the advanced bar enabled get all of them turned on. The target and focus cast bars get the same split (spell name, cast timer), and their cast timer works again on Retail - it never updated since the timer moved into the game engine]=]},
+    {GW.Enum.ChangelogType.feature, [=[Cast bar: optional custom colors for casting, channeling, empowered and interrupted casts ("Custom Colors" in the player cast bar settings) - the painted bar art keeps its structure and takes your hue]=]},
+    {GW.Enum.ChangelogType.feature, [=[Cast bar (Retail): empowered casts show the stage you are holding as a numeral on the bar and brighten with every stage reached. Interrupted or failed casts shake the bar, with an optional sound - all three can be turned off in the player cast bar settings]=]},
+    {GW.Enum.ChangelogType.bug, [=[Bags: the "new item" marker stayed on a slot after the item was sold, moved or used up]=]},
+    {GW.Enum.ChangelogType.change, [=[Performance: a bag update only refreshes the bags and slots that actually changed instead of rebuilding and re-laying out every bag slot, which removes the stutter while looting or using items with the bags open]=]},
 })
 
 addChange("10.13.0", {

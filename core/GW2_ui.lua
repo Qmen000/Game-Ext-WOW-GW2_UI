@@ -25,6 +25,7 @@ local forcedMABags = false
 local swimAnimation = 0
 local lastSwimState = true
 local hudArtFrame
+local mainbarLM -- mainbar layout manager, created in the first login stage, consumed by the second
 
 
 if GW.Retail then
@@ -246,10 +247,6 @@ local function gw_OnUpdate(_, elapsed)
             cb.func(cb.payload, elapsed)
         end
     end
-
-    if GW.Classic and PetActionBarFrame:IsShown() and GW.settings.PETBAR_ENABLED and loaded and not GW.ShouldBlockIncompatibleAddon("Actionbars") then
-        PetActionBarFrame:Hide()
-    end
 end
 
 
@@ -406,41 +403,8 @@ local function evAddonLoaded(self, loadedAddonName)
     GW.HasDeModal = enabled
     Debug("DeModal status:", GW.HasDeModal)
 
-    -- TODO: moving skinning from player login to here
     -- Skins: BLizzard & Addons
     GW.PreloadStatusBarMaskTextures()
-    GW.LoadWorldMapSkin()
-    GW.LoadFlightMapSkin()
-    GW.LoadMacroOptionsSkin()
-
-    if GW.Retail then
-        GW.LoadEncounterJournalSkin()
-        GW.LoadAchivementSkin()
-        GW.LoadAlliedRacesUISkin()
-        GW.LoadBarShopUISkin()
-        GW.LoadChromieTimerSkin()
-        GW.LoadCovenantSanctumSkin()
-        GW.LoadDeathRecapSkin()
-        GW.LoadItemUpgradeSkin()
-        GW.LoadLFGSkin()
-        GW.LoadOrderHallTalentFrameSkin()
-        GW.LoadSoulbindsSkin()
-        GW.LoadWeeklyRewardsSkin()
-        GW.LoadPerksProgramSkin()
-        GW.LoadAdventureMapSkin()
-        GW.LoadPlayerSpellsSkin()
-        GW.LoadAuctionHouseSkin()
-        GW.LoadBattlefieldMapSkin()
-        GW.LoadMajorFactionsFrameSkin()
-        GW.LoadDamageMeterSkin()
-        GW.LoadCalendarSkin()
-    end
-
-    if not (GW.Classic or GW.TBC or GW.Wrath) then
-        GW.LoadSocketUISkin()
-        GW.LoadInspectFrameSkin()
-    end
-
 end
 
 
@@ -552,6 +516,7 @@ local function evPlayerLogin(self)
 
     --Create the mainbar layout manager
     local lm = GW.LoadMainbarLayout()
+    mainbarLM = lm
 
     --Create Settings window
     GW.SetUpDatabaseForProfileSpecSwitch()
@@ -586,61 +551,30 @@ local function evPlayerLogin(self)
     if GW.settings.MAINMENU_SKIN_ENABLED then
         GW.SkinMainMenu()
     else
-        if GW.Retail or GW.TBC or GW.Wrath or GW.Mists then
-            hooksecurefunc(GameMenuFrame, 'InitButtons', function(menuFrame)
-                menuFrame:AddSection()
-                menuFrame:AddButton(format(("*%s|r"):gsub("*", GW.Gw2Color), GW.addonName), GW.ToggleGw2Settings)
-            end)
-        else
-            --Setup addon button
-            local GwMainMenuFrame = CreateFrame("Button", "GW2_UI_SettingsButton", _G.GameMenuFrame, "GameMenuButtonTemplate") -- add a button name to you that for other Addons
-            GwMainMenuFrame:SetText(format(("*%s|r"):gsub("*", GW.Gw2Color), GW.addonName))
-            GwMainMenuFrame:SetScript( "OnClick", GW.ToggleGw2Settings)
-            GameMenuFrame[GW.addonName] = GwMainMenuFrame
+        -- do not add our button via AddButton/AddSection: acquiring a pool button from addon code taints
+        -- the button pool, the next secure InitButtons run then wires blizzards logout/exit callbacks
+        -- tainted and the protected Logout()/Quit() fire ADDON_ACTION_FORBIDDEN; use an own button
+        -- instead which only takes part in the deferred layout via layoutIndex
+        local settingsButton
+        hooksecurefunc(GameMenuFrame, 'InitButtons', function(menuFrame)
+            if not menuFrame.buttonPool then return end
 
-            if not C_AddOns.IsAddOnLoaded("ConsolePortUI_Menu") then
-                GwMainMenuFrame:SetSize(GameMenuButtonMacros:GetWidth(), GameMenuButtonMacros:GetHeight())
-                GwMainMenuFrame:SetPoint("TOPLEFT", GameMenuButtonUIOptions, "BOTTOMLEFT", 0, -1)
-                hooksecurefunc("GameMenuFrame_UpdateVisibleButtons", GW.PositionGameMenuButton)
+            if not settingsButton then
+                settingsButton = CreateFrame("Button", "GW2_UI_SettingsButton", menuFrame, menuFrame.buttonTemplate)
+                settingsButton:SetText(format(("*%s|r"):gsub("*", GW.Gw2Color), GW.addonName))
+                settingsButton:SetScript("OnClick", GW.ToggleGw2Settings)
             end
-        end
-    end
 
-    -- Skins: BLizzard & Addons
-    GW.LoadStaticPopupSkin()
-    GW.LoadBNToastSkin()
-    GW.LoadDropDownSkin()
-    GW.LoadReadyCheckSkin()
-    GW.LoadMiscBlizzardFrameSkins()
-    GW.LoadAddonListSkin()
-    GW.LoadHelperFrameSkin()
-    GW.LoadGossipSkin()
-    GW.LoadTimeManagerSkin()
-    GW.LoadMerchantFrameSkin()
-    GW.LoadLootFrameSkin()
-    GW.LoadDetailsSkin()
-    GW.AddMasqueSkin()
-    GW.SkinAndEnhanceColorPicker()
-    GW.AddCoordsToWorldMap()
+            local lastLayoutIndex = 0
+            for button in menuFrame.buttonPool:EnumerateActive() do
+                if button.layoutIndex and button.layoutIndex > lastLayoutIndex then
+                    lastLayoutIndex = button.layoutIndex
+                end
+            end
 
-    if GW.Retail then
-        GW.LoadTalkingHeadSkin()
-        GW.LoadDressUpFrameSkin()
-        GW.LoadExpansionLadningPageSkin()
-        GW.LoadGenericTraitFrameSkin()
-        GW.LoadCooldownManagerSkin()
-        GW.LoadImmersionAddonSkin()
-        GW.LoadAuctionatorAddonSkin()
-        GW.LoadTSMAddonSkin()
-    else
-        GW.LoadQuestLogFrameSkin()
-        GW.LoadQuestTimersSkin()
-    end
-
-    if not (GW.Classic or GW.TBC) then
-        GW.MakeAltPowerBarMovable()
-        GW.LoadLFGSkins()
-        GW.LoadMailSkin()
+            settingsButton.layoutIndex = lastLayoutIndex + 1
+            settingsButton.topPadding = 20
+        end)
     end
 
     if GW.Mists or GW.Retail or GW.TBC or GW.Wrath then
@@ -704,21 +638,11 @@ local function evPlayerLogin(self)
         GW.LoadCastingBar("GwCastingBarPet", "pet", false)
     end
 
-    if GW.settings.MINIMAP_ENABLED and not GW.ShouldBlockIncompatibleAddon("Minimap") then
-        GW.LoadMinimap()
-    elseif QueueStatusButton then
-        QueueStatusButton:ClearAllPoints()
-        QueueStatusButton:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 0, 0)
-        QueueStatusButton:SetSize(26, 26)
-        QueueStatusButton:SetParent(UIParent)
-    end
-
     if GW.settings.TOOLTIPS_ENABLED then
         GW.LoadTooltips()
     end
 
     GW.LoadImmersiveQuesting()
-    GW.LoadChat()
 
     --Create player hud
     if GW.settings.HEALTHGLOBE_ENABLED and not GW.settings.PLAYER_AS_TARGET_FRAME then
@@ -752,8 +676,6 @@ local function evPlayerLogin(self)
         CharacterBag3Slot:SetPoint("LEFT", CharacterBag2Slot, "RIGHT", 0, 0)
     end
 
-    GW.SetUpExtendedVendor()
-
     if GW.Retail and GW.settings.USE_BATTLEGROUND_HUD then
         GW.LoadBattlegrounds()
     end
@@ -765,7 +687,6 @@ local function evPlayerLogin(self)
     end
 
     if GW.Retail then
-        --GW.LoadRaidbuffReminder() --auras are secret
         GW.LoadWorldEventTimer()
     end
 
@@ -806,26 +727,6 @@ local function evPlayerLogin(self)
         GW.LoadClassPowers()
     end
 
-    -- create action bars
-    if GW.settings.ACTIONBARS_ENABLED and not GW.ShouldBlockIncompatibleAddon("Actionbars") then
-        if GW.Retail then
-            if GW.settings.BAR_LAYOUT_ENABLED then
-                GW.LoadActionBars(lm, false)
-                --GW.ExtraAB_BossAB_Setup() -- Test
-            else
-                GW.LoadActionBars(lm, true)
-            end
-        else
-            GW.LoadActionBars(lm)
-            -- to update our bars
-            MultiActionBar_Update()
-
-            if GW.Mists then
-                GW.ExtraAB_BossAB_Setup()
-            end
-        end
-    end
-
     -- create pet frame
     if GW.settings.PETBAR_ENABLED and not GW.ShouldBlockIncompatibleAddon("PetFrame") then
         GW.LoadPetFrame(lm)
@@ -853,13 +754,6 @@ local function evPlayerLogin(self)
 
     if GW.settings.CHATBUBBLES_ENABLED then
         GW.LoadChatBubbles()
-    end
-
-    -- create new microbuttons
-    GW.LoadMicroMenu()
-
-    if GW.Retail then
-        GW.LoadOrderBar()
     end
 
     if GW.settings.PARTY_FRAMES then
@@ -891,9 +785,139 @@ local function evPlayerLogin(self)
     if GW.Retail then
         GW.SetupSingingSockets()
     end
+end
 
-    if GW.Retail or GW.TBC or GW.Wrath or GW.Mists then
-        GW.HandleBlizzardEditMode()
+-- second login stage: everything in here depends on blizzard ui state that is not ready before
+-- PLAYER_LOGIN (chat windows, minimap cluster, action bar pages, edit mode). on era the first stage
+-- runs on our own ADDON_LOADED to dodge the hardcore script watchdog, splitting the work over two
+-- executions, on all other clients both stages run back to back on PLAYER_LOGIN
+local lateLoaded = false
+local function evPlayerLoginLate()
+    if lateLoaded or not loaded then
+        return
+    end
+    lateLoaded = true
+
+    if GW.settings.MINIMAP_ENABLED and not GW.ShouldBlockIncompatibleAddon("Minimap") then
+        GW.LoadMinimap()
+    elseif QueueStatusButton then
+        QueueStatusButton:ClearAllPoints()
+        QueueStatusButton:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 0, 0)
+        QueueStatusButton:SetSize(26, 26)
+        QueueStatusButton:SetParent(UIParent)
+    end
+
+    GW.LoadChat()
+
+    -- create new microbuttons
+    GW.LoadMicroMenu()
+
+    -- create action bars
+    if GW.settings.ACTIONBARS_ENABLED and not GW.ShouldBlockIncompatibleAddon("Actionbars") then
+        if GW.Retail then
+            if GW.settings.BAR_LAYOUT_ENABLED then
+                GW.LoadActionBars(mainbarLM, false)
+                --GW.ExtraAB_BossAB_Setup() -- Test
+            else
+                GW.LoadActionBars(mainbarLM, true)
+            end
+        else
+            GW.LoadActionBars(mainbarLM)
+            -- to update our bars
+            MultiActionBar_Update()
+
+            if GW.Mists then
+                GW.ExtraAB_BossAB_Setup()
+            end
+        end
+    end
+
+    if not GW.Retail then
+        GW.SecureGameMenuLogoutButtons()
+    end
+    GW.HandleBlizzardEditMode()
+
+    -- scale the frames created in this stage too
+    GW.UpdateHudScale()
+end
+
+-- third login stage: all blizzard and addon skins load in their own execution one frame after
+-- PLAYER_LOGIN via C_Timer, so the skinning gets its own script time budget and can not push the
+-- login setup over the hardcore script watchdog
+local skinsLoaded = false
+local function evLoadSkins()
+    if skinsLoaded or not loaded then
+        return
+    end
+    skinsLoaded = true
+
+    GW.LoadWorldMapSkin()
+    GW.LoadFlightMapSkin()
+    GW.LoadMacroOptionsSkin()
+
+    GW.LoadStaticPopupSkin()
+    GW.LoadBNToastSkin()
+    GW.LoadDropDownSkin()
+    GW.LoadReadyCheckSkin()
+    GW.LoadMiscBlizzardFrameSkins()
+    GW.LoadAddonListSkin()
+    GW.LoadHelperFrameSkin()
+    GW.LoadGossipSkin()
+    GW.LoadTimeManagerSkin()
+    GW.LoadMerchantFrameSkin()
+    GW.SetUpExtendedVendor()
+    GW.LoadLootFrameSkin()
+    GW.LoadDetailsSkin()
+    GW.AddMasqueSkin()
+    GW.SkinAndEnhanceColorPicker()
+    GW.AddCoordsToWorldMap()
+
+    if GW.Retail then
+        GW.LoadTalkingHeadSkin()
+        GW.LoadDressUpFrameSkin()
+        GW.LoadExpansionLadningPageSkin()
+        GW.LoadGenericTraitFrameSkin()
+        GW.LoadCooldownManagerSkin()
+        GW.LoadImmersionAddonSkin()
+        GW.LoadAuctionatorAddonSkin()
+        GW.LoadTSMAddonSkin()
+
+        GW.LoadOrderBar()
+
+        GW.LoadEncounterJournalSkin()
+        GW.LoadAchivementSkin()
+        GW.LoadAlliedRacesUISkin()
+        GW.LoadBarShopUISkin()
+        GW.LoadChromieTimerSkin()
+        GW.LoadCovenantSanctumSkin()
+        GW.LoadDeathRecapSkin()
+        GW.LoadItemUpgradeSkin()
+        GW.LoadLFGSkin()
+        GW.LoadOrderHallTalentFrameSkin()
+        GW.LoadSoulbindsSkin()
+        GW.LoadWeeklyRewardsSkin()
+        GW.LoadPerksProgramSkin()
+        GW.LoadAdventureMapSkin()
+        GW.LoadPlayerSpellsSkin()
+        GW.LoadAuctionHouseSkin()
+        GW.LoadBattlefieldMapSkin()
+        GW.LoadMajorFactionsFrameSkin()
+        GW.LoadDamageMeterSkin()
+        GW.LoadCalendarSkin()
+    else
+        GW.LoadQuestLogFrameSkin()
+        GW.LoadQuestTimersSkin()
+    end
+
+    if not (GW.Classic or GW.TBC) then
+        GW.MakeAltPowerBarMovable()
+        GW.LoadLFGSkins()
+        GW.LoadMailSkin()
+    end
+
+    if not (GW.Classic or GW.TBC or GW.Wrath) then
+        GW.LoadSocketUISkin()
+        GW.LoadInspectFrameSkin()
     end
 end
 
@@ -901,7 +925,12 @@ end
 -- generic event router
 local function gw_OnEvent(self, event, ...)
     if event == "PLAYER_LOGIN" then
+        -- on era the first stage already ran on our own ADDON_LOADED, the loaded guard then only refreshes the char data here
         evPlayerLogin(self)
+        -- the blizzard dependent parts always run here, blizzard is not fully loaded before PLAYER_LOGIN
+        evPlayerLoginLate()
+        -- skins load one frame later in their own execution with a fresh script time budget
+        C_Timer.After(0, evLoadSkins)
     elseif event == "UI_SCALE_CHANGED" then
         C_Timer.After(0, evUiScaleChanged) -- We need one frame time for setting the cvar values
     elseif event == "PLAYER_LEAVING_WORLD" then
@@ -917,7 +946,15 @@ local function gw_OnEvent(self, event, ...)
     elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
         evPlayerSpecializationChanged()
     elseif event == "ADDON_LOADED" then
-        evAddonLoaded(self, ...)
+        local loadedAddonName = ...
+        evAddonLoaded(self, loadedAddonName)
+
+        -- on hardcore realms the PLAYER_LOGIN script budget is too small for the full ui setup and
+        -- fires "script ran too long" errors, so on the era client run the setup as soon as our own
+        -- addon has finished loading; the database setup in evAddonLoaded has to run before it
+        if GW.Classic and loadedAddonName == "GW2_UI" then
+            evPlayerLogin(self)
+        end
     end
 end
 

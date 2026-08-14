@@ -21,6 +21,7 @@ local function RAFRewards()
         icon:SetDesaturation(0)
 
         local text = reward.Months
+        if GW.Retail then text = text.Text end
         text:SetTextColor(1, 1, 1)
     end
 end
@@ -82,7 +83,11 @@ function GW.SkinRecruitAFriendList()
     RecruitAFriendRewardsFrame:GwCreateBackdrop(GW.BackdropTemplates.Default, true)
     RecruitAFriendRewardsFrame.Background:SetAlpha(0)
     RecruitAFriendRewardsFrame.Watermark:SetAlpha(0)
-    RecruitAFriendRewardsFrame.Title:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
+    if GW.Retail then
+        RecruitAFriendRewardsFrame.Title.Text:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
+    else
+        RecruitAFriendRewardsFrame.Title:SetTextColor(GW.Colors.TextColors.LightHeader:GetRGB())
+    end
 
     hooksecurefunc(RecruitAFriendRewardsFrame, "UpdateRewards", RAFRewards)
     RAFRewards()
