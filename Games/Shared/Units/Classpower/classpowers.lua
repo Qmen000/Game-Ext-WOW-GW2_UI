@@ -190,14 +190,8 @@ local function LoadClassPowers()
     cpf:ClearAllPoints()
     CP.SetClassPowerAnchor(cpf, cpf.gwMover, "TOPLEFT")
 
-    -- need to pull it out of core because of not existing atlas files on non retail clients
-    if GW.Retail then
-        for i = 1, 6 do
-            cpf.evoker["essence" .. i] = CreateFrame("Frame", nil, cpf.evoker, "GwEssencePointTemplate")
-            cpf.evoker["essence" .. i]:SetSize(32, 32)
-            cpf.evoker["essence" .. i]:SetPoint("LEFT", cpf.evoker, "LEFT", (i - 1) * 32, 0)
-        end
-    end
+    -- the essence points are created on demand in evoker.lua - that file is gated to
+    -- the evoker class, so no other character pays for the frames
 
     cpf.auraExpirationTime = nil
 

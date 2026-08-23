@@ -8,6 +8,17 @@ if GW.myClassID ~= GW.Enum.ClassIndex.Evoker or not GW.Retail then return end
 -- UnitPartialPower reports the recharge progress of the next point as 0..1000
 local ESSENCE_PARTIAL_RESOLUTION = 1000
 
+local function EnsureEssencePoint(evokerFrame, i)
+    local point = evokerFrame["essence" .. i]
+    if not point then
+        point = CreateFrame("Frame", nil, evokerFrame, "GwEssencePointTemplate")
+        point:SetSize(32, 32)
+        point:SetPoint("LEFT", evokerFrame, "LEFT", (i - 1) * 32, 0)
+        evokerFrame["essence" .. i] = point
+    end
+    return point
+end
+
 local function SetEssenceFull(point, playFlash)
     point.EssenceFilling:Hide()
     point.EssenceDepleting:Hide()
@@ -57,7 +68,11 @@ local function powerEssence(self, event, ...)
     end
 
     for i = 1, 6 do
-        self.evoker["essence" .. i]:SetShown(i <= pwrMax)
+        if i <= pwrMax then
+            EnsureEssencePoint(self.evoker, i):Show()
+        elseif self.evoker["essence" .. i] then
+            self.evoker["essence" .. i]:Hide()
+        end
     end
 
     for i = 1, min(pwr, 6) do
@@ -65,7 +80,9 @@ local function powerEssence(self, event, ...)
         SetEssenceFull(point, point.EssenceFilling:IsShown())
     end
     for i = pwr + 2, 6 do
-        SetEssenceEmpty(self.evoker["essence" .. i])
+        if self.evoker["essence" .. i] then
+            SetEssenceEmpty(self.evoker["essence" .. i])
+        end
     end
 
     if pwr < pwrMax and self.evoker["essence" .. pwr + 1] then
