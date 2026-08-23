@@ -21,7 +21,7 @@ local function Create_Raid_Counter()
     if GwSocialWindow then
         raidCounterFrame:SetFrameRef("GwSocialWindow", GwSocialWindow)
     end
-    raidCounterFrame:SetAttribute("ourWindow", GW.Retail and GW.settings.USE_SOCIAL_WINDOW)
+    raidCounterFrame:SetAttribute("ourWindow", (GW.Retail or GW.TBC) and GW.settings.USE_SOCIAL_WINDOW)
     raidCounterFrame.func = function() ToggleRaidFrame() end
     raidCounterFrame:SetAttribute(
         "_onclick",
@@ -56,9 +56,8 @@ local function Create_Raid_Counter()
 
     raidCounterFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
     raidCounterFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
-    raidCounterFrame:SetScript("OnEvent", function(self)
-        if not self:IsShown() then return end
-
+    raidCounterFrame:RegisterEvent("PLAYER_ROLES_ASSIGNED")
+    raidCounterFrame:SetScript("OnEvent", function()
         local unit = (IsInRaid() and "raid" or "party")
         local tank, damage, heal = 0, 0, 0
         for i = 1, GetNumGroupMembers() do
@@ -76,15 +75,13 @@ local function Create_Raid_Counter()
         end
 
         if GetNumGroupMembers() == 0 or unit == "party" then
-            local plyerRole = UnitGroupRolesAssigned("player")
-            if plyerRole then
-                if GW.myrole == "TANK" then
-                    tank = tank + 1
-                elseif GW.myrole == "HEALER" then
-                    heal = heal + 1
-                elseif GW.myrole == "DAMAGER" then
-                    damage = damage + 1
-                end
+            local playerRole = GW.GetPlayerRole()
+            if playerRole == "TANK" then
+                tank = tank + 1
+            elseif playerRole == "HEALER" then
+                heal = heal + 1
+            elseif playerRole == "DAMAGER" then
+                damage = damage + 1
             end
         end
 

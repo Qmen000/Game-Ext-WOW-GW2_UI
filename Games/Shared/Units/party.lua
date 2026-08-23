@@ -524,8 +524,7 @@ function GwPartyFrameMixin:UpdateFrame()
 end
 
 function GwPartyFrameMixin:OnEvent(event, unit, ...)
-    local isVisible = event == "UNIT_PET" or self:IsVisible()
-    if (not UnitExists(self.gwUnit) or IsInRaid()) or not isVisible and event ~= "load" then return end
+    if not UnitExists(self.gwUnit) or IsInRaid() then return end
 
     if event == "load" then
         self:UpdateFrame()
@@ -536,15 +535,18 @@ function GwPartyFrameMixin:OnEvent(event, unit, ...)
         self:UpdateHealthBar()
     elseif event == "UNIT_POWER_FREQUENT" or event == "UNIT_MAXPOWER" then
         self:UpdatePowerBar()
-    elseif IsIn(event, "UNIT_LEVEL", "GROUP_ROSTER_UPDATE", "UNIT_MODEL_CHANGED", "UNIT_PET") then
+    elseif IsIn(event, "UNIT_LEVEL", "GROUP_ROSTER_UPDATE", "UNIT_MODEL_CHANGED", "UNIT_PET", "PLAYER_ENTERING_WORLD") then
         self:UpdateFrame()
         ForceUpdateAuras(self)
     elseif IsIn(event,"UNIT_PHASE", "PARTY_MEMBER_DISABLE", "PARTY_MEMBER_ENABLE", "UNIT_THREAT_SITUATION_UPDATE", "INCOMING_RESURRECT_CHANGED", "INCOMING_SUMMON_CHANGED") then
         self:UpdateAwayData()
+    elseif event == "UNIT_CONNECTION" then
+        self:UpdateAwayData()
+        self:UpdatePortrait()
     elseif event == "UNIT_PORTRAIT_UPDATE" or event == "PORTRAITS_UPDATED" or event == "UNIT_PHASE" then
         self:UpdatePortrait()
-    elseif event == "UNIT_NAME_UPDATE" then
-        self:SetUnitName()
+    elseif event == "UNIT_NAME_UPDATE" or event == "PLAYER_ROLES_ASSIGNED" then
+        self:UpdateFrame()
     elseif event == "UNIT_AURA" and unit == self.gwUnit then
         GW.UpdateBuffLayout(self, event, self.gwUnit, ...)
     elseif event == "READY_CHECK" or (event == "READY_CHECK_CONFIRM" and unit == self.gwUnit) then
@@ -896,7 +898,7 @@ local function CreatePartyFrame(i, isPlayer)
     petFrame.health:SetStatusBarColor(GW.Colors.UnitFrameReactionColors.Friendly:GetRGB())
     petFrame:SetScript("OnEvent", petFrame.OnEvent)
     -- Registriere Events für Pet-Frame
-    for _, ev in ipairs({ "GROUP_ROSTER_UPDATE", "PARTY_MEMBER_DISABLE", "PARTY_MEMBER_ENABLE", "PORTRAITS_UPDATED", "PLAYER_TARGET_CHANGED" }) do
+    for _, ev in ipairs({ "GROUP_ROSTER_UPDATE", "PARTY_MEMBER_DISABLE", "PARTY_MEMBER_ENABLE", "PORTRAITS_UPDATED", "PLAYER_TARGET_CHANGED", "PLAYER_ENTERING_WORLD" }) do
         petFrame:RegisterEvent(ev)
     end
     petFrame:RegisterUnitEvent("UNIT_PET", registerUnit)
@@ -968,10 +970,10 @@ local function CreatePartyFrame(i, isPlayer)
     end)
     GW.AddToClique(frame)
     frame.health:SetStatusBarColor(GW.Colors.UnitFrameReactionColors.Friendly:GetRGB())
-    for _, ev in ipairs({ "GROUP_ROSTER_UPDATE", "PARTY_MEMBER_DISABLE", "PARTY_MEMBER_ENABLE", "READY_CHECK", "READY_CHECK_CONFIRM", "READY_CHECK_FINISHED", "PLAYER_TARGET_CHANGED", "INCOMING_RESURRECT_CHANGED", "PORTRAITS_UPDATED" }) do
+    for _, ev in ipairs({ "GROUP_ROSTER_UPDATE", "PARTY_MEMBER_DISABLE", "PARTY_MEMBER_ENABLE", "READY_CHECK", "READY_CHECK_CONFIRM", "READY_CHECK_FINISHED", "PLAYER_TARGET_CHANGED", "INCOMING_RESURRECT_CHANGED", "PORTRAITS_UPDATED", "PLAYER_ENTERING_WORLD", "PLAYER_ROLES_ASSIGNED" }) do
         frame:RegisterEvent(ev)
     end
-    for _, ev in ipairs({ "UNIT_AURA", "UNIT_LEVEL", "UNIT_PHASE", "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_POWER_FREQUENT", "UNIT_MAXPOWER", "UNIT_NAME_UPDATE", "UNIT_MODEL_CHANGED", "UNIT_HEAL_PREDICTION", "UNIT_THREAT_SITUATION_UPDATE", "UNIT_PORTRAIT_UPDATE" }) do
+    for _, ev in ipairs({ "UNIT_AURA", "UNIT_LEVEL", "UNIT_PHASE", "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_POWER_FREQUENT", "UNIT_MAXPOWER", "UNIT_NAME_UPDATE", "UNIT_MODEL_CHANGED", "UNIT_HEAL_PREDICTION", "UNIT_THREAT_SITUATION_UPDATE", "UNIT_PORTRAIT_UPDATE", "UNIT_CONNECTION" }) do
         if ev ~= "UNIT_AURA" or not GW.Retail then -- on Retail the AuraContainer handles aura updates itself
             frame:RegisterUnitEvent(ev, registerUnit)
         end
