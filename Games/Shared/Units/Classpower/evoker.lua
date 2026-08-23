@@ -5,63 +5,42 @@ local CP = GW.ClassPowers
 -- EVOKER (essence, augmentation Ebon Might)
 if GW.myClassID ~= GW.Enum.ClassIndex.Evoker or not GW.Retail then return end
 
-local FillingAnimationTime = 5.0
+-- UnitPartialPower reports the recharge progress of the next point as 0..1000
+local ESSENCE_PARTIAL_RESOLUTION = 1000
 
-local function Essence_OnUpdate(self, elapsed)
-    -- The animation speed only depends on haste/regen and barely changes between frames, so
-    -- throttle the regen query and only push the multiplier to the animations when it changes.
-    self.gwEssenceThrottle = (self.gwEssenceThrottle or 0) + (elapsed or 0)
-    if self.gwEssenceThrottle < 0.1 then return end
-    self.gwEssenceThrottle = 0
-
-    local peace = GetPowerRegenForPowerType(Enum.PowerType.Essence)
-    if GW.IsSecretValue(peace) then return end
-    if (peace == nil or peace == 0) then
-        peace = 0.2
-    end
-    local cooldownDuration = 1 / peace
-    local animationSpeedMultiplier = FillingAnimationTime / cooldownDuration
-    if animationSpeedMultiplier ~= self.gwEssenceSpeed then
-        self.gwEssenceSpeed = animationSpeedMultiplier
-        self.EssenceFilling.FillingAnim:SetAnimationSpeedMultiplier(animationSpeedMultiplier)
-        self.EssenceFilling.CircleAnim:SetAnimationSpeedMultiplier(animationSpeedMultiplier)
-    end
-end
-local function SetEssennceFull(self)
-    self.EssenceFilling.FillingAnim:Stop()
-    self.EssenceFilling.CircleAnim:Stop()
-    self.EssenceFillDone:Show()
-    self.EssenceEmpty:Hide()
-    self:SetScript("OnUpdate", nil)
-end
-
-local function AnimOut(self)
-    if (self.EssenceFull:IsShown() or self.EssenceFilling:IsShown() or self.EssenceFillDone:IsShown()) then
-        self.EssenceDepleting:Show()
-        self.EssenceFilling:Hide()
-        self.EssenceEmpty:Hide()
-        self.EssenceFillDone:Hide()
-        self.EssenceFull:Hide()
-        self.EssenceFilling.FillingAnim:Stop()
-        self.EssenceFilling.CircleAnim:Stop()
-        self:SetScript("OnUpdate", nil)
+local function SetEssenceFull(point, playFlash)
+    point.EssenceFilling:Hide()
+    point.EssenceDepleting:Hide()
+    point.EssenceFull:Show()
+    if playFlash then
+        point.EssenceFull.FlashAnim:Restart()
     end
 end
 
-local function AnimIn(self, animationSpeedMultiplier)
-    self.EssenceFilling.FillingAnim:SetAnimationSpeedMultiplier(animationSpeedMultiplier)
-    self.EssenceFilling.CircleAnim:SetAnimationSpeedMultiplier(animationSpeedMultiplier)
-    self:SetScript("OnUpdate", Essence_OnUpdate)
-    self.EssenceFilling:Show()
-    self.EssenceDepleting:Hide()
-    self.EssenceEmpty:Hide()
-    self.EssenceFillDone:Hide()
-    self.EssenceFull:Hide()
+local function SetEssenceEmpty(point)
+    if point.EssenceFull:IsShown() or point.EssenceFilling:IsShown() then
+        point.EssenceFull:Hide()
+        point.EssenceFilling:Hide()
+        point.EssenceDepleting:Show() -- plays its fade and hides itself
+    end
+end
+
+local function SetEssenceFilling(point, duration, elapsed)
+    point.EssenceFull:Hide()
+    point.EssenceDepleting:Hide()
+    local wasFilling = point.EssenceFilling:IsShown()
+    point.EssenceFilling:Show()
+    if elapsed then
+        point.EssenceFilling.Swipe:SetCooldown(GetTime() - elapsed, duration)
+    elseif not wasFilling or point.gwSwipeDuration ~= duration then
+        point.EssenceFilling.Swipe:SetCooldown(GetTime(), duration)
+    end
+    point.gwSwipeDuration = duration
 end
 
 local function powerEssence(self, event, ...)
     local pType = select(2, ...)
-    if event ~= "CLASS_POWER_INIT" and pType ~= "ESSENCE" then
+    if event ~= "CLASS_POWER_INIT" and event ~= "UNIT_POWER_POINT_CHARGE" and pType ~= "ESSENCE" then
         return
     end
 
@@ -78,30 +57,30 @@ local function powerEssence(self, event, ...)
     end
 
     for i = 1, 6 do
-        if i <= pwrMax then
-            self.evoker["essence" .. i]:Show()
-        else
-            self.evoker["essence" .. i]:Hide()
-        end
+        self.evoker["essence" .. i]:SetShown(i <= pwrMax)
     end
 
     for i = 1, min(pwr, 6) do
-        SetEssennceFull(self.evoker["essence" .. i])
+        local point = self.evoker["essence" .. i]
+        SetEssenceFull(point, point.EssenceFilling:IsShown())
     end
-    for i = pwr + 1, 6 do
-        AnimOut(self.evoker["essence" .. i])
+    for i = pwr + 2, 6 do
+        SetEssenceEmpty(self.evoker["essence" .. i])
     end
 
-    local isAtMaxPoints = pwr == pwrMax
-    local peace = GetPowerRegenForPowerType(Enum.PowerType.Essence)
-    if GW.IsSecretValue(peace) then return end
-    if (peace == nil or peace == 0) then
-        peace = 0.2
-    end
-    local cooldownDuration = 1 / peace
-    local animationSpeedMultiplier = FillingAnimationTime / cooldownDuration;
-    if (not isAtMaxPoints and self.evoker["essence" .. pwr + 1] and not self.evoker["essence" .. pwr + 1].EssenceFull:IsShown()) then
-        AnimIn(self.evoker["essence" .. pwr + 1], animationSpeedMultiplier)
+    if pwr < pwrMax and self.evoker["essence" .. pwr + 1] then
+        local peace = GetPowerRegenForPowerType(Enum.PowerType.Essence)
+        if GW.IsSecretValue(peace) then return end
+        if (peace == nil or peace == 0) then
+            peace = 0.2
+        end
+        local duration = 1 / peace
+        local partial = UnitPartialPower("player", Enum.PowerType.Essence)
+        local elapsed
+        if GW.NotSecretValue(partial) and partial then
+            elapsed = (partial / ESSENCE_PARTIAL_RESOLUTION) * duration
+        end
+        SetEssenceFilling(self.evoker["essence" .. pwr + 1], duration, elapsed)
     end
 end
 
