@@ -1248,6 +1248,7 @@ function GwTargetUnitFrameMixin:OnUpdate(elapsed)
     end
 
     self:UpdateRaidMarkers()
+    self:UnitFrameData()
     self:UpdateHealthBar(true)
     self:UpdatePowerBar(true)
     self:StartCastbar()
