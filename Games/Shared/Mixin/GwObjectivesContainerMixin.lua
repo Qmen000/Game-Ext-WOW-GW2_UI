@@ -30,12 +30,15 @@ function GwObjectivesContainerMixin:LayoutBlocks(numShown)
             else
                 block:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, -headerOffset)
             end
+            -- the item button is placed from this offset - it has to be the blocks TOP
+            -- edge (UpdateObjectiveActionButtonPosition anchors the button -offset from
+            -- the container top). Booking it after the accumulation put every button one
+            -- block too low. The button is a SecureActionButton, so it must not be moved
+            -- in combat and cannot simply be anchored to the block itself
+            block.fromContainerTopHeight = height
             -- one gap per block: the anchors consume all but the last, which becomes the
             -- container's own bottom margin
             height = height + block:GetHeight() + blockGap
-            -- the item button is placed from this offset: it is a SecureActionButton,
-            -- so it must not be moved in combat and cannot be anchored to the block
-            block.fromContainerTopHeight = height
             shown = shown + 1
             previous = block
         end
@@ -95,6 +98,9 @@ function GwObjectivesContainerMixin:SetCollapsed(collapsed, source)
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
     end
     self:UpdateLayout()
+    -- the item buttons hang on the static tracker: hide the own ones when collapsing
+    -- and reposition those of the containers that shifted up or down
+    GwQuestTracker:AdjustItemButtonPositions()
 end
 
 function GwObjectivesContainerMixin:ToggleCollapsed()

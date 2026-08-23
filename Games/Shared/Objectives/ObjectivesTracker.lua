@@ -345,10 +345,15 @@ function GwObjectivesTrackerMixin:AdjustItemButtonPositions()
         for i = 1, #container.blocks do
             local block = container.blocks[i]
             local counter = container.numQuests or container.numEvents or 0
-            if i <= counter then
-                GW.CombatQueue:Queue("UpdateTrackerItemButtonPositionForBlock: " .. container:GetDebugName(), block.UpdateObjectiveActionButtonPosition, {block})
+            -- the queue key has to be per BLOCK: with a per-container key every later
+            -- block overwrote the earlier ones and only the last button got updated.
+            -- Collapsed containers route through the full updater, which hides the
+            -- button (the buttons hang on the tracker, collapsing the blocks alone
+            -- leaves them floating)
+            if i <= counter and not container.collapsed then
+                GW.CombatQueue:Queue("UpdateTrackerItemButtonPositionForBlock: " .. container:GetDebugName() .. i, block.UpdateObjectiveActionButtonPosition, {block})
             else
-                GW.CombatQueue:Queue("RemoveTrackerItemButtonForBlock: " .. container:GetDebugName(), block.UpdateObjectiveActionButton, {block})
+                GW.CombatQueue:Queue("RemoveTrackerItemButtonForBlock: " .. container:GetDebugName() .. i, block.UpdateObjectiveActionButton, {block})
             end
         end
     end
@@ -411,6 +416,9 @@ function GwObjectivesTrackerMixin:CreateTrackerScrollFrame(name, height)
             s = math.min(frame.maxScroll, s)
         end
         frame:SetVerticalScroll(s)
+        -- the item buttons are anchored to the static tracker (never to the scroll
+        -- child, see UpdateObjectiveActionButtonPosition) - follow the scroll manually
+        GwQuestTracker:AdjustItemButtonPositions()
     end)
     scrollFrame.maxScroll = 0
     return scrollFrame

@@ -497,6 +497,15 @@ function GwObjectivesBlockTemplateMixin:UpdateObjectiveActionButton()
 
     self.hasItem = false
 
+    -- the buttons hang on the static tracker, not on the blocks - a collapsed
+    -- container or a hidden block has to hide them explicitly
+    local container = self:GetParent()
+    if (container and container.collapsed) or not self:IsShown() then
+        btn:Hide()
+        btn:SetScript("OnUpdate", nil)
+        return
+    end
+
     if GW.Retail or GW.Mists or GW.TBC or GW.Wrath then
         if self.questLogIndex then
             local link, item, charges, showWhenComplete = GetQuestLogSpecialItemInfo(self.questLogIndex)
@@ -556,17 +565,17 @@ function GwObjectivesBlockTemplateMixin:UpdateObjectiveActionButtonPosition()
         return
     end
 
-    -- The button is a SecureActionButton and cannot be moved in combat, so it is
-    -- anchored to a frame that already carries the layout above it instead of to a
-    -- position summed up from every container. For a block in the scrolled part that
-    -- frame is the scroll child: it hangs below the fixed containers and moves with
-    -- the scroll bar, so scrolling needs no reposition at all. Only the offset within
-    -- the own column is left to add.
+    -- The button is a SecureActionButton: it must not be moved in combat, and it must
+    -- not be anchored to the scroll child either - scrolling moves that frame, and
+    -- moving an anchor ancestor of a protected frame makes SetVerticalScroll itself a
+    -- protected call (in-combat scrolling gets ADDON_ACTION_BLOCKED). So the anchor is
+    -- the static tracker frame and the current scroll offset is added numerically;
+    -- scroll changes re-run this through AdjustItemButtonPositions (out of combat)
     local container = self:GetParent()
     local scrollChild = GwQuestTracker.ScrollFrame.Child
     local isScrolled = container:GetParent() == scrollChild
     local column = isScrolled and GW.QuestTrackerScrollableContainer or GW.QuestTrackerFixedContainer
-    local height = self.fromContainerTopHeight or 0
+    local height = (self.fromContainerTopHeight or 0) - GW.GetObjectivesFirstObjectiveOffset()
 
     for _, other in ipairs(column) do
         if other == container then
@@ -575,5 +584,12 @@ function GwObjectivesBlockTemplateMixin:UpdateObjectiveActionButtonPosition()
         height = height + other:GetHeight()
     end
 
-    self.actionButton:SetPoint("TOPLEFT", isScrolled and scrollChild or GwQuestTracker, "TOPRIGHT", -330, -height)
+    if isScrolled then
+        for _, other in ipairs(GW.QuestTrackerFixedContainer) do
+            height = height + other:GetHeight()
+        end
+        height = height - GwQuestTracker.ScrollFrame:GetVerticalScroll()
+    end
+
+    self.actionButton:SetPoint("TOPLEFT", GwQuestTracker, "TOPRIGHT", -330, -height)
 end
