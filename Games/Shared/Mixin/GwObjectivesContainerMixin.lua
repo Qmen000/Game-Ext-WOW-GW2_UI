@@ -172,11 +172,7 @@ function GwObjectivesContainerMixin:GetBlock(idx, colorKey, addItemButton)
         if GW.Classic then
             newBlock.actionButton:FakeHide()
         end
-        if GW.Retail or GW.TBC or GW.Wrath then
-            newBlock.actionButton:RegisterForClicks("AnyUp", "AnyDown")
-        else
-            newBlock.actionButton:RegisterForClicks("AnyDown")
-        end
+        newBlock.actionButton:RegisterForClicks("AnyUp", "AnyDown")
         newBlock.actionButton:SetScript("OnLeave", GameTooltip_Hide)
         newBlock.actionButton:SetScript("OnEnter", newBlock.actionButton.OnEnter)
         newBlock.actionButton:SetScript("OnShow", newBlock.actionButton.OnShow)

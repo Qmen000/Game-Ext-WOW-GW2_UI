@@ -17,12 +17,7 @@ local function SetDeadIcon(self)
 end
 GW.SetDeadIcon = SetDeadIcon
 
--- Writes an attribute on a protected Blizzard frame through the restricted environment.
--- A value written by plain addon code is tainted, and secure code READING it back taints
--- the whole execution - Blizzards action button Update chain reads "flyoutDirection" and
--- then gets its own SetAttribute blocked in combat (UpdatePressAndHoldAction). Handler
--- snippets run secure, and the value is baked into the snippet TEXT as a literal, because
--- passing it via attribute would just hand over the taint again. Out of combat only.
+
 local secureAttributeHandler
 local function SetSecureAttribute(frame, name, value)
     if InCombatLockdown() then return false end -- SetFrameRef is an attribute write itself
@@ -59,10 +54,6 @@ local function SetFrameRoleset(frame, roleset)
 end
 GW.SetFrameRoleset = SetFrameRoleset
 
--- Scales a buttons hotkey text down when it would render wider than the button —
--- the auto-sized hotkey strings would otherwise overlap the neighboring buttons,
--- the anchored ones (main bar) would ellipsize. The scale is clamped so extreme
--- bindings shrink to readable instead of to pixel mush
 local function FitHotKeyText(button)
     local hotkey = button.HotKey
     hotkey:SetTextScale(1)
@@ -225,12 +216,6 @@ local function StoreGameMenuButton()
 end
 GW.StoreGameMenuButton = StoreGameMenuButton
 
--- since 1.15.9 Logout()/Quit() are hard protected on classic clients. our edit mode layout apply
--- inevitably taints EditModeManagerFrame.accountSettings (C_EditMode.SaveLayouts() dispatches
--- EDIT_MODE_LAYOUTS_UPDATED synchronously in our tainted execution and blizzards handler rewrites
--- the field), the game menus InitButtons reads that field through CanEnterEditMode() and wires every
--- button after it tainted, so clicking logout/exit fires ADDON_ACTION_FORBIDDEN. route both buttons
--- through invisible secure macro overlays instead, those always run secure
 local function SecureGameMenuLogoutButtons()
     local overlays = {}
 

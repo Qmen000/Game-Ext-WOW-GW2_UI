@@ -1,8 +1,6 @@
 ---@class GW2
 local GW = select(2, ...)
 
--- Since 12.1 Retail uses the AuraContainer system (Games/Mainline/Auras/aurabar.lua),
--- SecureAuraHeaderTemplate no longer exists there — this file is Classic-only
 if GW.Retail then return end
 
 local Debug = GW.Debug
@@ -600,7 +598,7 @@ local function loadAuras(lm)
     lm:RegisterBuffFrame(hb)
     hooksecurefunc(hb.gwMover, "StopMovingOrSizing", function ()
         local grow_dir = GW.settings[hb.setting].GrowDirection
-        local anchor_hb = grow_dir == "UPR" and "BOTTOMLEFT" or grow_dir == "DOWNR" and "TOPLEFT" or grow_dir == "UP" and "BOTTOMRIGHT" or grow_dir == "DOWN" and "TOPRIGHT"
+        local anchor_hb = DIRECTION_TO_POINT[grow_dir]
 
         if not InCombatLockdown() then
             hb:ClearAllPoints()
@@ -614,7 +612,7 @@ local function loadAuras(lm)
     lm:RegisterDebuffFrame(hd)
     hooksecurefunc(hd.gwMover, "StopMovingOrSizing", function ()
         local grow_dir = GW.settings[hd.setting].GrowDirection
-        local anchor_hd = grow_dir == "UPR" and "BOTTOMLEFT" or grow_dir == "DOWNR" and "TOPLEFT" or grow_dir == "UP" and "BOTTOMRIGHT" or grow_dir == "DOWN" and "TOPRIGHT"
+        local anchor_hd = DIRECTION_TO_POINT[grow_dir]
 
         if not InCombatLockdown() then
             hd:ClearAllPoints()
