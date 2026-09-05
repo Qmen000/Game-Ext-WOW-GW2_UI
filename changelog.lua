@@ -17,6 +17,7 @@ addChange("11.1.6", {
     {GW.Enum.ChangelogType.bug, [=[Fix actionbar binding error on era clients]=]},
     {GW.Enum.ChangelogType.bug, [=[Fix pet bar keybindings missing after a fresh login]=]},
     {GW.Enum.ChangelogType.bug, [=[Action bars are now layered above the objectives tracker]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fix minimap coordinates staying at N/A or frozen depending on the order the options were enabled]=]},
 })
 
 addChange("11.1.5", {

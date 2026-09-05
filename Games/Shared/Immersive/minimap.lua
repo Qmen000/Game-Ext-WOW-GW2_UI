@@ -253,38 +253,30 @@ local function MinimapPostDrag(self)
     end
 end
 
+local function UpdateMinimapCoordsTicker(self)
+    local shouldRun = GW.settings.MINIMAP_COORDS_TOGGLE and self:IsShown() and self:GetAlpha() > 0
+    if shouldRun and not self.CoordsTimer then
+        mapCoordsMiniMap_setCoords(self)
+        self.CoordsTimer = C_Timer.NewTicker(0.5, function() mapCoordsMiniMap_setCoords(self) end)
+    elseif not shouldRun and self.CoordsTimer then
+        self.CoordsTimer:Cancel()
+        self.CoordsTimer = nil
+    end
+end
+
 function GW.ToogleMinimapCoordsLable()
     if GW.settings.MINIMAP_COORDS_TOGGLE then
         GwMapCoords:Show()
         GwMapCoords:SetScript("OnEnter", MapCoordsMiniMap_OnEnter)
         GwMapCoords:SetScript("OnClick", MapCoordsMiniMap_OnClick)
         GwMapCoords:SetScript("OnLeave", GameTooltip_Hide)
-
-        if not GwMapCoords.gwAlphaHooked then
-            hooksecurefunc(GwMapCoords, "SetAlpha", function(self, a)
-                if a == 1 then
-                    if not self.CoordsTimer then
-                        self.CoordsTimer = C_Timer.NewTicker(0.5, function() mapCoordsMiniMap_setCoords(self) end)
-                    end
-                elseif a == 0 then
-                    if self.CoordsTimer then
-                        self.CoordsTimer:Cancel()
-                        self.CoordsTimer = nil
-                    end
-                end
-            end)
-            GwMapCoords.gwAlphaHooked = true
-        end
     else
         GwMapCoords:Hide()
         GwMapCoords:SetScript("OnEnter", nil)
         GwMapCoords:SetScript("OnClick", nil)
         GwMapCoords:SetScript("OnLeave", nil)
-        if GwMapCoords.CoordsTimer then
-            GwMapCoords.CoordsTimer:Cancel()
-            GwMapCoords.CoordsTimer = nil
-        end
     end
+    UpdateMinimapCoordsTicker(GwMapCoords)
 end
 
 function GW.ToogleMinimapFpsLable()
@@ -816,6 +808,7 @@ function GW.LoadMinimap()
     GwMapCoords.Coords:GwSetFontTemplate(STANDARD_TEXT_FONT, GW.Enum.TextSizeType.Normal, "SHADOW")
     GwMapCoords.Coords:SetTextColor(1, 1, 1)
     GwMapCoords.Coords:SetText(NOT_APPLICABLE)
+    hooksecurefunc(GwMapCoords, "SetAlpha", UpdateMinimapCoordsTicker)
     GW.ToogleMinimapCoordsLable()
 
     --FPS
