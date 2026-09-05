@@ -57,10 +57,10 @@ end
 
 local function disableTitanPanelBarAdjusting()
     local ourBars = GW.settings.ACTIONBARS_ENABLED
-    if ourBars and C_AddOns.IsAddOnLoaded("TitanClassic") then
-        TitanMovable_AddonAdjust("MultiBarRight", true)
-        TitanMovable_AddonAdjust("ExtraActionBarFrame", true)
-        TitanMovable_AddonAdjust("MinimapCluster", true)
+    if ourBars and C_AddOns.IsAddOnLoaded("TitanClassic") and TitanUtils_AddonAdjust then
+        TitanUtils_AddonAdjust("MultiBarRight", true)
+        TitanUtils_AddonAdjust("ExtraActionBarFrame", true)
+        TitanUtils_AddonAdjust("MinimapCluster", true)
     end
 end
 
