@@ -253,9 +253,39 @@
                         <Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" relativeKey="$parent.StatusBar" x="0" y="0"></Anchor>
                     </Anchors>
                 </FontString>
+                <FontString parentKey="remaining" text="" justifyH="CENTER">
+                    <Size x="260" y="15"></Size>
+                    <Anchors>
+                        <Anchor point="TOP" relativePoint="BOTTOM" relativeKey="$parent.StatusBar" x="0" y="-5"></Anchor>
+                    </Anchors>
+                </FontString>
             </Layer>
         </Layers>
         <Frames>
+            <Frame parentKey="sessionGain" hidden="true" enableMouse="true">
+                <Size x="10" y="20"/>
+                <Anchors>
+                    <Anchor point="TOPRIGHT" x="-40" y="-10"></Anchor>
+                </Anchors>
+                <Layers>
+                    <Layer level="OVERLAY">
+                        <FontString parentKey="text" text="" justifyH="RIGHT" setAllPoints="true"/>
+                    </Layer>
+                </Layers>
+            </Frame>
+            <Frame parentKey="atWarIndicator" hidden="true" enableMouse="true">
+                <Size x="22" y="22"/>
+                <Anchors>
+                    <Anchor point="TOPRIGHT" x="-10" y="-8"></Anchor>
+                </Anchors>
+                <Layers>
+                    <Layer level="OVERLAY" textureSubLevel="2">
+                        <Texture parentKey="icon" file="Interface\AddOns\GW2_UI\textures\character\reputation-icons.png" setAllPoints="true">
+                            <TexCoords left="0.5" right="1" top="0" bottom="0.5" />
+                        </Texture>
+                    </Layer>
+                </Layers>
+            </Frame>
             <Frame parentKey="accountWide" hidden="true">
                 <Size x="23" y="22"/>
                 <Anchors>
@@ -278,34 +308,16 @@
                 </Anchors>
                 <Frames>
                     <Button parentKey="atwar">
-                        <Size x="40" y="40"></Size>
-                        <Anchors>
-                            <Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT" x="5" y="-5">
-                        </Anchor>
-                        </Anchors>
-                        <Layers>
-                            <Layer level="ARTWORK" textureSubLevel="2">
-                                <Texture parentKey="icon" file="Interface\AddOns\GW2_UI\textures\character\reputation-icons.png">
-                                    <Size x="40" y="40"></Size>
-                                    <Anchors>
-                                        <Anchor point="CENTER"></Anchor>
-                                    </Anchors>
-                                    <TexCoords left="0" right="0.5" top="0" bottom="0.5" />
-                                </Texture>
-                            </Layer>
-                        </Layers>
-                    </Button>
-                    <Button parentKey="inactive">
                         <Size x="100" y="20"/>
                         <Anchors>
-                            <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" x="-15" y="5"></Anchor>
+                            <Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT" x="10" y="8"></Anchor>
                         </Anchors>
                         <Layers>
                             <Layer level="OVERLAY" textureSubLevel="2">
                                 <FontString parentKey="string" text="Unknown" justifyH="LEFT">
-                                    <Size x="60" y="20"/>
+                                    <Size x="0" y="20"/>
                                     <Anchors>
-                                        <Anchor point="LEFT" x="25" y="0"></Anchor>
+                                        <Anchor point="LEFT" x="22" y="0"></Anchor>
                                     </Anchors>
                                 </FontString>
                             </Layer>
@@ -314,7 +326,7 @@
                             <CheckButton parentKey="checkbutton" checked="false">
                                 <Size x="16" y="16"/>
                                 <Anchors>
-                                    <Anchor point="LEFT" relativePoint="LEFT" x="5"/>
+                                    <Anchor point="LEFT" relativePoint="LEFT" x="0"/>
                                 </Anchors>
                                 <NormalTexture file="Interface/AddOns/GW2_UI/textures/uistuff/checkbox.png"/>
                                 <CheckedTexture file="Interface/AddOns/GW2_UI/textures/uistuff/checkboxchecked.png"/>
@@ -322,16 +334,16 @@
                         </Frames>
                     </Button>
                     <Button parentKey="showAsBar">
-                        <Size x="200" y="20"/>
+                        <Size x="100" y="20"/>
                         <Anchors>
-                            <Anchor point="RIGHT" relativeKey="$parent.inactive" relativePoint="LEFT" x="-15" y="0"></Anchor>
+                            <Anchor point="LEFT" relativeKey="$parent.atwar" relativePoint="RIGHT" x="20" y="0"></Anchor>
                         </Anchors>
                         <Layers>
                             <Layer level="OVERLAY" textureSubLevel="2">
                                 <FontString parentKey="string" text="Unknown" justifyH="LEFT">
-                                    <Size x="200" y="20"/>
+                                    <Size x="0" y="20"/>
                                     <Anchors>
-                                        <Anchor point="RIGHT" x="25" y="0"></Anchor>
+                                        <Anchor point="LEFT" x="22" y="0"></Anchor>
                                     </Anchors>
                                 </FontString>
                             </Layer>
@@ -340,7 +352,33 @@
                             <CheckButton parentKey="checkbutton" checked="false">
                                 <Size x="16" y="16"/>
                                 <Anchors>
-                                    <Anchor point="LEFT" relativePoint="LEFT" x="5"/>
+                                    <Anchor point="LEFT" relativePoint="LEFT" x="0"/>
+                                </Anchors>
+                                <NormalTexture file="Interface/AddOns/GW2_UI/textures/uistuff/checkbox.png"/>
+                                <CheckedTexture file="Interface/AddOns/GW2_UI/textures/uistuff/checkboxchecked.png"/>
+                            </CheckButton>
+                        </Frames>
+                    </Button>
+                    <Button parentKey="inactive">
+                        <Size x="100" y="20"/>
+                        <Anchors>
+                            <Anchor point="LEFT" relativeKey="$parent.showAsBar" relativePoint="RIGHT" x="20" y="0"></Anchor>
+                        </Anchors>
+                        <Layers>
+                            <Layer level="OVERLAY" textureSubLevel="2">
+                                <FontString parentKey="string" text="Unknown" justifyH="LEFT">
+                                    <Size x="0" y="20"/>
+                                    <Anchors>
+                                        <Anchor point="LEFT" x="22" y="0"></Anchor>
+                                    </Anchors>
+                                </FontString>
+                            </Layer>
+                        </Layers>
+                        <Frames>
+                            <CheckButton parentKey="checkbutton" checked="false">
+                                <Size x="16" y="16"/>
+                                <Anchors>
+                                    <Anchor point="LEFT" relativePoint="LEFT" x="0"/>
                                 </Anchors>
                                 <NormalTexture file="Interface/AddOns/GW2_UI/textures/uistuff/checkbox.png"/>
                                 <CheckedTexture file="Interface/AddOns/GW2_UI/textures/uistuff/checkboxchecked.png"/>
@@ -350,7 +388,7 @@
                     <Button parentKey="viewRenown" text="VIEW_RENOWN_BUTTON_LABEL" inherits="GwStandardButton" hidden="true">
                         <Size x="120" y="20"/>
                         <Anchors>
-                            <Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT" x="5" y="5"/>
+                            <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" x="-10" y="8"/>
                         </Anchors>
                     </Button>
                 </Frames>

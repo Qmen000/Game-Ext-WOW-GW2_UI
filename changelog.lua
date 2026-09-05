@@ -19,6 +19,9 @@ addChange("11.1.6", {
     {GW.Enum.ChangelogType.bug, [=[Action bars are now layered above the objectives tracker]=]},
     {GW.Enum.ChangelogType.bug, [=[Fix minimap coordinates staying at N/A or frozen depending on the order the options were enabled]=]},
     {GW.Enum.ChangelogType.bug, [=[Show the "Move to Inactive" toggle in the reputation details on era clients]=]},
+    {GW.Enum.ChangelogType.change, [=[Reputation: at war factions are marked in the list, the detail options are now one checkbox row]=]},
+    {GW.Enum.ChangelogType.change, [=[Reputation: show the amount missing to the next rank, right click toggles the experience bar, no empty description block]=]},
+    {GW.Enum.ChangelogType.feature, [=[Reputation: show the reputation gained this session per faction (resets on reload, ctrl + right click resets it manually)]=]},
 })
 
 addChange("11.1.5", {
