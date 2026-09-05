@@ -102,7 +102,11 @@ function GW.GetFactionDataByIndex(factionIndex)
     if C_Reputation and C_Reputation.GetFactionDataByIndex then
         return C_Reputation.GetFactionDataByIndex(factionIndex)
     else
-        local name, description, standingID, barMin, barMax, barValue, atWarWith, canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID, hasBonusRepGain, canSetInactive = GetFactionInfo(factionIndex)
+        local name, description, standingID, barMin, barMax, barValue, atWarWith, canToggleAtWar, isHeader, isCollapsed, hasRep, isWatched, isChild, factionID, hasBonusRepGain = GetFactionInfo(factionIndex)
+        -- the legacy API has no canSetInactive (the 16th value is canBeLFGBonus on the classic
+        -- clients); Blizzards classic reputation frame offers "Move to Inactive" for every faction
+        -- that has a detail view, so mirror that
+        local canSetInactive = not isHeader or hasRep
         local factionData = {
             factionID = factionID,
             name = name,
