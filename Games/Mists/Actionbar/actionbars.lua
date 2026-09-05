@@ -549,6 +549,8 @@ local function updateMultiBar(lm, barName, buttonName, actionPage, state)
         RegisterStateDriver(fmMultibar, "actionpage", tostring(actionPage))
         fmMultibar:SetFrameStrata("LOW")
     end
+
+    fmMultibar:SetFrameLevel(20)
     fmMultibar.gw_Buttons = {}
     fmMultibar.originalBarName = barName
 
