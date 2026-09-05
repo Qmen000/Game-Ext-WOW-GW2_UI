@@ -15,6 +15,7 @@ AddChange(string addonVersion, table changeList)
 
 addChange("11.1.6", {
     {GW.Enum.ChangelogType.bug, [=[Fix actionbar binding error on era clients]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fix pet bar keybindings missing after a fresh login]=]},
 })
 
 addChange("11.1.5", {

@@ -5,6 +5,7 @@
     <Include file ="Statusbar\Load.xml"/>
     <Include file ="Animation\Load.xml"/>
     <Include file ="Mainbar\Load.xml"/>
+    <Include file ="Actionbar\Load.xml"/>
     <Include file ="DataInfo\Load.xml"/>
     <Include file ="Aura\Load.xml"/>
     <Include file ="Misc\Load.xml"/>

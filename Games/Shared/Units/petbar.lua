@@ -10,6 +10,11 @@ local petStateSprite = {
     rows = 1
 }
 
+local function UpdatePetButtonHotkey(button)
+    GW.UpdateHotkey(button)
+    GW.FixHotKeyPosition(button, false, true)
+end
+
 GwPlayerPetFrameMixin = {}
 
 function GwPlayerPetFrameMixin:SetActionButtonPositionAndStyle()
@@ -40,7 +45,11 @@ function GwPlayerPetFrameMixin:SetActionButtonPositionAndStyle()
             button.SlotBackground:SetAlpha(0)
         end
 
-        GW.updateHotkey(button)
+        if button.SetHotkeys and not button.gwPetHotkeyHooked then
+            button.gwPetHotkeyHooked = true
+            hooksecurefunc(button, "SetHotkeys", UpdatePetButtonHotkey)
+        end
+        UpdatePetButtonHotkey(button)
         button.noGrid = nil
 
         button.relativeFrame = relativeFrame
@@ -87,7 +96,7 @@ function GwPlayerPetFrameMixin:UpdatePetBarButtons()
     for _, button in ipairs(self.buttons) do
         if button then
             button.gw_ShowMacroName = GW.settings.SHOWACTIONBAR_MACRO_NAME_ENABLED
-            GW.updateMacroName(button)
+            GW.UpdateMacroName(button)
         end
     end
 end
@@ -480,14 +489,18 @@ local function LoadPetFrame(lm)
 
     hooksecurefunc(PetActionBar, "Update", function() playerPetFrame:Update() end)
 
+    -- era clients set the pet hotkeys through a global instead of a button method
+    if PetActionButton_SetHotkeys then
+        hooksecurefunc("PetActionButton_SetHotkeys", UpdatePetButtonHotkey)
+    end
+
     -- hook hotkey update calls so we can override styling changes
     local hotkeyEventTrackerFrame = CreateFrame("Frame")
     hotkeyEventTrackerFrame:RegisterEvent("UPDATE_BINDINGS")
     hotkeyEventTrackerFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
     hotkeyEventTrackerFrame:SetScript("OnEvent", function()
         for _, button in ipairs(playerPetFrame.buttons) do
-            GW.updateHotkey(button)
-            GW.FixHotKeyPosition(button, false, true)
+            UpdatePetButtonHotkey(button)
         end
     end)
 

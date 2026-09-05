@@ -54,22 +54,6 @@ local function SetFrameRoleset(frame, roleset)
 end
 GW.SetFrameRoleset = SetFrameRoleset
 
-local function FitHotKeyText(button)
-    local hotkey = button.HotKey
-    hotkey:SetTextScale(1)
-
-    local maxWidth = button:GetWidth() - 2
-    if maxWidth <= 0 then
-        return
-    end
-
-    local textWidth = hotkey:GetUnboundedStringWidth()
-    if textWidth and textWidth > maxWidth then
-        hotkey:SetTextScale(math.max(0.6, maxWidth / textWidth))
-    end
-end
-GW.FitHotKeyText = FitHotKeyText
-
 local function SetClassIcon(self, class)
     if GW.IsSecretValue(class) or class == nil then
         class = 0

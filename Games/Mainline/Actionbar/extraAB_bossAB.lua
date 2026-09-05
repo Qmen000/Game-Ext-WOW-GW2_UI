@@ -40,7 +40,7 @@ end
 local function UpdateExtraBindings()
     for _, button in pairs(ExtraButtons) do
         button.HotKey:SetText(GetBindingKey(button.commandName))
-        GW.updateHotkey(button)
+        GW.UpdateHotkey(button)
         GW.FixHotKeyPosition(button)
     end
 end

@@ -194,7 +194,7 @@ function GwStanceBarMixin:UpdateKeybinds()
         if not button then break end
 
         button.HotKey:SetText(GetBindingKey("SHAPESHIFTBUTTON" .. i))
-        GW.updateHotkey(button)
+        GW.UpdateHotkey(button)
         GW.FixHotKeyPosition(button, true)
     end
 end
@@ -217,7 +217,7 @@ function GwStanceBarMixin:AdjustMaxStanceButtons()
         if blizz and blizz.commandName then
             self.buttons[i].commandName = blizz.commandName
         end
-        GW.updateHotkey(self.buttons[i])
+        GW.UpdateHotkey(self.buttons[i])
 
         if i <= numButtons then
             self.buttons[i]:Show()
