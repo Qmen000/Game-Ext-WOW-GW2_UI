@@ -14,6 +14,8 @@ AddChange(string addonVersion, table changeList)
 ]]
 
 addChange("11.1.6", {
+    {GW.Enum.ChangelogType.change, [=[Character data (gold per character) moved into the main database, the old GW2UI_STORAGE2 variable is migrated automatically]=]},
+    {GW.Enum.ChangelogType.change, [=[Era clients: the quest tracking state moved into the character database, the old GW2UI_QUEST_WATCH_DB variable is migrated automatically]=]},
     {GW.Enum.ChangelogType.bug, [=[Fix actionbar binding error on era clients]=]},
     {GW.Enum.ChangelogType.bug, [=[Fix pet bar keybindings missing after a fresh login]=]},
     {GW.Enum.ChangelogType.bug, [=[Action bars are now layered above the objectives tracker]=]},

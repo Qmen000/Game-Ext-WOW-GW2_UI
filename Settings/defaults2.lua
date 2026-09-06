@@ -71,6 +71,7 @@ GW.privateDefaults = {
     profile = {
         GW2_UI_VERSION = "WELCOME",
         Layouts = {},
+        questWatch = { TrackedQuests = {}, AutoUntrackedQuests = {} }, -- era clients: manual quest tracking state
         PLAYER_TRACKED_DODGEBAR_SPELL_ID = 0,
         CHAT_KEYWORDS_ALERT_COLOR = {r = .5, g = .5, b = .5},
         ChatHistoryLog = {},

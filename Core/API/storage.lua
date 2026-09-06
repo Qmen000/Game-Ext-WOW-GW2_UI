@@ -1,61 +1,32 @@
 ---@class GW2
 local GW = select(2, ...)
 
-local storage
 
 local function EnsureCharScope()
-    if not storage or not GW.myrealm or not GW.myname then return end
-    local realm = GW.myrealm
-    local name = GW.myname
+    local chars = GW.global.chars
+    if not chars or not GW.myrealm or not GW.myname then return end
 
-    storage[realm] = storage[realm] or {}
-    storage[realm][name] = storage[realm][name] or {}
-    return storage[realm][name]
-end
-
-local function SetMigrateData(realm, name, key, value)
-    storage[realm] = storage[realm] or {}
-    storage[realm][name] = storage[realm][name] or {}
-    storage[realm][name][key] = value
+    chars[GW.myrealm] = chars[GW.myrealm] or {}
+    chars[GW.myrealm][GW.myname] = chars[GW.myrealm][GW.myname] or {}
+    return chars[GW.myrealm][GW.myname]
 end
 
 local function LoadStorage()
-    GW2UI_STORAGE2 = GW2UI_STORAGE2 or {}
-    storage = GW2UI_STORAGE2
+    local chars = GW.global.chars
 
-    -- Migrate data to new table (temp function)
-    if GW2UI_STORAGE and type(GW2UI_STORAGE) == "table" then
-        local oldStorage = GW2UI_STORAGE
-
-        for faction, realm in pairs(oldStorage) do
-            if type(realm) == "table" then
-                for realmName, realmValues in pairs(realm) do
-                    if type(realmValues) == "table" then
-                        for typeKey, typeValues in pairs(realmValues) do
-                            if type(typeValues) == "table" then
-                                for valueKey, values in pairs(typeValues) do
-                                    SetMigrateData(realmName, valueKey, "name", valueKey)
-                                    SetMigrateData(realmName, valueKey, "faction", faction)
-                                    if typeKey == "CLASS" then SetMigrateData(realmName, valueKey, "class", values) end
-                                    if typeKey == "MONEY" then SetMigrateData(realmName, valueKey, "money", values) end
-                                end
-                            end
-                        end
+    -- migrate the old standalone saved variable (temp function)
+    if type(GW2UI_STORAGE2) == "table" then
+        for realm, realmChars in pairs(GW2UI_STORAGE2) do
+            if type(realmChars) == "table" then
+                chars[realm] = chars[realm] or {}
+                for name, values in pairs(realmChars) do
+                    if type(values) == "table" and chars[realm][name] == nil then
+                        chars[realm][name] = values
                     end
                 end
             end
         end
-
-        -- add money if we do not have them
-        for _, chars in pairs(storage) do
-            if type(chars) == "table" then
-                for _, v in pairs(chars) do
-                    if not v.money then v.money = 0 end
-                end
-            end
-        end
-
-        GW2UI_STORAGE = nil
+        GW2UI_STORAGE2 = nil
     end
 end
 GW.LoadStorage = LoadStorage
@@ -71,14 +42,14 @@ GW.SetStorage = SetStorage
 -- Get a storage value by passing the key or a tableScope to get the complete table or without an parameter to get char table
 -- tableScope: "REALM" | "CHAR" | nil  (nil behaves like "CHAR")
 local function GetStorage(key, tableScope)
-    if not storage then return end
+    local chars = GW.global.chars
     tableScope = tableScope or "CHAR"
 
     if tableScope == "REALM" then
-        return storage[GW.myrealm] and storage[GW.myrealm] or nil
+        return chars[GW.myrealm]
     elseif tableScope == "CHAR" then
         if not GW.myname then return end
-        local s = storage[GW.myrealm] and storage[GW.myrealm][GW.myname]
+        local s = chars[GW.myrealm] and chars[GW.myrealm][GW.myname]
         if not s then return end
         if key ~= nil then
             return s[key]
@@ -93,9 +64,9 @@ GW.GetStorage = GetStorage
 
 -- Clear the whole storage or just a part of it
 local function ClearStorage(key, overrideCharacter)
-    if not storage then return end
+    local chars = GW.global.chars
     local name = overrideCharacter or GW.myname
-    local realmTbl = storage[GW.myrealm]
+    local realmTbl = chars[GW.myrealm]
     local charTbl = realmTbl and realmTbl[name]
     if not charTbl then return end
 
