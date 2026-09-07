@@ -1578,9 +1578,25 @@ GW.globalDefault = {
             stopAlertIfCompleted = true,
             flashTaskbar = true,
         },
+        cursedSurges = {
+            enabled = true,
+            desaturate = false,
+            alert = true,
+            alertSeconds = 300,
+            stopAlertIfCompleted = true,
+            flashTaskbar = true,
+        },
 
         -- TWW
-        khazAlgarEmissary = {
+        weeklyTWW = {
+            enabled = false,
+            desaturate = false,
+        },
+        ecologicalSuccession = {
+            enabled = false,
+            desaturate = false,
+        },
+        nightFall = {
             enabled = false,
             desaturate = false,
         },

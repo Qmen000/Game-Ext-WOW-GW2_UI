@@ -220,6 +220,15 @@ local function LoadHudPanel(sWindow)
 
     -- Midnight
     worldEvents:AddGroupHeader(L["Midnight"], {hidden = not GW.Retail})
+    --Cursed Surges
+    worldEvents:AddSubGroupHeader(L["Cursed Surges"], {hidden = not GW.Retail})
+    worldEvents:AddOption(L["Cursed Surges"], nil, {getterSetter = "cursedSurges.enabled", callback = GW.UpdateWorldEventTrackers, groupHeaderName = L["Cursed Surges"], hidden = not GW.Retail})
+    worldEvents:AddOption(L["Desaturate Icon"], L["Desaturate the icon if the event is completed this week."], {getterSetter = "cursedSurges.desaturate", callback = GW.UpdateWorldEventTrackers, dependence = {["cursedSurges.enabled"] = true}, groupHeaderName = L["Cursed Surges"], hidden = not GW.Retail})
+    worldEvents:AddOption(COMMUNITIES_NOTIFICATION_SETTINGS_DIALOG_SETTINGS_LABEL, nil, {getterSetter = "cursedSurges.alert", callback = GW.UpdateWorldEventTrackers, dependence = {["cursedSurges.enabled"] = true}, groupHeaderName = L["Cursed Surges"], hidden = not GW.Retail})
+    worldEvents:AddOption(L["Flash taskbar on reminder"], nil, {getterSetter = "cursedSurges.flashTaskbar", callback = GW.UpdateWorldEventTrackers, dependence = {["cursedSurges.enabled"] = true, ["cursedSurges.alert"] = true}, groupHeaderName = L["Cursed Surges"], hidden = not GW.Retail})
+    worldEvents:AddOption(L["Stop alert if completed"], L["Stop alert when the event is completed in this week."], {getterSetter = "cursedSurges.stopAlertIfCompleted", callback = GW.UpdateWorldEventTrackers, dependence = {["cursedSurges.enabled"] = true, ["cursedSurges.alert"] = true}, groupHeaderName = L["Cursed Surges"], hidden = not GW.Retail})
+    worldEvents:AddOptionSlider(L["Alert Second"], L["Alert will be triggered when the remaining time is less than the set value."], {getterSetter = "cursedSurges.alertSeconds", callback = GW.UpdateWorldEventTrackers, min = 0, max = 3600, decimalNumbers = 0, step = 1, groupHeaderName = L["Cursed Surges"], dependence = {["cursedSurges.enabled"] = true, ["cursedSurges.alert"] = true}, hidden = not GW.Retail})
+
     --Stormarion Assault
     worldEvents:AddSubGroupHeader(L["Stormarion Assault"], {hidden = not GW.Retail})
     worldEvents:AddOption(L["Stormarion Assault"], nil, {getterSetter = "stormarionAssault.enabled", callback = GW.UpdateWorldEventTrackers, groupHeaderName = L["Stormarion Assault"], hidden = not GW.Retail})
@@ -241,10 +250,20 @@ local function LoadHudPanel(sWindow)
 
     -- TWW
     worldEvents:AddGroupHeader(L["The War Within"], {hidden = not GW.Retail})
-    -- Khaz Algar Emissary
-    worldEvents:AddSubGroupHeader(L["Khaz Algar Emissary"], {hidden = not GW.Retail})
-    worldEvents:AddOption(L["Khaz Algar Emissary"], nil, {getterSetter = "khazAlgarEmissary.enabled", callback = GW.UpdateWorldEventTrackers, groupHeaderName = L["Khaz Algar Emissary"], hidden = not GW.Retail})
-    worldEvents:AddOption(L["Desaturate Icon"], L["Desaturate the icon if the event is completed this week."], {getterSetter = "khazAlgarEmissary.desaturate", callback = GW.UpdateWorldEventTrackers, dependence = {["khazAlgarEmissary.enabled"] = true}, groupHeaderName = L["Khaz Algar Emissary"], hidden = not GW.Retail})
+    -- Weekly
+    worldEvents:AddSubGroupHeader(L["Weekly Quest"], {hidden = not GW.Retail})
+    worldEvents:AddOption(L["Weekly Quest"], nil, {getterSetter = "weeklyTWW.enabled", callback = GW.UpdateWorldEventTrackers, groupHeaderName = L["Weekly Quest"], hidden = not GW.Retail})
+    worldEvents:AddOption(L["Desaturate Icon"], L["Desaturate the icon if the event is completed this week."], {getterSetter = "weeklyTWW.desaturate", callback = GW.UpdateWorldEventTrackers, dependence = {["weeklyTWW.enabled"] = true}, groupHeaderName = L["Weekly Quest"], hidden = not GW.Retail})
+
+    --Ecological Succession"
+    worldEvents:AddSubGroupHeader(L["Ecological Succession"], {hidden = not GW.Retail})
+    worldEvents:AddOption(L["Ecological Succession"], nil, {getterSetter = "ecologicalSuccession.enabled", callback = GW.UpdateWorldEventTrackers, groupHeaderName = L["Ecological Succession"], hidden = not GW.Retail})
+    worldEvents:AddOption(L["Desaturate Icon"], L["Desaturate the icon if the event is completed this week."], {getterSetter = "ecologicalSuccession.desaturate", callback = GW.UpdateWorldEventTrackers, dependence = {["ecologicalSuccession.enabled"] = true}, groupHeaderName = L["Ecological Succession"], hidden = not GW.Retail})
+
+    --Nightfall
+    worldEvents:AddSubGroupHeader(L["Nightfall"], {hidden = not GW.Retail})
+    worldEvents:AddOption(L["Nightfall"], nil, {getterSetter = "nightFall.enabled", callback = GW.UpdateWorldEventTrackers, groupHeaderName = L["Nightfall"], hidden = not GW.Retail})
+    worldEvents:AddOption(L["Desaturate Icon"], L["Desaturate the icon if the event is completed this week."], {getterSetter = "nightFall.desaturate", callback = GW.UpdateWorldEventTrackers, dependence = {["nightFall.enabled"] = true}, groupHeaderName = L["Nightfall"], hidden = not GW.Retail})
 
     -- Ringing Deeps
     worldEvents:AddSubGroupHeader(L["Ringing Deeps"], {hidden = not GW.Retail})
