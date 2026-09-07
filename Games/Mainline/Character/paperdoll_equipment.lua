@@ -1056,6 +1056,7 @@ end
 local function LoadPDBagList(fmMenu, parent)
     local fmGDR = CreateFrame("Button", "GwDressingRoom", parent, "GwDressingRoom")
     local fmPD3M = fmGDR.model
+    GW.HandleModelControlFrame(fmPD3M.controlFrame)
     local fmGPDS = fmGDR.stats
     local fmGPDBIL = CreateFrame("Frame", "GwPaperDollBagItemList", parent, "GwPaperDollBagItemList")
 

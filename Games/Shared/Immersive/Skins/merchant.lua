@@ -88,9 +88,9 @@ local function LoadMerchantFrameSkin()
     end
 
     GW.CreateFrameHeaderWithBody(MerchantFrame, headerText, "Interface/AddOns/GW2_UI/textures/character/macro-window-icon.png", {MerchantFrameInset, MerchantMoneyInset}, nil, false, true)
-    MerchantFrame.gwHeader.windowIcon:SetSize(65, 65)
+    MerchantFrame.gwHeader.windowIcon:SetSize(48, 48)
     MerchantFrame.gwHeader.windowIcon:ClearAllPoints()
-    MerchantFrame.gwHeader.windowIcon:SetPoint("CENTER", MerchantFrame.gwHeader.BGLEFT, "LEFT", 25, -5)
+    MerchantFrame.gwHeader.windowIcon:SetPoint("CENTER", MerchantFrame.gwHeader, "BOTTOMLEFT", 6 + 24, 19)
     headerText:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.BigHeader, nil, 6)
 
     MerchantFrameInset.NineSlice:Hide()
@@ -101,7 +101,7 @@ local function LoadMerchantFrameSkin()
     MerchantFramePortrait:Hide()
 
     hooksecurefunc("MerchantFrame_UpdateMerchantInfo", function()
-        SetPortraitTexture(MerchantFrame.gwHeader.windowIcon, "NPC")
+        GW.SetHeaderPortrait(MerchantFrame.gwHeader, "NPC")
         if GW.Mists then
             local numMerchantItems = GetMerchantNumItems()
             local index = (MerchantFrame.page - 1) * MERCHANT_ITEMS_PER_PAGE

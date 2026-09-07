@@ -644,6 +644,7 @@ end
 
 local function LoadPaperDoll(tabContainer)
     local dressingRoom = CreateFrame("Button", "GwDressingRoom", tabContainer, "GwDressingRoom")
+    GW.HandleModelControlFrame(dressingRoom.model.controlFrame)
     local heroPanelMenu = CreateFrame("Frame", "GwHeroPanelMenu", tabContainer, "GwCharacterMenuFilledTemplate")
     local honorFrame = CreateFrame("Frame", "GwPaperHonor", tabContainer, "GwPaperHonor")
 

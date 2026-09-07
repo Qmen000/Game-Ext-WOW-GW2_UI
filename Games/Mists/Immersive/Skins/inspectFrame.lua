@@ -9,6 +9,17 @@ local activeOutline = "Interface/AddOns/GW2_UI/textures/talents/background_borde
 local function Update_InspectPaperDollItemSlotButton(button)
     local unit = button.hasItem and InspectFrame.unit
     local quality = unit and GetInventoryItemQuality(unit, button:GetID())
+
+    if button.itemlevel then
+        local itemLink = unit and GetInventoryItemLink(unit, button:GetID())
+        if itemLink then
+            GW.SetItemLevel(button, quality, itemLink)
+        else
+            button.itemlevel:SetText("")
+            button.__gwLastItemLink = nil
+        end
+    end
+
     if quality and quality > 1 then
         local r, g, b = C_Item.GetItemQualityColor(quality)
         button.backdrop:SetBackdropBorderColor(r, g, b)
@@ -39,16 +50,22 @@ local function SkinInspectFrameOnLoad()
 
     InspectFrame:GwStripTextures()
     GW.CreateFrameHeaderWithBody(InspectFrame, InspectNameText, "Interface/AddOns/GW2_UI/textures/character/addon-window-icon.png", {}, 20)
-    InspectFrame.gwHeader.windowIcon:SetSize(65, 65)
+    InspectFrame.gwHeader.windowIcon:SetSize(48, 48)
     InspectFrame.gwHeader.windowIcon:ClearAllPoints()
-    InspectFrame.gwHeader.windowIcon:SetPoint("CENTER", InspectFrame.gwHeader.BGLEFT, "LEFT", 25, -5)
+    InspectFrame.gwHeader.windowIcon:SetPoint("CENTER", InspectFrame.gwHeader, "BOTTOMLEFT", 6 + 24, 19)
     InspectFrameCloseButton:GwSkinButton(true)
     InspectFrameCloseButton:SetSize(20, 20)
     InspectFrameCloseButton:SetPoint("TOPRIGHT", -5, -5)
     InspectFramePortrait:Hide()
     InspectNameText:SetWidth(250)
+    InspectNameText:ClearAllPoints()
+    InspectNameText:SetPoint("BOTTOMLEFT", InspectFrame.gwHeader, "BOTTOMLEFT", 64, 20)
+    InspectNameText:SetJustifyH("LEFT")
+    InspectNameText:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header)
     InspectLevelText:ClearAllPoints()
-    InspectLevelText:SetPoint("TOP", InspectNameText, "BOTTOM", 0, -10)
+    InspectLevelText:SetPoint("TOPLEFT", InspectFrame.gwHeader, "BOTTOMLEFT", 64, 17)
+    InspectLevelText:SetJustifyH("LEFT")
+    InspectLevelText:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
 
     InspectModelFrameBorderTopLeft:GwKill()
     InspectModelFrameBorderTopRight:GwKill()
@@ -60,11 +77,11 @@ local function SkinInspectFrameOnLoad()
     InspectModelFrameBorderBottom:GwKill()
 
     hooksecurefunc("InspectFrame_UnitChanged", function(self)
-        SetPortraitTexture(InspectFrame.gwHeader.windowIcon, self.unit);
+        GW.SetHeaderPortrait(InspectFrame.gwHeader, self.unit)
     end)
 
     InspectFrame:HookScript("OnShow", function(self)
-        SetPortraitTexture(InspectFrame.gwHeader.windowIcon, self.unit);
+        GW.SetHeaderPortrait(InspectFrame.gwHeader, self.unit)
     end)
 
     for i = 1, 4 do
@@ -113,6 +130,16 @@ local function SkinInspectFrameOnLoad()
         if cooldown then
             GW.RegisterCooldown(cooldown)
         end
+
+        slot.gwTextOverlay = CreateFrame("Frame", nil, slot)
+        slot.gwTextOverlay:SetAllPoints()
+        slot.gwTextOverlay:SetFrameLevel(slot:GetFrameLevel() + 3)
+        slot.itemlevel = slot.gwTextOverlay:CreateFontString(nil, "OVERLAY")
+        slot.itemlevel:SetSize(100, 10)
+        slot.itemlevel:SetPoint("BOTTOMLEFT", slot, "BOTTOMLEFT", 1, 2)
+        slot.itemlevel:SetTextColor(1, 1, 1)
+        slot.itemlevel:SetJustifyH("LEFT")
+        slot.itemlevel:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Small, "THINOUTLINE")
     end
 
     hooksecurefunc("InspectPaperDollItemSlotButton_Update", Update_InspectPaperDollItemSlotButton)
@@ -275,18 +302,20 @@ local function SkinInspectFrameOnLoad()
         InspectGlyphs.Glyph6:SetPoint("TOPLEFT", 15, -180)
     end)
 
-    -- Give inspect frame model backdrop it's color back
+    -- gw2 paperdoll background behind the model instead of blizzards class artwork corners
     for _, corner in pairs({"TopLeft", "TopRight", "BotLeft", "BotRight"}) do
         local bg = _G["InspectModelFrameBackground" .. corner]
         if bg then
-            bg:SetDesaturated(false)
-            hooksecurefunc(bg, "SetDesaturated", function(bckgnd, value)
-                if value and bckgnd.ignoreDesaturated then
-                    bckgnd:SetDesaturated(false)
-                end
-            end)
+            bg:SetAlpha(0)
         end
     end
+    if InspectModelFrameBackgroundOverlay then
+        InspectModelFrameBackgroundOverlay:SetAlpha(0)
+    end
+    InspectModelFrame.gwBackground = InspectModelFrame:CreateTexture(nil, "BACKGROUND", nil, -8)
+    InspectModelFrame.gwBackground:SetTexture("Interface/AddOns/GW2_UI/textures/character/paperdollbg.png")
+    InspectModelFrame.gwBackground:SetAllPoints()
+    InspectModelFrame:GwCreateBackdrop("Transparent")
 
     -- Honor/Arena/PvP Tab
     InspectPVPFrame:GwStripTextures()

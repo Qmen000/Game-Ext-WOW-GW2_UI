@@ -14,7 +14,9 @@ AddChange(string addonVersion, table changeList)
 ]]
 
 addChange("11.1.6", {
-    {GW.Enum.ChangelogType.change, [=[Inspect skin: GW2 model background, item level on the slots, framed portrait in the header, PvP tab with honor header, talent row and rating blocks, GW2 fonts on the guild tab]=]},
+    {GW.Enum.ChangelogType.change, [=[Dressing room skin: GW2 header with framed portrait, framed model area with skinned controls, the transmog set panel and its list are skinned as well]=]},
+    {GW.Enum.ChangelogType.change, [=[Merchant and flight master skins: the npc portrait in the header is framed like the inspect portrait]=]},
+    {GW.Enum.ChangelogType.change, [=[Inspect skin (retail and mists): GW2 model background, item level on the slots, framed portrait with name and level in the header; retail also: PvP tab with honor header, talent row and rating blocks, GW2 fonts on the guild tab]=]},
     {GW.Enum.ChangelogType.change, [=[Great Vault skin: reward slots, activity art, intro text and the currency row now use the GW2 look, locked slots show a lock, the selected slot a gold border]=]},
     {GW.Enum.ChangelogType.change, [=[Character data (gold per character) moved into the main database, the old GW2UI_STORAGE2 variable is migrated automatically]=]},
     {GW.Enum.ChangelogType.change, [=[Era clients: the quest tracking state moved into the character database, the old GW2UI_QUEST_WATCH_DB variable is migrated automatically]=]},

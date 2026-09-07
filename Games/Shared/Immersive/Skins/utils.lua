@@ -1242,3 +1242,54 @@ local function SetHeaderPortrait(header, unit, borderInset)
     SetPortraitTexture(icon, unit)
 end
 GW.SetHeaderPortrait = SetHeaderPortrait
+
+-- zoom / rotate / reset buttons of a ModelSceneControlFrameTemplate (dressing room, transmog,
+-- mount journal, ...): blizzards grey square buttons become small gw2 backdrops with muted icons
+local function HandleModelSceneControlFrame(controlFrame)
+    if not controlFrame or controlFrame.gwSkinned then return end
+    controlFrame.gwSkinned = true
+
+    for _, key in pairs({ "zoomInButton", "zoomOutButton", "rotateLeftButton", "rotateRightButton", "resetButton" }) do
+        local button = controlFrame[key]
+        if button then
+            if button.NormalTexture then
+                button.NormalTexture:SetAlpha(0)
+            end
+            button:SetSize(24, 24)
+            button:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder) -- flush on the button, no outer frame
+            if button.Icon then
+                button.Icon:SetSize(14, 14)
+                button.Icon:SetDesaturated(true)
+            end
+        end
+    end
+end
+GW.HandleModelSceneControlFrame = HandleModelSceneControlFrame
+
+-- the older ModelWithControlsTemplate (our character window models): a panel of six 18px buttons
+-- with the UI-ModelControlPanel art; drop the panel art and give the buttons the same gw2 look as
+-- HandleModelSceneControlFrame. Blizzards hover fade of the panel stays.
+local function HandleModelControlFrame(controlFrame)
+    if not controlFrame or controlFrame.gwSkinned then return end
+    controlFrame.gwSkinned = true
+
+    for _, region in pairs({ controlFrame:GetRegions() }) do
+        if region:IsObjectType("Texture") then
+            region:SetAlpha(0)
+        end
+    end
+
+    for _, button in pairs({ controlFrame:GetChildren() }) do
+        if button:IsObjectType("Button") then
+            if button.bg then
+                button.bg:SetAlpha(0)
+            end
+            button:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder)
+            if button.icon then
+                button.icon:SetSize(14, 14)
+                button.icon:SetDesaturated(true)
+            end
+        end
+    end
+end
+GW.HandleModelControlFrame = HandleModelControlFrame
