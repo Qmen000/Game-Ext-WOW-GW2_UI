@@ -1218,3 +1218,27 @@ local function QuestInfo_Display(template, parentFrame)
     end
 end
 GW.QuestInfo_Display = QuestInfo_Display
+
+local function SetHeaderPortrait(header, unit, borderInset)
+    local icon = header and header.windowIcon
+    if not icon then return end
+
+    if not icon.gwPortraitFramed then
+        icon.gwPortraitFramed = true
+        borderInset = borderInset or 3
+        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        icon:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithColorableBorder, true, borderInset, borderInset)
+        icon.backdrop:SetBackdropColor(0, 0, 0, 0.72)
+        icon.backdrop:SetBackdropBorderColor(0, 0, 0, 0.9)
+
+        icon.gwAccentLine = header:CreateTexture(nil, "OVERLAY", nil, 3)
+        icon.gwAccentLine:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/statusbarborderpixel.png")
+        icon.gwAccentLine:SetPoint("BOTTOMLEFT", icon, "BOTTOMLEFT", 0, -2)
+        icon.gwAccentLine:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 0, -2)
+        icon.gwAccentLine:SetHeight(2)
+        icon.gwAccentLine:SetVertexColor(1, 0.86, 0.46, 0.85)
+    end
+
+    SetPortraitTexture(icon, unit)
+end
+GW.SetHeaderPortrait = SetHeaderPortrait
