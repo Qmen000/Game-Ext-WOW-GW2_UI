@@ -1,8 +1,6 @@
 ---@class GW2
 local GW = select(2, ...)
 
-local GetBagName = GetBagName or (C_Container and C_Container.GetBagName)
-
 local iconString = "|T%s:14:14:0:0:64:64:4:60:4:60|t "
 
 local function Bags_OnEnter(self)
@@ -23,20 +21,20 @@ local function Bags_OnEnter(self)
     GameTooltip:AddLine(" ")
 
     for i = BACKPACK_CONTAINER, NUM_TOTAL_EQUIPPED_BAG_SLOTS or NUM_BAG_SLOTS do
-        local bagName = GetBagName(i)
+        local bagName = C_Container.GetBagName(i)
         if bagName then
-            local numSlots = ContainerFrame_GetContainerNumSlots(i)
+            local numSlots = C_Container.GetContainerNumSlots(i)
             local freeSlots = C_Container.GetContainerNumFreeSlots(i)
             local usedSlots = numSlots - freeSlots
-            local sumNum = 19 + i
 
             local r2, g2, b2 = GW.ColorGradient(usedSlots / numSlots, 0.1, 1, 0.1, 1, 1, 0.1, 1, 0.1, 0.1)
             local icon
             local color = {r = 1, g = 1, b = 1}
 
             if i > 0 then
-                color = GW.GetQualityColor(GetInventoryItemQuality("player", sumNum) or 1)
-                icon = GetInventoryItemTexture("player", sumNum)
+                local slotId = C_Container.ContainerIDToInventoryID(i)
+                color = GW.GetQualityColor(GetInventoryItemQuality("player", slotId) or 1)
+                icon = GetInventoryItemTexture("player", slotId)
             end
 
             bagName = GW.settings.BAG_SEPARATE_BAGS and strlen(GW.settings["BAG_HEADER_NAME" .. i]) > 0 and GW.settings["BAG_HEADER_NAME" .. i] or bagName

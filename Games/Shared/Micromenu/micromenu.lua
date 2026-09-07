@@ -237,8 +237,21 @@ local function updateQuestLogButton(_, event)
         return
     end
 
-    local GetNumQuestLogEntries = (GW.Retail and C_QuestLog.GetNumQuestLogEntries or GetNumQuestLogEntries)
-    local _, numQuests = GetNumQuestLogEntries()
+    local numQuests
+    if GW.Retail then
+        -- GetNumQuestLogEntries counts hidden quests (world quests, callings, ...) as well; count the
+        -- way Blizzards quest log filters its entries so the badge matches the visible quest log
+        local numEntries = C_QuestLog.GetNumQuestLogEntries()
+        numQuests = 0
+        for questLogIndex = 1, numEntries do
+            local info = C_QuestLog.GetInfo(questLogIndex)
+            if info and not info.isHeader and not info.isTask and not info.isHidden and (not info.isBounty or C_QuestLog.IsComplete(info.questID)) then
+                numQuests = numQuests + 1
+            end
+        end
+    else
+        numQuests = select(2, GetNumQuestLogEntries())
+    end
 
     if numQuests ~= nil and numQuests > 0 then
         qlmb.GwNotifyDark:Show()
@@ -657,7 +670,7 @@ local function ToggleEventTimerIcon(mbf)
             reskinMicroButton(eventTimerIcon, "EventMicroButton", mbf)
             eventTimerIcon:ClearAllPoints()
             eventTimerIcon:SetPoint("BOTTOMLEFT", Gw2GreateVaultMicroMenuButton, "BOTTOMRIGHT", 4, 0)
-            eventTimerIcon:SetScript("OnEnter", GW.EventTrackerFunctions.onEnterAll)
+            eventTimerIcon:SetScript("OnEnter", GW.EventTracker.OnEnterAll)
         end
 
         Gw2EventTimerMicroMenuButton:Show()
@@ -704,6 +717,7 @@ local function setupMicroButtons(mbf)
             cref:SetScript("OnLeave", function() MainMenuBarMicroButtonMixin.OnLeave(cref); GameTooltip:Hide() end)
         end
         cref:HookScript("OnEnter", GW.Friends_OnEnter)
+        cref:HookScript("OnLeave", GameTooltip_Hide)
         cref:HookScript("OnEvent", GW.Friends_OnEvent)
         cref:HookScript("OnClick", GW.Friends_OnClick)
         cref:RegisterEvent("BN_FRIEND_ACCOUNT_ONLINE")
@@ -740,6 +754,7 @@ local function setupMicroButtons(mbf)
     bref:RegisterEvent("PLAYERBANKSLOTS_CHANGED")
     updateBagButton(bref)
     bref:HookScript("OnEnter", GW.Bags_OnEnter)
+    bref:HookScript("OnLeave", GameTooltip_Hide)
 
     -- SpellbookMicroButton
     local sref
