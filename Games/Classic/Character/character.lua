@@ -235,16 +235,12 @@ local function setStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y
     GW.PaperDollSetStatIcon(statFrame, stat)
 
     if stat == "DURABILITY" then
-        statFrame:ClearAllPoints()
-        statFrame:SetPoint("TOPRIGHT", GwDressingRoom.stats, "TOPRIGHT", 22, -1)
         statFrame.icon:SetSize(25, 25)
         GW.DurabilityOnEvent(statFrame, "ForceUpdate")
-    else
-        -- placed by the stats picker at the end of the update
-        GW.StatsPicker.RegisterTile(GwDressingRoom.stats, statFrame)
-        statFrame.gwStatVisible = GW.StatsPicker.IsVisible(stat, true)
-        tinsert(statTiles, statFrame)
     end
+    GW.StatsPicker.RegisterTile(GwDressingRoom.stats, statFrame)
+    statFrame.gwStatVisible = GW.StatsPicker.IsVisible(stat, true)
+    tinsert(statTiles, statFrame)
     return grid, x, y, index + 1
 end
 local function setPetStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y)
