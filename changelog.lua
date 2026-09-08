@@ -27,6 +27,8 @@ addChange("11.1.6", {
     {GW.Enum.ChangelogType.change, [=[World event tracker: code split per expansion, less work per tick, fixed the taskbar flash option, the next event time in the micro menu tooltip and alerts of disabled events]=]},
     {GW.Enum.ChangelogType.change, [=[World event tracker: new Midnight weekly storylines (Prey Hunt, Silvermoon Court, Zul'jarra's Forces, Slayer's Duellum), updated Liadrin quest list and a "ready for turn-in" state in the tooltip]=]},
     {GW.Enum.ChangelogType.bug, [=[Action bars are now layered above the objectives tracker]=]},
+    {GW.Enum.ChangelogType.change, [=[Hero panel (Retail): missing enchants and empty sockets are marked red (item info option), optional item level coloring relative to the equipped average, set bonus count and Mythic+ rating as tiles in the attributes list with tooltips]=]},
+    {GW.Enum.ChangelogType.change, [=[Hero panel (all game versions): stats picker via the cog in the attributes box - hide single stats, reorder them by drag and drop, right click resets to the defaults]=]},
     {GW.Enum.ChangelogType.bug, [=[Hero panel can be moved during combat (placed at the cursor on release), scaling in combat shows a notice instead of an error]=]},
     {GW.Enum.ChangelogType.bug, [=[Fix minimap coordinates staying at N/A or frozen depending on the order the options were enabled]=]},
     {GW.Enum.ChangelogType.bug, [=[Show the "Move to Inactive" toggle in the reputation details on era clients]=]},

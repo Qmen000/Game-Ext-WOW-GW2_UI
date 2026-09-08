@@ -760,10 +760,6 @@ local function evPlayerLogin(self)
 
     self:SetScript("OnUpdate", gw_OnUpdate)
     GW.UpdateCharData()
-
-    if GW.Retail then
-        GW.SetupSingingSockets()
-    end
 end
 
 -- second login stage: everything in here depends on blizzard ui state that is not ready before

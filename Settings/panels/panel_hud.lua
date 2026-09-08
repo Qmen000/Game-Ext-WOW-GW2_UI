@@ -144,7 +144,6 @@ local function LoadHudPanel(sWindow)
     general:AddOption(L["XP Quest Percent"], L["Shows the xp you got from that quest in % based on your current needed xp for next level."], {getterSetter = "QUEST_XP_PERCENT"})
     general:AddOption(L["Toggle the borders around the screen"], nil, {getterSetter = "BORDER_ENABLED", callback = GW.ToggleHudBackground})
     general:AddOption(L["Fade Group Manage Button"], L["The Group Manage Button will fade when you move the cursor away."], {getterSetter = "FADE_GROUP_MANAGE_FRAME", callback = GW.ToggleRaidControllFrame, dependence = {["PARTY_FRAMES"] = true}})
-    general:AddOption(L["Singing Sockets Info"], L["Adds a Singing sockets selection tool on the Socketing Frame"], {getterSetter = "singingSockets", hidden = not GW.Retail})
     general:AddOption(L["Pixel Perfect Mode"], L["Scales the UI into a Pixel Perfect Mode. This is dependent on screen resolution."], {getterSetter = "PIXEL_PERFECTION", callback = function() C_CVar.SetCVar("useUiScale", "0") GW.PixelPerfection() end})
     general:AddOptionSlider(L["HUD Scale"], L["Change the HUD size."], { getterSetter = "HUD_SCALE", callback = function() GW.UpdateHudScale(); GW.ShowRlPopup = true end, min = 0.5, max = 1.5, decimalNumbers = 2, step = 0.01})
     general:AddOptionButton(L["Apply to all"], L["Applies the UI scale to all frames which can be scaled in 'Move HUD' mode."], {callback =

@@ -223,6 +223,9 @@ local function PaperDollGetStatListFrame(self, i, isPet, stat)
     return frame
 end
 
+-- player stat tiles of the current update, the stats picker lays them out
+local statTiles = {}
+
 local function setStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y)
     local statFrame = PaperDollGetStatListFrame(GwDressingRoom.stats, index, false, stat)
     statFrame.tooltip = tooltip
@@ -237,8 +240,10 @@ local function setStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y
     else
         statFrame.Value:SetText(statText)
     end
-    statFrame:SetPoint("TOPLEFT", 5 + x, -35 + -y)
-    grid, x, y = statGridPos(grid, x, y)
+    -- placed by the stats picker at the end of the update
+    GW.StatsPicker.RegisterTile(GwDressingRoom.stats, statFrame)
+    statFrame.gwStatVisible = GW.StatsPicker.IsVisible(stat, true)
+    tinsert(statTiles, statFrame)
 
     if stat == "MOVESPEED" then
         statFrame.wasSwimming = nil;
@@ -275,6 +280,7 @@ local function UpdateItemLevelAndGearScore()
 end
 
 local function PaperDollUpdateStats()
+    wipe(statTiles)
     local statText, tooltip1, tooltip2
     local numShownStats = 1
     local grid = 1
@@ -321,6 +327,7 @@ local function PaperDollUpdateStats()
     --durability
     grid, x, y, numShownStats = setStatFrame("DURABILITY", numShownStats, "DURABILITY", nil, nil, grid, x, y)
 
+    GW.StatsPicker.Layout(GwDressingRoom.stats, statTiles, 30)
     UpdateItemLevelAndGearScore()
 end
 GW.PaperDollUpdateStats = PaperDollUpdateStats
@@ -693,6 +700,7 @@ local function LoadPaperDoll(tabContainer)
     local equipmentFrame = GW.LoadEquipments(tabContainer, heroPanelMenu)
     heroPanelMenu:SetupBackButton(dressingRoomPet.backButton, CHARACTER .. ": " .. PET)
 
+    GW.StatsPicker.Setup(dressingRoom.stats, dressingRoom, PaperDollUpdateStats)
     PaperDollUpdateStats()
     PaperDollUpdatePetStats()
     C_Timer.After(1, function()

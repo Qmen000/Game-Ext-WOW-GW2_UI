@@ -236,6 +236,9 @@ local function PaperDollGetStatListFrame(self, i, isPet, stat)
     return frame
 end
 
+-- player stat tiles of the current update, the stats picker lays them out
+local statTiles = {}
+
 local function setStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y)
     local statFrame = PaperDollGetStatListFrame(GwDressingRoom.stats, index, false, stat)
     statFrame.tooltip = tooltip
@@ -244,15 +247,17 @@ local function setStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y
     statFrame.Value:SetText(statText)
     GW.PaperDollSetStatIcon(statFrame, stat)
 
-    statFrame:ClearAllPoints()
     if stat == "DURABILITY" then
+        statFrame:ClearAllPoints()
         statFrame:SetPoint("TOPRIGHT", GwDressingRoom.stats, "TOPRIGHT", 22, -1)
         statFrame.icon:SetSize(25, 25)
         GW.DurabilityOnEvent(statFrame, "ForceUpdate")
     else
-        statFrame:SetPoint("TOPLEFT", 5 + x, -35 + -y)
+        -- placed by the stats picker at the end of the update
+        GW.StatsPicker.RegisterTile(GwDressingRoom.stats, statFrame)
+        statFrame.gwStatVisible = GW.StatsPicker.IsVisible(stat, true)
+        tinsert(statTiles, statFrame)
     end
-    grid, x, y = statGridPos(grid, x, y)
     return grid, x, y, index + 1
 end
 
@@ -286,6 +291,7 @@ local function UpdateItemLevelAndGearScore()
 end
 
 local function PaperDollUpdateStats()
+    wipe(statTiles)
     local statText, tooltip1, tooltip2
     local numShownStats = 1
     local grid = 1
@@ -333,6 +339,8 @@ local function PaperDollUpdateStats()
 
     --durability
     grid, x, y, numShownStats = setStatFrame("DURABILITY", numShownStats, DURABILITY, nil, nil, grid, x, y)
+
+    GW.StatsPicker.Layout(GwDressingRoom.stats, statTiles, 30)
 end
 GW.PaperDollUpdateStats = PaperDollUpdateStats
 
@@ -711,6 +719,7 @@ local function LoadPaperDoll(tabContainer)
     dressingRoomPet.characterData:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
     dressingRoomPet.itemLevel:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.BigHeader, nil, 6)
 
+    GW.StatsPicker.Setup(dressingRoom.stats, dressingRoom, PaperDollUpdateStats)
     PaperDollUpdateStats()
     PaperDollUpdatePetStats()
     C_Timer.After(1, function()

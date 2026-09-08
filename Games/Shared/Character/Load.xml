@@ -8,6 +8,7 @@
     <Include file ="reputation.xml"/>
     <Include file ="windowBase.xml"/>
     <Script file ="windowBase.lua"/>
+    <Script file ="statsPicker.lua"/>
     <Script file ="paperdoll.lua"/>
     <Script file ="reputation_table.lua"/>
     <Script file ="reputation.lua"/>

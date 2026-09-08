@@ -256,7 +256,6 @@ GW.globalDefault = {
         BUTTON_ASSIGNMENTS= true,
         BUTTON_ASSIGNMENTS_USED_ONLY = false,
 
-        singingSockets = true,
 
         HUD_BACKGROUND= true,
         HUD_SPELL_SWAP= true,
@@ -1672,6 +1671,11 @@ GW.globalDefault = {
         },
 
         SHOW_CHARACTER_ITEM_INFO= false,
+        CHARACTER_ITEM_INFO_MISSING= true,
+        CHARACTER_ITEMLEVEL_RELATIVE_COLOR= false,
+        CHARACTER_SHOW_SET_BONUS= true,
+        CHARACTER_STAT_VISIBILITY= {},
+        CHARACTER_STAT_ORDER= {},
 
         pulltimerSeconds = 10,
 

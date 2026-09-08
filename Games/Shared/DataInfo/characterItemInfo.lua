@@ -2,6 +2,14 @@
 local GW = select(2, ...)
 local f = CreateFrame("Frame")
 
+-- slots that should carry an enchant, only known for Retail
+local MISSING_ENCHANT_SLOTS = GW.Retail and {
+    [1] = true, [3] = true, [5] = true, [7] = true, [8] = true, [11] = true, [12] = true, [16] = true,
+} or {}
+local MISSING_COLOR = {1, 0.3, 0.3}
+-- equipped average, refreshed per page update for the relative item level color
+local equippedItemLevel
+
 local InspectItems = {
     CharacterHeadSlot = {id = 1, slotId = 1},
     CharacterShoulderSlot = {id = 2, slotId = 3},
@@ -112,14 +120,24 @@ local function CreateSlotStrings()
     end
 end
 
-local function UpdatePageStrings(inspectItem, slotInfo)
+local function UpdatePageStrings(inspectItem, slotInfo, slotId)
+    local showMissing = GW.settings.CHARACTER_ITEM_INFO_MISSING
     local width = GW.RoundInt(inspectItem.enchantText:GetWidth())
-    inspectItem.enchantText:SetText(width == 40 and slotInfo.enchantTextShort2 or slotInfo.enchantText or "")
-    inspectItem.tooltipText = width == 40 and slotInfo.enchantText or nil
-    inspectItem.enchantTextBg:SetShown(slotInfo.enchantTextShort2 or slotInfo.enchantText)
-    if slotInfo.enchantColors and next(slotInfo.enchantColors) then
-        inspectItem.enchantColors = width == 40 and slotInfo.enchantColors or nil
-        inspectItem.enchantText:SetTextColor(unpack(slotInfo.enchantColors))
+    if showMissing and slotInfo.iLvl and MISSING_ENCHANT_SLOTS[slotId] and not slotInfo.enchantText then
+        -- item without enchant on an enchantable slot
+        inspectItem.enchantText:SetText(ADDON_MISSING)
+        inspectItem.enchantText:SetTextColor(unpack(MISSING_COLOR))
+        inspectItem.tooltipText = nil
+        inspectItem.enchantColors = nil
+        inspectItem.enchantTextBg:Show()
+    else
+        inspectItem.enchantText:SetText(width == 40 and slotInfo.enchantTextShort2 or slotInfo.enchantText or "")
+        inspectItem.tooltipText = width == 40 and slotInfo.enchantText or nil
+        inspectItem.enchantTextBg:SetShown(slotInfo.enchantTextShort2 or slotInfo.enchantText)
+        if slotInfo.enchantColors and next(slotInfo.enchantColors) then
+            inspectItem.enchantColors = width == 40 and slotInfo.enchantColors or nil
+            inspectItem.enchantText:SetTextColor(unpack(slotInfo.enchantColors))
+        end
     end
 
     local gemStep = 1
@@ -128,7 +146,13 @@ local function UpdatePageStrings(inspectItem, slotInfo)
         local gem = slotInfo.gems and slotInfo.gems[gemStep]
         if gem then
             texture:SetTexture(gem)
-            backdrop:SetBackdropBorderColor(unpack(slotInfo.itemLevelColors))
+            -- the tooltip places the empty socket artwork where a gem would be
+            local isEmptySocket = type(gem) == "string" and strfind(gem, "EmptySocket", 1, true)
+            if isEmptySocket and showMissing then
+                backdrop:SetBackdropBorderColor(unpack(MISSING_COLOR))
+            else
+                backdrop:SetBackdropBorderColor(unpack(slotInfo.itemLevelColors))
+            end
             backdrop:Show()
 
             gemStep = gemStep + 1
@@ -139,7 +163,16 @@ local function UpdatePageStrings(inspectItem, slotInfo)
     end
 
     inspectItem.itemlevel:SetText(slotInfo.iLvl or "")
-    if slotInfo.itemLevelColors and slotInfo.itemLevelColors[1] and slotInfo.itemLevelColors[2] and slotInfo.itemLevelColors[3]  then
+    if slotInfo.iLvl and GW.settings.CHARACTER_ITEMLEVEL_RELATIVE_COLOR and equippedItemLevel and equippedItemLevel > 0 then
+        local diff = slotInfo.iLvl - equippedItemLevel
+        if diff >= 0 then
+            inspectItem.itemlevel:SetTextColor(0.4, 1, 0.4)
+        elseif diff > -10 then
+            inspectItem.itemlevel:SetTextColor(1, 0.85, 0.3)
+        else
+            inspectItem.itemlevel:SetTextColor(unpack(MISSING_COLOR))
+        end
+    elseif slotInfo.itemLevelColors and slotInfo.itemLevelColors[1] and slotInfo.itemLevelColors[2] and slotInfo.itemLevelColors[3]  then
         inspectItem.itemlevel:SetTextColor(unpack(slotInfo.itemLevelColors))
     end
 
@@ -151,13 +184,14 @@ local function TryGearAgain(i, deepScan, inspectItem)
     C_Timer.After(0.05, function()
         local slotInfo = GW.GetGearSlotInfo("player", i, nil, deepScan)
         if slotInfo ~= "tooSoon" then
-            UpdatePageStrings(inspectItem, slotInfo)
+            UpdatePageStrings(inspectItem, slotInfo, i)
         end
     end)
 end
 
 do
     local function UpdatePageInfo()
+        equippedItemLevel = select(2, GW.GetPlayerItemLevel())
         for name, tbl in pairs(InspectItems) do
             local inspectItem = _G[name]
             if inspectItem then
@@ -167,7 +201,7 @@ do
                 if slotInfo == "tooSoon" then
                     TryGearAgain(tbl.slotId, true, inspectItem)
                 else
-                    UpdatePageStrings(inspectItem, slotInfo)
+                    UpdatePageStrings(inspectItem, slotInfo, tbl.slotId)
                 end
             end
         end
