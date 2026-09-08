@@ -17,6 +17,33 @@ local function SetDeadIcon(self)
 end
 GW.SetDeadIcon = SetDeadIcon
 
+
+local secureAttributeHandler
+local function SetSecureAttribute(frame, name, value)
+    if InCombatLockdown() then return false end -- SetFrameRef is an attribute write itself
+
+    local valueType = type(value)
+    local literal
+    if valueType == "string" then
+        literal = format("%q", value)
+    elseif valueType == "number" or valueType == "boolean" then
+        literal = tostring(value)
+    elseif valueType == "nil" then
+        literal = "nil"
+    else
+        return false -- tables/functions cannot be expressed as a snippet literal
+    end
+
+    if not secureAttributeHandler then
+        secureAttributeHandler = CreateFrame("Frame", nil, nil, "SecureHandlerBaseTemplate")
+    end
+
+    secureAttributeHandler:SetFrameRef("gwTarget", frame)
+    SecureHandlerExecute(secureAttributeHandler, format([[self:GetFrameRef("gwTarget"):SetAttribute(%q, %s)]], name, literal))
+    return true
+end
+GW.SetSecureAttribute = SetSecureAttribute
+
 -- 12.1: declares the frame's roleset so the UI mode system gates its visibility
 -- like Blizzard's own frames ("unitFrames", "arenaFrames", ...). No-op on clients
 -- without the API.
@@ -26,26 +53,6 @@ local function SetFrameRoleset(frame, roleset)
     end
 end
 GW.SetFrameRoleset = SetFrameRoleset
-
--- Scales a buttons hotkey text down when it would render wider than the button —
--- the auto-sized hotkey strings would otherwise overlap the neighboring buttons,
--- the anchored ones (main bar) would ellipsize. The scale is clamped so extreme
--- bindings shrink to readable instead of to pixel mush
-local function FitHotKeyText(button)
-    local hotkey = button.HotKey
-    hotkey:SetTextScale(1)
-
-    local maxWidth = button:GetWidth() - 2
-    if maxWidth <= 0 then
-        return
-    end
-
-    local textWidth = hotkey:GetUnboundedStringWidth()
-    if textWidth and textWidth > maxWidth then
-        hotkey:SetTextScale(math.max(0.6, maxWidth / textWidth))
-    end
-end
-GW.FitHotKeyText = FitHotKeyText
 
 local function SetClassIcon(self, class)
     if GW.IsSecretValue(class) or class == nil then
@@ -193,12 +200,6 @@ local function StoreGameMenuButton()
 end
 GW.StoreGameMenuButton = StoreGameMenuButton
 
--- since 1.15.9 Logout()/Quit() are hard protected on classic clients. our edit mode layout apply
--- inevitably taints EditModeManagerFrame.accountSettings (C_EditMode.SaveLayouts() dispatches
--- EDIT_MODE_LAYOUTS_UPDATED synchronously in our tainted execution and blizzards handler rewrites
--- the field), the game menus InitButtons reads that field through CanEnterEditMode() and wires every
--- button after it tainted, so clicking logout/exit fires ADDON_ACTION_FORBIDDEN. route both buttons
--- through invisible secure macro overlays instead, those always run secure
 local function SecureGameMenuLogoutButtons()
     local overlays = {}
 
@@ -1031,7 +1032,7 @@ local function SetItemLevel(button, quality, itemInput, slot, minItemLevel)
         return
     end
 
-    if button.__gwLastItemLink == itemInput then return end
+    if button.__gwLastItemLink == itemInput and button.__gwLastMinItemLevel == minItemLevel then return end
 
     local function applyItemLevel(ilvl, color, usedLink)
         if not ilvl or ilvl <= 0 or (minItemLevel and ilvl < minItemLevel) then
@@ -1046,6 +1047,7 @@ local function SetItemLevel(button, quality, itemInput, slot, minItemLevel)
         end
 
         button.__gwLastItemLink = usedLink
+        button.__gwLastMinItemLevel = minItemLevel
     end
 
     LoadItemAsync(itemInput, function(itemLink)

@@ -1,5 +1,6 @@
 ---@class GW2
 local GW = select(2, ...)
+local questWatchDB -- GW.private.questWatch, set in InitModule
 
 local lastAQW = GetTime()
 local tomTomWaypoint = nil
@@ -45,9 +46,9 @@ local function UntrackQuest(questLogIndex)
         end
     end
     if GetCVar("autoQuestWatch") == "0" then
-        GW2UI_QUEST_WATCH_DB.TrackedQuests[questID] = nil
+        questWatchDB.TrackedQuests[questID] = nil
     else
-        GW2UI_QUEST_WATCH_DB.AutoUntrackedQuests[questID] = true
+        questWatchDB.AutoUntrackedQuests[questID] = true
     end
     RemoveQuestWatch(questLogIndex)
     QuestWatch_Update()
@@ -374,7 +375,7 @@ function GwQuestLogMixin:UpdateLayout()
 
     wipe(self.trackedQuests)
     for _, quest in pairs(sorted) do
-        if ((GetCVar("autoQuestWatch") == "1" and not GW2UI_QUEST_WATCH_DB.AutoUntrackedQuests[quest.questId]) or (GetCVar("autoQuestWatch") == "0" and GW2UI_QUEST_WATCH_DB.TrackedQuests[quest.questId])) then
+        if ((GetCVar("autoQuestWatch") == "1" and not questWatchDB.AutoUntrackedQuests[quest.questId]) or (GetCVar("autoQuestWatch") == "0" and questWatchDB.TrackedQuests[quest.questId])) then
             if shouldShowHeader then
                 self.header:Show()
                 counterQuest = counterQuest + 1
@@ -552,9 +553,9 @@ function GwObjectivesQuestContainerMixin:_RemoveQuestWatch(index, isGW2)
 
         if questId then
             if "0" == GetCVar("autoQuestWatch") then
-                GW2UI_QUEST_WATCH_DB.TrackedQuests[questId] = nil
+                questWatchDB.TrackedQuests[questId] = nil
             else
-                GW2UI_QUEST_WATCH_DB.AutoUntrackedQuests[questId] = true
+                questWatchDB.AutoUntrackedQuests[questId] = true
             end
             self:OnEvent()
         end
@@ -583,16 +584,16 @@ function GwObjectivesQuestContainerMixin:_AQW_Insert(index)
 
     if questId > 0 then
         if "0" == GetCVar("autoQuestWatch") then
-            if GW2UI_QUEST_WATCH_DB.TrackedQuests[questId] then
-                GW2UI_QUEST_WATCH_DB.TrackedQuests[questId] = nil
+            if questWatchDB.TrackedQuests[questId] then
+                questWatchDB.TrackedQuests[questId] = nil
             else
-                GW2UI_QUEST_WATCH_DB.TrackedQuests[questId] = true
+                questWatchDB.TrackedQuests[questId] = true
             end
         else
-            if GW2UI_QUEST_WATCH_DB.AutoUntrackedQuests[questId] then
-                GW2UI_QUEST_WATCH_DB.AutoUntrackedQuests[questId] = nil
+            if questWatchDB.AutoUntrackedQuests[questId] then
+                questWatchDB.AutoUntrackedQuests[questId] = nil
             elseif IsShiftKeyDown() and (QuestLogFrame:IsShown() or (QuestLogExFrame and QuestLogExFrame:IsShown())) then--hack
-                GW2UI_QUEST_WATCH_DB.AutoUntrackedQuests[questId] = true
+                questWatchDB.AutoUntrackedQuests[questId] = true
             end
         end
 
@@ -603,9 +604,19 @@ end
 function GwObjectivesQuestContainerMixin:InitModule()
     self.blockMixInTemplate = GwQuestLogBlockMixin
 
-    GW2UI_QUEST_WATCH_DB = GW2UI_QUEST_WATCH_DB or {}
-    GW2UI_QUEST_WATCH_DB.TrackedQuests = GW2UI_QUEST_WATCH_DB.TrackedQuests or {}
-    GW2UI_QUEST_WATCH_DB.AutoUntrackedQuests = GW2UI_QUEST_WATCH_DB.AutoUntrackedQuests or {}
+    questWatchDB = GW.private.questWatch
+
+    -- migrate the former per character saved variable (temp function)
+    if type(GW2UI_QUEST_WATCH_DB) == "table" then
+        for _, listName in ipairs({ "TrackedQuests", "AutoUntrackedQuests" }) do
+            for questId, value in pairs(GW2UI_QUEST_WATCH_DB[listName] or {}) do
+                if questWatchDB[listName][questId] == nil then
+                    questWatchDB[listName][questId] = value
+                end
+            end
+        end
+        GW2UI_QUEST_WATCH_DB = nil
+    end
 
     self:SetScript("OnEvent", self.OnEvent)
     self:RegisterEvent("QUEST_LOG_UPDATE")
@@ -642,9 +653,9 @@ function GwObjectivesQuestContainerMixin:InitModule()
         end
 
         if "0" == GetCVar("autoQuestWatch") then
-            return GW2UI_QUEST_WATCH_DB.TrackedQuests[questId or -1]
+            return questWatchDB.TrackedQuests[questId or -1]
         else
-            return questId and (not GW2UI_QUEST_WATCH_DB.AutoUntrackedQuests[questId])
+            return questId and (not questWatchDB.AutoUntrackedQuests[questId])
         end
     end
 

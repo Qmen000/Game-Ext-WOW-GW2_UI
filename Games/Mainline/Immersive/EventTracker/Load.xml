@@ -1,0 +1,8 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Script file ="core.lua"/>
+    <Script file ="weekly.lua"/>
+    <Script file ="loopTimer.lua"/>
+    <Script file ="midnight.lua"/>
+    <Script file ="theWarWithin.lua"/>
+    <Script file ="dragonflight.lua"/>
+</Ui>

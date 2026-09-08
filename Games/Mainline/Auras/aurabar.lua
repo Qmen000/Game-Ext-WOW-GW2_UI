@@ -3,13 +3,6 @@ local GW = select(2, ...)
 local RegisterMovableFrame = GW.RegisterMovableFrame
 local GetDebuffColorCurve = GW.GetDebuffColorCurve
 
--- 12.1: player buff/debuff bars based on the new AuraContainer system
--- (CustomAuraContainerTemplate, runs in Blizzard's secure environment).
--- On Retail this replaces the SecureAuraHeaderTemplate-based aurabar from Games/Shared/Aura.
--- The container takes care of: secure aura assignment, sorting, layout, right-click cancel,
--- tooltips as well as all display updates (icon, duration, stacks, dispel color) via the
--- setter API of CustomAuraButtonSharedMixin.
-
 local DIRECTION_TO_POINT = {
     DOWNR = "TOPLEFT",
     DOWN = "TOPRIGHT",
@@ -61,17 +54,8 @@ local DIRECTION_TO_DEBUFF_ANCHOR = {
     DOWNR_COLUMN = "BOTTOMLEFT",
 }
 
--- Two fixed groups per container: "own" and "others" auras.
--- This maps the old separateOwn (Seperate -1/0/1), since groups cannot be removed
--- after the fact (ClearAuraGroups is not part of the Inbound API):
---  Seperate  1: own before others |  -1: others before own |  0: own disabled (maxFrameCount 0), others shows everything
 local GROUP_OWN = "GwAurasOwn"
 local GROUP_OTHERS = "GwAurasOthers"
--- The debuff bar splits each of the two groups along the RAID_PLAYER_DISPELLABLE token
--- ("the player can dispel this" — plain DISPELLABLE only means "has a dispel type"):
--- the corner dispel icon must only appear on auras the player can dispel, and with
--- static button regions that boundary has to be a group boundary. The buff bar keeps
--- the plain pair
 local GROUP_OWN_DISPELLABLE = "GwAurasOwnDispellable"
 local GROUP_OTHERS_DISPELLABLE = "GwAurasOthersDispellable"
 
@@ -81,10 +65,6 @@ local function GetButtonMainAxisSize(db)
     return DIRECTION_IS_COLUMN_LAYOUT[db.GrowDirection] and height or width, width, height
 end
 
--- Size + icon crop per button (analogous to UpdateIcon of the old aurabar).
--- IMPORTANT: The container's flow layout uses elementWidth/Height only for calculations
--- (GetElementSize) and only sets anchor points (ApplyElementLayout) — we have to set
--- the frame size ourselves, otherwise the buttons are 0x0 and invisible
 local function ApplyButtonSizeAndCrop(button, width, height, keepSizeRatio)
     button.gwVisual:SetSize(width, height)
     button:SetSize(width, height)
@@ -102,22 +82,10 @@ end
 local function UpdateButtonSizeAndCrop(button, db)
     local width = db.IconSize
     local height = db.KeepSizeRatio and width or db.IconHeight
-    -- best-effort: while auras are secret the access restriction denies tainted
-    -- access to the whole button subtree (incl. our own child frames) — failed
-    -- buttons keep their previous size until the next update outside that state
     pcall(ApplyButtonSizeAndCrop, button, width, height, db.KeepSizeRatio)
 end
 
--- Builds the GW look per aura button (replaces GwAuraSecureTmpl from aurabar.xml).
--- Called once per frame by the container (created in batches, access in combat
--- can be restricted by secret values — therefore ONLY build regions here and
--- hand them to the mixin setters, never read aura data yourself!)
 local function InitializeAuraButton(button, header, isDebuff, isEnchant, withDispelIcon)
-    -- The button itself is forbidden (HookScript/animations on it are blocked
-    -- by secret aspects) — therefore the entire GW look is attached to a
-    -- separate wrapper frame. It is anchored by CENTER and explicitly sized:
-    -- the button only accepts SetSize during initializeFrame (access restrictions
-    -- are applied afterwards), later size changes are carried by our own frame
     local visual = CreateFrame("Frame", nil, button)
     visual:SetPoint("CENTER", button, "CENTER")
     visual:SetFrameLevel(button:GetFrameLevel() + 1)
@@ -141,9 +109,6 @@ local function InitializeAuraButton(button, header, isDebuff, isEnchant, withDis
     border.inner:SetPoint("BOTTOMRIGHT", border, "BOTTOMRIGHT", -1, 1)
     button.border = border
 
-    -- Cooldown swipe: only the 2px ring between icon (inset 4) and
-    -- cooldown (inset 2) is visible — the swipe needs the opaque white texture for that
-    -- (corresponds to the SwipeTexture color block from the old GwAuraSecureTmpl)
     local cooldown = CreateFrame("Cooldown", nil, visual, "CooldownFrameTemplate")
     cooldown:SetFrameLevel(visual:GetFrameLevel() + 1)
     cooldown:SetPoint("TOPLEFT", visual, "TOPLEFT", 2, -2)
@@ -152,7 +117,7 @@ local function InitializeAuraButton(button, header, isDebuff, isEnchant, withDis
     cooldown:SetDrawEdge(false)
     cooldown:SetDrawSwipe(true)
     cooldown:SetReverse(false)
-    cooldown:SetHideCountdownNumbers(true) -- duration text comes as its own FontString below the icon
+    cooldown:SetHideCountdownNumbers(true)
     cooldown:SetSwipeTexture("Interface/AddOns/GW2_UI/textures/uistuff/gwstatusbar.png", 1, 1, 1, 1)
     button.cooldown = cooldown
 
@@ -183,26 +148,17 @@ local function InitializeAuraButton(button, header, isDebuff, isEnchant, withDis
     status.duration:SetPoint("TOP", status, "BOTTOM", 0, -6)
     status.duration:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal, "SHADOW", -1)
 
-    -- register the regions with the container — from here on Blizzard keeps everything up to date
     button:SetIcon(status.icon)
     button:SetDurationCooldown(cooldown)
-    -- one-letter units without whitespace ("17s") — deDE/ruRU keep the whitespace
-    -- by default, which makes wide values overlap the neighboring buttons
     button:SetDurationText(status.duration, { textFormatter = GW.GetAuraDurationTextFormatter() })
     button:SetApplicationCount(status.stacks)
 
-    -- right-click cancel (the container does this securely itself — also for enchants)
-    -- and tooltip anchor as in the old system
     button:SetCancelAuraButtons("RightButtonUp, RightButtonDown")
     button:SetTooltipAnchorPoint("ANCHOR_BOTTOMLEFT", -5, -5)
 
     if isEnchant then
-        -- weapon enchants get the Curse-colored border as before
         border.inner:SetVertexColor(GW.Colors.DebuffColors.Curse:GetRGB())
     elseif isDebuff then
-        -- The container takes care of the dispel type coloring: PreserveAsset keeps our
-        -- texture and only sets the VertexColor based on the color curve; showWithoutDispelType
-        -- ensures that debuffs without a dispel type get colored as well (curve: None = 0)
         button:AddDispelTypeTexture(border.inner, {
             style = Enum.CustomAuraButtonDispelTypeTextureStyle.PreserveAsset,
             showWhenHarmful = true,
@@ -213,14 +169,6 @@ local function InitializeAuraButton(button, header, isDebuff, isEnchant, withDis
         border.inner:SetVertexColor(GW.Colors.Fallback:GetRGB())
     end
 
-    -- NOTE: The old zoom-in animation for new auras (NewAuraAnimation) is not feasible with
-    -- the container system: the shown secrecy of the AuraButton intrinsic covers the
-    -- entire child hierarchy — OnShow handlers (even on our own wrapper frames) are
-    -- rejected with "blocked by secret aspects", so that the timing of new auras does not
-    -- leak to addon code. If Blizzard ships an animation hook later, re-add it here.
-
-    -- Both groups get the pandemic region: with Seperate = 0 the own auras render in
-    -- the others group, and the engine only lights the window for your own auras anyway
     if not isEnchant then
         GW.AddPandemicHighlight(button, visual, function() return GW.settings.PLAYER_PANDEMIC_HIGHLIGHT end)
     end
@@ -275,7 +223,6 @@ local function UpdateAuraHeader(header)
     local groupLayout = {
         elementSpacing = mainAxisSpacing,
         lineSpacing = crossAxisSpacing,
-        -- spacing at group boundaries (own -> others transition) uses the group values
         groupSpacing = mainAxisSpacing,
         groupLineSpacing = crossAxisSpacing,
         elementWidth = width,
@@ -317,10 +264,12 @@ local function UpdateAuraHeader(header)
         header:SetAuraGroupLayout(info.key, layout)
     end
 
-    -- Update size + icon crop on all engine owned buttons. Enchant frames live
-    -- outside the aura groups and stay cached: their enumeration
-    -- (GetActiveItemEnchantmentFrames) sits on ManagedAuraContainerPrivateMixin
-    -- only, which is not part of the addon facing inbound mixin chain
+    if header.filter == "HELPFUL" then
+        local enchantLayout = CopyTable(groupLayout)
+        enchantLayout.placement = CustomAuraContainerItemEnchantmentPlacement.BeforeAuraGroups
+        header:SetItemEnchantmentLayout(enchantLayout)
+    end
+
     for _, key in ipairs(header.gwGroupKeys) do
         for i = 1, header:GetAuraGroupFrameCount(key) do
             UpdateButtonSizeAndCrop(header:GetAuraGroupFrame(key, i), db)
@@ -363,7 +312,6 @@ local function newContainer(filter)
     local h = CreateFrame("AuraContainer", name, UIParent, "CustomAuraContainerTemplate")
     h:SetClampedToScreen(true)
     h.gwIsAuraContainer = true
-    -- dispel = nil marks a group without the dispellable split (the buff bar pair)
     if isDebuff then
         h.gwGroupInfo = {
             { key = GROUP_OWN_DISPELLABLE, own = true, dispel = true },
@@ -386,7 +334,6 @@ local function newContainer(filter)
     h.setting = filter == "HELPFUL" and "PlayerBuffs" or "PlayerDebuffs"
     h.name = name
 
-    -- fixed groups (see comment above) — options are set in UpdateAuraHeader
     for _, info in ipairs(h.gwGroupInfo) do
         h:AddAuraGroup(info.key, filter, {
             initializeFrame = function(button) InitializeAuraButton(button, h, isDebuff, false, info.dispel) end,
@@ -423,12 +370,7 @@ local function newContainer(filter)
     proxy:HookScript("OnHide", function() h:Hide() end)
     h.gwLayoutProxy = proxy
 
-    -- Vehicle switching: the container is unit-based, a simple (insecure) event switch
-    -- replaces the old attribute driver construct
     h:SetUnit("player")
-    -- IMPORTANT: containers are disabled by default — without SetEnabled(true) the
-    -- container does not register UNIT_AURA and parses nothing (ShouldRegisterForDynamicEvents
-    -- requires IsVisible() AND IsEnabled())
     h:SetEnabled(true)
     local unitWatcher = CreateFrame("Frame")
     unitWatcher:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
@@ -438,13 +380,7 @@ local function newContainer(filter)
         h:SetUnit(UnitHasVehicleUI("player") and "vehicle" or "player")
     end)
 
-    -- hide during pet battles (replaces the SecureHandler state driver)
-    local petBattleWatcher = CreateFrame("Frame")
-    petBattleWatcher:RegisterEvent("PET_BATTLE_OPENING_START")
-    petBattleWatcher:RegisterEvent("PET_BATTLE_CLOSE")
-    petBattleWatcher:SetScript("OnEvent", function(_, event)
-        h:SetShown(event ~= "PET_BATTLE_OPENING_START")
-    end)
+    GW.MixinHideDuringPet(h)
 
     UpdateAuraHeader(h)
     GW.RegisterAuraContainer(h, UpdateAuraHeader)

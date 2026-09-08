@@ -57,10 +57,10 @@ end
 
 local function disableTitanPanelBarAdjusting()
     local ourBars = GW.settings.ACTIONBARS_ENABLED
-    if ourBars and C_AddOns.IsAddOnLoaded("TitanClassic") then
-        TitanMovable_AddonAdjust("MultiBarRight", true)
-        TitanMovable_AddonAdjust("ExtraActionBarFrame", true)
-        TitanMovable_AddonAdjust("MinimapCluster", true)
+    if ourBars and C_AddOns.IsAddOnLoaded("TitanClassic") and TitanUtils_AddonAdjust then
+        TitanUtils_AddonAdjust("MultiBarRight", true)
+        TitanUtils_AddonAdjust("ExtraActionBarFrame", true)
+        TitanUtils_AddonAdjust("MinimapCluster", true)
     end
 end
 
@@ -351,31 +351,10 @@ local function evAddonLoaded(self, loadedAddonName)
         GW.globalSettings.RegisterCallback(self, 'OnProfileChanged', UpdateDb)
         GW.settings = GW.globalSettings.profile
         GW.global = GW.globalSettings.global
+        GW.global.chars = GW.global.chars or {}
 
         GW.charSettings = GW.Libs.AceDB:New('GW2UI_PRIVATE_DB', GW.privateDefaults)
         GW.private = GW.charSettings.profile
-
-        local dbMigrated = false
-        if not GW.private.dbConverted and GW.private.GW2_UI_VERSION ~= "WELCOME" then
-            GW.DatabaseMigration(false, true)
-            GW.private.dbConverted = true
-            dbMigrated = true
-        end
-        if not GW.global.dbConverted and GW.private.GW2_UI_VERSION ~= "WELCOME" then
-            GW.DatabaseMigration(true, false)
-            GW.global.dbConverted = true
-            dbMigrated = true
-        end
-
-        if GW.private.GW2_UI_VERSION == "WELCOME" then
-            GW.global.dbConverted = true
-            GW.private.dbConverted = true
-        end
-
-        if dbMigrated then
-            C_Timer.After(3, function() GW.ShowPopup({text = L["DB was converted Reload is needed /reload"], OnAccept = function() C_UI.Reload() end}) end)
-            GW.Notice("DB was converted Reload is needed /reload")
-        end
 
         GW.DatabaseValueMigration()
         GW.ApplyMissingIncompatibleAddonsDefaults()
@@ -781,10 +760,6 @@ local function evPlayerLogin(self)
 
     self:SetScript("OnUpdate", gw_OnUpdate)
     GW.UpdateCharData()
-
-    if GW.Retail then
-        GW.SetupSingingSockets()
-    end
 end
 
 -- second login stage: everything in here depends on blizzard ui state that is not ready before

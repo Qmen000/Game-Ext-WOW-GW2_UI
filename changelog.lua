@@ -13,11 +13,56 @@ AddChange(string addonVersion, table changeList)
   }
 ]]
 
+addChange("11.1.6", {
+    {GW.Enum.ChangelogType.change, [=[Dressing room skin: GW2 header with framed portrait, framed model area with skinned controls, the transmog set panel and its list are skinned as well]=]},
+    {GW.Enum.ChangelogType.change, [=[Merchant and flight master skins: the npc portrait in the header is framed like the inspect portrait]=]},
+    {GW.Enum.ChangelogType.change, [=[Inspect skin (retail and mists): GW2 model background, item level on the slots, framed portrait with name and level in the header; retail also: PvP tab with honor header, talent row and rating blocks, GW2 fonts on the guild tab]=]},
+    {GW.Enum.ChangelogType.change, [=[Great Vault skin: reward slots, activity art, intro text and the currency row now use the GW2 look, locked slots show a lock, the selected slot a gold border]=]},
+    {GW.Enum.ChangelogType.change, [=[Character data (gold per character) moved into the main database, the old GW2UI_STORAGE2 variable is migrated automatically]=]},
+    {GW.Enum.ChangelogType.change, [=[Era clients: the quest tracking state moved into the character database, the old GW2UI_QUEST_WATCH_DB variable is migrated automatically]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fix actionbar binding error on era clients]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fix pet bar keybindings missing after a fresh login]=]},
+    {GW.Enum.ChangelogType.bug, [=[Micro menu: the inventory and character tooltips no longer stay open after leaving the button]=]},
+    {GW.Enum.ChangelogType.bug, [=[Micro menu: the quest counter no longer includes hidden quests]=]},
+    {GW.Enum.ChangelogType.change, [=[World event tracker: code split per expansion, less work per tick, fixed the taskbar flash option, the next event time in the micro menu tooltip and alerts of disabled events]=]},
+    {GW.Enum.ChangelogType.change, [=[World event tracker: new Midnight weekly storylines (Prey Hunt, Silvermoon Court, Zul'jarra's Forces, Slayer's Duellum), updated Liadrin quest list and a "ready for turn-in" state in the tooltip]=]},
+    {GW.Enum.ChangelogType.bug, [=[Action bars are now layered above the objectives tracker]=]},
+    {GW.Enum.ChangelogType.change, [=[Hero panel (Retail): missing enchants and empty sockets are marked red (item info option), optional item level coloring relative to the equipped average, set bonus count and Mythic+ rating as tiles in the attributes list with tooltips]=]},
+    {GW.Enum.ChangelogType.change, [=[Hero panel (all game versions): stats picker via the cog in the attributes box - hide single stats, reorder them by drag and drop, right click resets to the defaults]=]},
+    {GW.Enum.ChangelogType.bug, [=[Hero panel can be moved during combat (placed at the cursor on release), scaling in combat shows a notice instead of an error]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fix minimap coordinates staying at N/A or frozen depending on the order the options were enabled]=]},
+    {GW.Enum.ChangelogType.bug, [=[Show the "Move to Inactive" toggle in the reputation details on era clients]=]},
+    {GW.Enum.ChangelogType.change, [=[Reputation: at war factions are marked in the list, the detail options are now one checkbox row]=]},
+    {GW.Enum.ChangelogType.change, [=[Reputation: show the amount missing to the next rank, right click toggles the experience bar, no empty description block]=]},
+    {GW.Enum.ChangelogType.feature, [=[Reputation: show the reputation gained this session per faction (resets on reload, ctrl + right click resets it manually)]=]},
+})
+
+addChange("11.1.5", {
+    {GW.Enum.ChangelogType.bug, [=[Fix evoker ebon might bar]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fix party unit values]=]},
+})
+
+addChange("11.1.4", {
+    {GW.Enum.ChangelogType.feature, [=[Bags: the bag can open and close itself with the merchant, mailbox, auction house, bank and trade window - pick the contexts in the new "Open automatically at" submenu of the bag settings. Only what the auto open opened gets closed: a bag you opened yourself stays]=]},
+    {GW.Enum.ChangelogType.feature, [=[Bags: new display options - sort on open, grey out junk, tint items red that your character cannot use, and an equipment set icon on set items (Retail) so they are safe from accidental selling]=]},
+    {GW.Enum.ChangelogType.bug, [=[Quest tracker (Retail): the group finder eye no longer breaks Blizzards applicant list - clicking it tainted the group finder, and with the secret values of 12.1 every applicant update then errored until reload]=]},
+    {GW.Enum.ChangelogType.bug, [=[Auras (Retail): no more blocked action error when your dispel abilities change during combat - the aura containers now refresh right after the fight instead]=]},
+    {GW.Enum.ChangelogType.bug, [=[Player buffs (Retail): weapon enchantment slots sit flush in the buff grid again instead of drifting off with a gap]=]},
+    {GW.Enum.ChangelogType.bug, [=[Bag taint]=]},
+})
+
+addChange("11.1.3", {
+    {GW.Enum.ChangelogType.change, [=[Advanced aura filters (Retail): rebuilt from the ground up so an aura can never appear twice again - even with the secret aura values of patch 12.1. Every selected filter now narrows the display, and each entry cycles through three states: off, required (check) or excluded (red cross)]=]},
+    {GW.Enum.ChangelogType.feature, [=[New aura property filters (Retail): Dispellable, Stealable, Boss Aura, Priority Debuff and Role Aura - these stay accurate even while aura data is secret]=]},
+    {GW.Enum.ChangelogType.change, [=[Aura display (Retail): target, focus and pet frames show one buff and one debuff block with their own size sliders; the "own auras bigger" split had to go - it was the source of the duplicate icons. Dispel type icons still appear only on debuffs you can dispel and now follow talent changes instantly]=]},
+    {GW.Enum.ChangelogType.bug, [=[Fix wrong HP values on retail clients]=]},
+    {GW.Enum.ChangelogType.bug, [=[Setting improvements]=]},
+    {GW.Enum.ChangelogType.bug, [=[Grids hides correctly]=]},
+})
+
 addChange("11.1.2", {
     {GW.Enum.ChangelogType.bug, [=[Secret more secrets]=]},
 })
-
-
 
 addChange("11.1.1", {
     {GW.Enum.ChangelogType.bug, [=[Unit frames (Retail): Blizzard reads the .unit field on frames itself since 12.1 (the ping system among others) - an addon-written value there is tainted and trips up Blizzards secure readers. The oUF-based raid grids got the upstream oUF fix (internal state moved to its own field), and every own secure unit frame (player, target, focus, party, pet, boss, arena) keeps its bookkeeping in a gw-prefixed field now; the unit reaches Blizzard exclusively through the secure "unit" attribute]=]},

@@ -86,34 +86,50 @@ local nextAddonMenuButtonAnchor
 local characterWindowConfig
 
 local mover_OnDragStart = [=[
-    if button ~= "LeftButton" then
+    if button ~= "LeftButton" or self:GetAttribute("isMoving") then
         return
     end
     local f = self:GetParent()
-    if self:GetAttribute("isMoving") then
-        f:CallMethod("StopMovingOrSizing")
+    if self:GetAttribute("state-combat") ~= "combat" then
+        self:SetAttribute("isMoving", "free")
+        f:CallMethod("StartMoving")
+        return
     end
-    self:SetAttribute("isMoving", true)
-    f:CallMethod("StartMoving")
+
+    -- cursor offset from the window's top left corner (mover and window share the same scale)
+    local mx, my = self:GetMousePosition()
+    local ml, mb, mw, mh = self:GetRect()
+    local fl, fb, fw, fh = f:GetRect()
+    if not (mx and ml and fl) then
+        return
+    end
+    self:SetAttribute("dragX", ml + mx * mw - fl)
+    self:SetAttribute("dragY", mb + my * mh - (fb + fh))
+    self:SetAttribute("isMoving", "combat")
 ]=]
 
 local mover_OnDragStop = [=[
     if button ~= "LeftButton" then
         return
     end
-    if not self:GetAttribute("isMoving") then
+    local mode = self:GetAttribute("isMoving")
+    if not mode then
         return
     end
     self:SetAttribute("isMoving", false)
+
     local f = self:GetParent()
-    f:CallMethod("StopMovingOrSizing")
-    local x, y, _ = f:GetRect()
+    if mode == "combat" then
+        f:ClearAllPoints()
+        f:SetPoint("TOPLEFT", "$cursor", "BOTTOMLEFT", -self:GetAttribute("dragX"), -self:GetAttribute("dragY"))
+    else
+        f:CallMethod("StopMovingOrSizing")
+    end
 
-    -- re-anchor to UIParent after the move
+    -- re-anchor to the screen with the final (clamped) position and store it
+    local x, y = f:GetRect()
     f:ClearAllPoints()
-    f:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", x, y)
-
-    -- store the updated position
+    f:SetPoint("BOTTOMLEFT", "$screen", "BOTTOMLEFT", x, y)
     self:CallMethod("savePosition", x, y)
 ]=]
 
@@ -230,6 +246,7 @@ local function LoadCharacterWindowBase(secureOnClick, secureOnAttributeChanged, 
     frame.mover.savePosition = mover_SavePosition
     frame.mover:SetAttribute("_onmousedown", mover_OnDragStart)
     frame.mover:SetAttribute("_onmouseup", mover_OnDragStop)
+    RegisterStateDriver(frame.mover, "combat", "[combat] combat; nocombat")
 
     frame.sizer.texture:SetDesaturated(true)
     frame.sizer:SetScript("OnEnter", function(self)
@@ -247,6 +264,11 @@ local function LoadCharacterWindowBase(secureOnClick, secureOnAttributeChanged, 
     frame.sizer:SetFrameLevel(frame:GetFrameLevel() + 15)
     frame.sizer:SetScript("OnMouseDown", function(self, btn)
         if btn ~= "RightButton" then
+            return
+        end
+        if InCombatLockdown() then
+            -- SetScale / SetPoint on the protected window are blocked in combat
+            GW.Notice(ERR_NOT_IN_COMBAT)
             return
         end
 

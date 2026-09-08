@@ -200,6 +200,15 @@ end
 local function worldMapSkin()
     WorldMapFrame:GwStripTextures()
     GW.CreateFrameHeaderWithBody(WorldMapFrame, WorldMapFrameTitleText, "Interface/AddOns/GW2_UI/textures/character/questlog-window-icon.png", {QuestMapFrame}, nil, false, true)
+
+    WorldMapFrame.gwBodyEdge = WorldMapFrame:CreateTexture(nil, "BACKGROUND", nil, 1)
+    WorldMapFrame.gwBodyEdge:SetTexture("Interface/AddOns/GW2_UI/textures/character/worldmap-background.png")
+    WorldMapFrame.gwBodyEdge:SetTexCoord(0.6, 0.65, 0, 1)
+    WorldMapFrame.gwBodyEdge:SetWidth(12)
+    WorldMapFrame.gwBodyEdge:Hide()
+    if WorldMapFrame.backgroundMask then
+        WorldMapFrame.gwBodyEdge:AddMaskTexture(WorldMapFrame.backgroundMask)
+    end
     WorldMapFrameTitleText:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.BigHeader, nil, 6)
 
     WorldMapFrame.BorderFrame:GwStripTextures()
@@ -385,30 +394,43 @@ local function worldMapSkin()
     MapLegendScrollFrame:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder, true)
     GW.HandleTrimScrollBar(MapLegendScrollFrame.ScrollBar)
     -- 11.1 Side Tabs
-    local lastTab = nil
-    for idx, tab in ipairs (QuestMapFrame.TabButtons) do
+    local function SkinQuestMapTab(tab, lastTab)
         GW.HandleTabs(tab, "right", {tab.Icon}, true)
-        if idx > 1 then
-            tab:ClearAllPoints()
+        tab:ClearAllPoints()
+        if lastTab then
             tab:SetPoint("TOP", lastTab, "BOTTOM", 0, 1)
+        else
+            tab:SetPoint("TOPLEFT", QuestMapFrame, "TOPRIGHT", 0, -28)
         end
+
+        -- straight body edge behind the tab column, see gwBodyEdge above
+        local edge = WorldMapFrame.gwBodyEdge
+        if edge then
+            if not lastTab then
+                edge:ClearAllPoints()
+                edge:SetPoint("RIGHT", WorldMapFrame.tex, "RIGHT", 0, 0)
+                edge:SetPoint("TOP", tab, "TOP", 0, 2)
+            end
+            edge:SetPoint("BOTTOM", tab, "BOTTOM", 0, -2)
+            edge:Show()
+        end
+    end
+
+    local lastTab = nil
+    for _, tab in ipairs(QuestMapFrame.TabButtons) do
+        SkinQuestMapTab(tab, lastTab)
         lastTab = tab
     end
     -- add a delay here so that other addons can add there tabs to that array
     C_Timer.After(2, function()
-        for idx, tab in ipairs (QuestMapFrame.TabButtons) do
-            GW.HandleTabs(tab, "right", {tab.Icon}, true)
-            if idx > 1 then
-                tab:ClearAllPoints()
-                tab:SetPoint("TOP", lastTab, "BOTTOM", 0, 1)
-            end
+        lastTab = nil
+        for _, tab in ipairs(QuestMapFrame.TabButtons) do
+            SkinQuestMapTab(tab, lastTab)
             lastTab = tab
         end
 
         if C_AddOns.IsAddOnLoaded("WorldQuestTab") then
-            GW.HandleTabs(WQT_QuestMapTab, "right", {WQT_QuestMapTab.Icon}, true)
-            WQT_QuestMapTab:ClearAllPoints()
-            WQT_QuestMapTab:SetPoint("TOP", lastTab, "BOTTOM", 0, 1)
+            SkinQuestMapTab(WQT_QuestMapTab, lastTab)
 
             FML:GwHandleDropDownBox()
             WQT_ListContainer.TopBar.FilterDropdown:GwHandleDropDownBox(GW.BackdropTemplates.DopwDown, true)

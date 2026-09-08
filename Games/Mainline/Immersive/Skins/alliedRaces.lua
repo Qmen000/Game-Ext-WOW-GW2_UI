@@ -13,6 +13,7 @@ local function ApplyAlliedRacesUISkin()
     AlliedRacesFrame.ModelScene:SetHeight(565)
 
     select(2, AlliedRacesFrame.ModelScene:GetRegions()):Hide()
+    GW.HandleModelSceneControlFrame(AlliedRacesFrame.ModelScene.ControlFrame)
 
     GW.CreateFrameHeaderWithBody(AlliedRacesFrame, AlliedRacesFrameTitleText, "Interface/AddOns/GW2_UI/textures/icons/auction-window-icon.png", {AlliedRacesFrame.RaceInfoFrame}, nil, false, true)
 

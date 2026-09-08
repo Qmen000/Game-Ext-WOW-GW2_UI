@@ -1218,3 +1218,78 @@ local function QuestInfo_Display(template, parentFrame)
     end
 end
 GW.QuestInfo_Display = QuestInfo_Display
+
+local function SetHeaderPortrait(header, unit, borderInset)
+    local icon = header and header.windowIcon
+    if not icon then return end
+
+    if not icon.gwPortraitFramed then
+        icon.gwPortraitFramed = true
+        borderInset = borderInset or 3
+        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        icon:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithColorableBorder, true, borderInset, borderInset)
+        icon.backdrop:SetBackdropColor(0, 0, 0, 0.72)
+        icon.backdrop:SetBackdropBorderColor(0, 0, 0, 0.9)
+
+        icon.gwAccentLine = header:CreateTexture(nil, "OVERLAY", nil, 3)
+        icon.gwAccentLine:SetTexture("Interface/AddOns/GW2_UI/textures/uistuff/statusbarborderpixel.png")
+        icon.gwAccentLine:SetPoint("BOTTOMLEFT", icon, "BOTTOMLEFT", 0, -2)
+        icon.gwAccentLine:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 0, -2)
+        icon.gwAccentLine:SetHeight(2)
+        icon.gwAccentLine:SetVertexColor(1, 0.86, 0.46, 0.85)
+    end
+
+    SetPortraitTexture(icon, unit)
+end
+GW.SetHeaderPortrait = SetHeaderPortrait
+
+-- zoom / rotate / reset buttons of a ModelSceneControlFrameTemplate (dressing room, transmog,
+-- mount journal, ...): blizzards grey square buttons become small gw2 backdrops with muted icons
+local function HandleModelSceneControlFrame(controlFrame)
+    if not controlFrame or controlFrame.gwSkinned then return end
+    controlFrame.gwSkinned = true
+
+    for _, key in pairs({ "zoomInButton", "zoomOutButton", "rotateLeftButton", "rotateRightButton", "resetButton" }) do
+        local button = controlFrame[key]
+        if button then
+            if button.NormalTexture then
+                button.NormalTexture:SetAlpha(0)
+            end
+            button:SetSize(24, 24)
+            button:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder) -- flush on the button, no outer frame
+            if button.Icon then
+                button.Icon:SetSize(14, 14)
+                button.Icon:SetDesaturated(true)
+            end
+        end
+    end
+end
+GW.HandleModelSceneControlFrame = HandleModelSceneControlFrame
+
+-- the older ModelWithControlsTemplate (our character window models): a panel of six 18px buttons
+-- with the UI-ModelControlPanel art; drop the panel art and give the buttons the same gw2 look as
+-- HandleModelSceneControlFrame. Blizzards hover fade of the panel stays.
+local function HandleModelControlFrame(controlFrame)
+    if not controlFrame or controlFrame.gwSkinned then return end
+    controlFrame.gwSkinned = true
+
+    for _, region in pairs({ controlFrame:GetRegions() }) do
+        if region:IsObjectType("Texture") then
+            region:SetAlpha(0)
+        end
+    end
+
+    for _, button in pairs({ controlFrame:GetChildren() }) do
+        if button:IsObjectType("Button") then
+            if button.bg then
+                button.bg:SetAlpha(0)
+            end
+            button:GwCreateBackdrop(GW.BackdropTemplates.DefaultWithSmallBorder)
+            if button.icon then
+                button.icon:SetSize(14, 14)
+                button.icon:SetDesaturated(true)
+            end
+        end
+    end
+end
+GW.HandleModelControlFrame = HandleModelControlFrame

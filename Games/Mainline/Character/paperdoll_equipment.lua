@@ -50,7 +50,7 @@ local STATS_ICONS = {
     DODGE = {l = 0.5, r = 0.75, t = 0.5, b = 0.75},
     BLOCK = {l = 0.75, r = 1, t = 0.5, b = 0.75},
     PARRY = {l = 0, r = 0.25, t = 0, b = 0.25},
-    MOVESPEED = {l = 0.5, r = 0.75, t = 0.75, b = 1}
+    MOVESPEED = {l = 0.5, r = 0.75, t = 0.75, b = 1},
 }
 -- forward function defs
 local getBagSlotFrame
@@ -495,6 +495,144 @@ local function setStatIcon(self, stat)
 end
 
 
+---------- set bonus ----------
+
+-- "%s (%d/%d)" -> name, worn, total; "(%d) Set: %s" -> inactive bonus; "Set: %s" -> active bonus.
+-- Some locales use positional placeholders like "%1$s (%2$d/%3$d)".
+local function FormatToPattern(fmt)
+    return (fmt:gsub("%(", "%%("):gsub("%)", "%%)"):gsub("%%%d*%$?s", "(.+)"):gsub("%%%d*%$?d", "(%%d+)"))
+end
+local MATCH_SET_NAME = FormatToPattern(ITEM_SET_NAME)
+local MATCH_SET_BONUS_GRAY = FormatToPattern(ITEM_SET_BONUS_GRAY)
+local MATCH_SET_BONUS = FormatToPattern(ITEM_SET_BONUS)
+local SET_BONUS_SLOTS = {1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}
+local equippedSets = {}
+
+local function CollectEquippedSets()
+    wipe(equippedSets)
+    for _, slot in ipairs(SET_BONUS_SLOTS) do
+        local data = C_TooltipInfo.GetInventoryItem("player", slot)
+        local set, collectBonuses
+        for _, line in ipairs(data and data.lines or {}) do
+            local text = line.leftText
+            if text and not set then
+                local name, worn, total = strmatch(text, MATCH_SET_NAME)
+                if name then
+                    set = equippedSets[name]
+                    if not set then
+                        set = {name = name, worn = tonumber(worn), total = tonumber(total), bonuses = {}, maxItemLevel = 0, maxItemID = 0}
+                        equippedSets[name] = set
+                        collectBonuses = true
+                    end
+                    -- newest set = highest item level, ties by item id
+                    local itemLevel = C_Item.GetCurrentItemLevel(ItemLocation:CreateFromEquipmentSlot(slot)) or 0
+                    set.maxItemLevel = max(set.maxItemLevel, itemLevel)
+                    set.maxItemID = max(set.maxItemID, data.id or 0)
+                end
+            elseif text and collectBonuses and strmatch(text, MATCH_SET_BONUS) then
+                tinsert(set.bonuses, {text = text, color = line.leftColor, active = not strmatch(text, MATCH_SET_BONUS_GRAY)})
+            end
+        end
+    end
+end
+
+local function setBonus_OnEnter(self)
+    local set = self.set
+    if not set then return end
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(format("%s (%d/%d)", set.name, set.worn, set.total), 1, 1, 1)
+    for _, bonus in ipairs(set.bonuses) do
+        local color = bonus.color
+        GameTooltip:AddLine(bonus.text, color and color.r or 1, color and color.g or 1, color and color.b or 1, true)
+    end
+    GameTooltip:Show()
+end
+
+-- with several sets worn the newest one wins: highest item level, then item id, then worn pieces
+local function IsNewerSet(set, other)
+    if set.maxItemLevel ~= other.maxItemLevel then
+        return set.maxItemLevel > other.maxItemLevel
+    end
+    if set.maxItemID ~= other.maxItemID then
+        return set.maxItemID > other.maxItemID
+    end
+    return set.worn > other.worn
+end
+
+local function GetBestEquippedSet()
+    CollectEquippedSets()
+    local best
+    for _, set in pairs(equippedSets) do
+        if not best or IsNewerSet(set, best) then
+            best = set
+        end
+    end
+    if not best then return end
+
+    local activeBonuses = 0
+    for _, bonus in ipairs(best.bonuses) do
+        if bonus.active then
+            activeBonuses = activeBonuses + 1
+        end
+    end
+    best.allBonusesActive = activeBonuses == #best.bonuses
+    best.anyBonusActive = activeBonuses > 0
+    return best
+end
+
+---------- mythic+ rating ----------
+
+local dungeonScoreRows = {}
+
+local function dungeonScore_OnEnter(self)
+    local score = C_ChallengeMode.GetOverallDungeonScore() or 0
+    local color = C_ChallengeMode.GetDungeonScoreRarityColor(score) or HIGHLIGHT_FONT_COLOR
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(DUNGEON_SCORE, 1, 1, 1)
+    GameTooltip:AddLine(DUNGEON_SCORE_TOTAL_SCORE:format(color:WrapTextInColorCode(score)), 1, 1, 1)
+
+    -- season best per dungeon, best score first
+    wipe(dungeonScoreRows)
+    for _, mapID in ipairs(C_ChallengeMode.GetMapTable() or {}) do
+        local name = C_ChallengeMode.GetMapUIInfo(mapID)
+        local affixScores, mapScore = C_MythicPlus.GetSeasonBestAffixScoreInfoForMap(mapID)
+        local best
+        for _, affixScore in ipairs(affixScores or {}) do
+            if not best or affixScore.score > best.score then
+                best = affixScore
+            end
+        end
+        tinsert(dungeonScoreRows, {
+            name = name or UNKNOWN,
+            score = mapScore or 0,
+            level = best and best.level or 0,
+            overTime = best and best.overTime,
+        })
+    end
+    sort(dungeonScoreRows, function(a, b)
+        if a.score ~= b.score then
+            return a.score > b.score
+        end
+        return a.name < b.name
+    end)
+
+    if #dungeonScoreRows > 0 then
+        GameTooltip:AddLine(" ")
+    end
+    for _, row in ipairs(dungeonScoreRows) do
+        if row.score > 0 then
+            local levelColor = row.overTime and LIGHTGRAY_FONT_COLOR or C_ChallengeMode.GetKeystoneLevelRarityColor(row.level) or HIGHLIGHT_FONT_COLOR
+            local scoreColor = C_ChallengeMode.GetSpecificDungeonOverallScoreRarityColor(row.score) or HIGHLIGHT_FONT_COLOR
+            GameTooltip:AddDoubleLine(row.name, levelColor:WrapTextInColorCode("+" .. row.level) .. "  " .. scoreColor:WrapTextInColorCode(row.score), 1, 1, 1)
+        else
+            GameTooltip:AddDoubleLine(row.name, "-", 0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
+        end
+    end
+    GameTooltip:Show()
+end
+
+---------- stats ----------
+
 local function getStatListFrame(self)
     local frame = self.statsFramePool:Acquire()
 
@@ -508,6 +646,13 @@ local function getStatListFrame(self)
 
         frame:SetScript("OnEnter", stat_OnEnter)
         frame:SetScript("OnLeave", GameTooltip_Hide)
+        GW.StatsPicker.RegisterTile(frame:GetParent(), frame)
+
+        -- text glyph used instead of the icon by the set and mythic+ tiles
+        frame.glyph = frame:CreateFontString(nil, "OVERLAY")
+        frame.glyph:SetPoint("CENTER", frame.icon, "CENTER")
+        frame.glyph:GwSetFontTemplate(DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Header)
+        frame.glyph:Hide()
         frame.initialized = true
     end
 
@@ -532,7 +677,47 @@ local function updateStats(self)
     end
     self.statsFramePool:ReleaseAll()
 
-    local grid, x, y = 1, 0, 0
+    -- tiles are collected first and placed by the stats picker afterwards
+    local editMode = GW.StatsPicker.IsEditMode(self.stats)
+    local entries = {}
+
+    -- a tile that is not a character stat (set bonus, mythic+ rating): text glyph instead of an icon
+    local function AddSpecialTile(key, glyphText, valueText, color, onEnter, data)
+        local visible = GW.StatsPicker.IsVisible(key, true)
+        if not (visible or editMode) then return end
+
+        local frame = getStatListFrame(self)
+        frame.stat = key
+        frame.gwStatVisible = visible
+        frame:SetAlpha(visible and 1 or 0.35)
+        frame.icon:Hide()
+        frame.glyph:SetText(glyphText)
+        frame.glyph:Show()
+        frame.Value:SetText(valueText)
+        frame.Value:SetTextColor(color.r, color.g, color.b)
+        frame.tooltip = nil
+        frame.onEnterFunc = onEnter
+        frame.set = data
+        tinsert(entries, frame)
+    end
+
+    if GW.settings.CHARACTER_SHOW_SET_BONUS then
+        local set = GetBestEquippedSet()
+        if set then
+            local color = set.allBonusesActive and GREEN_FONT_COLOR or set.anyBonusActive and YELLOW_FONT_COLOR or GRAY_FONT_COLOR
+            AddSpecialTile("SETBONUS", "Set", set.worn .. "/" .. set.total, color, setBonus_OnEnter, set)
+        elseif editMode then
+            AddSpecialTile("SETBONUS", "Set", "-", GRAY_FONT_COLOR, setBonus_OnEnter)
+        end
+    end
+
+    local dungeonScore = C_ChallengeMode.GetOverallDungeonScore() or 0
+    if dungeonScore > 0 then
+        local color = C_ChallengeMode.GetDungeonScoreRarityColor(dungeonScore) or HIGHLIGHT_FONT_COLOR
+        AddSpecialTile("DUNGEONSCORE", "M+", dungeonScore, color, dungeonScore_OnEnter)
+    elseif editMode then
+        AddSpecialTile("DUNGEONSCORE", "M+", "-", GRAY_FONT_COLOR, dungeonScore_OnEnter)
+    end
 
     for _, category in ipairs(PAPERDOLL_STATCATEGORIES) do
         for _, stat in ipairs(category.stats) do
@@ -547,22 +732,13 @@ local function updateStats(self)
             local frame = getStatListFrame(self)
             PAPERDOLL_STATINFO[stat.stat].updateFunc(frame, "player")
 
-            if showStat and (not stat.hideAt or stat.hideAt ~= frame.numericValue) then
+            -- edit mode shows every stat of the spec, hidden ones dimmed by the layout
+            local visible = GW.StatsPicker.IsVisible(stat.stat, not stat.hideAt or stat.hideAt ~= frame.numericValue)
+            if showStat and (visible or editMode) then
                 frame.stat = stat.stat
+                frame.gwStatVisible = visible
                 setStatIcon(frame, stat.stat)
-
-                frame:ClearAllPoints()
-                frame:SetPoint("TOPLEFT", self.stats, "TOPLEFT", 5 + x, -35 - y)
-                frame:Show()
-
-                grid = grid + 1
-                x = x + 92
-
-                if grid > 2 then
-                    grid = 1
-                    x = 0
-                    y = y + 35
-                end
+                tinsert(entries, frame)
             else
                 self.statsFramePool:Release(frame)
             end
@@ -571,10 +747,9 @@ local function updateStats(self)
 
     -- Add Durability Icon
     local durabilityFrame = getStatListFrame(self)
-    durabilityFrame:ClearAllPoints()
-    durabilityFrame:SetPoint("TOPLEFT", self.stats, "TOPLEFT", 5 + x, -35 - y)
-    durabilityFrame:Show()
     durabilityFrame.stat = "DURABILITY"
+    durabilityFrame.gwStatVisible = true
+    tinsert(entries, durabilityFrame)
     durabilityFrame.onEnterFunc = nil
     durabilityFrame.icon:SetTexture("Interface/AddOns/GW2_UI/textures/globe/repair.png")
     durabilityFrame.icon:SetTexCoord(0, 1, 0, 0.5)
@@ -584,6 +759,14 @@ local function updateStats(self)
     durabilityFrame:RegisterEvent("UPDATE_INVENTORY_DURABILITY")
     durabilityFrame:RegisterEvent("MERCHANT_SHOW")
     GW.DurabilityOnEvent(durabilityFrame, "ForceUpdate")
+
+    -- 301 is the box size from the xml, it grows when the edit mode shows every stat
+    GW.StatsPicker.Layout(self.stats, entries, 35, 301)
+end
+GW.UpdateCharacterStats = function()
+    if GwDressingRoom then
+        updateStats(GwDressingRoom)
+    end
 end
 
 
@@ -626,7 +809,7 @@ local function stats_OnEvent(self, event, ...)
         end
     end
     if IsIn(event,"COMBAT_RATING_UPDATE", "MASTERY_UPDATE", "SPEED_UPDATE", "LIFESTEAL_UPDATE", "AVOIDANCE_UPDATE", "BAG_UPDATE", "PLAYER_EQUIPMENT_CHANGED",
-            "PLAYERBANKSLOTS_CHANGED", "PLAYER_AVG_ITEM_LEVEL_UPDATE", "PLAYER_DAMAGE_DONE_MODS") then
+            "PLAYERBANKSLOTS_CHANGED", "PLAYER_AVG_ITEM_LEVEL_UPDATE", "PLAYER_DAMAGE_DONE_MODS", "CHALLENGE_MODE_MAPS_UPDATE") then
         self:SetScript("OnUpdate", stats_QueuedUpdate)
     elseif (event == "PLAYER_TALENT_UPDATE") then
         updateUnitData(parent)
@@ -995,6 +1178,7 @@ local function RegisterStatsEvents(frame)
         "COLOR_OVERRIDE_UPDATED",
         "SPELL_POWER_CHANGED",
         "CHARACTER_ITEM_FIXUP_NOTIFICATION",
+        "CHALLENGE_MODE_MAPS_UPDATE",
     }
 
     for _, event in ipairs(events) do
@@ -1042,6 +1226,15 @@ local function ResetBagSlotFrame(_, f)
 end
 
 local function ResetStatsFrame(_, f)
+    f:SetScript("OnUpdate", nil)
+    f:SetAlpha(1)
+    f.icon:Show()
+    if f.glyph then -- the pool resets new frames before they are initialized
+        f.glyph:Hide()
+    end
+    f.gwStatVisible = nil
+    f.set = nil
+    f.Value:SetTextColor(1, 1, 1)
     f:SetScript("OnEvent", nil)
     f:UnregisterAllEvents()
     f:ClearAllPoints()
@@ -1056,6 +1249,7 @@ end
 local function LoadPDBagList(fmMenu, parent)
     local fmGDR = CreateFrame("Button", "GwDressingRoom", parent, "GwDressingRoom")
     local fmPD3M = fmGDR.model
+    GW.HandleModelControlFrame(fmPD3M.controlFrame)
     local fmGPDS = fmGDR.stats
     local fmGPDBIL = CreateFrame("Frame", "GwPaperDollBagItemList", parent, "GwPaperDollBagItemList")
 
@@ -1138,6 +1332,11 @@ local function LoadPDBagList(fmMenu, parent)
 
     fmGDR.itemLevelFrame:SetScript("OnEnter", ItemLevelTooltip)
     fmGDR.itemLevelFrame:SetScript("OnLeave", GameTooltip_Hide)
+
+    -- the mythic+ rating tile needs the season map data, it arrives via CHALLENGE_MODE_MAPS_UPDATE
+    fmGDR:HookScript("OnShow", function() C_MythicPlus.RequestMapInfo() end)
+
+    GW.StatsPicker.Setup(fmGPDS, fmGDR, function() updateStats(fmGDR) end)
 
     fmGPDBIL:SetScript("OnEvent", bagItemListOnEvent)
     fmGPDBIL:SetScript("OnHide", resetBagInventory)

@@ -236,6 +236,9 @@ local function PaperDollGetStatListFrame(self, i, isPet, stat)
     return frame
 end
 
+-- player stat tiles of the current update, the stats picker lays them out
+local statTiles = {}
+
 local function setStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y)
     local statFrame = PaperDollGetStatListFrame(GwDressingRoom.stats, index, false, stat)
     statFrame.tooltip = tooltip
@@ -244,15 +247,18 @@ local function setStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y
     statFrame.Value:SetText(statText)
     GW.PaperDollSetStatIcon(statFrame, stat)
 
-    statFrame:ClearAllPoints()
+    statFrame.icon:ClearAllPoints()
     if stat == "DURABILITY" then
-        statFrame:SetPoint("TOPRIGHT", GwDressingRoom.stats, "TOPRIGHT", 22, -1)
         statFrame.icon:SetSize(25, 25)
+        statFrame.icon:SetPoint("LEFT", 5, 0)
         GW.DurabilityOnEvent(statFrame, "ForceUpdate")
     else
-        statFrame:SetPoint("TOPLEFT", 5 + x, -35 + -y)
+        statFrame.icon:SetSize(35, 35)
+        statFrame.icon:SetPoint("LEFT")
     end
-    grid, x, y = statGridPos(grid, x, y)
+    GW.StatsPicker.RegisterTile(GwDressingRoom.stats, statFrame)
+    statFrame.gwStatVisible = GW.StatsPicker.IsVisible(stat, true)
+    tinsert(statTiles, statFrame)
     return grid, x, y, index + 1
 end
 
@@ -286,6 +292,7 @@ local function UpdateItemLevelAndGearScore()
 end
 
 local function PaperDollUpdateStats()
+    wipe(statTiles)
     local statText, tooltip1, tooltip2
     local numShownStats = 1
     local grid = 1
@@ -333,6 +340,8 @@ local function PaperDollUpdateStats()
 
     --durability
     grid, x, y, numShownStats = setStatFrame("DURABILITY", numShownStats, DURABILITY, nil, nil, grid, x, y)
+
+    GW.StatsPicker.Layout(GwDressingRoom.stats, statTiles, 30)
 end
 GW.PaperDollUpdateStats = PaperDollUpdateStats
 
@@ -418,9 +427,9 @@ local function PaperDollSetStatIcon(self, stat)
         self.icon:SetTexture(newTexture)
         if stat == "DURABILITY" then
             self.icon:SetTexCoord(0, 1, 0, 0.5)
-            self.icon:SetDesaturated(true)
         end
     end
+    self.icon:SetDesaturated(stat == "DURABILITY")
 end
 GW.PaperDollSetStatIcon = PaperDollSetStatIcon
 
@@ -626,6 +635,7 @@ end
 
 local function LoadPaperDoll(tabContainer)
     local dressingRoom = CreateFrame("Button", "GwDressingRoom", tabContainer, "GwDressingRoom")
+    GW.HandleModelControlFrame(dressingRoom.model.controlFrame)
     local heroPanelMenu = CreateFrame("Frame", "GwHeroPanelMenu", tabContainer, "GwCharacterMenuFilledTemplate")
 
     --Legacy pet window
@@ -710,6 +720,7 @@ local function LoadPaperDoll(tabContainer)
     dressingRoomPet.characterData:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.Normal)
     dressingRoomPet.itemLevel:GwSetFontTemplate(UNIT_NAME_FONT, GW.Enum.TextSizeType.BigHeader, nil, 6)
 
+    GW.StatsPicker.Setup(dressingRoom.stats, dressingRoom, PaperDollUpdateStats)
     PaperDollUpdateStats()
     PaperDollUpdatePetStats()
     C_Timer.After(1, function()

@@ -10,6 +10,15 @@ local lastReputationCat = 1
 local OFF_Y = 10
 local DETAIL_H = 65
 local DETAIL_LG_H = (DETAIL_H * 2) + OFF_Y
+local DETAIL_LG_NODESC_H = 95 -- expanded row without description block
+
+local function HasDescription(data)
+    return data ~= nil and data.description ~= nil and data.description ~= ""
+end
+
+local function GetExpandedHeight(data)
+    return HasDescription(data) and DETAIL_LG_H or DETAIL_LG_NODESC_H
+end
 local REPBG_T = 0
 local REPBG_B = 0.464
 
@@ -23,6 +32,58 @@ local SetWatchedFactionByIndex = C_Reputation and C_Reputation.SetWatchedFaction
 local ToggleFactionAtWar = C_Reputation and C_Reputation.ToggleFactionAtWar or FactionToggleAtWar
 local GetNumFactions = C_Reputation and C_Reputation.GetNumFactions or GetNumFactions
 local IsMajorFaction = C_Reputation and C_Reputation.IsMajorFaction or GW.NoOp
+
+-- session reputation gain: a baseline per factionID is taken when entering the world and kept in
+-- memory only, so it resets on login and reload like the money session data (or manually via
+-- ctrl + right click); the gain is simply current total minus baseline
+local function GetFactionTotalStanding(data)
+    local total = data.currentStanding or 0
+    if data.factionID and C_Reputation and C_Reputation.IsFactionParagonForCurrentPlayer and C_Reputation.IsFactionParagonForCurrentPlayer(data.factionID) then
+        local currentValue = C_Reputation.GetFactionParagonInfo(data.factionID)
+        total = total + (currentValue or 0)
+    end
+    return total
+end
+
+local sessionBaseline = {}
+
+local updatingSessionBaseline = false
+local function UpdateSessionBaseline(reset, expandHeaders)
+    if updatingSessionBaseline then return end
+    updatingSessionBaseline = true -- ExpandAllFactionHeaders fires UPDATE_FACTION synchronously
+    local store = sessionBaseline
+    if reset then
+        wipe(store)
+    end
+    if expandHeaders then
+        ExpandAllFactionHeaders() -- collapsed headers hide their factions from the index range
+    end
+    for factionIndex = 1, GetNumFactions() do
+        local data = GW.GetFactionDataByIndex(factionIndex)
+        if data and not data.isHeader and data.factionID and store[data.factionID] == nil then
+            store[data.factionID] = GetFactionTotalStanding(data)
+        end
+    end
+    updatingSessionBaseline = false
+end
+
+local function GetSessionGain(data)
+    if not data.factionID then return 0 end
+    local baseline = sessionBaseline[data.factionID]
+    if baseline == nil then return 0 end
+    return GetFactionTotalStanding(data) - baseline
+end
+
+local sessionTracker = CreateFrame("Frame")
+sessionTracker:RegisterEvent("PLAYER_ENTERING_WORLD")
+sessionTracker:RegisterEvent("UPDATE_FACTION")
+sessionTracker:SetScript("OnEvent", function(_, event)
+    if event == "PLAYER_ENTERING_WORLD" then
+        UpdateSessionBaseline(false, true)
+    else
+        UpdateSessionBaseline() -- picks up factions discovered since login, no header expanding here
+    end
+end)
 
 local ReputationFrameEvents = {
 	"QUEST_LOG_UPDATE",
@@ -74,7 +135,19 @@ local function UpdateCategories(self, details)
 end
 
 local function UpdateDetailsData(self, details)
+    local selectedFactionIndex
+    if g_selectionBehavior then
+        local selected = g_selectionBehavior:GetSelectedElementData()[1]
+        selectedFactionIndex = selected and selected.factionIndex
+    end
+
     self:SetDataProvider(CreateDataProvider(details), ScrollBoxConstants.RetainScrollPosition)
+
+    if selectedFactionIndex then
+        g_selectionBehavior:SelectElementDataByPredicate(function(elementData)
+            return elementData.factionIndex == selectedFactionIndex
+        end)
+    end
 end
 
 local function CollectFactionData(fetchData)
@@ -209,18 +282,10 @@ local function SetSelectedHeaderIndexRange(firstIndex, lastIndex)
 end
 
 local function detailsAtwar_OnEnter(self)
-    self.icon:SetTexCoord(0.5, 1, 0, 0.5)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     GameTooltip:ClearLines()
     GameTooltip:SetText(REPUTATION_AT_WAR_DESCRIPTION, nil, nil, nil, nil, true)
     GameTooltip:Show()
-end
-
-local function detailsAtwar_OnLeave(self)
-    if not self.isActive then
-        self.icon:SetTexCoord(0, 0.5, 0, 0.5)
-    end
-    GameTooltip:Hide()
 end
 
 local function detailsInactive_OnEnter(self)
@@ -234,30 +299,36 @@ local function detailsShowAsBar_OnEnter(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     GameTooltip:ClearLines()
     GameTooltip:SetText(REPUTATION_SHOW_AS_XP, nil, nil, nil, nil, true)
+    GameTooltip:AddLine(L["Right click a faction to toggle this directly."], 0.8, 0.8, 0.8, true)
     GameTooltip:Show()
 end
 
+local function LayoutDetailControls(self)
+    local previous
+    for _, row in ipairs({ self.atwar, self.showAsBar, self.inactive }) do
+        if row:IsShown() then
+            row:ClearAllPoints()
+            if previous then
+                row:SetPoint("LEFT", previous, "RIGHT", 20, 0)
+            else
+                row:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", 10, 8)
+            end
+            previous = row
+        end
+    end
+end
+
 local function detailsControls_OnShow(self)
-    self:GetParent().details:Show()
-    self:GetParent().detailsbg:Show()
+    -- no description: skip the empty dark block (the row is shorter then, see GetExpandedHeight)
+    local showDescription = HasDescription(self:GetParent().data)
+    self:GetParent().details:SetShown(showDescription)
+    self:GetParent().detailsbg:SetShown(showDescription)
 
-    if self.atwar.isShowAble then
-        self.atwar:Show()
-    else
-        self.atwar:Hide()
-    end
+    self.atwar:SetShown(self.atwar.isShowAble)
+    self.viewRenown:SetShown(self.viewRenown.isShowAble)
+    self.inactive:SetShown(self.inactive.isShowAble)
 
-    if self.viewRenown.isShowAble then
-        self.viewRenown:Show()
-    else
-        self.viewRenown:Hide()
-    end
-
-    if self.inactive.isShowAble then
-        self.inactive:Show()
-    else
-        self.inactive:Hide()
-    end
+    LayoutDetailControls(self)
 end
 
 local function detailsControls_OnHide(self)
@@ -266,7 +337,7 @@ local function detailsControls_OnHide(self)
 end
 
 local function ToggleDetailsButton(self, showDetails)
-    self:SetHeight(showDetails and DETAIL_LG_H or DETAIL_H)
+    self:SetHeight(showDetails and GetExpandedHeight(self.data) or DETAIL_H)
     self.controles:SetShown(showDetails)
     if showDetails then
         self.repbg:SetTexCoord(unpack(GW.TexCoords))
@@ -282,13 +353,39 @@ local function ToggleDetails(self)
     ToggleDetailsButton(self, g_selectionBehavior:IsSelected(self))
 end
 
+local function ToggleWatchedFaction(data)
+    if data.isWatched then
+        SetWatchedFactionByIndex(0)
+    else
+        SetWatchedFactionByIndex(data.factionIndex)
+    end
+    isSearchResult = nil
+    local _, details = CollectFactionData(true)
+    UpdateDetailsData(GwRepDetailFrame.Details, details)
+end
+
+local function details_OnClick(self, mouseButton)
+    if mouseButton == "RightButton" then
+        if IsControlKeyDown() then
+            UpdateSessionBaseline(true, true)
+            isSearchResult = nil
+            local _, details = CollectFactionData(true)
+            UpdateDetailsData(GwRepDetailFrame.Details, details)
+            return
+        end
+        ToggleWatchedFaction(self.data)
+    else
+        ToggleDetails(self)
+    end
+end
+
 local function setReputationDetails(frame, data)
     frame.factionIndex = data.factionIndex
     frame.factionID = data.factionID
 
     if g_selectionBehavior:IsSelected(frame) then
         frame.controles:Show()
-        frame:SetHeight(DETAIL_LG_H)
+        frame:SetHeight(GetExpandedHeight(data))
     else
         frame:SetHeight(DETAIL_H)
         frame.controles:Hide()
@@ -313,12 +410,27 @@ local function setReputationDetails(frame, data)
     end
     frame.details:SetText(data.description)
 
-    if data.atWarWith then
-        frame.controles.atwar.isActive = true
-        frame.controles.atwar.icon:SetTexCoord(0.5, 1, 0, 0.5)
+    frame.controles.atwar.checkbutton:SetChecked(data.atWarWith)
+    frame.atWarIndicator:ClearAllPoints()
+    if data.isAccountWide then
+        frame.atWarIndicator:SetPoint("RIGHT", frame.accountWide, "LEFT", -4, 0)
     else
-        frame.controles.atwar.isActive = false
-        frame.controles.atwar.icon:SetTexCoord(0, 0.5, 0, 0.5)
+        frame.atWarIndicator:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -10, -8)
+    end
+    frame.atWarIndicator:SetShown(data.atWarWith)
+
+    local sessionGain = GetSessionGain(data)
+    if sessionGain ~= 0 then
+        frame.sessionGain.text:SetText(L["%s this session"]:format((sessionGain > 0 and "+" or "-") .. GW.GetLocalizedNumber(math.abs(sessionGain))))
+        if sessionGain > 0 then
+            frame.sessionGain.text:SetTextColor(0.5, 1, 0.5)
+        else
+            frame.sessionGain.text:SetTextColor(1, 0.5, 0.5)
+        end
+        frame.sessionGain:SetWidth(math.max(10, frame.sessionGain.text:GetStringWidth()))
+        frame.sessionGain:Show()
+    else
+        frame.sessionGain:Hide()
     end
 
     frame.controles.viewRenown.isShowAble = data.factionID and IsMajorFaction(data.factionID)
@@ -326,6 +438,10 @@ local function setReputationDetails(frame, data)
     frame.controles.showAsBar.checkbutton:SetChecked(data.isWatched)
     frame.controles.inactive.isShowAble = data.canSetInactive
     frame.controles.inactive.checkbutton:SetChecked(not GW.IsFactionActive(data.factionIndex))
+
+    if frame.controles:IsShown() then
+        detailsControls_OnShow(frame.controles)
+    end
 
     if data.factionID and RT[data.factionID] then
         frame.repbg:SetTexture("Interface/AddOns/GW2_UI/textures/rep/" .. RT[data.factionID])
@@ -343,6 +459,7 @@ local function setReputationDetails(frame, data)
         frame.repbg:SetAlpha(0)
     end
 
+    local remaining, remainingTarget -- points to the next rank / reward; nil at max rank
     if data.factionID and C_Reputation and C_Reputation.IsFactionParagonForCurrentPlayer and C_Reputation.IsFactionParagonForCurrentPlayer(data.factionID) then
         local currentValue, threshold, _, hasRewardPending = C_Reputation.GetFactionParagonInfo(data.factionID)
         local value = currentValue % threshold
@@ -365,6 +482,7 @@ local function setReputationDetails(frame, data)
 
         frame.StatusBar:SetMinMaxValues(0, 1)
         frame.StatusBar:SetValue((value - 0) / (threshold - 0))
+        remaining, remainingTarget = threshold - value, L["Paragon"]
 
         frame.background2:SetVertexColor(GW.Colors.FactionBarColors[9]:GetRGB())
         frame.StatusBar:SetStatusBarColor(GW.Colors.FactionBarColors[9]:GetRGB())
@@ -389,6 +507,7 @@ local function setReputationDetails(frame, data)
             end
 
             frame.StatusBar:SetValue((friendInfo.standing - friendInfo.reactionThreshold) / (friendInfo.nextThreshold - friendInfo.reactionThreshold))
+            remaining = friendInfo.nextThreshold - friendInfo.standing
         else
             --max rank
             frame.StatusBar:SetValue(1)
@@ -423,6 +542,8 @@ local function setReputationDetails(frame, data)
                 frame.percentage:SetText((math.floor((majorFactionData.renownReputationEarned or 0) / majorFactionData.renownLevelThreshold * 100) .. "%"))
 
                 frame.StatusBar:SetValue((majorFactionData.renownReputationEarned or 0) / majorFactionData.renownLevelThreshold)
+                remaining = majorFactionData.renownLevelThreshold - (majorFactionData.renownReputationEarned or 0)
+                remainingTarget = RENOWN_LEVEL_LABEL:format(majorFactionData.renownLevel + 1)
             end
         end
     else
@@ -444,6 +565,9 @@ local function setReputationDetails(frame, data)
 
         frame.StatusBar:SetMinMaxValues(0, 1)
         frame.StatusBar:SetValue((data.currentStanding - data.currentReactionThreshold) / ldiff)
+        if currentRank ~= nextRank then
+            remaining, remainingTarget = ldiff - (data.currentStanding - data.currentReactionThreshold), nextRank
+        end
 
         if currentRank == nextRank and data.currentStanding - data.currentReactionThreshold == 0 then
             frame.percentage:SetText("100%")
@@ -454,6 +578,23 @@ local function setReputationDetails(frame, data)
 
         frame.background2:SetVertexColor(GW.Colors.FactionBarColors[data.reaction]:GetRGB())
         frame.StatusBar:SetStatusBarColor(GW.Colors.FactionBarColors[data.reaction]:GetRGB())
+    end
+
+    if remaining and remaining > 0 then
+        if remainingTarget then
+            frame.remaining:SetText(L["%s until %s"]:format(GW.GetLocalizedNumber(remaining), remainingTarget))
+        else
+            frame.remaining:SetText(L["%s until next rank"]:format(GW.GetLocalizedNumber(remaining)))
+        end
+    else
+        frame.remaining:SetText("")
+    end
+
+    if data.atWarWith then
+        frame.background2:SetVertexColor(1, 0.1, 0.1)
+        frame.repbg:SetVertexColor(1, 0.4, 0.4)
+    else
+        frame.repbg:SetVertexColor(1, 1, 1)
     end
 end
 
@@ -490,8 +631,9 @@ local function detailsAtwar_OnClick(self)
     local parent = self:GetParent():GetParent()
     ToggleFactionAtWar(parent.data.factionIndex)
     if parent.data.canToggleAtWar then
+        PlaySound(parent.data.atWarWith and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
         isSearchResult = nil
-        local _, details = CollectFactionData()
+        local _, details = CollectFactionData(true)
         UpdateDetailsData(GwRepDetailFrame.Details, details)
     end
 end
@@ -512,16 +654,13 @@ end
 
 local function detailsShowAsBar_OnClick(self)
     local parent = self:GetParent():GetParent()
-    if parent.data.isWatched then
-        SetWatchedFactionByIndex(0)
-    else
-        SetWatchedFactionByIndex(parent.data.factionIndex)
-    end
+    ToggleWatchedFaction(parent.data)
 end
 
 local function InitDetailsButton(button, elementData)
     if not button.isSkinned then
 
+        SetFontWithShadow(button.controles.atwar.string, UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
         SetFontWithShadow(button.controles.inactive.string, UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
         SetFontWithShadow(button.controles.showAsBar.string, UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
         SetFontWithShadow(button.StatusBar.currentValue, UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
@@ -530,6 +669,17 @@ local function InitDetailsButton(button, elementData)
 
         SetFontWithShadow(button.currentRank, UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
         SetFontWithShadow(button.nextRank, UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
+        SetFontWithShadow(button.remaining, UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
+        button.remaining:SetTextColor(0.8, 0.8, 0.8)
+        SetFontWithShadow(button.sessionGain.text, UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
+        button.sessionGain:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(self.text:GetText(), 1, 1, 1)
+            GameTooltip:AddLine(L["Reset Session Data: Hold Ctrl + Right Click"], 0.6, 0.6, 0.6, true)
+            GameTooltip:Show()
+        end)
+        button.sessionGain:SetScript("OnLeave", GameTooltip_Hide)
+        button.sessionGain:SetScript("OnMouseUp", function(_, mouseButton) details_OnClick(button, mouseButton) end)
         SetFontWithShadow(button.name, DAMAGE_TEXT_FONT, GW.Enum.TextSizeType.Normal)
         SetFontWithShadow(button.details, UNIT_NAME_FONT, GW.Enum.TextSizeType.Small)
 
@@ -548,8 +698,11 @@ local function InitDetailsButton(button, elementData)
         button.controles:SetScript("OnShow", detailsControls_OnShow)
         button.controles:SetScript("OnHide", detailsControls_OnHide)
         button.controles.atwar:SetScript("OnEnter", detailsAtwar_OnEnter)
-        button.controles.atwar:SetScript("OnLeave", detailsAtwar_OnLeave)
+        button.controles.atwar:SetScript("OnLeave", GameTooltip_Hide)
         button.controles.atwar:SetScript("OnClick", detailsAtwar_OnClick)
+        button.controles.atwar.checkbutton:SetScript("OnClick", function() detailsAtwar_OnClick(button.controles.atwar) end)
+        button.controles.atwar.checkbutton:SetScript("OnEnter", function() detailsAtwar_OnEnter(button.controles.atwar) end)
+        button.controles.atwar.checkbutton:SetScript("OnLeave", GameTooltip_Hide)
         button.controles.viewRenown:SetScript("OnClick", detailsViewRenown_OnClick)
         button.controles.inactive:SetScript("OnEnter", detailsInactive_OnEnter)
         button.controles.inactive:SetScript("OnLeave", GameTooltip_Hide)
@@ -572,7 +725,16 @@ local function InitDetailsButton(button, elementData)
             GameTooltip:Show()
         end)
         button.accountWide:SetScript("OnLeave", GameTooltip_Hide)
-        button:SetScript("OnClick", ToggleDetails)
+        button.atWarIndicator:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(AT_WAR, 1, 1, 1)
+            GameTooltip:AddLine(REPUTATION_AT_WAR_DESCRIPTION, 0.8, 0.8, 0.8, true)
+            GameTooltip:Show()
+        end)
+        button.atWarIndicator:SetScript("OnLeave", GameTooltip_Hide)
+        button.atWarIndicator:SetScript("OnMouseUp", function(_, mouseButton) details_OnClick(button, mouseButton) end)
+        button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        button:SetScript("OnClick", details_OnClick)
         button:SetScript("OnEnter", function(self)
             self.repbg:SetBlendMode("ADD")
             self.background:SetBlendMode("ADD")
@@ -584,9 +746,12 @@ local function InitDetailsButton(button, elementData)
             self.background2:SetBlendMode("BLEND")
         end)
 
+        button.controles.atwar.string:SetText(AT_WAR)
+        button.controles.atwar:SetWidth(22 + button.controles.atwar.string:GetStringWidth())
         button.controles.inactive.string:SetText(FACTION_INACTIVE)
-        button.controles.inactive:SetWidth(button.controles.inactive.string:GetWidth())
+        button.controles.inactive:SetWidth(22 + button.controles.inactive.string:GetStringWidth())
         button.controles.showAsBar.string:SetText(SHOW_FACTION_ON_MAINSCREEN)
+        button.controles.showAsBar:SetWidth(22 + button.controles.showAsBar.string:GetStringWidth())
         button.currentRank:SetText(REFORGE_CURRENT)
         button.nextRank:SetText(NEXT)
 
@@ -595,11 +760,14 @@ local function InitDetailsButton(button, elementData)
         button.statusbarbg:SetPoint("BOTTOMRIGHT", button.StatusBar, "BOTTOMRIGHT", 2, -2)
         button.currentRank:SetPoint("TOPLEFT", button.StatusBar, "BOTTOMLEFT", 0, -5)
         button.nextRank:SetPoint("TOPRIGHT", button.StatusBar, "BOTTOMRIGHT", 0, -5)
+        button.remaining:ClearAllPoints()
+        button.remaining:SetPoint("TOP", button.StatusBar, "BOTTOM", 0, -5)
+        button.sessionGain:ClearAllPoints()
+        button.sessionGain:SetPoint("RIGHT", button.atWarIndicator, "LEFT", -6, 0)
 
         button.details:Hide()
         button.detailsbg:Hide()
         button.details:SetWidth(button.StatusBar:GetWidth())
-        button.controles.showAsBar:SetWidth(button.controles.showAsBar.string:GetWidth())
         button.repbg:SetTexCoord(0, 1, REPBG_T, REPBG_B)
         button.repbg:SetDesaturated(true)
 
@@ -813,7 +981,7 @@ function GW.LoadReputation(tabContainer)
     detailsView:SetPadding(5, 5, 12, 12, 10)
     detailsView:SetElementExtentCalculator(function(dataIndex, elementData)
         if SelectionBehaviorMixin.IsElementDataIntrusiveSelected(elementData) then
-            return DETAIL_LG_H
+            return GetExpandedHeight(elementData)
         else
             return DETAIL_H
         end

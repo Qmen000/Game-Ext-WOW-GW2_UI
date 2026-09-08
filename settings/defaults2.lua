@@ -62,6 +62,7 @@ GW.privateDefaults = {
     profile = {
         GW2_UI_VERSION = "WELCOME",
         Layouts = {},
+        questWatch = { TrackedQuests = {}, AutoUntrackedQuests = {} }, -- era clients: manual quest tracking state
         PLAYER_TRACKED_DODGEBAR_SPELL_ID = 0,
         CHAT_KEYWORDS_ALERT_COLOR = {r = .5, g = .5, b = .5},
         ChatHistoryLog = {},
@@ -245,7 +246,6 @@ GW.globalDefault = {
         BUTTON_ASSIGNMENTS= true,
         BUTTON_ASSIGNMENTS_USED_ONLY = false,
 
-        singingSockets = true,
 
         HUD_BACKGROUND= true,
         HUD_SPELL_SWAP= true,
@@ -1560,9 +1560,25 @@ GW.globalDefault = {
             stopAlertIfCompleted = true,
             flashTaskbar = true,
         },
+        cursedSurges = {
+            enabled = true,
+            desaturate = false,
+            alert = true,
+            alertSeconds = 300,
+            stopAlertIfCompleted = true,
+            flashTaskbar = true,
+        },
 
         -- TWW
-        khazAlgarEmissary = {
+        weeklyTWW = {
+            enabled = false,
+            desaturate = false,
+        },
+        ecologicalSuccession = {
+            enabled = false,
+            desaturate = false,
+        },
+        nightFall = {
             enabled = false,
             desaturate = false,
         },
@@ -1638,6 +1654,11 @@ GW.globalDefault = {
         },
 
         SHOW_CHARACTER_ITEM_INFO= false,
+        CHARACTER_ITEM_INFO_MISSING= true,
+        CHARACTER_ITEMLEVEL_RELATIVE_COLOR= false,
+        CHARACTER_SHOW_SET_BONUS= true,
+        CHARACTER_STAT_VISIBILITY= {},
+        CHARACTER_STAT_ORDER= {},
 
         pulltimerSeconds = 10,
 

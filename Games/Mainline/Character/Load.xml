@@ -7,5 +7,4 @@
     <Script file ="paperdoll_equipset.lua"/>
     <Script file ="currency.lua"/>
     <Script file ="professions.lua"/>
-    <Script file ="singingSockets.lua"/>
 </Ui>

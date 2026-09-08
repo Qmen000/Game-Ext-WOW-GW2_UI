@@ -276,7 +276,7 @@ local function DisplayHoverBinding()
         end
 
         if not C_AddOns.IsAddOnLoaded("Blizzard_MacroUI") then
-            hooksecurefunc("LoadAddOn", function(addon)
+            hooksecurefunc(C_AddOns, "LoadAddOn", function(addon)
                 if addon == "Blizzard_MacroUI" then
                     registermacro()
                 end

@@ -1,0 +1,5 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Script file ="buttonText.lua"/>
+    <Script file ="fader.lua"/>
+    <Script file ="flyout.lua"/>
+</Ui>
