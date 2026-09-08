@@ -198,27 +198,36 @@ end
 local function Layout(stats, entries, rowHeight, minHeight)
     local editMode = IsEditMode(stats)
     local shown = {}
-    for i, frame in ipairs(entries) do
-        frame.gwDefaultIndex = i
+    for _, frame in ipairs(entries) do
         if frame.gwStatVisible or editMode then
             tinsert(shown, frame)
         end
     end
 
-    -- user order first (as stored), everything unknown keeps the default order behind it
+    -- stored order first; a tile the stored order does not know yet (new stat, first mythic+ rating)
+    -- goes right behind its predecessor of the default order instead of to the end
     local orderIndex = {}
     for i, key in ipairs(GW.settings.CHARACTER_STAT_ORDER) do
         orderIndex[key] = i
     end
-    sort(shown, function(a, b)
-        local ia, ib = orderIndex[a.stat], orderIndex[b.stat]
-        if ia and ib then
-            return ia < ib
-        elseif ia or ib then
-            return ia ~= nil
+    local ordered = {}
+    for _, frame in ipairs(shown) do
+        if orderIndex[frame.stat] then
+            tinsert(ordered, frame)
         end
-        return a.gwDefaultIndex < b.gwDefaultIndex
-    end)
+    end
+    sort(ordered, function(a, b) return orderIndex[a.stat] < orderIndex[b.stat] end)
+    for i, frame in ipairs(shown) do
+        if not orderIndex[frame.stat] then
+            local insertAt = 1
+            local predecessor = shown[i - 1]
+            if predecessor then
+                insertAt = tIndexOf(ordered, predecessor) + 1
+            end
+            tinsert(ordered, insertAt, frame)
+        end
+    end
+    shown = ordered
 
     local placed = {}
     for i, frame in ipairs(shown) do

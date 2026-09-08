@@ -701,16 +701,22 @@ local function updateStats(self)
         tinsert(entries, frame)
     end
 
-    local set = GW.settings.CHARACTER_SHOW_SET_BONUS and GetBestEquippedSet()
-    if set then
-        local color = set.allBonusesActive and GREEN_FONT_COLOR or set.anyBonusActive and YELLOW_FONT_COLOR or GRAY_FONT_COLOR
-        AddSpecialTile("SETBONUS", "Set", set.worn .. "/" .. set.total, color, setBonus_OnEnter, set)
+    if GW.settings.CHARACTER_SHOW_SET_BONUS then
+        local set = GetBestEquippedSet()
+        if set then
+            local color = set.allBonusesActive and GREEN_FONT_COLOR or set.anyBonusActive and YELLOW_FONT_COLOR or GRAY_FONT_COLOR
+            AddSpecialTile("SETBONUS", "Set", set.worn .. "/" .. set.total, color, setBonus_OnEnter, set)
+        elseif editMode then
+            AddSpecialTile("SETBONUS", "Set", "-", GRAY_FONT_COLOR, setBonus_OnEnter)
+        end
     end
 
-    local dungeonScore = C_ChallengeMode.GetOverallDungeonScore()
-    if dungeonScore and dungeonScore > 0 then
+    local dungeonScore = C_ChallengeMode.GetOverallDungeonScore() or 0
+    if dungeonScore > 0 then
         local color = C_ChallengeMode.GetDungeonScoreRarityColor(dungeonScore) or HIGHLIGHT_FONT_COLOR
         AddSpecialTile("DUNGEONSCORE", "M+", dungeonScore, color, dungeonScore_OnEnter)
+    elseif editMode then
+        AddSpecialTile("DUNGEONSCORE", "M+", "-", GRAY_FONT_COLOR, dungeonScore_OnEnter)
     end
 
     for _, category in ipairs(PAPERDOLL_STATCATEGORIES) do
