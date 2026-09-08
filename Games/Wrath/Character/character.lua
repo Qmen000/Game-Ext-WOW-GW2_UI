@@ -247,9 +247,14 @@ local function setStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y
     statFrame.Value:SetText(statText)
     GW.PaperDollSetStatIcon(statFrame, stat)
 
+    statFrame.icon:ClearAllPoints()
     if stat == "DURABILITY" then
         statFrame.icon:SetSize(25, 25)
+        statFrame.icon:SetPoint("LEFT", 5, 0)
         GW.DurabilityOnEvent(statFrame, "ForceUpdate")
+    else
+        statFrame.icon:SetSize(35, 35)
+        statFrame.icon:SetPoint("LEFT")
     end
     GW.StatsPicker.RegisterTile(GwDressingRoom.stats, statFrame)
     statFrame.gwStatVisible = GW.StatsPicker.IsVisible(stat, true)
@@ -422,9 +427,9 @@ local function PaperDollSetStatIcon(self, stat)
         self.icon:SetTexture(newTexture)
         if stat == "DURABILITY" then
             self.icon:SetTexCoord(0, 1, 0, 0.5)
-            self.icon:SetDesaturated(true)
         end
     end
+    self.icon:SetDesaturated(stat == "DURABILITY")
 end
 GW.PaperDollSetStatIcon = PaperDollSetStatIcon
 

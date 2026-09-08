@@ -233,11 +233,14 @@ local function setStatFrame(stat, index, statText, tooltip, tooltip2, grid, x, y
     statFrame.stat = stat
     GW.PaperDollSetStatIcon(statFrame, stat)
 
-    statFrame:ClearAllPoints()
+    statFrame.icon:ClearAllPoints()
     if stat == "DURABILITY" then
         statFrame.icon:SetSize(25, 25)
+        statFrame.icon:SetPoint("LEFT", 5, 0)
         GW.DurabilityOnEvent(statFrame, "ForceUpdate")
     else
+        statFrame.icon:SetSize(35, 35)
+        statFrame.icon:SetPoint("LEFT")
         statFrame.Value:SetText(statText)
     end
     -- placed by the stats picker at the end of the update
@@ -406,9 +409,9 @@ local function PaperDollSetStatIcon(self, stat)
         self.icon:SetTexture(newTexture)
         if stat == "DURABILITY" then
             self.icon:SetTexCoord(0, 1, 0, 0.5)
-            self.icon:SetDesaturated(true)
         end
     end
+    self.icon:SetDesaturated(stat == "DURABILITY")
 end
 GW.PaperDollSetStatIcon = PaperDollSetStatIcon
 
