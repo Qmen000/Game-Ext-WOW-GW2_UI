@@ -1075,3 +1075,7 @@ L["Delves Weekly"] = true
 L["Archives Weekly"] = true
 L["Dungeon Weekly"] = true
 L["Weekend Event"] = true
+L["Prey Hunt"] = true
+L["Silvermoon Court"] = true
+L["Zul'jarra's Forces"] = true
+L["Slayer's Duellum"] = true

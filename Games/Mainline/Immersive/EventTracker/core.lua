@@ -151,7 +151,7 @@ function ET.StorylineQuestProgress(args)
             end
 
             if C_QuestLog.IsOnQuest(questID) then
-                weeklyQuestID, status = questID, "inProgress"
+                weeklyQuestID, status = questID, C_QuestLog.IsComplete(questID) and "readyForTurnIn" or "inProgress"
                 break
             end
         end
@@ -161,6 +161,8 @@ function ET.StorylineQuestProgress(args)
         local rightText
         if status == "inProgress" then
             rightText = prefix .. ET.StringByTemplate(IN_PROGRESS, "warning")
+        elseif status == "readyForTurnIn" then
+            rightText = prefix .. ET.StringByTemplate(QUEST_WATCH_QUEST_READY, "success")
         elseif status == "completed" then
             rightText = prefix .. ET.StringByTemplate(CRITERIA_COMPLETED, "success")
         else

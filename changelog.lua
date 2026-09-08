@@ -25,6 +25,7 @@ addChange("11.1.6", {
     {GW.Enum.ChangelogType.bug, [=[Micro menu: the inventory and character tooltips no longer stay open after leaving the button]=]},
     {GW.Enum.ChangelogType.bug, [=[Micro menu: the quest counter no longer includes hidden quests]=]},
     {GW.Enum.ChangelogType.change, [=[World event tracker: code split per expansion, less work per tick, fixed the taskbar flash option, the next event time in the micro menu tooltip and alerts of disabled events]=]},
+    {GW.Enum.ChangelogType.change, [=[World event tracker: new Midnight weekly storylines (Prey Hunt, Silvermoon Court, Zul'jarra's Forces, Slayer's Duellum), updated Liadrin quest list and a "ready for turn-in" state in the tooltip]=]},
     {GW.Enum.ChangelogType.bug, [=[Action bars are now layered above the objectives tracker]=]},
     {GW.Enum.ChangelogType.bug, [=[Fix minimap coordinates staying at N/A or frozen depending on the order the options were enabled]=]},
     {GW.Enum.ChangelogType.bug, [=[Show the "Move to Inactive" toggle in the reputation details on era clients]=]},

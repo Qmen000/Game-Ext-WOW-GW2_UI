@@ -111,7 +111,13 @@ end
 local weeklyMNStorylines = {
     [ET.WeeklyName(7578704, L["Liadrin 4 > 1"], 2393)] = {
         -- https://www.wowhead.com/npc=256203/lady-liadrin
-        93766, 93767, 93769, 93889, 93890, 93891, 93892, 93909, 93910, 93911, 93912, 93913, 94457,
+        93766, 93767, 93769, 93889, 93890, 93891, 93892, 93909, 93911, 93912, 93913, 94457,
+        95842, 95843, 96727, 98232,
+    },
+    [ET.WeeklyName(7578704, L["Prey Hunt"], 2393)] = {
+        -- https://www.wowhead.com/quest=94446/a-nightmarish-task
+        -- https://www.wowhead.com/quest=93910/midnight-prey
+        94446, 93910,
     },
     [ET.WeeklyName(5554512, L["Dungeon"], 2393)] = {
         -- https://www.wowhead.com/npc=256210/halduron-brightwing
@@ -124,6 +130,19 @@ local weeklyMNStorylines = {
     [ET.WeeklyName(7385004, L["Legend"], 2413)] = {
         -- https://www.wowhead.com/npc=238170/zurashar-kassameh#ends
         89268, 92713,
+    },
+    [ET.WeeklyName(236681, L["Silvermoon Court"], 2395)] = {
+        -- https://www.wowhead.com/quest=89289/favor-of-the-court
+        89289,
+    },
+    [ET.WeeklyName(7431083, L["Zul'jarra's Forces"], 2512)] = {
+        -- https://www.wowhead.com/quest=96995/turn-back-the-surge
+        -- https://www.wowhead.com/quest=95520/purging-the-vaults
+        96995, 95520,
+    },
+    [ET.WeeklyName(236681, L["Slayer's Duellum"], 2444)] = {
+        -- https://www.wowhead.com/quest=89354/preparing-for-battle
+        89354,
     },
 }
 
